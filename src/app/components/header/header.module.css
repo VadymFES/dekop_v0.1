@@ -1,113 +1,138 @@
 
 .header {
-    display: flex;
-    width: 100%;
-    height: 84px;
-    align-items: center;
-    padding: 0 20px; /* Horizontal padding for header */
-    background: #FEFDFC99;
-    box-shadow: 0px 8px 24px 0px #1601013D;
-    backdrop-filter: blur(36px)
-  
-  
-  }
-  
-  .logo_header {
-    font-size: 24px;
-    font-weight: bold;
-    flex-shrink: 0; /* Prevent the logo from shrinking */
-    margin-right: 20px; /* Space between logo and activities */
-  }
-  
-  .nav {
-    display: flex;
-    align-items: center;
-    position: relative;
-    flex-grow: 1; /* Takes the remaining space */
-    justify-content: space-between; /* Distribute space between logo, activities, and icons */
-  }
-  
-  .activities {
-    display: flex;
-    width: 506px;
-    flex-direction: column; /* Stack the search bar and buttons vertically */
-    align-items: center; /* Center the buttons horizontally */
-  }
-  
-  .activityButtons {
-    display: flex; /* Use flex to arrange buttons horizontally */
-    align-items: center;
-    gap: 9px; /* Space between buttons */
-  }
-  
-  .catalogWrapper {
-    position: relative; /* Required for positioning the dropdown */
-  }
-  
-  .navButton {
-    width: 111px;
-    height: 24px;
-    padding: 8px 12px;
-    border: none;
-    background-color: #FEFDFC99;
-    color: #160101;
-    cursor: pointer;
-    border-radius: 4px;
-    margin-top: 8px;
-  }
-  
-  .searchBar {
-    width: 256px;
-    height: 24px;
-    padding: 4px 6px 4px 6px;
-    border-radius: 4px 0px 0px 0px;
-    background: #FEFDFC;
-    box-shadow: 0px 0px 3px 0px #1601018A;
-  
-  }
-  
-  .dropdown {
-    position: absolute; /* Position dropdown relative to the catalog button */
-    top: 100%; /* Position it directly below the button */
-    left: 0;
-    list-style: none;
-    padding: 10px;
-    background-color: #FEFDFC99;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 100; /* Ensure it appears above other elements */
-  }
-  
-  .dropdownItem {
-    padding: 10px 20px;
-    cursor: pointer;
-  }
-  
-  .dropdownItem:hover {
-    background-color: #f1f1f1;
-  }
-  
-  .rightIcons {
-    display: flex; /* Align the icon buttons horizontally */
-    align-items: center; /* Center them vertically */
-    gap: 30px; /* Space between icons */
-  }
-  
-  .iconContainer {
-    display: flex; /* Stack the icon and label vertically */
-    flex-direction: column; /* Arrange children in a column */
-    align-items: center; /* Center items horizontally */
-  }
-  
-  .iconButton {
-    background: none; /* Remove background */
-    border: none; /* Remove border */
-    font-size: 24px; /* Size for the icon */
-    cursor: pointer; /* Pointer cursor on hover */
-  }
-  
-  .iconLabel {
-    font-size: 14px; /* Adjust size for the label */
-    margin-top: 5px; /* Space between icon and label */
-    text-align: center; /* Center text under icon */
-  }
+  display: flex;
+  width: 100%;
+  height: 84px;
+  align-items: center;
+  padding: 0 20px; /* Horizontal padding for header */
+  background: #FEFDFC99;
+  box-shadow: 0px 8px 24px 0px #1601013D;
+  backdrop-filter: blur(36px);
+
+
+}
+
+.logo_header {
+  /* width: 126.15px;
+  height: 68px; */
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex-grow: 1; /* Takes the remaining space */
+  justify-content: space-between; /* Distribute space between logo, activities, and icons */
+  margin: 0 40px;
+}
+
+.activities {
+  display: flex;
+  width: 506px;
+  flex-direction: column; /* Stack the search bar and buttons vertically */
+  align-items: center; /* Center the buttons horizontally */
+  margin-top: 10px;
+}
+
+.activityButtons {
+  display: flex; /* Use flex to arrange buttons horizontally */
+  align-items: center;
+  padding-top: 15px;
+  gap: 24px; /* Space between buttons */
+}
+
+.catalogWrapper {
+  position: relative; /* Required for positioning the dropdown */
+}
+
+.navButton {
+  display: flex;
+  width: fit-content;
+  height: 24px;
+  border: none;
+  background-color: transparent;
+  color: #160101;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 2px 16px 2px 16px;
+  gap: 20px; /* Space between icon and text */
+  font-size: 14px;
+}
+
+.navButton:hover {
+  color: #E2281B;
+
+}
+
+.searchBar {
+  width: 256px;
+  height: 24px;
+  padding: 4px 6px 4px 6px;
+  border-radius: 4px;
+  background: #FEFDFC;
+  box-shadow: 0px 0px 3px 0px #1601018A;
+  border: none;
+
+}
+
+.dropdown {
+  position: absolute; /* Position dropdown relative to the catalog button */
+  top: 100%; /* Position it directly below the button */
+  left: 0;
+  list-style: none;
+  padding: 10px;
+  background-color: #FEFDFC99;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100; /* Ensure it appears above other elements */
+}
+
+.dropdownItem {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background-color: #f1f1f1;
+}
+
+.rightIcons {
+  display: flex; /* Align the icon buttons horizontally */
+  align-items: center; /* Center them vertically */
+  gap: 20px; /* Space between icons */
+  margin-top: 10px;
+}
+
+.iconContainer {
+  display: flex; /* Stack the icon and label vertically */
+  flex-direction: column; /* Arrange children in a column */
+  align-items: center; /* Center items horizontally */
+  position: relative; /* Required for positioning the badge */
+}
+
+.iconButton {
+  background: none; /* Remove background */
+  border: none; /* Remove border */
+  font-size: 24px; /* Size for the icon */
+  cursor: pointer; /* Pointer cursor on hover */
+  position: relative;
+}
+
+.iconLabel {
+  font-size: 11px; /* Adjust size for the label */
+  margin-top: 5px; /* Space between icon and label */
+  text-align: center; /* Center text under icon */
+}
+
+/* Badge styling */
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  line-height: 1;
+}
