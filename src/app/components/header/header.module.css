@@ -112,17 +112,28 @@
 }
 
 .iconButton {
+  display: flex; /* Flexbox for alignment */
+  flex-direction: column; /* Stack icon and label vertically */
+  align-items: center; /* Center icon and label */
   background: none; /* Remove background */
   border: none; /* Remove border */
-  font-size: 24px; /* Size for the icon */
-  cursor: pointer; /* Pointer cursor on hover */
-  position: relative;
+  cursor: pointer; /* Pointer cursor */
+  gap: 5px; /* Space between icon and label */
+  padding: 0; /* Remove padding */
+  color: #160101; /* Icon color */}
+
+.iconButton svg {
+  width: 24px; /* Adjust icon size */
+  height: 24px;
+}
+
+.iconButton:hover {
+  color: #E2281B; /* Change color on hover */
 }
 
 .iconLabel {
-  font-size: 11px; /* Adjust size for the label */
-  margin-top: 5px; /* Space between icon and label */
-  text-align: center; /* Center text under icon */
+  font-size: 11px; /* Label font size */
+  text-align: center; /* Center text */
 }
 
 /* Badge styling */
