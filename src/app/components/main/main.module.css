@@ -286,6 +286,13 @@
   object-position: right; /* Show right part of the image */
 }
 
+.bodyCategories {
+  display: flex; /* Flexbox for categories section */
+  flex-direction: column; /* Stack children vertically */
+  gap: 20px; /* Space between categories */
+  margin: 1rem 4rem; /* Margin on top and bottom */
+}
+
 .advantages_container_categories{
   display: flex; /* Flexbox for advantages section */
   justify-content: space-around; /* Distribute space around children */
