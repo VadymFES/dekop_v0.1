@@ -2,7 +2,8 @@
 
 import styles from "./main.module.css";
 import Link from "next/link";
-import Image from "next/image";
+import { useState } from "react";
+import ProductCard from "../productCard/productCard";
 
 const products = [
   {
@@ -56,6 +57,25 @@ const products = [
 ];
 
 const Main = () => {
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 3; // Show 3 products per carousel page
+
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
+  const currentProducts = products.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
   return (
     <div className={styles.container}>
       <main className={styles.mainContent}>
@@ -170,37 +190,9 @@ const Main = () => {
 
             {/* Main product grid with 3x2 layout */}
             <div className={styles.productGrid}>
-              {products.slice(0, 6).map((product, index) => (
-                <div key={index} className={styles.productCard}>
-                  <Link key={index} href={`/product/${product.id}`} >
-                    <div>
-                      <img src={product.image} alt={product.name} className={styles.productImage} />
-
-                      <div className={styles.productDetails}>
-                        <div className={styles.productInfo}>
-                          <p className={styles.productName}>{product.name}</p>
-                          <p className={styles.productType}>{product.type}</p>
-                        </div>
-
-                        <div className={styles.productMeta}>
-                          <p className={styles.productRating}>{product.rating}</p>
-                          <p className={styles.productPrice}>{product.price} грн</p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <button
-                    className={styles.addToCartButton}
-                    onClick={(e) => {
-                      //"add to cart" logic here
-                      console.log('Product added to cart');
-                    }}
-                  >
-                    Додати в кошик
-                  </button>
-                </div>
-              ))}
+            {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
             </div>
 
 
@@ -434,7 +426,60 @@ const Main = () => {
 
           </div>
         </section>
+            
+            <section className={styles.bankBanner}>
+                <div className={styles.bankBannerImage}>
+                  <img src="/banner.jpg" alt="bank" className={styles.bankBannerImage}/>
+                </div>
+            </section>
 
+      {/* Sale Carousel Section */}
+      <section className={styles.saleCarousel}>
+        <div className={styles.bodyContentHeader}>
+          <h2 className={styles.bodyContentTitle}>Ціни знижено</h2>
+          <button className={styles.bodyContentButton}>Переглянути всі</button>
+        </div>
+
+        <div className={styles.carousel}>
+          {currentProducts.map((product, index) => (
+            <div key={index} className={styles.carouselItem}>
+              <Link href={`/product/${product.id}`} key={index}>
+                <div>
+                  <div className={styles.productDetails}>
+                    <div className={styles.productInfo}>
+                      <p className={styles.productName}>{product.name}</p>
+                      <p className={styles.productType}>{product.type}</p>
+                    </div>
+
+                    <div className={styles.productMeta}>
+                      <p className={styles.productRating}>Rating: {product.rating}</p>
+                      <p className={styles.productPrice}>{product.price} грн</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              <button
+                className={styles.addToCartButton}
+                onClick={() => console.log("Added to cart:", product.name)}
+              >
+                Додати в кошик
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className={styles.pagination}>
+          <button onClick={prevPage} disabled={currentPage === 1}>
+            Попередня
+          </button>
+          <span>Сторінка {currentPage} з {totalPages}</span>
+          <button onClick={nextPage} disabled={currentPage === totalPages}>
+            Наступна
+          </button>
+        </div>
+      </section>
 
 
       </main>
