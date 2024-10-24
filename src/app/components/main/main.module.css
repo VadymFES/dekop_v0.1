@@ -148,7 +148,6 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3 columns */
   grid-template-rows: repeat(2, 1fr); /* 2 rows */
-  gap: 20px; /* Space between grid items */
   height: 700px; /* Full height matching the special showcase */
 }
 
@@ -196,7 +195,7 @@
 
 .iconBoxCatg{
   width: 98px; /* Width of the icon box */
-  height: 100px; /* Height of the icon box */
+  height: 115px; /* Height of the icon box */
   background-color: #F4F3F3; /* Gray background */
   border-radius: 22px; /* Rounded corners */
   display: flex; /* Flexbox for centering the SVG */
@@ -222,8 +221,152 @@
   border-radius: 6px;
 }
 
+
+/* carousel */
+
 .saleCarousel {
-  display: flex; /* Flexbox for categories section */
-  flex-direction: column; /* Stack children vertically */
-  margin: 1rem 4rem; /* Margin on top and bottom */
+  margin: 1rem 4rem;
+}
+
+.bodyContentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.carouselContainer {
+  display: flex;
+  overflow: hidden; /* Сховати елементи, які виходять за межі контейнера */
+  justify-content: center;
+}
+
+.carousel {
+  display: flex;
+  justify-content: space-between;
+  transition: transform 0.3s ease; /* Smooth transition for carousel effect */
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.arrowButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 4rem;
+  display: flex;
+  align-items: center;
+}
+
+.arrowButton:active{
+  transform: scale(0.9);
+}
+.paginationContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.paginationCircle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 0.4rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.paginationCircle.active {
+  background-color: #F45145; /* Highlight active page */
+}
+
+/*Materials styles*/
+
+.bodyMaterials {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
+  margin: 1rem 4rem;
+  flex-direction: column;
+}
+
+.materialsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.material {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive design */
+
+
+
+@media (max-width: 1520px) {
+
+  .specialProductShowcase,
+  .bankBanner {
+    display: none; /* Hide the showcase */
+  }
+}
+
+@media (max-width: 600px) {
+  .carousel {
+    margin: 0.1rem 0.4rem;
+    }
+  .advantages_container_categories{
+    display: grid;
+    grid-template-columns: repeat(3, 2fr);
+    grid-template-rows: 3fr;
+    margin-bottom: 14rem;
+  }
+.bodyContentHeader {
+  display: flex;             
+  justify-content: space-between;
+  align-items: center;        
+  padding: 10px 0;            
+}
+
+.bodyContentTitle {
+  font-size: 1.5rem;            
+}
+
+.bodyContentButton {
+  width: 170px;
+  height: 44px; 
+  padding: 0; 
+}
+
+  .bodyContent,
+  .bodyCategories {
+    margin: 1rem 1rem;
+  }
+
+  .iconBoxCatg {
+    margin: 0.3rem;
+  }
+
+
+}
+
+@media (max-width: 400px) {
+  .saleCarousel {
+    margin: 0.1rem 0.4rem;
+  }
+
+  .productGrid {
+    grid-template-columns: 2, 1fr ; /* 1 card per row on very small screens */
+    grid-template-rows: 3, 1fr;
+
+  }
 }
