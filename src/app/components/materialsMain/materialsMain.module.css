@@ -1,0 +1,82 @@
+.materialsMainContainer {
+    width: 100%;
+}
+
+.materialTypes {
+    display: flex;
+    justify-content: center;
+    width: 1200px;
+    height: 50px;
+    margin-bottom: 20px;
+    background-color: #F4F3F3; /* Set the background color of the button box */
+    border-radius: 50px; /* Optional: Rounded corners for the button box */
+}
+
+.materialTypeButton {
+    background-color: #F4F3F3; /* Button background color */
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: #160101;
+    font-size: 18px;
+    border-radius: 50px;
+    flex: 1; /* Makes buttons take equal space */
+}
+
+.materialTypeButton:hover {
+    color: #E2281B; /* Change text color on hover */
+    border-bottom: 0.6px solid #E2281B; /* Active underline effect */
+    transition: color 0.3s ease, border-bottom 0.3s ease; /* Ensure active state has smooth transition as well */
+}
+
+.materialTypeButton.active {
+    color: #E2281B; /* Active text color */
+    border-bottom: 0.6px solid #E2281B; /* Active underline effect */
+}
+
+
+.materialCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+}
+
+.materialInfo {
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack title and description vertically */
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    margin-left: 7rem;
+    max-width: 400px; /* Set a maximum width for the text area */
+}
+
+.materialTitle {
+    font-size: 20px;
+    color: #160101;
+    margin-bottom: 10px;
+}
+
+.materialDescription {
+    font-size: 16px;
+    color: #160101;
+    text-align: justify;
+    width: 384px; /* Adjust as necessary */
+}
+
+.materialImageWrapper {
+    flex-shrink: 0; /* Prevent the image from shrinking */
+    display: flex; /* Make it a flex container */
+    justify-content: center; /* Center image horizontally */
+    align-items: center; /* Center image vertically */
+    width: 500px; /* Image width */
+    margin-right: 2rem;
+}
+
+.materialImage {
+    width: 100%; /* Image width */
+    max-height: 350px;
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 6px; /* Rounded corners */
+    object-fit: cover; /* Cover the area without distorting */
+}
