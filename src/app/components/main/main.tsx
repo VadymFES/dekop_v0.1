@@ -1,9 +1,10 @@
 "use client";
 
 import styles from "./main.module.css";
-import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSwipeable } from 'react-swipeable';
 import ProductCard from "../productCard/productCard";
+import MaterialsMain from "../materialsMain/materialsMain";
 
 const products = [
   {
@@ -54,26 +55,119 @@ const products = [
     rating: 4.2,
     type: "kitchen",
   },
+  {
+    id: 7,
+    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "Product 6",
+    price: 600,
+    rating: 4.2,
+    type: "kitchen",
+  },
+  {
+    id: 8,
+    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "Product 8",
+    price: 600,
+    rating: 4.2,
+    type: "kitchen",
+  },
+  {
+    id: 9,
+    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "Product 9",
+    price: 600,
+    rating: 4.2,
+    type: "kitchen",
+  },
+  {
+    id: 10,
+    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "Product 10",
+    price: 600,
+    rating: 4.2,
+    type: "kitchen",
+  },
+  {
+    id: 11,
+    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    name: "Product 11",
+    price: 600,
+    rating: 4.2,
+    type: "kitchen",
+  },
 ];
 
+
+
 const Main = () => {
-
   const [currentPage, setCurrentPage] = useState(1);
-  const PRODUCTS_PER_PAGE = 3; // Show 3 products per carousel page
+  const [productsPerPage, setProductsPerPage] = useState(4); // Default to show 4 products
 
-  // Pagination logic
-  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
-  const currentProducts = products.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
-  );
+  // Function to update products per page based on screen size
+  const updateProductsPerPage = () => {
+    if (window.innerWidth < 768) {
+      setProductsPerPage(1); // Show 1 product on small screens
+    } else if (window.innerWidth < 1063) {
+      setProductsPerPage(2); // Show 2 products on medium screens
+    } else if (window.innerWidth < 1350) {
+      setProductsPerPage(3); // Show 3 products on larger screens
+    } else {
+      setProductsPerPage(4); // Show 4 products on wider screens
+    }
+  };
+
+  useEffect(() => {
+    // Set initial products per page
+    updateProductsPerPage();
+
+    // Add event listener for resizing the window
+    window.addEventListener('resize', updateProductsPerPage);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener('resize', updateProductsPerPage);
+    };
+  }, []);
+
+  // Calculate the total number of pages
+  const totalPages = Math.ceil(products.length / productsPerPage);
+
+  // Get the products for the current page
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const currentProducts = products.slice(startIndex, startIndex + productsPerPage);
 
   const nextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
   const prevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Handle swipe gestures
+  const handlers = useSwipeable({
+    onSwipedLeft: nextPage, // Swipe left to go to the next page
+    onSwipedRight: prevPage, // Swipe right to go to the previous page
+    trackMouse: true,
+  });
+
+  // Pagination Circle Logic to show only 3 circles
+  const getDisplayedPages = () => {
+    if (totalPages <= 3) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1); // Show all pages if total is 3 or less
+    }
+
+    if (currentPage === 1) {
+      return [1, 2, 3]; // Show first three pages if on the first page
+    } else if (currentPage === totalPages) {
+      return [totalPages - 2, totalPages - 1, totalPages]; // Show last three pages if on the last page
+    } else {
+      return [currentPage - 1, currentPage, currentPage + 1]; // Show the previous, current, and next page
+    }
   };
 
   return (
@@ -183,16 +277,18 @@ const Main = () => {
         <section className={styles.bodyContent}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Новинки</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі</button>
+            <button className={styles.bodyContentButton}>Переглянути всі <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg></button>
           </div>
 
           <div className={styles.bodyContentGrid}>
 
             {/* Main product grid with 3x2 layout */}
             <div className={styles.productGrid}>
-            {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+              {products.slice(0, 6).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
 
 
@@ -426,60 +522,70 @@ const Main = () => {
 
           </div>
         </section>
-            
-            <section className={styles.bankBanner}>
-                <div className={styles.bankBannerImage}>
-                  <img src="/banner.jpg" alt="bank" className={styles.bankBannerImage}/>
-                </div>
-            </section>
 
-      {/* Sale Carousel Section */}
-      <section className={styles.saleCarousel}>
-        <div className={styles.bodyContentHeader}>
-          <h2 className={styles.bodyContentTitle}>Ціни знижено</h2>
-          <button className={styles.bodyContentButton}>Переглянути всі</button>
-        </div>
+        <section className={styles.bankBanner}>
+          <div className={styles.bankBannerImage}>
+            <img src="/banner.jpg" alt="bank" className={styles.bankBannerImage} />
+          </div>
+        </section>
 
-        <div className={styles.carousel}>
-          {currentProducts.map((product, index) => (
-            <div key={index} className={styles.carouselItem}>
-              <Link href={`/product/${product.id}`} key={index}>
-                <div>
-                  <div className={styles.productDetails}>
-                    <div className={styles.productInfo}>
-                      <p className={styles.productName}>{product.name}</p>
-                      <p className={styles.productType}>{product.type}</p>
-                    </div>
+        <section className={styles.saleCarousel} {...handlers}>
+          <div className={styles.bodyContentHeader}>
+            <h2 className={styles.bodyContentTitle}>Ціни знижено</h2>
+            <button className={styles.bodyContentButton}>Переглянути всі <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg></button>
+          </div>
 
-                    <div className={styles.productMeta}>
-                      <p className={styles.productRating}>Rating: {product.rating}</p>
-                      <p className={styles.productPrice}>{product.price} грн</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-
-              <button
-                className={styles.addToCartButton}
-                onClick={() => console.log("Added to cart:", product.name)}
-              >
-                Додати в кошик
-              </button>
+          <div className={styles.carouselContainer}>
+            <div className={styles.carousel}>
+              {currentProducts.map((product, index) => (
+                <ProductCard key={index} product={product} />
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Pagination Controls */}
-        <div className={styles.pagination}>
-          <button onClick={prevPage} disabled={currentPage === 1}>
-            Попередня
-          </button>
-          <span>Сторінка {currentPage} з {totalPages}</span>
-          <button onClick={nextPage} disabled={currentPage === totalPages}>
-            Наступна
-          </button>
-        </div>
-      </section>
+          {/* Pagination Controls */}
+          <div className={styles.pagination}>
+            {/* Previous Arrow */}
+            <button onClick={prevPage} disabled={currentPage === 1} className={styles.arrowButton}>
+              <svg width="34" height="24" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {/* Pagination Circles */}
+            {getDisplayedPages().map(page => (
+              <div
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`${styles.paginationCircle} ${currentPage === page ? styles.active : ""}`}
+              />
+            ))}
+
+            {/* Next Arrow */}
+            <button onClick={nextPage} disabled={currentPage === totalPages} className={styles.arrowButton}>
+              <svg width="34 " height="24" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <section className={styles.bodyMaterials}>
+          <div className={styles.bodyContentHeader}>
+            <h2 className={styles.bodyContentTitle}>Матеріали</h2>
+            <button className={styles.bodyContentButton}>Дізнатися більше  <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            </button>
+          </div>
+
+          <div className={styles.materialsContainer}>
+            <MaterialsMain />
+          </div>
+        </section>
+
 
 
       </main>
