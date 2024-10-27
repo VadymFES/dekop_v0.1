@@ -284,21 +284,30 @@
   width: 100vw; /* Full width */
   background: #F4F3F3;
   margin: 1rem 0;
+  height: 364px;
 }
 
 .partners {
   display: grid;
   grid-template-columns: repeat(6, 1fr); /* 6 fixed columns */
   grid-template-rows: repeat(2, 1fr);    /* 2 fixed rows */
-  gap: 1rem;
   justify-items: center;
+  align-items: center;
+  margin: 0 4rem;
 }
 
 .partner {
-  max-width: 100px; /* Adjust logo size if needed */
-  max-height: 70px; /* Adjust logo size if needed */
+  margin: 1rem 0;
+  max-width: 150px; /* Adjust logo size if needed */
+  max-height: 100px; /* Adjust logo size if needed */
 }
 
+.bodyReviews {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
+  margin: 1rem 4rem;
+  flex-direction: column;
+}
 
 
 

@@ -7,6 +7,7 @@ import ProductCard from "../productCard/productCard";
 import MaterialsMain from "../materialsMain/materialsMain";
 import Pagination from "../pagination/pagination";
 import Bestsellers from "../bestsellers/bestsellersMain";
+import ReviewsSection from "../review/reviewSection";
 
 const products = [
   {
@@ -576,6 +577,24 @@ const Main = () => {
               <img src="/textoria_logo.svg" alt="partner" className={styles.partner} />
             </div>
           </div>
+          </section>
+
+            <section className={styles.bodyReviews}>
+              <div className={styles.bodyContentHeader}>
+                <h2 className={styles.bodyContentTitle}>Відгуки наших клієнтів</h2>
+              </div>
+
+              <div className={styles.reviewsContainer}>
+                <ReviewsSection />
+              </div>
+            </section>
+
+
+          <section className={styles.bodyMap}>
+
+            <div className={styles.mapContainer}>
+              {/* <Map /> */}
+            </div>
           </section>
 
       </main>

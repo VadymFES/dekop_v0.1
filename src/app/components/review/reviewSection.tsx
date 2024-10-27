@@ -1,4 +1,3 @@
-// ReviewsSection.js
 import React, { useState } from 'react';
 import styles from './reviewSection.module.css';
 import Review from './review';

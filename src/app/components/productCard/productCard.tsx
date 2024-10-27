@@ -27,13 +27,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <img src={product.image} alt={product.name} className={styles.productImage} />
 
             {product.isBestseller && (
-              <div className={styles.salesLeaderLabel}>Sales Leader</div>
+              <div className={styles.salesLeaderLabel}>Лідер продажів</div>
             )}
             {product.isNew && (
-              <div className={styles.newLabel}>New</div>
+              <div className={styles.newLabel}>Новинка</div>
             )}
             {product.isdiscount && (
-              <div className={styles.discountLabel}>Discount</div>
+              <div className={styles.discountLabel}>Знижка</div>
             )}
 
           </div>
