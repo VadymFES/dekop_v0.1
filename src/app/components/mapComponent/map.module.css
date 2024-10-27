@@ -1,0 +1,77 @@
+/* styles.css */
+.mapWrapper {
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Align items to the start of the container */
+    justify-content: center; /* Center items horizontally */
+    margin: 20px; /* Add some margin */
+
+  }
+  
+  .infoContainer {
+    width: 400px; /* Fixed width for the info container */
+    height: 448px;
+    padding: 20px;
+    margin-right: 20px; /* Space between info and map */
+  }
+
+  .address {
+    margin-bottom: 2rem; /* Space below address */
+  }
+
+  .logo {
+    width: 250px; /* Full width */
+    height: 138px;
+    margin-bottom: 10px; /* Space below logo */
+  }
+  
+  .contactInfo h2,
+  .contactInfo p {
+    display: flex;
+    align-items: center; /* Center icon and text vertically */
+    margin: 10px 0; /* Margin for spacing */
+  }
+  
+  .icon {
+    width: 24px; /* Adjust size of the icons */
+    height: auto;
+    margin-right: 8px; /* Space between icon and text */
+  }
+  
+  .socialLinks {
+    display: flex; /* Align items in a row */
+    gap: 10px; /* Space between buttons */
+    margin-top: 2rem; /* Space above buttons */
+  }
+  
+  .socialButton {
+    display: flex; /* Use flexbox to align icon and text */
+    align-items: center; /* Center icon vertically with text */
+    justify-content: center; /* Center icon horizontally with text */
+    padding: 10px 15px; /* Add padding for button look */
+    width: 180px;
+    height: 46px;
+    color: #160101; /* Text color */
+    font-size: 20px;
+    text-decoration: none; /* Remove underline */
+    border-radius: 50px; /* Make the button round */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+  }
+  
+  .socialButton:hover {
+    color: #E2281B;
+    transition: 0.4s;
+
+}
+  
+  .socialIcon {
+    width: 20px; /* Adjust icon size */
+    height: auto; /* Maintain aspect ratio */
+    margin-right: 5px; /* Space between icon and text */
+  }
+  
+  .mapContainer {
+    width: 588px; /* Smaller width for the map */
+    height: 448px; /* Smaller height for the map */
+  }
+  

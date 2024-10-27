@@ -8,6 +8,7 @@ import MaterialsMain from "../materialsMain/materialsMain";
 import Pagination from "../pagination/pagination";
 import Bestsellers from "../bestsellers/bestsellersMain";
 import ReviewsSection from "../review/reviewSection";
+import Map from "../mapComponent/map";
 
 const products = [
   {
@@ -593,7 +594,7 @@ const Main = () => {
           <section className={styles.bodyMap}>
 
             <div className={styles.mapContainer}>
-              {/* <Map /> */}
+              <Map />
             </div>
           </section>
 
