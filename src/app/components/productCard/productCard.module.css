@@ -27,15 +27,30 @@
     transition: transform 0.3s ease; /* Smooth scaling */
 
   }
-  
+
   .salesLeaderLabel {
+    background-color: #F3DDF8;
+    color: #160101;
+  }
+
+  .newLabel {
+    background-color: #DAF2C2;
+    color: #160101;
+  }
+
+  .discountLabel {
+    background-color: #F45145;
+    color: #FEFDFC;
+  }
+  
+  .salesLeaderLabel,
+  .discountLabel,
+  .newLabel {
     position: absolute;
     right: 6px;
     bottom: 4px;
-    background-color: #F3DDF8;
-    color: #160101;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 600;
     padding: 4px 8px;
     border-radius: 6px 0 6px 0;
     z-index: 10; 

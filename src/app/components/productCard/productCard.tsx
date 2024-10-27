@@ -13,6 +13,7 @@ interface ProductCardProps {
     price: number;
     isBestseller?: boolean; // New prop to indicate bestseller status
     isNew?: boolean; // New prop to indicate new product status
+    isdiscount?: boolean; // New prop to indicate discount percentage
   };
 }
 
@@ -24,7 +25,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div>
           <div className={styles.imageWrapper}>
             <img src={product.image} alt={product.name} className={styles.productImage} />
-            {product.isBestseller && <div className={styles.salesLeaderLabel}>Sales Leader</div>}
+
+            {product.isBestseller && (
+              <div className={styles.salesLeaderLabel}>Sales Leader</div>
+            )}
+            {product.isNew && (
+              <div className={styles.newLabel}>New</div>
+            )}
+            {product.isdiscount && (
+              <div className={styles.discountLabel}>Discount</div>
+            )}
+
           </div>
 
           <div className={styles.productDetails}>
