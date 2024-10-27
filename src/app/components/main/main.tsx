@@ -16,7 +16,7 @@ const products = [
     price: 12000,
     rating: 4,
     type: "Кутові дивани",
-    isBestseller: true,
+    isdiscount: true,
   },
   {
     id: 2,
@@ -43,7 +43,7 @@ const products = [
     price: 400,
     rating: 4.5,
     type: "wardrobe",
-    isNew: true,
+    isdiscount: true,
   },
   {
     id: 5,
