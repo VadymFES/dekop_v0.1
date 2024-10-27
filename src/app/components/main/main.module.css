@@ -246,48 +246,6 @@
   transition: transform 0.3s ease; /* Smooth transition for carousel effect */
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-}
-
-.arrowButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin: 0 4rem;
-  display: flex;
-  align-items: center;
-}
-
-.arrowButton:active{
-  transform: scale(0.9);
-}
-.paginationContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.paginationCircle {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: #ccc;
-  margin: 0 0.4rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.paginationCircle.active {
-  background-color: #F45145; /* Highlight active page */
-}
-
 /*Materials styles*/
 
 .bodyMaterials {
@@ -307,6 +265,41 @@
   align-items: center;
   justify-content: center;
 }
+
+
+.bodyBestsellers {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
+  margin: 1rem 4rem;
+  flex-direction: column;
+}
+
+.bestsellersContainer {
+  display: flex;
+  overflow: hidden; /* Сховати елементи, які виходять за межі контейнера */
+  justify-content: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Responsive design */
 

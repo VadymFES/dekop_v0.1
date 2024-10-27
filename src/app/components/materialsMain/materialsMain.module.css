@@ -71,6 +71,7 @@
     align-items: center; /* Center image vertically */
     width: 500px; /* Image width */
     margin-right: 2rem;
+    padding-bottom: 1.5rem ;
 }
 
 .materialImage {
