@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useSwipeable } from 'react-swipeable';
 import ProductCard from "../productCard/productCard";
 import MaterialsMain from "../materialsMain/materialsMain";
+import Pagination from "../pagination/pagination";
+import Bestsellers from "../bestsellers/bestsellersMain";
 
 const products = [
   {
@@ -14,6 +16,7 @@ const products = [
     price: 12000,
     rating: 4,
     type: "Кутові дивани",
+    isBestseller: true,
   },
   {
     id: 2,
@@ -22,6 +25,7 @@ const products = [
     price: 200,
     rating: 3,
     type: "Дивани",
+    isBestseller: true,
   },
   {
     id: 3,
@@ -30,6 +34,7 @@ const products = [
     price: 300,
     rating: 2.3,
     type: "sofa",
+    isNew: true,
   },
   {
     id: 4,
@@ -38,6 +43,7 @@ const products = [
     price: 400,
     rating: 4.5,
     type: "wardrobe",
+    isNew: true,
   },
   {
     id: 5,
@@ -46,6 +52,7 @@ const products = [
     price: 500,
     rating: 3.7,
     type: "sofa",
+    isBestseller: true,
   },
   {
     id: 6,
@@ -54,6 +61,7 @@ const products = [
     price: 600,
     rating: 4.2,
     type: "kitchen",
+    isBestseller: true,
   },
   {
     id: 7,
@@ -70,6 +78,7 @@ const products = [
     price: 600,
     rating: 4.2,
     type: "kitchen",
+    isNew: true,
   },
   {
     id: 9,
@@ -103,73 +112,40 @@ const Main = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage, setProductsPerPage] = useState(4); // Default to show 4 products
 
-  // Function to update products per page based on screen size
+  // Update products per page based on screen size
   const updateProductsPerPage = () => {
     if (window.innerWidth < 768) {
-      setProductsPerPage(1); // Show 1 product on small screens
+      setProductsPerPage(1); // Small screens: 1 product
     } else if (window.innerWidth < 1063) {
-      setProductsPerPage(2); // Show 2 products on medium screens
+      setProductsPerPage(2); // Medium screens: 2 products
     } else if (window.innerWidth < 1350) {
-      setProductsPerPage(3); // Show 3 products on larger screens
+      setProductsPerPage(3); // Larger screens: 3 products
     } else {
-      setProductsPerPage(4); // Show 4 products on wider screens
+      setProductsPerPage(4); // Wide screens: 4 products
     }
   };
 
   useEffect(() => {
-    // Set initial products per page
+    // Set initial products per page and listen to window resize
     updateProductsPerPage();
+    window.addEventListener("resize", updateProductsPerPage);
 
-    // Add event listener for resizing the window
-    window.addEventListener('resize', updateProductsPerPage);
-
-    // Clean up the event listener on component unmount
     return () => {
-      window.removeEventListener('resize', updateProductsPerPage);
+      window.removeEventListener("resize", updateProductsPerPage);
     };
   }, []);
 
-  // Calculate the total number of pages
+  // Pagination logic
   const totalPages = Math.ceil(products.length / productsPerPage);
-
-  // Get the products for the current page
   const startIndex = (currentPage - 1) * productsPerPage;
   const currentProducts = products.slice(startIndex, startIndex + productsPerPage);
 
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
   // Handle swipe gestures
   const handlers = useSwipeable({
-    onSwipedLeft: nextPage, // Swipe left to go to the next page
-    onSwipedRight: prevPage, // Swipe right to go to the previous page
-    trackMouse: true,
+    onSwipedLeft: () => setCurrentPage((prev) => Math.min(prev + 1, totalPages)), // Swipe left for next page
+    onSwipedRight: () => setCurrentPage((prev) => Math.max(prev - 1, 1)), // Swipe right for previous page
+    trackMouse: true, // Enable mouse tracking
   });
-
-  // Pagination Circle Logic to show only 3 circles
-  const getDisplayedPages = () => {
-    if (totalPages <= 3) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1); // Show all pages if total is 3 or less
-    }
-
-    if (currentPage === 1) {
-      return [1, 2, 3]; // Show first three pages if on the first page
-    } else if (currentPage === totalPages) {
-      return [totalPages - 2, totalPages - 1, totalPages]; // Show last three pages if on the last page
-    } else {
-      return [currentPage - 1, currentPage, currentPage + 1]; // Show the previous, current, and next page
-    }
-  };
-
   return (
     <div className={styles.container}>
       <main className={styles.mainContent}>
@@ -545,31 +521,7 @@ const Main = () => {
             </div>
           </div>
 
-          {/* Pagination Controls */}
-          <div className={styles.pagination}>
-            {/* Previous Arrow */}
-            <button onClick={prevPage} disabled={currentPage === 1} className={styles.arrowButton}>
-              <svg width="34" height="24" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-
-            {/* Pagination Circles */}
-            {getDisplayedPages().map(page => (
-              <div
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`${styles.paginationCircle} ${currentPage === page ? styles.active : ""}`}
-              />
-            ))}
-
-            {/* Next Arrow */}
-            <button onClick={nextPage} disabled={currentPage === totalPages} className={styles.arrowButton}>
-              <svg width="34 " height="24" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </section>
 
         <section className={styles.bodyMaterials}>
@@ -586,7 +538,22 @@ const Main = () => {
           </div>
         </section>
 
+        <section className={styles.bodyBestsellers}>
+          <div className={styles.bodyContentHeader}>
+            <h2 className={styles.bodyContentTitle}>Популярне</h2>
+            <button className={styles.bodyContentButton}>Переглянути всі <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            </button>
+          </div>
 
+          <div className={styles.bestsellersContainer}>
+            {currentProducts.map((product) => (
+              <Bestsellers key={product.id} products={[product]} />
+            ))}
+          </div>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </section>
 
       </main>
     </div>
