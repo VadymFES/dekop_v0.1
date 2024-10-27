@@ -20,9 +20,28 @@
     margin-left: 6px;
     border-radius: 8px;
     object-fit: cover;
-    transition: transform 0.3s ease; /* Smooth scaling */
   }
   
+  .imageWrapper {
+    position: relative;
+    transition: transform 0.3s ease; /* Smooth scaling */
+
+  }
+  
+  .salesLeaderLabel {
+    position: absolute;
+    right: 6px;
+    bottom: 4px;
+    background-color: #F3DDF8;
+    color: #160101;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 6px 0 6px 0;
+    z-index: 10; 
+    transition: transform 0.3s ease; /* Smooth transition */
+  }
+
   .productDetails {
     display: flex;
     justify-content: space-between; /* Create two columns */
@@ -73,9 +92,9 @@
   }
   
   /* Scale inner content on hover */
-  .productCard:hover .productImage{
-    transform: scale(0.95); /* Scale down to 95% of its size */
-  }
+.productCard:hover .imageWrapper {
+  transform: scale(0.95); /* Scale down both the image and label */
+}
   
   /* Add to Cart Button */
   .addToCartButton {
