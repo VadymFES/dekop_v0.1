@@ -280,14 +280,24 @@
   justify-content: center;
 }
 
+.bodyPartners {
+  width: 100vw; /* Full width */
+  background: #F4F3F3;
+  margin: 1rem 0;
+}
 
+.partners {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 6 fixed columns */
+  grid-template-rows: repeat(2, 1fr);    /* 2 fixed rows */
+  gap: 1rem;
+  justify-items: center;
+}
 
-
-
-
-
-
-
+.partner {
+  max-width: 100px; /* Adjust logo size if needed */
+  max-height: 70px; /* Adjust logo size if needed */
+}
 
 
 

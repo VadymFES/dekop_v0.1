@@ -61,7 +61,7 @@ const products = [
     price: 600,
     rating: 4.2,
     type: "kitchen",
-    isBestseller: true,
+    isBestseller: false,
   },
   {
     id: 7,
@@ -296,7 +296,7 @@ const Main = () => {
                   </svg>
 
 
-                  <p className={styles.advantageCtgText}>Столи</p>
+                  <p className={styles.advantageCtgText}>СТОЛИ</p>
                 </div>
               </div>
 
@@ -314,7 +314,7 @@ const Main = () => {
                   </svg>
 
 
-                  <p className={styles.advantageCtgText}>Стільці</p>
+                  <p className={styles.advantageCtgText}>СТІЛЬЦІ</p>
 
                 </div>
               </div>
@@ -554,6 +554,29 @@ const Main = () => {
           </div>
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </section>
+
+        <section className={styles.bodyPartners}>
+          <div className={styles.bodyContentHeader}>
+            <h2 className={styles.bodyContentTitle} style={{ marginLeft: '4rem' }}>Наші партнери</h2>
+          </div>
+
+          <div className={styles.partnersContainer}>
+            <div className={styles.partners}>
+              <img src="/logo_22.png" alt="partner" className={styles.partner} />
+              <img src="/logo_33.png" alt="partner" className={styles.partner} />
+              <img src="/logo_alta.png" alt="partner" className={styles.partner} />
+              <img src="/logo_artex.png" alt="partner" className={styles.partner} />
+              <img src="/logo_busol.svg" alt="partner" className={styles.partner} />
+              <img src="/logo_divotex.png" alt="partner" className={styles.partner} />
+              <img src="/logo_etera.png" alt="partner" className={styles.partner} />
+              <img src="/logo_pulsar.png" alt="partner" className={styles.partner} />
+              <img src="/Logo_Swisspan.png" alt="partner" className={styles.partner} />
+              <img src="/mebtex_logo.png" alt="partner" className={styles.partner} />
+              <img src="/megatex_logo.png" alt="partner" className={styles.partner} />
+              <img src="/textoria_logo.svg" alt="partner" className={styles.partner} />
+            </div>
+          </div>
+          </section>
 
       </main>
     </div>
