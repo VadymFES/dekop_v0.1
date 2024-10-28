@@ -10,13 +10,7 @@
   backdrop-filter: blur(36px); /* Background blur */
   position: fixed; 
   top: 0; 
-  z-index: 1000; 
-}
-
-.logo_header {
-  /* width: 126.15px;
-  height: 68px; */
-  flex-shrink: 0;
+  z-index: 9999; 
 }
 
 .nav {

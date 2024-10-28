@@ -60,7 +60,7 @@
   .productDetails {
     display: flex;
     justify-content: space-between; /* Create two columns */
-    align-items: start; /* Align items at the start */
+    align-items: flex-start; /* Align items at the start */
     gap: 5rem; /* Add padding to the columns */
     padding: 14px 16px 0;
     transition: transform 0.3s ease, top 0.3s ease; /* Smooth movement */

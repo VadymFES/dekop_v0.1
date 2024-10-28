@@ -578,26 +578,22 @@ const Main = () => {
               <img src="/textoria_logo.svg" alt="partner" className={styles.partner} />
             </div>
           </div>
-          </section>
+        </section>
 
-            <section className={styles.bodyReviews}>
-              <div className={styles.bodyContentHeader}>
-                <h2 className={styles.bodyContentTitle}>Відгуки наших клієнтів</h2>
-              </div>
+        <section className={styles.bodyReviews}>
+          <div className={styles.bodyContentHeader}>
+            <h2 className={styles.bodyContentTitle}>Відгуки наших клієнтів</h2>
+          </div>
 
-              <div className={styles.reviewsContainer}>
-                <ReviewsSection />
-              </div>
-            </section>
-
-
-          <section className={styles.bodyMap}>
-
-            <div className={styles.mapContainer}>
-              <Map />
-            </div>
-          </section>
-
+          <div className={styles.reviewsContainer}>
+            <ReviewsSection />
+          </div>
+        </section>
+        <section className={styles.bodyMap}>
+          <div className={styles.mapContainer}>
+            <Map />
+          </div>
+        </section>
       </main>
     </div>
   );
