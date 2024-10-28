@@ -6,16 +6,18 @@ import styles from './map.module.css';
 
 const DefaultIcon = L.icon({
     iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png',
-    iconSize: [25, 41], // size of the icon
-    iconAnchor: [12, 41], // point of the icon which will correspond to marker's location
-    popupAnchor: [1, -34], // point from which the popup should open relative to the iconAnchor
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
     shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
-    shadowSize: [41, 41], // size of the shadow
+    shadowSize: [41, 41],
 });
 
-const Map: React.FC = () => {
-    const position: [number, number] = [50.872776851121195, 26.484908133484204];
+import { LatLngTuple } from 'leaflet';
 
+const position: LatLngTuple = [50.872776851121195, 26.484908133484204];
+
+const Map: React.FC = React.memo(() => {
     return (
         <div className={styles.mapWrapper}>
             <div className={styles.infoContainer}>
@@ -31,7 +33,7 @@ const Map: React.FC = () => {
                     </p>
                     <p>
                         <img src="/email.png" alt="Email" className={styles.icon} />
-                        <a href="mailto:dekop.enterprise@gmail.com"> dekop.enterprise@gmail.com</a>
+                        <a href="mailto:dekop.enterprise@gmail.com">dekop.enterprise@gmail.com</a>
                     </p>
                     <p>
                         <img src="/facebook.png" alt="Facebook" className={styles.icon} />
@@ -62,6 +64,6 @@ const Map: React.FC = () => {
             </MapContainer>
         </div>
     );
-};
+});
 
 export default Map;
