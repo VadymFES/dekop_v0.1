@@ -5,13 +5,12 @@
 
 
 .headerImage {
-  height: 600px; /* Adjust the height of your header image section */
+  height: 540px; /* Adjust the height of your header image section */
   background-image: url('/image_mainscreen.png'); /* Your header image */
   background-size: cover; /* Cover the entire area */
   background-position: center -10rem; /* Adjust the background position */
   display: flex;
   flex-direction: column; /* Stack header content vertically */
-  justify-content: flex-start; /* Align items to the top */
   align-items: center; /* Center horizontally */
   text-align: center; /* Center text */
   padding-top: 6rem; /* Optional: add some space at the top */
@@ -324,13 +323,7 @@
 
 
 
-@media (max-width: 1520px) {
 
-  .specialProductShowcase,
-  .bankBanner {
-    display: none; /* Hide the showcase */
-  }
-}
 
 @media (max-width: 600px) {
   .carousel {
