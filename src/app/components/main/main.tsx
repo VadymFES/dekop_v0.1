@@ -8,7 +8,7 @@ import MaterialsMain from "../materialsMain/materialsMain";
 import Pagination from "../pagination/pagination";
 import Bestsellers from "../bestsellers/bestsellersMain";
 import ReviewsSection from "../review/reviewSection";
-import Map from "../mapComponent/map";
+import dynamic from 'next/dynamic';
 
 const products = [
   {
@@ -111,6 +111,7 @@ const products = [
 
 
 const Main = () => {
+  const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage, setProductsPerPage] = useState(4); // Default to show 4 products
 
