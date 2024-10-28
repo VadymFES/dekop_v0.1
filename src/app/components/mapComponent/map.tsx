@@ -19,7 +19,7 @@ const Map: React.FC = () => {
     return (
         <div className={styles.mapWrapper}>
             <div className={styles.infoContainer}>
-                <img src="/logoDecor.png" alt="Logo" className={styles.logo} />
+                <img src="/logomain.png" alt="Logo" className={styles.logo} />
                 <div className={styles.contactInfo}>
                     <h4 className={styles.address}>
                         <img src="/address.png" alt="Address" className={styles.icon} />
