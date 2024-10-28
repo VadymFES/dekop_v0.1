@@ -22,7 +22,7 @@ const Header = () => {
       <nav className={styles.nav}>
         <div className={styles.logo_header}>
           <Link href="/">
-            <Image src="/logomain.svg" alt="Logo" width={126.15} height={68} />
+            <img src="/logomain1.png" alt="Logo" width={135} height={79} />  
           </Link>
        </div>
 
