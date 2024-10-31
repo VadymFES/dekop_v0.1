@@ -1,4 +1,3 @@
-
 .header {
   display: flex;
   width: 100%;
@@ -8,9 +7,9 @@
   background: #FEFDFC99; /* Semi-transparent background */
   box-shadow: 0px 8px 24px 0px #1601013D; /* Shadow for depth */
   backdrop-filter: blur(36px); /* Background blur */
-  position: fixed; 
-  top: 0; 
-  z-index: 9999; 
+  position: relative;
+  top: 0;
+  z-index: 9999;
 }
 
 .nav {
@@ -28,68 +27,52 @@
   flex-direction: column; /* Stack the search bar and buttons vertically */
   align-items: center; /* Center the buttons horizontally */
   margin-top: 10px;
+  z-index: 9999;
 }
 
 .activityButtons {
   display: flex; /* Use flex to arrange buttons horizontally */
   align-items: center;
-  padding-top: 15px;
+  padding-top: 10px;
   gap: 24px; /* Space between buttons */
 }
 
 .catalogWrapper {
+  width: 100%;
   position: relative; /* Required for positioning the dropdown */
 }
 
-.navButton {
+.navButton,
+.menuTextButton {
   display: flex;
   width: fit-content;
-  height: 24px;
+  height: 28px;
   border: none;
-  background-color: transparent;
   color: #160101;
   cursor: pointer;
+  padding: 0 16px;
   transition: color 0.3s ease;
-  padding: 2px 16px 2px 16px;
-  gap: 20px; /* Space between icon and text */
-  font-size: 14px;
+  background: none; /* Remove default button background */
 }
 
-.navButton:hover {
+.navButton:hover,
+.menuTextButton:hover {
   color: #E2281B;
-
 }
 
 .searchBar {
   width: 256px;
   height: 24px;
-  padding: 4px 6px 4px 6px;
+  padding: 4px 6px;
   border-radius: 4px;
   background: #FEFDFC;
   box-shadow: 0px 0px 3px 0px #1601018A;
   border: none;
-
-}
-
-.dropdown {
-  position: absolute; /* Position dropdown relative to the catalog button */
-  top: 100%; /* Position it directly below the button */
-  left: 0;
-  list-style: none;
-  padding: 10px;
-  background-color: #FEFDFC99;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 100; /* Ensure it appears above other elements */
 }
 
 .dropdownItem {
-  padding: 10px 20px;
+  padding: 10px 16px;
   cursor: pointer;
-}
-
-.dropdownItem:hover {
-  background-color: #f1f1f1;
 }
 
 .rightIcons {
@@ -113,13 +96,9 @@
   background: none; /* Remove background */
   border: none; /* Remove border */
   cursor: pointer; /* Pointer cursor */
-  gap: 5px; /* Space between icon and label */
   padding: 0; /* Remove padding */
-  color: #160101; /* Icon color */}
-
-.iconButton svg {
-  width: 24px; /* Adjust icon size */
-  height: 24px;
+  color: #160101; /* Icon color */
+  transition: color 0.3s ease; /* Added transition for hover */
 }
 
 .iconButton:hover {
@@ -131,14 +110,229 @@
   text-align: center; /* Center text */
 }
 
-/* Badge styling */
 .badge {
   position: absolute;
   top: -5px;
   right: -10px;
   background-color: red;
   color: white;
-  padding: 2px 6px;
+  border-radius: 50%;
+  padding: 2px 5px;
   font-size: 0.7rem;
   line-height: 1;
+  height: 20px;
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.burgerMenu {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.burgerMenu svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (min-width: 914px) {
+  .menuHeader,
+  .menuTextButton {
+    display: none !important;
+  }
+}
+
+@media (max-width: 913px) {
+  .dropdown {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .activityButtons {
+    padding-left: 16px;
+    padding-right: 16px;
+    }
+
+  .backButton,
+  .closeButton {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #160101;
+    cursor: pointer;
+  }
+
+  .backButton {
+    font-size: 16px;
+    position: absolute;
+    left: 10px;
+  }
+
+  .activityButtons.isCatalogOpen {
+    display: none;
+  }
+
+  .menuTextButton {
+    padding: 2px 16px;
+  }
+
+  .rightIcons .iconContainer:first-child,
+  .rightIcons .iconContainer:nth-child(2) {
+    display: none; /* Hide Account and Notification */
+  }
+
+  .header nav {
+    margin: 0;
+  }
+
+  .menuHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 58px;
+    padding: 10px 16px;
+  }
+
+  .menuBackButton,
+  .closeButton {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #160101;
+    cursor: pointer;
+  }
+
+  .menuBackButton svg,
+  .closeButton:hover svg path,
+  .burgerMenu:hover svg path {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    stroke: #E2281B;
+    transition: 0.3s;
+  }
+
+  .separatorLine {
+    position: relative;
+    width: 80%;
+    align-self: center;
+    height: 1px;
+    background-color: #E3E0E0;
+  }
+
+  .burgerMenu {
+    display: flex;
+    margin-top: 17px;
+  }
+
+  .searchBar {
+    display: none;
+  }
+
+  .searchIcon {
+    display: block;
+  }
+
+  .activities {
+    position: relative;
+    display: none; /* Hide on smaller screens by default */
+    margin: 10px 40px;
+  }
+
+  .menuOpen {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: 100%; /* Position below the header */
+    left: -60px;
+    width: 60%;
+    background-color: #FEFDFC;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding-bottom: 15px;
+    z-index: 9998;
+  }
+
+  .activityButtons {
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: flex-start; /* Align items to the left */
+    width: 100%;
+  }
+
+  .navButton,
+  .menuTextButton,
+  .dropdownItem {
+    color: #160101;
+    font-size: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    text-align: left; 
+  }
+
+  .navButton:first-child {
+    justify-content: space-between;
+  }
+
+  .dropdownItem:last-child {
+    padding-bottom: 0;
+  }
+
+  .dropdownItem {
+    height: 40px;
+  }
+
+  .logo_header {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .rightIcons {
+    display: flex;
+    gap: 30px;
+    margin-left: auto;
+  }
+
+  .iconButton svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .iconLabel {
+    display: none; /* Hide icon text on mobile */
+  }
+}
+
+@media (max-width: 500px) {
+  .logo_header img {
+    width: 90px !important;
+    height: auto;
+  }
+
+  .menuOpen {
+    top: 62px;
+  }
+
+  .rightIcons {
+    gap: 20px; /* Reduce space between icons */
+  }
 }
