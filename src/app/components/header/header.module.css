@@ -108,6 +108,7 @@
 .iconLabel {
   font-size: 11px; /* Label font size */
   text-align: center; /* Center text */
+  margin-top: 4px; /* Space between icon and label */
 }
 
 .badge {
