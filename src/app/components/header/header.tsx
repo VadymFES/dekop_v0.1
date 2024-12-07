@@ -63,18 +63,21 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
         </div>
 
         {/* Conditionally render burger menu items on smaller screens */}
-        <div className={`${styles.activities} ${menuOpen ? styles.menuOpen : ''}`}>
-          <div className={styles.menuHeader}>
+        <div className={`${styles.menuContainer} ${menuOpen ? styles.menuOpen : ''} ${isCatalogView ? styles.noShadow : ''}`}>          <div className={styles.menuHeader}>
             {isCatalogView ? (
               <button onClick={handleCatalogViewToggle} className={styles.menuBackButton}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 8L8 12M8 12L12 16M8 12H16M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="#160101" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 8L8 12M8 12L12 16M8 12H16M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" 
+        stroke="#160101" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        transform="translate(2, 2)" />
+</svg>
                 Back
               </button>
             ) : (
               <div className={styles.openBurgerLines}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M2 5.5C2 5.22386 2.44556 5 2.99519 5H11.0048C11.5544 5 12 5.22386 12 5.5C12 5.77614 11.5544 6 11.0048 6H2.99519C2.44556 6 2 5.77614 2 5.5Z" fill="#160101" />
                   <path d="M2 11.5046C2 11.2284 2.44556 11.0046 2.99519 11.0046H21.0048C21.5544 11.0046 22 11.2284 22 11.5046C22 11.7808 21.5544 12.0046 21.0048 12.0046H2.99519C2.44556 12.0046 2 11.7808 2 11.5046Z" fill="#160101" />
                   <path d="M2.99519 17.0096C2.44556 17.0096 2 17.2335 2 17.5096C2 17.7857 2.44556 18.0096 2.99519 18.0096H15.0048C15.5544 18.0096 16 17.7857 16 17.5096C16 17.2335 15.5544 17.0096 15.0048 17.0096H2.99519Z" fill="#160101" />
@@ -82,8 +85,8 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
               </div>
             )}
             <button onClick={onMenuToggle} className={styles.closeButton} aria-label="Close Menu">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6L18 18" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="#160101" strokeLinecap="round" strokeLinejoin="round"  />
               </svg>
             </button>
           </div>
@@ -101,56 +104,68 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
           />
           <div className={styles.activityButtons}>
 
-            <div className={styles.catalogWrapper} ref={catalogRef}>
-              {!isCatalogView ? (
                 <button onClick={handleCatalogViewToggle} className={styles.navButton}>
                   <span>Каталог</span>
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7.5 15L12.5 10L7.5 5" stroke="#160101" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>
                 </button>
-              ) : null}
 
-              {isCatalogView && (
-                <ul className={styles.dropdown}>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Столи</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Стлільці</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Кухні</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Шафи</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Дивани</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Ліжка</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Матраци</span>
-                  </Link>
-                  <Link className={styles.dropdownItem} href={"/category"}>
-                    <span className={`${styles.navButton} ${styles.navButtonCat}`}>Інше</span>
-                  </Link>
-                </ul>
-              )}
-            </div>
+                {isCatalogView && (
+  <div className={styles.dropdown}>
+    <ul className={styles.catalogList}>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Столи</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Стільці</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Кухні</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Шафи</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Дивани</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Ліжка</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Матраци</span>
+        </Link>
+      </li>
+      <li>
+        <Link className={styles.dropdownItem} href={"/category"}>
+          <span className={`${styles.navButton} ${styles.navButtonCat}`}>Інше</span>
+        </Link>
+      </li>
+    </ul>
+  </div>
+)}
 
-            {!isCatalogView && (
-              <>
+
+            <>
                 <Link className={styles.navButton} href="/individual-order">Під замовлення</Link>
                 <Link className={styles.menuTextButton} href="/account">Профіль</Link>
                 <Link className={styles.menuTextButton} href="/notifications">Повідомлення</Link>
-
                 <Link className={styles.navButton} href="/about-us">Про нас</Link>
                 <Link className={styles.navButton} href="/contact-us">Контакти</Link>
               </>
-            )}
           </div>
 
         </div>
