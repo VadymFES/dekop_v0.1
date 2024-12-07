@@ -1,11 +1,12 @@
 .container {
   display: flex;
   flex-direction: column; /* Stack children vertically */
+  min-height: 100vh; /* Full height of the viewport */
 }
 
 
 .headerImage {
-  height: 540px; /* Adjust the height of your header image section */
+  height: 538px; /* Adjust the height of your header image section */
   background-image: url('/image_mainscreen.png'); /* Your header image */
   background-size: cover; /* Cover the entire area */
   background-position: center -10rem; /* Adjust the background position */
@@ -278,13 +279,22 @@
   overflow: hidden; /* Сховати елементи, які виходять за межі контейнера */
   justify-content: center;
 }
+.partnersContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 .bodyPartners {
-  width: 100vw; /* Full width */
-  background: #F4F3F3;
+  display: flex;
+  align-items: center;
   margin: 1rem 0;
+  flex-direction: column;
+  background: #F4F3F3;
   height: 364px;
+  max-width: 100vw;
 }
+
 
 .partners {
   display: grid;
@@ -296,9 +306,13 @@
 }
 
 .partner {
-  margin: 1rem 0;
+  margin: 1rem 2rem;
   max-width: 150px; /* Adjust logo size if needed */
   max-height: 100px; /* Adjust logo size if needed */
+}
+
+.reviewsContainer {
+  max-width: 100%;
 }
 
 .bodyReviews {
