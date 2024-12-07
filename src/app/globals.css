@@ -14,7 +14,6 @@
 /* Global Styles */
 html,
 body {
-    overflow-x: hidden; /* Hide horizontal overflow */
     color: var(--foreground); /* Set text color */
     background: var(--background); /* Set background color */
     font-family: 'Inter', Arial, Helvetica, sans-serif; /* Use Inter font */

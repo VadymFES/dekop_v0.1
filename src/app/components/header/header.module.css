@@ -28,7 +28,7 @@
   padding: 0 2rem; /* Horizontal padding for header */
   background: #fefdfcef;
   box-shadow: var(--header-box-shadow);
-  position: fixed;
+  position: sticky;
   top: 0;
   z-index: 4;
 }
@@ -225,13 +225,13 @@
   color: #E2281B; /* Зміна кольору при наведенні */
 }
 
-@media (width > 1088px) {
+@media (width > 1024px) {
   .header:has(.dropdown) {
     box-shadow: none;
   }
 }
 
-@media (width < 1088px) {
+@media (width < 1024px) {
 
   .activityButtons{
     gap: 20px;
@@ -459,7 +459,7 @@
   }
 }
 
-@media (width < 500px) {
+@media (width < 480px) {
   .logo_header img {
     width: 90px !important;
     height: auto;
