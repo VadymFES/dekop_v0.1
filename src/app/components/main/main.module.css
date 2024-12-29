@@ -2,19 +2,20 @@
   display: flex;
   flex-direction: column; /* Stack children vertically */
   min-height: 100vh; /* Full height of the viewport */
+  max-width: 100vw;
 }
 
 
 .headerImage {
-  height: 538px; /* Adjust the height of your header image section */
+  height: 70vh; /* Set the height to 100% of the viewport height */
   background-image: url('/image_mainscreen.png'); /* Your header image */
-  background-size: cover; /* Cover the entire area */
-  background-position: center -10rem; /* Adjust the background position */
+  background-size: cover; /* Ensure the image covers the entire area */
+  background-position: center; /* Keep the background centered */
   display: flex;
   flex-direction: column; /* Stack header content vertically */
   align-items: center; /* Center horizontally */
   text-align: center; /* Center text */
-  padding-top: 6rem; /* Optional: add some space at the top */
+  padding-top: 10vh; /* Add some space at the top, proportional to the viewport height */
 }
 
 .heading {
@@ -60,9 +61,10 @@
 .advantages_container {
   display: flex; /* Flexbox for advantages section */
   justify-content: space-around; /* Distribute space around children */
-  height: 8.1rem; /* Fixed height */
+  height: 8.4rem; /* Fixed height */
   background-color: #F4F3F3; /* Background color */
   padding: 20px 0; /* Padding on top and bottom */
+  overflow-x: hidden;    /* Hides horizontal scrollbar if any slight overflow occurs */
 }
 
 .advantage {
@@ -114,6 +116,7 @@
 .bodyContentTitle {
   font-size: 2rem;            /* Adjust the font size for the title */
   font-weight: 700;           /* Bold text */
+  overflow: hidden;
 }
 
 .bodyContentButton {
@@ -151,26 +154,16 @@
   height: 700px; /* Full height matching the special showcase */
 }
 
-
-
-
 .specialProductShowcase {
   display: flex;
-  width: 30%; /* Take up the remaining 30% of the width */
-  height: 720px; /* Full height matching the grid */
-  gap: 8px;
-}
-
-.halfImageContainer {
-  width: 100%;
-  height: 648px; /* Each image takes up half the height */
+  height: 100%; /* Full height matching the grid */
 }
 
 .halfImageLeft {
   width: 100%;
-  height: 720px;
+  height: 100%;
   object-fit: cover; /* Ensure the image covers the full area */
-  object-position: left; /* Show left part of the image */
+  object-position: center; /* Show left part of the image */
 }
 
 .halfImageRight {
@@ -187,10 +180,11 @@
   margin: 1rem 4rem; /* Margin on top and bottom */
 }
 
-.advantages_container_categories{
-  display: flex; /* Flexbox for advantages section */
-  justify-content: space-around; /* Distribute space around children */
-  height: 8.1rem; /* Fixed height */
+.advantages_container_categories {
+  display: flex; /* Use flexbox */
+  flex-wrap: wrap; /* Allow wrapping to a new line */
+  justify-content: space-around; /* Space between items */
+  gap: 16px; /* Adjust spacing between items */
 }
 
 .iconBoxCatg{
@@ -249,15 +243,22 @@
 /*Materials styles*/
 
 .bodyMaterials {
-  display: flex; /* Flexbox for body content */
-  align-items: center; /* Center items horizontally */
-  margin: 1rem 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center horizontally */
+  margin: 1rem 0; /* Remove side margins to prevent overflow */
   flex-direction: column;
+  width: 100%; /* Ensure it takes up the full screen width */
+  overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
 .materialsContainer {
   display: flex;
   flex-direction: column;
+  width: 100%; /* Ensure it takes up 100% of the container width */
+  max-width: 100vw; /* Prevents it from exceeding the screen width */
+  padding: 0 2rem; /* Optional horizontal padding */
+  box-sizing: border-box; /* Ensure padding doesn’t cause overflow */
 }
 
 .material {
@@ -277,38 +278,45 @@
 .bestsellersContainer {
   display: flex;
   overflow: hidden; /* Сховати елементи, які виходять за межі контейнера */
+  width: 100%; /* Ensure it takes up the full screen width */
   justify-content: center;
 }
 .partnersContainer {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%; /* Ensure it doesn't overflow the screen */
+  overflow-x: auto; /* Allow horizontal scrolling if content overflows */
 }
 
 .bodyPartners {
   display: flex;
   align-items: center;
-  margin: 1rem 0;
+  margin: 1rem 4rem;
   flex-direction: column;
-  background: #F4F3F3;
-  height: 364px;
+  height: auto; /* Allow the height to adjust based on content */
   max-width: 100vw;
+}
+
+.partnersBckg{
+  background: #F4F3F3;
+  width: 100vw;
 }
 
 
 .partners {
   display: grid;
   grid-template-columns: repeat(6, 1fr); /* 6 fixed columns */
-  grid-template-rows: repeat(2, 1fr);    /* 2 fixed rows */
+  grid-template-rows: auto;    /* Adjust the number of rows based on content */
+  justify-content: center;
   justify-items: center;
   align-items: center;
-  margin: 0 4rem;
+  gap: 3rem; /* Add some space between logos */
 }
 
 .partner {
-  margin: 1rem 2rem;
-  max-width: 150px; /* Adjust logo size if needed */
-  max-height: 100px; /* Adjust logo size if needed */
+  max-width: 150px; /* Adjust logo size */
+  max-height: 100px; /* Adjust logo size */
 }
 
 .reviewsContainer {
@@ -322,24 +330,54 @@
   flex-direction: column;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /* Responsive design */
 
+@media (width < 1500px) {
+  .specialProductShowcase {
+    display: none;
+  }
+}
+
+
+@media (width < 1024px) {
+  .partners {
+    grid-template-columns: repeat(5, 1fr); /* 5 columns on medium screens */
+  }
+  .partner {
+    max-width: 130px; /* Adjust logo size */
+    max-height: 80px; /* Adjust logo size */
+  }
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+  }
+
+}
+
+@media (width < 768px) {
+  .headerImage {
+    height: 50vh; /* Reduce the height on smaller screens */
+    padding-top: 5vh; /* Adjust the padding for smaller screens */
+  }
+  .partners {
+    grid-template-columns: repeat(4, 1fr); /* 4 columns on smaller screens */
+  }
+  
+  .partner {
+    max-width: 110px; /* Adjust logo size */
+    max-height: 70px; /* Adjust logo size */
+  }
+
+
+}
 
 
 
+@media (width < 480px)  {
 
-@media (max-width: 600px) {
+  .headerImage {
+    height: 40vh; /* Further reduce the height on very small screens */
+    padding-top: 4vh; /* Adjust the padding for very small screens */
+  }
   .carousel {
     margin: 0.1rem 0.4rem;
     }
@@ -348,6 +386,7 @@
     grid-template-columns: repeat(3, 2fr);
     grid-template-rows: 3fr;
     margin-bottom: 14rem;
+    overflow: hidden;
   }
 .bodyContentHeader {
   display: flex;             
@@ -366,6 +405,10 @@
   padding: 0; 
 }
 
+.bodyContent {
+  height: auto;
+}
+
   .bodyContent,
   .bodyCategories {
     margin: 1rem 1rem;
@@ -375,17 +418,35 @@
     margin: 0.3rem;
   }
 
+  .partners {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
+    gap: 1rem;
+  }
 
-}
-
-@media (max-width: 400px) {
-  .saleCarousel {
-    margin: 0.1rem 0.4rem;
+  .partner {
+    max-width: 90px; /* Adjust logo size */
+    max-height: 60px; /* Adjust logo size */
+  }
+  .bodyContentGrid {
+    display: flex;
+    overflow-x: auto; /* or overflow: hidden if you don’t want manual scroll */
+    justify-content: flex-start; /* or center, depending on design */
+    gap: 16px;
+    position: relative; /* if you plan to add arrows */
+    width: 100%;
+    height: auto;
   }
 
   .productGrid {
-    grid-template-columns: 2, 1fr ; /* 1 card per row on very small screens */
-    grid-template-rows: 3, 1fr;
-
+    display: flex;
+    flex-wrap: nowrap;
+    transition: transform 0.3s ease;
+    gap: 16px;
+    height: auto;
   }
+
+  .productGrid > * {
+    flex: 0 0 220px; /* Adjust as needed */
+  }
+
 }

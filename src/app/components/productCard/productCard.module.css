@@ -53,7 +53,7 @@
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 6px 0 6px 0;
-    z-index: 10; 
+    z-index: 3; 
     transition: transform 0.3s ease; /* Smooth transition */
   }
 
@@ -141,9 +141,3 @@
     transition: 0.3s; ;
   }
 
-  @media (max-width: 768px) {
-    .productCard {
-            width: calc(50% - 10px); /* Ensure 2 cards fit per row */
-            height: 300px; /* Slightly smaller height on mobile */
-    }
-  }
