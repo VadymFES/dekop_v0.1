@@ -38,12 +38,10 @@ export default function Home() {
         ></div>
       )}
 
-      <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle} />
+      <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle}/>
 
-      <div className={styles.content}>
         <Main />
         <Footer />
-      </div>
     </div>
   );
 }

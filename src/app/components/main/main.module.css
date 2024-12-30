@@ -7,32 +7,30 @@
 
 
 .headerImage {
-  height: 70vh; /* Set the height to 100% of the viewport height */
-  background-image: url('/image_mainscreen.png'); /* Your header image */
-  background-size: cover; /* Ensure the image covers the entire area */
-  background-position: center; /* Keep the background centered */
+  height: 32rem;
+  background: url('/image_mainscreen.png') no-repeat center center; /* Your header image */
+  background-size: cover; /* Cover the entire area */
   display: flex;
   flex-direction: column; /* Stack header content vertically */
   align-items: center; /* Center horizontally */
   text-align: center; /* Center text */
-  padding-top: 10vh; /* Add some space at the top, proportional to the viewport height */
 }
 
 .heading {
-  font-size: 4rem; /* Main heading size */
+  font-size: 4rem; 
   font-weight: 900;
   font-style: italic;
   line-height: 88px;
   color: #4A502B;
   padding-bottom: 10px; /* Optional: add space below if needed */
-  margin-bottom: 10px;
+  margin-bottom: 1.5rem;
 }
 
 .subheading {
   width: 400px;
   height: 84px;
-  font-size: 1.125rem; /* Subheading size */
-  margin-bottom: 3rem; /* Space below subheading */
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem; 
   margin-right: 33rem;
 }
 
@@ -286,7 +284,7 @@
   justify-content: center;
   align-items: center;
   width: 100%; /* Ensure it doesn't overflow the screen */
-  overflow-x: auto; /* Allow horizontal scrolling if content overflows */
+  overflow: none; /* Allow horizontal scrolling if content overflows */
 }
 
 .bodyPartners {
@@ -300,7 +298,7 @@
 
 .partnersBckg{
   background: #F4F3F3;
-  width: 100vw;
+  width: 100%;
 }
 
 
@@ -333,29 +331,102 @@
 /* Responsive design */
 
 @media (width < 1500px) {
+
+  .heading {
+    font-size: 3.5rem; 
+    line-height: 70px;
+  }
+
+  .subheading {
+    width: 350px;
+    font-size: 1.2rem;
+    margin-right: 25rem;
+  }
+
+  .ctaButton {
+    width: 250px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1.2rem; 
+    margin-right: 25rem;
+  }
+
   .specialProductShowcase {
     display: none;
+  }
+
+  .partner {
+    max-width: 130px; /* Adjust logo size */
+    max-height: 80px; /* Adjust logo size */
+  }
+
+  .partners{
+    gap: 1rem;
   }
 }
 
 
 @media (width < 1024px) {
+
+  .heading{
+    font-size: 2.5rem; 
+    line-height: 70px;
+  }
+
+  .subheading {
+    width: 350px;
+    font-size: 1.2rem;
+    margin-right: 17rem;
+  }
+
+  .ctaButton {
+    width: 250px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1.2rem; 
+    margin-right: 17rem;
+  }
+
   .partners {
     grid-template-columns: repeat(5, 1fr); /* 5 columns on medium screens */
   }
   .partner {
-    max-width: 130px; /* Adjust logo size */
-    max-height: 80px; /* Adjust logo size */
-  }
-  .productGrid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+    max-width: 110px; /* Adjust logo size */
+    max-height: 60px; /* Adjust logo size */
   }
 
+  .bodyContent {
+    height: auto;
+  }
+
+  .bodyContentGrid {
+    display: flex;
+    overflow-x: auto; /* or overflow: hidden if you don’t want manual scroll */
+    justify-content: flex-start; /* or center, depending on design */
+    gap: 16px;
+    position: relative; /* if you plan to add arrows */
+    width: 100%;
+    height: auto;
+  }
+
+  .productGrid {
+    display: flex;
+    flex-wrap: nowrap;
+    transition: transform 0.3s ease;
+    gap: 16px;
+    height: auto;
+  }
+
+  .productGrid > * {
+    flex: 0 0 220px; /* Adjust as needed */
+  }
 }
 
 @media (width < 768px) {
   .headerImage {
-    height: 50vh; /* Reduce the height on smaller screens */
+    height: 20rem; /* Reduce the height on smaller screens */
     padding-top: 5vh; /* Adjust the padding for smaller screens */
   }
   .partners {
@@ -367,17 +438,96 @@
     max-height: 70px; /* Adjust logo size */
   }
 
+  .heading {
+    font-size: 2rem; 
+    line-height: 50px;
+  }
 
+  .subheading {
+    width: 350px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    height: 60px;
+  }
+
+  .ctaButton {
+    width: 220px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1.1rem; 
+  }
+
+  .bodyContentGrid {
+    display: flex;
+    overflow-x: auto; /* or overflow: hidden if you don’t want manual scroll */
+    justify-content: flex-start; /* or center, depending on design */
+    gap: 16px;
+    position: relative; /* if you plan to add arrows */
+    width: 100%;
+    height: auto;
+  }
+
+  .productGrid {
+    display: flex;
+    flex-wrap: nowrap;
+    transition: transform 0.3s ease;
+    gap: 16px;
+    height: auto;
+  }
+
+  .productGrid > * {
+    flex: 0 0 220px; /* Adjust as needed */
+  }
 }
 
+@media (width < 600px)  { 
 
+  .headerImage {
+    height: 20rem; /* Further reduce the height on very small screens */
+    padding-top: 4vh; /* Adjust the padding for very small screens */
+  }
+
+  .heading {
+    font-size: 2rem; 
+    line-height: 35px;
+    margin: 0;
+    }
+
+  .subheading {
+    width: 350px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+}
 
 @media (width < 480px)  {
 
   .headerImage {
-    height: 40vh; /* Further reduce the height on very small screens */
+    height: 20rem; /* Further reduce the height on very small screens */
     padding-top: 4vh; /* Adjust the padding for very small screens */
   }
+
+  .heading {
+    font-size: 2.5rem; 
+    line-height: 35px;
+    margin: 0;
+    }
+
+  .subheading {
+display: none;
+  }
+
+  .ctaButton {
+    width: 180px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1rem; 
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+
   .carousel {
     margin: 0.1rem 0.4rem;
     }
@@ -405,9 +555,7 @@
   padding: 0; 
 }
 
-.bodyContent {
-  height: auto;
-}
+
 
   .bodyContent,
   .bodyCategories {

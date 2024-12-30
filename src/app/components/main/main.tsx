@@ -142,7 +142,7 @@ const Main = () => {
   const totalPages = Math.ceil(products.length / productsPerPage);
   const startIndex = (currentPage - 1) * productsPerPage;
   const currentProducts = products.slice(startIndex, startIndex + productsPerPage);
-  
+
 
   // Handle swipe gestures
   const handlers = useSwipeable({
@@ -155,7 +155,7 @@ const Main = () => {
       <main className={styles.mainContent}>
         <div className={styles.headerImage}>
           <h1 className={styles.heading}>Сучасні меблі для Вашої оселі</h1>
-          <p className={styles.subheading}>Розкішний вибір стильних корпусних та м'яких меблів від нашого власного виробництва та передових постачальників, щоб задовольнити найвибагливіші смаки</p>
+          <p className={styles.subheading}>Розкішний вибір стильних корпусних та м'яких меблів від нашого власного виробництва та передових постачальників</p>
           <button className={styles.ctaButton}>До каталогу
 
             <svg width="27" height="26" viewBox="0 0 27 26" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -255,49 +255,49 @@ const Main = () => {
         </div>
 
         <section className={styles.bodyContent}>
-  <div className={styles.bodyContentHeader}>
-    <h2 className={styles.bodyContentTitle}>Новинки</h2>
-    <button className={styles.bodyContentButton}>
-      Переглянути всі
-      <svg
-        width="35"
-        height="22"
-        viewBox="0 0 22 22"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z"
-          stroke="#160101"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  </div>
+          <div className={styles.bodyContentHeader}>
+            <h2 className={styles.bodyContentTitle}>Новинки</h2>
+            <button className={styles.bodyContentButton}>
+              Переглянути всі
+              <svg
+                width="35"
+                height="22"
+                viewBox="0 0 22 22"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z"
+                  stroke="#160101"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
 
-  <div className={styles.bodyContentGrid}>
-    {/* Main product grid with 3x2 layout */}
-    <div className={styles.productGrid}>
-      {products.slice(0, 6).map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
+          <div className={styles.bodyContentGrid}>
+            {/* Main product grid with 3x2 layout */}
+            <div className={styles.productGrid}>
+              {products.slice(0, 6).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
 
-    {/* Special product showcase with left and right images */}
-    <div className={styles.specialProductShowcase}>
-      <div className={styles.ImageContainer}>
-        <img
-          src="https://plus.unsplash.com/premium_photo-1728657018268-0938eea1d916?q=80&w=1888&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          alt="Product Variant 1"
-          className={styles.halfImageLeft}
-        />
-      </div>
-    </div>
-  </div>
+            {/* Special product showcase with left and right images */}
+            <div className={styles.specialProductShowcase}>
+              <div className={styles.ImageContainer}>
+                <img
+                  src="https://plus.unsplash.com/premium_photo-1728657018268-0938eea1d916?q=80&w=1888&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  alt="Product Variant 1"
+                  className={styles.halfImageLeft}
+                />
+              </div>
+            </div>
+          </div>
 
-</section>
+        </section>
 
 
         <section className={styles.bodyCategories}>
@@ -576,28 +576,28 @@ const Main = () => {
         </section>
 
         <section className={styles.bodyPartners}>
-        <div className={styles.bodyContentHeader}>
+          <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle} >Наші партнери</h2>
           </div>
           <div className={styles.partnersBckg}>
 
 
-          <div className={styles.partnersContainer}>
-            <div className={styles.partners}>
-              <img src="/logo_22.png" alt="partner" className={styles.partner} />
-              <img src="/logo_33.png" alt="partner" className={styles.partner} />
-              <img src="/logo_alta.png" alt="partner" className={styles.partner} />
-              <img src="/logo_artex.png" alt="partner" className={styles.partner} />
-              <img src="/logo_busol.svg" alt="partner" className={styles.partner} />
-              <img src="/logo_divotex.png" alt="partner" className={styles.partner} />
-              <img src="/logo_etera.png" alt="partner" className={styles.partner} />
-              <img src="/logo_pulsar.png" alt="partner" className={styles.partner} />
-              <img src="/Logo_Swisspan.png" alt="partner" className={styles.partner} />
-              <img src="/mebtex_logo.png" alt="partner" className={styles.partner} />
-              <img src="/megatex_logo.png" alt="partner" className={styles.partner} />
-              <img src="/textoria_logo.svg" alt="partner" className={styles.partner} />
+            <div className={styles.partnersContainer}>
+              <div className={styles.partners}>
+                <img src="/logo_22.png" alt="partner" className={styles.partner} />
+                <img src="/logo_33.png" alt="partner" className={styles.partner} />
+                <img src="/logo_alta.png" alt="partner" className={styles.partner} />
+                <img src="/logo_artex.png" alt="partner" className={styles.partner} />
+                <img src="/logo_busol.svg" alt="partner" className={styles.partner} />
+                <img src="/logo_divotex.png" alt="partner" className={styles.partner} />
+                <img src="/logo_etera.png" alt="partner" className={styles.partner} />
+                <img src="/logo_pulsar.png" alt="partner" className={styles.partner} />
+                <img src="/Logo_Swisspan.png" alt="partner" className={styles.partner} />
+                <img src="/mebtex_logo.png" alt="partner" className={styles.partner} />
+                <img src="/megatex_logo.png" alt="partner" className={styles.partner} />
+                <img src="/textoria_logo.svg" alt="partner" className={styles.partner} />
+              </div>
             </div>
-          </div>
           </div>
         </section>
 
