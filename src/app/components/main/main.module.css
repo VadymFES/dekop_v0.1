@@ -208,11 +208,10 @@
   margin: 1rem 4rem;
 }
 
-.bankBannerImage {
-  width: 100%;
-  height: 407px;
-  object-fit: cover;
-  object-position: center;
+.bankBannerImage img {
+  max-width: 100%;
+  height: auto;
+  display: block; 
   border-radius: 6px;
 }
 
@@ -471,6 +470,12 @@
     height: auto;
   }
 
+  .bodyContentButton {
+    width: 220px;
+    height: 55px;
+    font-size: 1rem;
+}
+
   .productGrid {
     display: flex;
     flex-wrap: nowrap;
@@ -501,6 +506,17 @@
     width: 350px;
     font-size: 0.9rem;
     margin-bottom: 1rem;
+  }
+
+  .bodyContent,
+  .bodyCategories,
+  .bodyMaterials,
+  .bodyBestsellers,
+  .bodyReviews,
+  .bodyPartners,
+  .bankBanner,
+  .saleCarousel {
+    margin: 1rem 1rem;
   }
 }
 
@@ -556,14 +572,10 @@ display: none;
     gap: 0.5rem;
   }
 
-  .categories {
+  .categories, 
+  .iconBoxCatg {
     width: 100px;
     height: 100px;
-  }
-  
-  .iconBoxCatg{
-    width: 100px; 
-    height: 100px; 
   }
 
 .bodyContentButton {
@@ -576,10 +588,6 @@ display: none;
   font-size: 1.5rem;            
 }
 
-  .bodyContent,
-  .bodyCategories {
-    margin: 1rem 1rem;
-  }
 
   .iconBoxCatg {
     margin: 0.3rem;
