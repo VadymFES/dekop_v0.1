@@ -57,16 +57,17 @@
 }
 
 .advantages_container {
-  display: flex; /* Flexbox for advantages section */
+  display: flex; 
   justify-content: space-around; /* Distribute space around children */
   height: 8.4rem; /* Fixed height */
   background-color: #F4F3F3; /* Background color */
   padding: 20px 0; /* Padding on top and bottom */
-  overflow-x: hidden;    /* Hides horizontal scrollbar if any slight overflow occurs */
+  overflow-x: auto;    /* Hides horizontal scrollbar if any slight overflow occurs */
+  overflow-y: hidden;
 }
 
 .advantage {
-  display: flex; /* Flexbox for each advantage item */
+  display: flex; 
   flex-direction: column; /* Stack icon and text vertically */
   align-items: center; /* Center items horizontally */
   gap: 10px; /* Space between icon and text */
@@ -90,7 +91,7 @@
 .advantageText {
   margin-top: 8px; /* Space between icon and text */
   text-align: center; /* Center the text */
-  font-size: 1rem; /* Font size for advantage text */
+  font-size: 1rem; 
   color: #E2281B; /* Text color */
 }
 
@@ -197,7 +198,7 @@
 
 .advantageCtgText{
   text-align: center; /* Center the text */
-  font-size: 1rem; /* Font size for advantage text */
+  font-size: 1rem; 
 }
 
 .bankBanner {
@@ -531,6 +532,27 @@ display: none;
   .carousel {
     margin: 0.1rem 0.4rem;
     }
+
+  .advantages_container {
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    height: auto; 
+    gap: 0.5rem;
+  }
+
+  .advantage {
+    gap: 2px; 
+  }
+
+  .iconBox {
+    width: 40px;
+    height: 40px; 
+  }
+
+  .advantageText {
+    font-size: 0.8rem;
+  }
+
   .advantages_container_categories{
     display: grid;
     grid-template-columns: repeat(3, 2fr);
