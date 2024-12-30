@@ -181,8 +181,10 @@
 
 .advantages_container_categories {
   display: flex; /* Use flexbox */
-  flex-wrap: wrap; /* Allow wrapping to a new line */
-  justify-content: space-around; /* Space between items */
+  justify-content: space-around; /* Distribute space around children */
+  height: 115px;
+  overflow-x: auto;
+  overflow-y: hidden;
   gap: 16px; /* Adjust spacing between items */
 }
 
@@ -544,40 +546,35 @@ display: none;
     gap: 2px; 
   }
 
-  .iconBox {
-    width: 40px;
-    height: 40px; 
-  }
-
   .advantageText {
     font-size: 0.8rem;
   }
 
   .advantages_container_categories{
-    display: grid;
-    grid-template-columns: repeat(3, 2fr);
-    grid-template-rows: 3fr;
-    margin-bottom: 14rem;
-    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
   }
-.bodyContentHeader {
-  display: flex;             
-  justify-content: space-between;
-  align-items: center;        
-  padding: 10px 0;            
+
+  .categories {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .iconBoxCatg{
+    width: 100px; 
+    height: 100px; 
+  }
+
+.bodyContentButton {
+    width: 160px;
+    height: 40px;
+    font-size: 0.8rem;
 }
 
 .bodyContentTitle {
   font-size: 1.5rem;            
 }
-
-.bodyContentButton {
-  width: 170px;
-  height: 44px; 
-  padding: 0; 
-}
-
-
 
   .bodyContent,
   .bodyCategories {
