@@ -144,6 +144,7 @@
   gap: 20px; /* Space between the product grid and the special showcase */
   justify-content: space-between; 
   height: 730px;
+  
 }
 
 .productGrid {
@@ -219,7 +220,10 @@
 /* carousel */
 
 .saleCarousel {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
   margin: 1rem 4rem;
+  flex-direction: column;
 }
 
 .bodyContentHeader {
@@ -230,8 +234,10 @@
 
 .carouselContainer {
   display: flex;
-  overflow: hidden; /* Сховати елементи, які виходять за межі контейнера */
-  justify-content: center;
+  overflow-x: auto; 
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 10px;
 }
 
 .carousel {
@@ -277,10 +283,12 @@
 
 .bestsellersContainer {
   display: flex;
-  overflow: hidden; /* Сховати елементи, які виходять за межі контейнера */
-  width: 100%; /* Ensure it takes up the full screen width */
-  justify-content: center;
+  overflow-x: auto;
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 10px;
 }
+
 .partnersContainer {
   display: flex;
   justify-content: center;
@@ -330,9 +338,62 @@
   flex-direction: column;
 }
 
+.scrollButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.arrowScrollButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 4rem;
+  display: flex;
+  align-items: center;
+}
+
+.arrowScrollButton:active{
+  transform: scale(0.9);
+}
+
+/* Dots container */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+}
+
+/* Individual dot */
+.dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 0.25rem;
+  transition: background-color 0.3s ease;
+}
+
+.activeDot {
+  background-color: #F45145;
+}
+
 /* Responsive design */
 
-@media (width < 1500px) {
+@media screen and (max-width: 1500px) {
+
+  .bodyContent {
+    height: auto;
+  }
+
+
+  .bodyContentGrid{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+  }
 
   .heading {
     font-size: 3.5rem; 
@@ -369,7 +430,7 @@
 }
 
 
-@media (width < 1024px) {
+@media screen and (max-width: 1024px) {
 
   .heading{
     font-size: 2.5rem; 
@@ -399,34 +460,9 @@
     max-height: 60px; /* Adjust logo size */
   }
 
-  .bodyContent {
-    height: auto;
-  }
-
-  .bodyContentGrid {
-    display: flex;
-    overflow-x: auto; /* or overflow: hidden if you don’t want manual scroll */
-    justify-content: flex-start; /* or center, depending on design */
-    gap: 16px;
-    position: relative; /* if you plan to add arrows */
-    width: 100%;
-    height: auto;
-  }
-
-  .productGrid {
-    display: flex;
-    flex-wrap: nowrap;
-    transition: transform 0.3s ease;
-    gap: 16px;
-    height: auto;
-  }
-
-  .productGrid > * {
-    flex: 0 0 220px; /* Adjust as needed */
-  }
 }
 
-@media (width < 768px) {
+@media screen and (max-width: 768px) {
   .headerImage {
     height: 20rem; /* Reduce the height on smaller screens */
     padding-top: 5vh; /* Adjust the padding for smaller screens */
@@ -460,15 +496,6 @@
     font-size: 1.1rem; 
   }
 
-  .bodyContentGrid {
-    display: flex;
-    overflow-x: auto; /* or overflow: hidden if you don’t want manual scroll */
-    justify-content: flex-start; /* or center, depending on design */
-    gap: 16px;
-    position: relative; /* if you plan to add arrows */
-    width: 100%;
-    height: auto;
-  }
 
   .bodyContentButton {
     width: 220px;
@@ -478,8 +505,6 @@
 
   .productGrid {
     display: flex;
-    flex-wrap: nowrap;
-    transition: transform 0.3s ease;
     gap: 16px;
     height: auto;
   }
@@ -487,9 +512,25 @@
   .productGrid > * {
     flex: 0 0 220px; /* Adjust as needed */
   }
+
+  .bodyContentGrid {
+    display: flex;
+    justify-content: flex-start;
+    overflow: auto;
+    height: auto;
+  }
+
+  .scrollButtons {
+    width: 50%; /* Hide the dots on smaller screens */
+  }
+
+  .arrowScrollButton {
+    margin: 0 1rem; /* Adjust the margin */
+  }
+
 }
 
-@media (width < 600px)  { 
+@media screen and (max-width: 600px)  { 
 
   .headerImage {
     height: 20rem; /* Further reduce the height on very small screens */
@@ -518,9 +559,14 @@
   .saleCarousel {
     margin: 1rem 1rem;
   }
+
+.arrowScrollButton{
+  display: none;
 }
 
-@media (width < 480px)  {
+}
+
+@media screen and (max-width: 480px)  {
 
   .headerImage {
     height: 20rem; /* Further reduce the height on very small screens */
@@ -602,15 +648,7 @@ display: none;
     max-width: 90px; /* Adjust logo size */
     max-height: 60px; /* Adjust logo size */
   }
-  .bodyContentGrid {
-    display: flex;
-    overflow-x: auto; /* or overflow: hidden if you don’t want manual scroll */
-    justify-content: flex-start; /* or center, depending on design */
-    gap: 16px;
-    position: relative; /* if you plan to add arrows */
-    width: 100%;
-    height: auto;
-  }
+
 
   .productGrid {
     display: flex;
