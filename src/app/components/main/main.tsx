@@ -1,14 +1,15 @@
 "use client";
 
+
 import styles from "./main.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useSwipeable } from 'react-swipeable';
 import ProductCard from "../productCard/productCard";
 import MaterialsMain from "../materialsMain/materialsMain";
-import Pagination from "../pagination/pagination";
 import Bestsellers from "../bestsellers/bestsellersMain";
 import ReviewsSection from "../review/reviewSection";
 import dynamic from 'next/dynamic';
+import { time } from "console";
 
 const products = [
   {
@@ -112,44 +113,182 @@ const products = [
 
 const Main = () => {
   const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage, setProductsPerPage] = useState(4); // Default to show 4 products
 
-  // Update products per page based on screen size
-  const updateProductsPerPage = () => {
-    if (window.innerWidth < 768) {
-      setProductsPerPage(1); // Small screens: 1 product
-    } else if (window.innerWidth < 1063) {
-      setProductsPerPage(2); // Medium screens: 2 products
-    } else if (window.innerWidth < 1350) {
-      setProductsPerPage(3); // Larger screens: 3 products
-    } else {
-      setProductsPerPage(4); // Wide screens: 4 products
-    }
+// Section 1: Sale Carousel
+const saleRef = useRef<HTMLDivElement>(null);
+const [saleIndex, setSaleIndex] = useState(0);
+const [saleSlides, setSaleSlides] = useState(1);
+
+const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 1024);
   };
 
-  useEffect(() => {
-    // Set initial products per page and listen to window resize
-    updateProductsPerPage();
-    window.addEventListener("resize", updateProductsPerPage);
+  // Check on initial load
+  handleResize();
 
-    return () => {
-      window.removeEventListener("resize", updateProductsPerPage);
-    };
-  }, []);
+  // Listen to resize events
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
 
-  // Pagination logic
-  const totalPages = Math.ceil(products.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const currentProducts = products.slice(startIndex, startIndex + productsPerPage);
-
-
-  // Handle swipe gestures
-  const handlers = useSwipeable({
-    onSwipedLeft: () => setCurrentPage((prev) => Math.min(prev + 1, totalPages)), // Swipe left for next page
-    onSwipedRight: () => setCurrentPage((prev) => Math.max(prev - 1, 1)), // Swipe right for previous page
-    trackMouse: true, // Enable mouse tracking
+const saleScrollLeft = () => {
+  if (!saleRef.current) return;
+  saleRef.current.scrollBy({
+    left: -saleRef.current.clientWidth,
+    behavior: "smooth",
   });
+};
+
+const saleScrollRight = () => {
+  if (!saleRef.current) return;
+  saleRef.current.scrollBy({
+    left: saleRef.current.clientWidth,
+    behavior: "smooth",
+  });
+};
+
+const saleHandleScroll = () => {
+  if (!saleRef.current) return;
+  const container = saleRef.current;
+  const index = Math.round(container.scrollLeft / container.clientWidth);
+  setSaleIndex(index);
+};
+
+const saleHandleResize = () => {
+  if (!saleRef.current) return;
+  const container = saleRef.current;
+  setSaleSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+  saleHandleScroll();
+};
+
+useEffect(() => {
+  if (saleRef.current) {
+    saleHandleResize();
+    saleRef.current.addEventListener("scroll", saleHandleScroll);
+    window.addEventListener("resize", saleHandleResize);
+  }
+}
+, []);
+
+// Section 2: Bestsellers
+const bestsellersRef = useRef<HTMLDivElement>(null);
+const [bestsellersIndex, setBestsellersIndex] = useState(0);
+const [bestsellersSlides, setBestsellersSlides] = useState(1);
+
+
+const bestsellersScrollLeft = () => {
+  if (!bestsellersRef.current) return;
+  bestsellersRef.current.scrollBy({
+    left: -bestsellersRef.current.clientWidth,
+    behavior: "smooth",
+  });
+};
+
+const bestsellersScrollRight = () => {
+  if (!bestsellersRef.current) return;
+  bestsellersRef.current.scrollBy({
+    left: bestsellersRef.current.clientWidth,
+    behavior: "smooth",
+  });
+};
+
+const bestsellersHandleScroll = () => {
+  if (!bestsellersRef.current) return;
+  const container = bestsellersRef.current;
+  const index = Math.round(container.scrollLeft / container.clientWidth);
+  setBestsellersIndex(index);
+};
+
+const bestsellersHandleResize = () => {
+  if (!bestsellersRef.current) return;
+  const container = bestsellersRef.current;
+  setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+  bestsellersHandleScroll();
+};
+
+useEffect(() => {
+  if (bestsellersRef.current) {
+    bestsellersHandleResize();
+    bestsellersRef.current.addEventListener("scroll", bestsellersHandleScroll);
+    window.addEventListener("resize", bestsellersHandleResize);
+  }
+
+
+
+  return () => {
+    if (saleRef.current) {
+      saleRef.current.removeEventListener("scroll", saleHandleScroll);
+      window.removeEventListener("resize", saleHandleResize);
+    }
+    if (bestsellersRef.current) {
+      bestsellersRef.current.removeEventListener("scroll", bestsellersHandleScroll);
+      window.removeEventListener("resize", bestsellersHandleResize);
+    }
+  };
+}, []);
+
+/// Section 3: New Products
+
+const newProductsRef = useRef<HTMLDivElement>(null);
+const [newIndex, setNewIndex] = useState(0);
+const [newSlides, setNewSlides] = useState(1);
+
+const newScrollLeft = () => {
+  if (!newProductsRef.current) return;
+  newProductsRef.current.scrollBy({
+    left: -newProductsRef.current.clientWidth,
+    behavior: "smooth",
+  });
+};
+
+const newScrollRight = () => {
+  if (!newProductsRef.current) return;
+  newProductsRef.current.scrollBy({
+    left: newProductsRef.current.clientWidth,
+    behavior: "smooth",
+  });
+};
+
+const newHandleScroll = () => {
+  if (!newProductsRef.current) return;
+  const container = newProductsRef.current;
+  const index = Math.round(container.scrollLeft / container.clientWidth);
+  setNewIndex(index);
+};
+const newHandleResize = () => {
+  if (!newProductsRef.current) return;
+  const container = newProductsRef.current;
+  if (container) {
+    setNewSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+  }
+  newHandleScroll();
+  console.log('scrollWidth:', container.scrollWidth);
+  console.log('slides:', Math.ceil(container.scrollWidth / container.clientWidth));
+};
+
+useEffect(() => {
+  if (newProductsRef.current) {
+    newHandleResize();
+    newProductsRef.current.addEventListener("scroll", newHandleScroll);
+    window.addEventListener("resize", newHandleResize);
+  }
+
+  return () => {
+    if (newProductsRef.current) {
+      newProductsRef.current.removeEventListener("scroll", newHandleScroll);
+      window.removeEventListener("resize", newHandleResize);
+    }
+  };
+}, 
+
+[]);
+
+
+
+
   return (
     <div className={styles.container}>
       <main className={styles.mainContent}>
@@ -277,12 +416,14 @@ const Main = () => {
             </button>
           </div>
 
-          <div className={styles.bodyContentGrid}>
+          <div className={styles.bodyContentGrid} ref={newProductsRef}>
             {/* Main product grid with 3x2 layout */}
-            <div className={styles.productGrid}>
-              {products.slice(0, 6).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div className={styles.productGrid} >
+              {products
+                .slice(0, 6) 
+                .map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
             </div>
 
             {/* Special product showcase with left and right images */}
@@ -296,6 +437,51 @@ const Main = () => {
               </div>
             </div>
           </div>
+          {isMobile && (
+        <div className={styles.scrollButtons}>
+          <button className={styles.arrowScrollButton} onClick={newScrollLeft}>
+            <svg
+              width="34"
+              height="24"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
+                stroke="#160101"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <div className={styles.dotsContainer}>
+  {Array.from({ length: newSlides }).map((_, i) => (
+    <div
+      key={i}
+      className={`${styles.dot} ${i === newIndex ? styles.activeDot : ""}`}
+    ></div>
+    
+  ))}
+</div>
+          <button className={styles.arrowScrollButton} onClick={newScrollRight}>
+            <svg
+              width="34"
+              height="24"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
+                stroke="#160101"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
 
         </section>
 
@@ -525,24 +711,70 @@ const Main = () => {
           </div>
         </section>
 
-        <section className={styles.saleCarousel} {...handlers}>
+        <section className={styles.saleCarousel}>
           <div className={styles.bodyContentHeader}>
-            <h2 className={styles.bodyContentTitle}>Ціни знижено</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-            </svg></button>
+            <h2 className={styles.bodyContentTitle}>Розпродаж</h2>
+            <button className={styles.bodyContentButton}>Переглянути всі
+              <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
           </div>
-
-          <div className={styles.carouselContainer}>
+          <div className={styles.carouselContainer} ref={saleRef}>
             <div className={styles.carousel}>
-              {currentProducts.map((product, index) => (
-                <ProductCard key={index} product={product} />
+              {products
+                .filter((product) => product.isdiscount) 
+              .map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           </div>
-
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <div className={styles.scrollButtons}>
+            <button className={styles.arrowScrollButton} onClick={saleScrollLeft}>
+            <svg
+              width="34"
+              height="24"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
+                stroke="#160101"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            </button>
+            <div className={styles.dotsContainer}>
+              {Array.from({ length: saleSlides }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`${styles.dot} ${
+                    i === saleIndex ? styles.activeDot : ""
+                  }`}
+                ></div>
+              ))}
+            </div>
+            <button className={styles.arrowScrollButton} onClick={saleScrollRight}>
+            <svg
+              width="34"
+              height="24"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
+                stroke="#160101"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            </button>
+          </div>
         </section>
+
 
         <section className={styles.bodyMaterials}>
           <div className={styles.bodyContentHeader}>
@@ -561,18 +793,68 @@ const Main = () => {
         <section className={styles.bodyBestsellers}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Популярне</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button className={styles.bodyContentButton}>Переглянути всі
+              <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             </button>
           </div>
 
-          <div className={styles.bestsellersContainer}>
-            {currentProducts.map((product) => (
+          <div className={styles.bestsellersContainer} ref={bestsellersRef}>
+            {products.map((product) => (
               <Bestsellers key={product.id} products={[product]} />
             ))}
           </div>
-          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          <div className={styles.scrollButtons}>
+            <button
+              className={styles.arrowScrollButton}
+              onClick={bestsellersScrollLeft}
+            >
+                          <svg
+              width="34"
+              height="24"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
+                stroke="#160101"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            </button>
+            <div className={styles.dotsContainer}>
+              {Array.from({ length: bestsellersSlides }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`${styles.dot} ${
+                    i === bestsellersIndex ? styles.activeDot : ""
+                  }`}
+                ></div>
+              ))}
+            </div>
+            <button
+              className={styles.arrowScrollButton}
+              onClick={bestsellersScrollRight}
+            >
+                          <svg
+              width="34"
+              height="24"
+              viewBox="0 0 24 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
+                stroke="#160101"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            </button>
+          </div>
         </section>
 
         <section className={styles.bodyPartners}>
@@ -621,3 +903,5 @@ const Main = () => {
 };
 
 export default Main;
+
+
