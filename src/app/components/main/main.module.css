@@ -252,27 +252,18 @@
   display: flex;
   align-items: center;
   justify-content: center; /* Center horizontally */
-  margin: 1rem 0; /* Remove side margins to prevent overflow */
+  margin: 1rem 4rem; /* Remove side margins to prevent overflow */
   flex-direction: column;
-  width: 100%; /* Ensure it takes up the full screen width */
-  overflow-x: hidden; /* Prevent horizontal overflow */
 }
 
-.materialsContainer {
+/* .materialsContainer {
   display: flex;
   flex-direction: column;
-  width: 100%; /* Ensure it takes up 100% of the container width */
-  max-width: 100vw; /* Prevents it from exceeding the screen width */
-  padding: 0 2rem; /* Optional horizontal padding */
-  box-sizing: border-box; /* Ensure padding doesn’t cause overflow */
-}
+  width: 100%;
+  padding: 0 2rem; 
+} */
 
-.material {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/*Bestsellers styles*/
 
 .bodyBestsellers {
   display: flex; /* Flexbox for body content */
@@ -287,6 +278,10 @@
   width: 100%;
   justify-content: flex-start;
   margin-bottom: 10px;
+}
+
+.bestsellersContainer::-webkit-scrollbar {
+  display: none; 
 }
 
 .partnersContainer {
@@ -427,6 +422,7 @@
   .partners{
     gap: 1rem;
   }
+  
 }
 
 

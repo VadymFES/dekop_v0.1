@@ -3,13 +3,11 @@
 
 import styles from "./main.module.css";
 import { useState, useEffect, useRef, use } from "react";
-import { useSwipeable } from 'react-swipeable';
 import ProductCard from "../productCard/productCard";
 import MaterialsMain from "../materialsMain/materialsMain";
 import Bestsellers from "../bestsellers/bestsellersMain";
 import ReviewsSection from "../review/reviewSection";
 import dynamic from 'next/dynamic';
-import { time } from "console";
 
 const products = [
   {
@@ -265,8 +263,6 @@ const newHandleResize = () => {
     setNewSlides(Math.ceil(container.scrollWidth / container.clientWidth));
   }
   newHandleScroll();
-  console.log('scrollWidth:', container.scrollWidth);
-  console.log('slides:', Math.ceil(container.scrollWidth / container.clientWidth));
 };
 
 useEffect(() => {
