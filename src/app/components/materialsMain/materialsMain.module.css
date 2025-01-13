@@ -5,8 +5,8 @@
 .materialTypes {
     display: flex;
     justify-content: center;
-    width: 1200px;
-    height: 50px;
+    width: 100%;
+    height: auto;
     margin-bottom: 20px;
     background-color: #F4F3F3; /* Set the background color of the button box */
     border-radius: 50px; /* Optional: Rounded corners for the button box */
@@ -20,7 +20,7 @@
     color: #160101;
     font-size: 18px;
     border-radius: 50px;
-    flex: 1; /* Makes buttons take equal space */
+    flex: 1; 
 }
 
 .materialTypeButton:hover {
@@ -69,7 +69,7 @@
     display: flex; /* Make it a flex container */
     justify-content: center; /* Center image horizontally */
     align-items: center; /* Center image vertically */
-    width: 500px; /* Image width */
+    width: 40vw; /* Image width */
     margin-right: 2rem;
     padding-bottom: 1.5rem ;
 }
@@ -81,3 +81,94 @@
     border-radius: 6px; /* Rounded corners */
     object-fit: cover; /* Cover the area without distorting */
 }
+
+/* Media Query for smaller screens */
+
+@media screen and (max-width: 768px) {
+    .materialsMainContainer {
+      display: grid;
+      grid-template-columns: 2fr 5fr; /* Left ~28%, Right ~72% */
+      grid-template-rows: auto auto;  /* 2 rows: first for columns, second for image */
+      gap: 16px;
+      width: 100%;
+    }
+  
+    .materialCard {
+      display: contents;
+    }
+  
+    /* Column 1 (top-left) - narrower for the buttons */
+    .materialTypes {
+      grid-column: 1;  /* First column */
+      grid-row: 1;     /* First row */
+      
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      background-color: aqua;
+      gap: 6px;
+      height: auto;
+      margin-bottom: 0;
+      border-radius: 20px;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .materialTypeButton {
+        padding: 8px 16px;
+    }
+  
+    /* Column 2 (top-right) - wider for the info */
+    .materialInfo {
+      grid-column: 2;  /* Second column */
+      grid-row: 1;     /* First row */
+  
+      margin-left: 0;
+      text-align: center;
+      max-width: 100%;
+    }
+  
+    /* Spans both columns in the second row - full width */
+    .materialImageWrapper {
+      grid-column: 1 / span 2; /* Span columns 1 through 2 */
+      grid-row: 2;            /* Second row */
+  
+      width: 100%;
+      margin: 0;
+      padding-bottom: 0;
+    }
+  
+    .materialImage {
+      width: 100%;
+      max-height: 300px; /* Adjust as needed for smaller screens */
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  
+    .materialTypeButton {
+      width: 100%;
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  
+    .materialDescription {
+      width: 100%;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    .materialTypeButton {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  
+    .materialImage {
+      max-height: 200px; 
+    }
+  
+    .materialDescription {
+      font-size: 14px;
+    }
+  }
+  
+  
