@@ -83,7 +83,7 @@ const Footer = () => {
       </div>
 
       <div className={styles.footerCopy}>
-        <p className={styles.footerCopyText}>© 2025 Decor. All rights reserved</p>
+        <p className={styles.footerCopyText}>&copy; 2025 Decor. All rights reserved</p>
       </div>
     </footer>
   );
