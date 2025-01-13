@@ -1,96 +1,173 @@
-/* styles.css */
+/* map.module.css */
+
+/* General layout for the map and information container */
+.bodyMap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+
 .mapWrapper {
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Align items to the start of the container */
-    justify-content: center; /* Center items horizontally */
-    padding: 20px; /* Add some margin */
-    position: relative;
-    z-index: 1; /* Set z-index to 1 for stacking context */
-  }
-  
-  .infoContainer {
-    max-width: 400px; /* Fixed width for the info container */
-    max-height: 448px;
-    margin-right: 20px; /* Space between info and map */
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.infoContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.logo {
+  width: 150px;
+  margin-bottom: 20px;
+}
+
+.contactInfo {
+  font-size: 14px;
+}
+
+.contactInfo h4,
+.contactInfo p {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.contactInfo img.icon {
+  width: 20px;
+  margin-right: 10px;
+}
+
+.socialLinks {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.socialButton {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.socialButton:hover {
+  background-color: #45a049;
+}
+
+.socialIcon {
+  width: 20px;
+  margin-right: 8px;
+}
+
+/* Responsive Map container */
+.mapContainer {
+  width: 100%;
+  height: 500px; /* default height */
+}
+
+/* For large screens, display logo and info in a row at the top, map below */
+@media (min-width: 1024px) {
+  .mapWrapper {
+    flex-direction: column; /* Keep mapWrapper in column direction */
+    align-items: center;
   }
 
-  .address {
-    margin-bottom: 2rem; /* Space below address */
+  .infoContainer {
+    flex-direction: row; /* Display logo and info side by side */
+    justify-content: center; /* Center logo and info horizontally */
+    align-items: center; /* Align them vertically in the middle */
+    text-align: left;
   }
 
   .logo {
-    max-width: 250px; /* Full width */
-    max-height: 138px;
-    margin-bottom: 10px; /* Space below logo */
+    width: 120px;
+    margin-right: 20px; /* Space between logo and contact info */
   }
-  
-  .contactInfo h2,
-  .contactInfo p {
-    display: flex;
-    align-items: center; /* Center icon and text vertically */
-    margin: 10px 0; /* Margin for spacing */
+
+  .contactInfo {
+    font-size: 16px;
+    max-width: 500px; /* Limit the width of the contact info */
   }
-  
-  .icon {
-    width: 24px; /* Adjust size of the icons */
-    height: auto;
-    margin-right: 8px; /* Space between icon and text */
-  }
-  
+
   .socialLinks {
-    display: flex; /* Align items in a row */
-    gap: 10px; /* Space between buttons */
-    margin-top: 2rem; /* Space above buttons */
+    justify-content: center;
   }
-  
-  .socialButton {
-    display: flex; /* Use flexbox to align icon and text */
-    align-items: center; /* Center icon vertically with text */
-    justify-content: center; /* Center icon horizontally with text */
-    padding: 10px 15px; /* Add padding for button look */
-    min-width: 180px;
-    height: 46px;
-    color: #160101; /* Text color */
-    font-size: 20px;
-    text-decoration: none; /* Remove underline */
-    border-radius: 50px; /* Make the button round */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Shadow for depth */
-    transition: background-color 0.3s; /* Smooth transition for hover effect */
-  }
-  
-  .socialButton:hover {
-    color: #E2281B;
-    transition: 0.4s;
 
-}
-  
-  .socialIcon {
-    width: 20px; /* Adjust icon size */
-    height: auto; /* Maintain aspect ratio */
-    margin-right: 5px; /* Space between icon and text */
-  }
-  
   .mapContainer {
-    width: 589px; /* Smaller width for the map */
-    height: 448px; /* Smaller height for the map */
+    height: 500px; /* Keep the map height the same */
+  }
+}
+
+/* For medium screens (tablets) */
+@media (max-width: 768px) {
+  .mapWrapper {
+    flex-direction: column;
+    align-items: center;
   }
 
-  @media (width < 936px){
-    .mapWrapper {
-      flex-direction: column; /* Stack items vertically */
-      align-items: center; /* Center items horizontally */
-    }
-    
-    .infoContainer {
-      display: flex;
-      align-items: center;
-      width: 100%; /* Full width for the info container */
-      margin-right: 0; /* Remove margin */
-    }
-
-    .mapContainer {
-      width: 80%; /* Full width for the map */
-      height: 300px; /* Smaller height for the map */
-    }
+  .infoContainer {
+    font-size: 12px;
+    margin-bottom: 15px;
   }
-  
+
+  .logo {
+    width: 120px;
+  }
+
+  .contactInfo h4,
+  .contactInfo p {
+    font-size: 12px;
+  }
+
+  .socialLinks {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .socialButton {
+    margin-bottom: 10px;
+  }
+
+  .mapContainer {
+    height: 400px;
+  }
+}
+
+/* For small mobile screens */
+@media (max-width: 480px) {
+  .infoContainer {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+
+  .logo {
+    width: 100px;
+  }
+
+  .contactInfo h4,
+  .contactInfo p {
+    font-size: 10px;
+  }
+
+  .socialButton {
+    font-size: 10px;
+  }
+
+  .mapContainer {
+    height: 300px;
+  }
+}
