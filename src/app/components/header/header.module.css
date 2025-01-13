@@ -30,7 +30,7 @@
   box-shadow: var(--header-box-shadow);
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: 9999;
 }
 
 
