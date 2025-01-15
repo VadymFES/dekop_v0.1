@@ -83,6 +83,13 @@
 }
 
 /* Media Query for smaller screens */
+@media screen and (max-width: 769px ) 
+{
+  .materialsMainContainer {
+  }
+}
+
+
 
 @media screen and (max-width: 768px) {
     .materialsMainContainer {
@@ -90,7 +97,7 @@
       grid-template-columns: 2fr 5fr; /* Left ~28%, Right ~72% */
       grid-template-rows: auto auto;  /* 2 rows: first for columns, second for image */
       gap: 16px;
-      width: 100%;
+      width: 90vw;
     }
   
     .materialCard {
@@ -105,7 +112,7 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-      background-color: aqua;
+      background-color: #F4F3F3;
       gap: 6px;
       height: auto;
       margin-bottom: 0;
@@ -114,18 +121,16 @@
       justify-content: flex-start;
     }
 
-    .materialTypeButton {
-        padding: 8px 16px;
-    }
   
     /* Column 2 (top-right) - wider for the info */
     .materialInfo {
       grid-column: 2;  /* Second column */
       grid-row: 1;     /* First row */
-  
       margin-left: 0;
       text-align: center;
-      max-width: 100%;
+      max-width: 100%; /* Ensures content doesn’t overflow */
+      overflow: hidden; /* Prevents content from pushing the column size */
+      text-overflow: ellipsis; /* Adds "..." if the text overflows */
     }
   
     /* Spans both columns in the second row - full width */
@@ -148,7 +153,7 @@
     .materialTypeButton {
       width: 100%;
       font-size: 14px;
-      padding: 8px 16px;
+      padding: 10px 16px;
     }
   
     .materialDescription {
@@ -157,6 +162,12 @@
   }
   
   @media screen and (max-width: 480px) {
+
+
+    .materialsMainContainer {
+      grid-auto-rows: minmax(auto, 250px); /* Rows will be at least 100px, but grow to fit content */
+    }
+
     .materialTypeButton {
       font-size: 12px;
       padding: 6px 12px;
