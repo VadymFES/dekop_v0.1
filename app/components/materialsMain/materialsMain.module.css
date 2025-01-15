@@ -1,0 +1,174 @@
+.materialsMainContainer {
+    width: 100%;
+}
+
+.materialTypes {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    background-color: #F4F3F3; /* Set the background color of the button box */
+    border-radius: 50px; /* Optional: Rounded corners for the button box */
+}
+
+.materialTypeButton {
+    background-color: #F4F3F3; /* Button background color */
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    color: #160101;
+    font-size: 18px;
+    border-radius: 50px;
+    flex: 1; 
+}
+
+.materialTypeButton:hover {
+    color: #E2281B; /* Change text color on hover */
+    border-bottom: 0.6px solid #E2281B; /* Active underline effect */
+    transition: color 0.3s ease, border-bottom 0.3s ease; /* Ensure active state has smooth transition as well */
+}
+
+.materialTypeButton.active {
+    color: #E2281B; /* Active text color */
+    border-bottom: 0.6px solid #E2281B; /* Active underline effect */
+}
+
+
+.materialCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px;
+}
+
+.materialInfo {
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack title and description vertically */
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    margin-left: 7rem;
+    max-width: 400px; /* Set a maximum width for the text area */
+}
+
+.materialTitle {
+    font-size: 20px;
+    color: #160101;
+    margin-bottom: 10px;
+}
+
+.materialDescription {
+    font-size: 16px;
+    color: #160101;
+    text-align: justify;
+    width: 384px; /* Adjust as necessary */
+}
+
+.materialImageWrapper {
+    flex-shrink: 0; /* Prevent the image from shrinking */
+    display: flex; /* Make it a flex container */
+    justify-content: center; /* Center image horizontally */
+    align-items: center; /* Center image vertically */
+    width: 40vw; /* Image width */
+    margin-right: 2rem;
+    padding-bottom: 1.5rem ;
+}
+
+.materialImage {
+    width: 100%; /* Image width */
+    max-height: 350px;
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 6px; /* Rounded corners */
+    object-fit: cover; /* Cover the area without distorting */
+}
+
+/* Media Query for smaller screens */
+
+@media screen and (max-width: 768px) {
+    .materialsMainContainer {
+      display: grid;
+      grid-template-columns: 2fr 5fr; /* Left ~28%, Right ~72% */
+      grid-template-rows: auto auto;  /* 2 rows: first for columns, second for image */
+      gap: 16px;
+      width: 100%;
+    }
+  
+    .materialCard {
+      display: contents;
+    }
+  
+    /* Column 1 (top-left) - narrower for the buttons */
+    .materialTypes {
+      grid-column: 1;  /* First column */
+      grid-row: 1;     /* First row */
+      
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      background-color: aqua;
+      gap: 6px;
+      height: auto;
+      margin-bottom: 0;
+      border-radius: 20px;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .materialTypeButton {
+        padding: 8px 16px;
+    }
+  
+    /* Column 2 (top-right) - wider for the info */
+    .materialInfo {
+      grid-column: 2;  /* Second column */
+      grid-row: 1;     /* First row */
+  
+      margin-left: 0;
+      text-align: center;
+      max-width: 100%;
+    }
+  
+    /* Spans both columns in the second row - full width */
+    .materialImageWrapper {
+      grid-column: 1 / span 2; /* Span columns 1 through 2 */
+      grid-row: 2;            /* Second row */
+  
+      width: 100%;
+      margin: 0;
+      padding-bottom: 0;
+    }
+  
+    .materialImage {
+      width: 100%;
+      max-height: 300px; /* Adjust as needed for smaller screens */
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  
+    .materialTypeButton {
+      width: 100%;
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  
+    .materialDescription {
+      width: 100%;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    .materialTypeButton {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  
+    .materialImage {
+      max-height: 200px; 
+    }
+  
+    .materialDescription {
+      font-size: 14px;
+    }
+  }
+  
+  
