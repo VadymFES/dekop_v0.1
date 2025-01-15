@@ -41,7 +41,8 @@
   position: relative;
   flex-grow: 1; /* Takes the remaining space */
   justify-content: space-between; /* Distribute space between logo, activities, and icons */
-  margin: 0 40px;
+  margin: 0 auto;
+  max-width: 1920px;
 }
 
 .menuContainer {
