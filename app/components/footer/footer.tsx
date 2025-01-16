@@ -41,7 +41,7 @@ const Footer = () => {
         <div className={styles.aboutUs}>
           <h3 className={styles.aboutUsTitle}>Про компанію</h3>
           <Link href="/about-us" className={styles.footerLink}>Про нас</Link>
-          <Link href="/contact-us" className={styles.footerLink}>Зв'яжіться з нами</Link>
+          <Link href="/contact-us" className={styles.footerLink}>Звяжіться з нами</Link>
         </div>
 
         {/* For Client section */}

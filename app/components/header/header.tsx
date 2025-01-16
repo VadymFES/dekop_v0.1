@@ -20,11 +20,9 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
     console.log('isCatalogView:', !isCatalogView);
   };
 
-  interface SearchEvent extends React.ChangeEvent<HTMLInputElement> { }
-
-  const handleSearch = (e: SearchEvent) => {
-    setSearchQuery(e.target.value);
-  };
+const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  setSearchQuery(e.target.value);
+};
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

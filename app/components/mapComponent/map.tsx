@@ -19,6 +19,7 @@ import { LatLngTuple } from 'leaflet';
 const position: LatLngTuple = [50.872776851121195, 26.484908133484204];
 
 const Map: React.FC = React.memo(() => {
+  Map.displayName = "Map";
   return (
     <section className={styles.bodyMap}>
       <div className={styles.mapWrapper}>

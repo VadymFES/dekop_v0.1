@@ -2,7 +2,7 @@
 
 
 import styles from "./main.module.css";
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProductCard from "../productCard/productCard";
 import MaterialsMain from "../materialsMain/materialsMain";
 import Bestsellers from "../bestsellersGrid/bestsellersMain";
@@ -324,7 +324,7 @@ useEffect(() => {
       <main className={styles.mainContent}>
         <div className={styles.headerImage}>
           <h1 className={styles.heading}>Сучасні меблі для Вашої оселі</h1>
-          <p className={styles.subheading}>Розкішний вибір стильних корпусних та м'яких меблів від нашого власного виробництва та передових постачальників</p>
+          <p className={styles.subheading}>Розкішний вибір стильних корпусних та мяких меблів від нашого власного виробництва та передових постачальників</p>
           <button className={styles.ctaButton}>До каталогу
 
             <svg width="27" height="26" viewBox="0 0 27 26" fill="none" xmlns="http://www.w3.org/2000/svg">
