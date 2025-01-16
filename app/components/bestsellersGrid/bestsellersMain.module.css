@@ -1,0 +1,13 @@
+.bestsellersContainer {
+    padding: 2rem;
+    background-color: #fff;
+  }
+  
+  .bestsellersGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+  
+  
