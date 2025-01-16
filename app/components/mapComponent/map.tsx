@@ -32,28 +32,28 @@ const Map: React.FC = React.memo(() => {
            />
           <div className={styles.contactInfo}>
             <h4 className={styles.address}>
-              <img src="/address.png" alt="Address" className={styles.icon} />
+              <Image src="/address.png" alt="Address" className={styles.icon} width={20} height={20} />
               об’їзна м. Костопіль, с. мала Любаша вул. Кленова 1, м. Костопіль, Рівненська область, Україна, 35000
             </h4>
             <p>
-              <img src="/phone.png" alt="Phone" className={styles.icon} />
+              <Image src="/phone.png" alt="Phone" className={styles.icon} width={20} height={20} />
               +380982208569
             </p>
             <p>
-              <img src="/email.png" alt="Email" className={styles.icon} />
+              <Image src="/email.png" alt="Email" className={styles.icon} width={20} height={20}/>
               <a href="mailto:dekop.enterprise@gmail.com">dekop.enterprise@gmail.com</a>
             </p>
             <p>
-              <img src="/facebook.png" alt="Facebook" className={styles.icon} />
+              <Image src="/facebook.png" alt="Facebook" className={styles.icon} width={20} height={20}/>
               <a href="https://facebook.com/MebliDecor" target="_blank" rel="noopener noreferrer">facebook.com/MebliDecor</a>
             </p>
             <div className={styles.socialLinks}>
               <a href="https://viber.com/" target="_blank" rel="noopener noreferrer" className={styles.socialButton}>
-                <img src="/viber.png" alt="Viber" className={styles.socialIcon} />
+                <Image src="/viber.png" alt="Viber" className={styles.socialIcon} width={20} height={20}/>
                 Viber
               </a>
               <a href="https://telegram.org/" target="_blank" rel="noopener noreferrer" className={styles.socialButton}>
-                <img src="/telegram.png" alt="Telegram" className={styles.socialIcon} />
+                <Image src="/telegram.png" alt="Telegram" className={styles.socialIcon}width={20} height={20} />
                 Telegram
               </a>
             </div>
