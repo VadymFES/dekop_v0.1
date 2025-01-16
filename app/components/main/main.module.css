@@ -287,42 +287,13 @@
   display: none; 
 }
 
-.partnersContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%; /* Ensure it doesn't overflow the screen */
-  overflow: none; /* Allow horizontal scrolling if content overflows */
-}
-
 .bodyPartners {
   display: flex;
   align-items: center;
   margin: 1rem 4rem;
   flex-direction: column;
   height: auto; /* Allow the height to adjust based on content */
-  max-width: 100vw;
-}
-
-.partnersBckg{
-  background: #F4F3F3;
-  width: 100%;
-}
-
-
-.partners {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr); /* 6 fixed columns */
-  grid-template-rows: auto;    /* Adjust the number of rows based on content */
-  justify-content: center;
-  justify-items: center;
-  align-items: center;
-  gap: 3rem; /* Add some space between logos */
-}
-
-.partner {
-  max-width: 150px; /* Adjust logo size */
-  max-height: 100px; /* Adjust logo size */
+  max-width: 1920px;
 }
 
 .reviewsContainer {
@@ -361,6 +332,7 @@
 .dotsContainer {
   display: flex;
   justify-content: center;
+  max-width: 150px;
 }
 
 /* Individual dot */
@@ -416,16 +388,6 @@
   .specialProductShowcase {
     display: none;
   }
-
-  .partner {
-    max-width: 130px; /* Adjust logo size */
-    max-height: 80px; /* Adjust logo size */
-  }
-
-  .partners{
-    gap: 1rem;
-  }
-  
 }
 
 
@@ -450,29 +412,12 @@
     font-size: 1.2rem; 
     margin-right: 17rem;
   }
-
-  .partners {
-    grid-template-columns: repeat(5, 1fr); /* 5 columns on medium screens */
-  }
-  .partner {
-    max-width: 110px; /* Adjust logo size */
-    max-height: 60px; /* Adjust logo size */
-  }
-
 }
 
 @media screen and (max-width: 768px) {
   .headerImage {
     height: 20rem; /* Reduce the height on smaller screens */
     padding-top: 5vh; /* Adjust the padding for smaller screens */
-  }
-  .partners {
-    grid-template-columns: repeat(4, 1fr); /* 4 columns on smaller screens */
-  }
-  
-  .partner {
-    max-width: 110px; /* Adjust logo size */
-    max-height: 70px; /* Adjust logo size */
   }
 
   .heading {
@@ -638,17 +583,6 @@ display: none;
   .iconBoxCatg {
     margin: 0.3rem;
   }
-
-  .partners {
-    grid-template-columns: repeat(3, 1fr); /* 3 columns on mobile */
-    gap: 1rem;
-  }
-
-  .partner {
-    max-width: 90px; /* Adjust logo size */
-    max-height: 60px; /* Adjust logo size */
-  }
-
 
   .productGrid {
     display: flex;
