@@ -5,8 +5,9 @@ import styles from "./main.module.css";
 import { useState, useEffect, useRef, use } from "react";
 import ProductCard from "../productCard/productCard";
 import MaterialsMain from "../materialsMain/materialsMain";
-import Bestsellers from "../bestsellers/bestsellersMain";
+import Bestsellers from "../bestsellersGrid/bestsellersMain";
 import ReviewsSection from "../review/reviewSection";
+import Partners from "../partners/partners";
 import dynamic from 'next/dynamic';
 import Image from "next/image";
 
@@ -228,6 +229,38 @@ useEffect(() => {
     }
   };
 }, []);
+
+function getDotRange(
+  currentIndex: number,
+  totalSlides: number,
+  maxDots: number
+): [number, number] {
+  if (totalSlides <= maxDots) {
+    return [0, totalSlides - 1];
+  }
+  const half = Math.floor(maxDots / 2);
+  let start = currentIndex - half;
+  let end = start + (maxDots - 1);
+
+  if (start < 0) {
+    start = 0;
+    end = start + (maxDots - 1);
+  }
+  if (end >= totalSlides) {
+    end = totalSlides - 1;
+    start = end - (maxDots - 1);
+  }
+  return [start, end];
+}
+
+// 1) Calculate range
+const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
+
+// 2) Create the array of dot indices
+const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
+  startDot,
+  endDot + 1
+);
 
 /// Section 3: New Products
 
@@ -709,7 +742,8 @@ useEffect(() => {
               className={styles.bankBannerImage} 
               width={1400}
               height={400}
-              />
+              >
+            </Image>
 
         </section>
 
@@ -828,14 +862,16 @@ useEffect(() => {
             </svg>
             </button>
             <div className={styles.dotsContainer}>
-              {Array.from({ length: bestsellersSlides }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`${styles.dot} ${
-                    i === bestsellersIndex ? styles.activeDot : ""
-                  }`}
-                ></div>
-              ))}
+            {dotsToRender.map((dotIndex) => (
+          <div
+            key={dotIndex}
+            className={
+              dotIndex === bestsellersIndex
+                ? `${styles.dot} ${styles.activeDot}`
+                : styles.dot
+            }
+          />
+        ))}
             </div>
             <button
               className={styles.arrowScrollButton}
@@ -867,20 +903,7 @@ useEffect(() => {
 
 
             <div className={styles.partnersContainer}>
-              <div className={styles.partners}>
-                <img src="/logo_22.png" alt="partner" className={styles.partner} />
-                <img src="/logo_33.png" alt="partner" className={styles.partner} />
-                <img src="/logo_alta.png" alt="partner" className={styles.partner} />
-                <img src="/logo_artex.png" alt="partner" className={styles.partner} />
-                <img src="/logo_busol.svg" alt="partner" className={styles.partner} />
-                <img src="/logo_divotex.png" alt="partner" className={styles.partner} />
-                <img src="/logo_etera.png" alt="partner" className={styles.partner} />
-                <img src="/logo_pulsar.png" alt="partner" className={styles.partner} />
-                <img src="/Logo_Swisspan.png" alt="partner" className={styles.partner} />
-                <img src="/mebtex_logo.png" alt="partner" className={styles.partner} />
-                <img src="/megatex_logo.png" alt="partner" className={styles.partner} />
-                <img src="/textoria_logo.svg" alt="partner" className={styles.partner} />
-              </div>
+             <Partners />
             </div>
           </div>
         </section>
