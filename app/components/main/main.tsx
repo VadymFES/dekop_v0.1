@@ -2,7 +2,7 @@
 
 
 import styles from "./main.module.css";
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import MaterialsMain from "../materialsMain/materialsMain";
 import ReviewsSection from "../review/reviewSection";
 import Partners from "../partners/partners";
