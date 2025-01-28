@@ -140,39 +140,15 @@
   transition: 0.4s;
 }
 
-.bodyContentGrid {
+/* .bodyContentGrid {
   display: flex;
-  gap: 20px; /* Space between the product grid and the special showcase */
+  gap: 20px; 
   justify-content: space-between; 
   height: 730px;
   
-}
+} */
 
-.productGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
-  grid-template-rows: repeat(2, 1fr); /* 2 rows */
-  height: 700px; /* Full height matching the special showcase */
-}
 
-.specialProductShowcase {
-  display: flex;
-  height: 100%; /* Full height matching the grid */
-}
-
-.halfImageLeft {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensure the image covers the full area */
-  object-position: center; /* Show left part of the image */
-}
-
-.halfImageRight {
-  width: 100%;
-  height: 720px;
-  object-fit: cover; /* Ensure the image covers the full area */
-  object-position: right; /* Show right part of the image */
-}
 
 .bodyCategories {
   display: flex; /* Flexbox for categories section */
@@ -358,12 +334,12 @@
   }
 
 
-  .bodyContentGrid{
+  /* .bodyContentGrid{
     display: flex;
     justify-content: center;
     width: 100%;
     overflow: hidden;
-  }
+  } */
 
   .heading {
     font-size: 3.5rem; 
@@ -385,9 +361,7 @@
     margin-right: 25rem;
   }
 
-  .specialProductShowcase {
-    display: none;
-  }
+
 }
 
 
@@ -447,22 +421,14 @@
     font-size: 1rem;
 }
 
-  .productGrid {
-    display: flex;
-    gap: 16px;
-    height: auto;
-  }
 
-  .productGrid > * {
-    flex: 0 0 220px; /* Adjust as needed */
-  }
 
-  .bodyContentGrid {
+  /* .bodyContentGrid {
     display: flex;
     justify-content: flex-start;
     overflow: auto;
     height: auto;
-  }
+  } */
 
   .scrollButtons {
     width: 50%; /* Hide the dots on smaller screens */
@@ -584,16 +550,6 @@ display: none;
     margin: 0.3rem;
   }
 
-  .productGrid {
-    display: flex;
-    flex-wrap: nowrap;
-    transition: transform 0.3s ease;
-    gap: 16px;
-    height: auto;
-  }
 
-  .productGrid > * {
-    flex: 0 0 220px; /* Adjust as needed */
-  }
 
 }
