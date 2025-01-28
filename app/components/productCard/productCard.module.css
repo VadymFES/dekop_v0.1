@@ -17,7 +17,6 @@
   .productImage {
     width: 300px;
     height: 260px;
-    margin-left: 6px;
     border-radius: 8px;
     object-fit: cover;
   }
@@ -47,7 +46,7 @@
   .discountLabel,
   .newLabel {
     position: absolute;
-    right: 6px;
+    right: 0;
     bottom: 4px;
     font-size: 12px;
     font-weight: 600;
@@ -61,7 +60,6 @@
     display: flex;
     justify-content: space-between; /* Create two columns */
     align-items: flex-start; /* Align items at the start */
-    gap: 5rem; /* Add padding to the columns */
     padding: 14px 16px 0;
     transition: transform 0.3s ease, top 0.3s ease; /* Smooth movement */
   }
@@ -74,7 +72,7 @@
   .productMeta {
     display: flex;
     flex-direction: column; /* Stack name/type and rating/price in two rows */
-    width: 100px;
+    width: auto;
   }
   
   .productMeta {

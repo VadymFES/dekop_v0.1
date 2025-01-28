@@ -1,49 +1,45 @@
-import React from 'react';
-import Link from 'next/link'; // Assuming you're using Next.js
-import styles from './productCard.module.css'; // Adjust path based on your project structure
+"use client";
+import React from "react";
+import Link from "next/link";
+import styles from "./productCard.module.css";
+import { ProductWithImages } from "@/app/lib/definitions"; // Adjust path as needed
+import Image from "next/image";
 
-// Define the props for ProductCard
+
 interface ProductCardProps {
-  product: {
-    id: number;
-    image: string;
-    name: string;
-    type: string;
-    rating: number;
-    price: number;
-    isBestseller?: boolean; // New prop to indicate bestseller status
-    isNew?: boolean; // New prop to indicate new product status
-    isdiscount?: boolean; // New prop to indicate discount percentage
-  };
+  product: ProductWithImages;
 }
 
-
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const firstImage = product.images.length > 0 ? product.images[0] : null;
+
   return (
     <div className={styles.productCard}>
-      <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product.name}`}>
         <div>
           <div className={styles.imageWrapper}>
-            <img src={product.image} alt={product.name} className={styles.productImage} />
+            {firstImage && (
+              <Image
+                src={firstImage.image_url}  
+                alt={'product.name'}
+                className={styles.productImage}
+                width={260}
+                height={260}
+              />
+            )}
 
-            {product.isBestseller && (
+            {product.is_bestseller && (
               <div className={styles.salesLeaderLabel}>Лідер продажів</div>
             )}
-            {product.isNew && (
-              <div className={styles.newLabel}>Новинка</div>
-            )}
-            {product.isdiscount && (
-              <div className={styles.discountLabel}>Знижка</div>
-            )}
-
+            {product.is_new && <div className={styles.newLabel}>Новинка</div>}
+            {product.is_on_sale && <div className={styles.discountLabel}>Знижка</div>}
           </div>
 
           <div className={styles.productDetails}>
             <div className={styles.productInfo}>
               <p className={styles.productName}>{product.name}</p>
-              <p className={styles.productType}>{product.type}</p>
+              <p className={styles.productType}>{product.category}</p>
             </div>
-
             <div className={styles.productMeta}>
               <p className={styles.productRating}>{product.rating}</p>
               <p className={styles.productPrice}>{product.price} грн</p>
@@ -56,7 +52,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         className={styles.addToCartButton}
         onClick={() => {
           // "add to cart" logic here
-          console.log('Product added to cart');
+          console.log("Product added to cart");
         }}
       >
         Додати в кошик
