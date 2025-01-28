@@ -25,6 +25,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.15",
     "typescript": "^5",
+    "vercel": "^32.3.0",
     "webpack": "^5.95.0"
   }
 }

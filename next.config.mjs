@@ -4,16 +4,23 @@ const nextConfig = {
     images: {
         remotePatterns: [
             {
-                // This pattern will enable the Image component
-                // to load images from the domain `example.com`
-                // and `www.example.com`
                 protocol: 'https',
-                hostname: 'fullhouse.uz'
+                hostname: 'fullhouse.uz', // Your other domain
             },
+            {
+                protocol: 'https',
+                hostname: 'drive.google.com', // Allow Google Drive images
+            },
+            {
+                protocol: 'https',
+                hostname: 'photos.app.goo.gl', // Allow Google images
+            },
+            {
+                protocol: 'https',
+                hostname: 'dekor-1.s3.eu-north-1.amazonaws.com', // Allow AWS images
+            }
         ],
     },
 };
-
-
 
 export default nextConfig;
