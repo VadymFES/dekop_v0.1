@@ -2,116 +2,22 @@
 
 
 import styles from "./main.module.css";
-import { useState, useEffect, useRef } from "react";
-import ProductCard from "../productCard/productCard";
+import { useState, useEffect, useRef, use } from "react";
 import MaterialsMain from "../materialsMain/materialsMain";
-import Bestsellers from "../bestsellersGrid/bestsellersMain";
 import ReviewsSection from "../review/reviewSection";
 import Partners from "../partners/partners";
 import dynamic from 'next/dynamic';
 import Image from "next/image";
-
-const products = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Беатріс",
-    price: 12000,
-    rating: 4,
-    type: "Кутові дивани",
-    isdiscount: true,
-  },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Ріо 2",
-    price: 200,
-    rating: 3,
-    type: "Дивани",
-    isBestseller: true,
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 3",
-    price: 300,
-    rating: 2.3,
-    type: "sofa",
-    isNew: true,
-  },
-  {
-    id: 4,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 4",
-    price: 400,
-    rating: 4.5,
-    type: "wardrobe",
-    isdiscount: true,
-  },
-  {
-    id: 5,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 5",
-    price: 500,
-    rating: 3.7,
-    type: "sofa",
-    isBestseller: true,
-  },
-  {
-    id: 6,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 6",
-    price: 600,
-    rating: 4.2,
-    type: "kitchen",
-    isBestseller: false,
-  },
-  {
-    id: 7,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 6",
-    price: 600,
-    rating: 4.2,
-    type: "kitchen",
-  },
-  {
-    id: 8,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 8",
-    price: 600,
-    rating: 4.2,
-    type: "kitchen",
-    isNew: true,
-  },
-  {
-    id: 9,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 9",
-    price: 600,
-    rating: 4.2,
-    type: "kitchen",
-  },
-  {
-    id: 10,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 10",
-    price: 600,
-    rating: 4.2,
-    type: "kitchen",
-  },
-  {
-    id: 11,
-    image: "https://images.unsplash.com/photo-1728664550581-e5fa836e720a?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    name: "Product 11",
-    price: 600,
-    rating: 4.2,
-    type: "kitchen",
-  },
-];
+import ProductGrid from "../productGrid/productGrid";
+import { Suspense } from "react";
 
 
 
 const Main = () => {
+
+// const  products = await getProducts();
+
+
   const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
 
 // Section 1: Sale Carousel
@@ -119,20 +25,20 @@ const saleRef = useRef<HTMLDivElement>(null);
 const [saleIndex, setSaleIndex] = useState(0);
 const [saleSlides, setSaleSlides] = useState(1);
 
-const [isMobile, setIsMobile] = useState(false);
+// const [isMobile, setIsMobile] = useState(false);
 
-useEffect(() => {
-  const handleResize = () => {
-    setIsMobile(window.innerWidth < 1024);
-  };
+// useEffect(() => {
+//   const handleResize = () => {
+//     setIsMobile(window.innerWidth < 1024);
+//   };
 
-  // Check on initial load
-  handleResize();
+//   // Check on initial load
+//   handleResize();
 
-  // Listen to resize events
-  window.addEventListener("resize", handleResize);
-  return () => window.removeEventListener("resize", handleResize);
-}, []);
+//   // Listen to resize events
+//   window.addEventListener("resize", handleResize);
+//   return () => window.removeEventListener("resize", handleResize);
+// }, []);
 
 const saleScrollLeft = () => {
   if (!saleRef.current) return;
@@ -262,59 +168,59 @@ const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slic
   endDot + 1
 );
 
-/// Section 3: New Products
+// /// Section 3: New Products
 
-const newProductsRef = useRef<HTMLDivElement>(null);
-const [newIndex, setNewIndex] = useState(0);
-const [newSlides, setNewSlides] = useState(1);
+// const newProductsRef = useRef<HTMLDivElement>(null);
+// const [newIndex, setNewIndex] = useState(0);
+// const [newSlides, setNewSlides] = useState(1);
 
-const newScrollLeft = () => {
-  if (!newProductsRef.current) return;
-  newProductsRef.current.scrollBy({
-    left: -newProductsRef.current.clientWidth,
-    behavior: "smooth",
-  });
-};
+// const newScrollLeft = () => {
+//   if (!newProductsRef.current) return;
+//   newProductsRef.current.scrollBy({
+//     left: -newProductsRef.current.clientWidth,
+//     behavior: "smooth",
+//   });
+// };
 
-const newScrollRight = () => {
-  if (!newProductsRef.current) return;
-  newProductsRef.current.scrollBy({
-    left: newProductsRef.current.clientWidth,
-    behavior: "smooth",
-  });
-};
+// const newScrollRight = () => {
+//   if (!newProductsRef.current) return;
+//   newProductsRef.current.scrollBy({
+//     left: newProductsRef.current.clientWidth,
+//     behavior: "smooth",
+//   });
+// };
 
-const newHandleScroll = () => {
-  if (!newProductsRef.current) return;
-  const container = newProductsRef.current;
-  const index = Math.round(container.scrollLeft / container.clientWidth);
-  setNewIndex(index);
-};
-const newHandleResize = () => {
-  if (!newProductsRef.current) return;
-  const container = newProductsRef.current;
-  if (container) {
-    setNewSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-  }
-  newHandleScroll();
-};
+// const newHandleScroll = () => {
+//   if (!newProductsRef.current) return;
+//   const container = newProductsRef.current;
+//   const index = Math.round(container.scrollLeft / container.clientWidth);
+//   setNewIndex(index);
+// };
+// const newHandleResize = () => {
+//   if (!newProductsRef.current) return;
+//   const container = newProductsRef.current;
+//   if (container) {
+//     setNewSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+//   }
+//   newHandleScroll();
+// };
 
-useEffect(() => {
-  if (newProductsRef.current) {
-    newHandleResize();
-    newProductsRef.current.addEventListener("scroll", newHandleScroll);
-    window.addEventListener("resize", newHandleResize);
-  }
+// useEffect(() => {
+//   if (newProductsRef.current) {
+//     newHandleResize();
+//     newProductsRef.current.addEventListener("scroll", newHandleScroll);
+//     window.addEventListener("resize", newHandleResize);
+//   }
 
-  return () => {
-    if (newProductsRef.current) {
-      newProductsRef.current.removeEventListener("scroll", newHandleScroll);
-      window.removeEventListener("resize", newHandleResize);
-    }
-  };
-}, 
+//   return () => {
+//     if (newProductsRef.current) {
+//       newProductsRef.current.removeEventListener("scroll", newHandleScroll);
+//       window.removeEventListener("resize", newHandleResize);
+//     }
+//   };
+// }, 
 
-[]);
+// []);
 
 
 
@@ -446,17 +352,20 @@ useEffect(() => {
             </button>
           </div>
 
-          <div className={styles.bodyContentGrid} ref={newProductsRef}>
-            {/* Main product grid with 3x2 layout */}
+          
+          <Suspense fallback={<div>Loading...</div>}>
+          <ProductGrid />
+          </Suspense>
+
+          {/* <div className={styles.bodyContentGrid} ref={newProductsRef}>
             <div className={styles.productGrid} >
               {products
                 .slice(0, 6) 
                 .map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} products={product} />
                 ))}
             </div>
 
-            {/* Special product showcase with left and right images */}
             <div className={styles.specialProductShowcase}>
               <div className={styles.ImageContainer}>
                 <img
@@ -511,7 +420,7 @@ useEffect(() => {
             </svg>
           </button>
         </div>
-      )}
+      )} */}
 
         </section>
 
@@ -758,11 +667,11 @@ useEffect(() => {
           </div>
           <div className={styles.carouselContainer} ref={saleRef}>
             <div className={styles.carousel}>
-              {products
+              {/* {products
                 .filter((product) => product.isdiscount) 
               .map((product) => (
                 <ProductCard key={product.id} product={product} />
-              ))}
+              ))} */}
             </div>
           </div>
           <div className={styles.scrollButtons}>
@@ -837,9 +746,9 @@ useEffect(() => {
           </div>
 
           <div className={styles.bestsellersContainer} ref={bestsellersRef}>
-            {products.map((product) => (
+            {/* {products.map((product) => (
               <Bestsellers key={product.id} products={[product]} />
-            ))}
+            ))} */}
           </div>
           <div className={styles.scrollButtons}>
             <button
