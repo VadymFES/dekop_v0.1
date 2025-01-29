@@ -15,7 +15,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-leaflet": "^4.2.1",
-    "react-swipeable": "^7.0.1"
+    "react-swipeable": "^7.0.1",
+    "swr": "^2.3.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.14",
