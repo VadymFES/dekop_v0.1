@@ -211,19 +211,19 @@
   align-items: center;
 }
 
-.carouselContainer {
+/* .carouselContainer {
   display: flex;
   overflow-x: auto; 
   width: 100%;
   justify-content: flex-start;
   margin-bottom: 10px;
-}
+} */
 
-.carousel {
+/* .carousel {
   display: flex;
   justify-content: space-between;
-  transition: transform 0.3s ease; /* Smooth transition for carousel effect */
-}
+  transition: transform 0.3s ease;
+} */
 
 /*Materials styles*/
 
@@ -504,9 +504,6 @@ display: none;
     margin-top: 1rem;
   }
 
-  .carousel {
-    margin: 0.1rem 0.4rem;
-    }
 
   .advantages_container {
     display: grid; 
