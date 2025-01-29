@@ -14,9 +14,6 @@
   }
   
 
-  
-  /* Each item (slide) should snap to start. 
-     If your ProductCard has its own outer wrapper, you might put this there. */
   .productCardSlide {
     flex: 0 0 auto;      /* Prevent flex items from shrinking */
     scroll-snap-align: start; /* Snap alignment */
