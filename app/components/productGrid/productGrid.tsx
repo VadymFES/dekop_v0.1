@@ -5,33 +5,104 @@ import ProductCard from "../productCard/productCard";
 import styles from "./productGrid.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 
+// Same helper for limiting visible dots
+function getDotRange(
+  currentIndex: number,
+  totalSlides: number,
+  maxDots: number
+): [number, number] {
+  if (totalSlides <= maxDots) return [0, totalSlides - 1];
+  const half = Math.floor(maxDots / 2);
+  let start = currentIndex - half;
+  let end = start + (maxDots - 1);
+
+  if (start < 0) {
+    start = 0;
+    end = start + (maxDots - 1);
+  }
+  if (end >= totalSlides) {
+    end = totalSlides - 1;
+    start = end - (maxDots - 1);
+  }
+  return [start, end];
+}
+
 export default function ProductGrid() {
   const [products, setProducts] = useState<ProductWithImages[]>([]);
+  const productGridRef = useRef<HTMLDivElement>(null);
 
-  // Scrolling UI logic
-  const productGridRef = useRef<HTMLDivElement>(null); // Refer to the productGrid
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [totalSlides, setTotalSlides] = useState(1);
-
-  // Mobile detection
+  const [totalSlides, setTotalSlides] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Fetch data
+  // Fetch products
   useEffect(() => {
     async function fetchData() {
       try {
         const response = await fetch("/api/products");
-        if (!response.ok) {
-          throw new Error("Failed to fetch products");
-        }
+        if (!response.ok) throw new Error("Failed to fetch products");
         const data: ProductWithImages[] = await response.json();
-        setProducts(data);
+        // Only take 6 products for the grid
+        const limited = data.slice(0, 6);
+        setProducts(limited);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     }
     fetchData();
   }, []);
+
+  // Determine if mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1088);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Handle scroll -> set current page index
+  const handleScroll = () => {
+    if (!productGridRef.current) return;
+    const container = productGridRef.current;
+    // Determine which 'page' of the carousel we are on
+    const index = Math.round(container.scrollLeft / container.clientWidth);
+    setCurrentIndex(index);
+  };
+
+  // Recompute the total # of slides based on container width & scroll width
+  const handleResize = () => {
+    if (!productGridRef.current) return;
+    const container = productGridRef.current;
+    // # of full “screens” or “pages”
+    const slides = Math.ceil(container.scrollWidth / container.clientWidth);
+    setTotalSlides(slides);
+    // Also update current index
+    handleScroll();
+  };
+
+  // Attach scroll/resize listeners
+  useEffect(() => {
+    const container = productGridRef.current;
+    if (!container) return;
+
+    // Do an initial calc
+    handleResize();
+
+    container.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // If `products` changes after fetch, re-check slide count
+  useEffect(() => {
+    handleResize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products]);
 
   // Scroll left
   const handleScrollLeft = () => {
@@ -51,64 +122,44 @@ export default function ProductGrid() {
     });
   };
 
-  // Update the dot indicator
-  const handleScroll = () => {
+  // Dot click -> jump to a given "page" index
+  const handleDotClick = (index: number) => {
     if (!productGridRef.current) return;
-    const container = productGridRef.current;
-    const newIndex = Math.round(container.scrollLeft / container.clientWidth);
-    setCurrentIndex(newIndex);
+    productGridRef.current.scrollTo({
+      left: productGridRef.current.clientWidth * index,
+      behavior: "smooth",
+    });
   };
 
-  // Recalculate the slides on resize
-  const handleResize = () => {
-    if (!productGridRef.current) return;
-    const container = productGridRef.current;
-    setTotalSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-    handleScroll();
-  };
-
-  useEffect(() => {
-    if (productGridRef.current) {
-      handleResize();
-      productGridRef.current.addEventListener("scroll", handleScroll);
-      window.addEventListener("resize", handleResize);
-    }
-    return () => {
-      if (productGridRef.current) {
-        productGridRef.current.removeEventListener("scroll", handleScroll);
-        window.removeEventListener("resize", handleResize);
-      }
-    };
-  }, []);
-
-  // Detect mobile
-  useEffect(() => {
-    const detectMobile = () => setIsMobile(window.innerWidth < 1024);
-    detectMobile();
-    window.addEventListener("resize", detectMobile);
-    return () => window.removeEventListener("resize", detectMobile);
-  }, []);
+  // Build dot range
+  const maxDots = 6;
+  const [dotStart, dotEnd] = getDotRange(currentIndex, totalSlides, maxDots);
+  const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i).slice(
+    dotStart,
+    dotEnd + 1
+  );
 
   return (
     <div className={styles.wrapper}>
-      {/* Container that holds the grid and special showcase side by side */}
       <div className={styles.bodyContentGrid}>
         <div className={styles.productGrid} ref={productGridRef}>
-          {products.slice(0, 6).map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {products.map((product) => (
+            <div className={styles.productCardSlide} key={product.id}>
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
         <div className={styles.specialProductShowcase}>
           <img
-            src="https://plus.unsplash.com/premium_photo-1728657018268-0938eea1d916?q=80&w=1888&auto=format&fit=crop"
-            alt="Product Variant 1"
-            className={styles.halfImageLeft}
+            src="https://plus.unsplash.com/premium_photo-1728657018268-0938eea1d916"
+            alt="Special Product"
+            className={styles.halfImageRight}
           />
         </div>
       </div>
 
-      {/* Scroll Controls beneath the grid */}
-      {isMobile && totalSlides > 1 && (
+      {/* Show arrows + dots only on mobile */}
+      {isMobile && (
         <div className={styles.scrollButtons}>
           <button
             className={styles.arrowScrollButton}
@@ -132,12 +183,13 @@ export default function ProductGrid() {
           </button>
 
           <div className={styles.dotsContainer}>
-            {Array.from({ length: totalSlides }, (_, i) => (
+            {dotsToRender.map((dotIndex) => (
               <div
-                key={i}
+                key={dotIndex}
                 className={`${styles.dot} ${
-                  i === currentIndex ? styles.activeDot : ""
+                  dotIndex === currentIndex ? styles.activeDot : ""
                 }`}
+                onClick={() => handleDotClick(dotIndex)}
               />
             ))}
           </div>
@@ -148,7 +200,7 @@ export default function ProductGrid() {
             aria-label="Scroll Right"
           >
             <svg
-                          width="34"
+              width="34"
               height="24"
               viewBox="0 0 24 14"
               fill="none"
