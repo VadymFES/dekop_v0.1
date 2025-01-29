@@ -6,11 +6,11 @@ export async function GET() {
   try {
     // Fetch products (each row is typed as Product, not Product[])
     const { rows: productRows } = await sql<Product>`SELECT * FROM products`;
-    console.log("Fetched Products:", productRows);
+    // console.log("Fetched Products:", productRows);
 
     // Fetch product images (each row is typed as ProductImage)
     const { rows: imageRows } = await sql<ProductImage>`SELECT * FROM product_images`;
-    console.log("Fetched Images:", imageRows);
+    // console.log("Fetched Images:", imageRows);
 
     // Build a map of product_id -> array of ProductImage
     const imagesMap = imageRows.reduce<Record<number, ProductImage[]>>(
@@ -24,14 +24,14 @@ export async function GET() {
       },
       {}
     );
-    console.log("Images Map:", imagesMap);
+    // console.log("Images Map:", imagesMap);
 
     // Attach images to their corresponding product
     const productsWithImages = productRows.map((product) => ({
       ...product,
       images: imagesMap[product.id] || [],
     }));
-    console.log("Products with Images:", productsWithImages);
+    // console.log("Products with Images:", productsWithImages);
 
     // Return JSON response using NextResponse
     return NextResponse.json(productsWithImages, { status: 200 });
