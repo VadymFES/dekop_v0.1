@@ -4,8 +4,8 @@ import React, { useRef, useEffect, useState } from "react";
 import ProductCard from "../productCard/productCard";
 import styles from "./productGrid.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
+import useSWR from "swr";
 
-// Same helper for limiting visible dots
 function getDotRange(
   currentIndex: number,
   totalSlides: number,
@@ -15,7 +15,6 @@ function getDotRange(
   const half = Math.floor(maxDots / 2);
   let start = currentIndex - half;
   let end = start + (maxDots - 1);
-
   if (start < 0) {
     start = 0;
     end = start + (maxDots - 1);
@@ -27,32 +26,19 @@ function getDotRange(
   return [start, end];
 }
 
-export default function ProductGrid() {
-  const [products, setProducts] = useState<ProductWithImages[]>([]);
-  const productGridRef = useRef<HTMLDivElement>(null);
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+export default function ProductGrid() {
+  const productGridRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [totalSlides, setTotalSlides] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Fetch products
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await fetch("/api/products");
-        if (!response.ok) throw new Error("Failed to fetch products");
-        const data: ProductWithImages[] = await response.json();
-        // Only take 6 products for the grid
-        const limited = data.slice(0, 6);
-        setProducts(limited);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    }
-    fetchData();
-  }, []);
+  // SWR data fetching
+  const { data, error } = useSWR<ProductWithImages[]>("/api/products", fetcher);
+  const products = data?.slice(0, 6) || [];
+  const totalSlides = products.length;
 
-  // Determine if mobile
+  // Mobile detection and resize handler
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1088);
     checkMobile();
@@ -60,84 +46,62 @@ export default function ProductGrid() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Handle scroll -> set current page index
-  const handleScroll = () => {
-    if (!productGridRef.current) return;
-    const container = productGridRef.current;
-    // Determine which 'page' of the carousel we are on
-    const index = Math.round(container.scrollLeft / container.clientWidth);
-    setCurrentIndex(index);
-  };
-
-  // Recompute the total # of slides based on container width & scroll width
-  const handleResize = () => {
-    if (!productGridRef.current) return;
-    const container = productGridRef.current;
-    // # of full “screens” or “pages”
-    const slides = Math.ceil(container.scrollWidth / container.clientWidth);
-    setTotalSlides(slides);
-    // Also update current index
-    handleScroll();
-  };
-
-  // Attach scroll/resize listeners
+  // Scroll event handlers
   useEffect(() => {
     const container = productGridRef.current;
     if (!container) return;
 
-    // Do an initial calc
-    handleResize();
-
-    container.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
+    const handleScrollEnd = () => {
+      const children = Array.from(container.children) as HTMLElement[];
+      const containerScrollLeft = container.scrollLeft + container.clientWidth / 2;
+      const activeSlide = children.findIndex(
+        (child) => containerScrollLeft >= child.offsetLeft && 
+                 containerScrollLeft < child.offsetLeft + child.offsetWidth
+      );
+      if (activeSlide !== -1) setCurrentIndex(activeSlide);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    container.addEventListener("scrollend", handleScrollEnd);
+    return () => container.removeEventListener("scrollend", handleScrollEnd);
   }, []);
 
-  // If `products` changes after fetch, re-check slide count
-  useEffect(() => {
-    handleResize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products]);
+  // Scroll handlers
+  const scrollToSlide = (index: number) => {
+    if (!productGridRef.current) return;
+    const container = productGridRef.current;
+    const slide = container.children[index] as HTMLElement | null;
+    if (!slide) return;
+    container.scrollTo({
+      left: slide.offsetLeft,
+      behavior: "smooth",
+    });
+  };
 
-  // Scroll left
   const handleScrollLeft = () => {
-    if (!productGridRef.current) return;
-    productGridRef.current.scrollBy({
-      left: -productGridRef.current.clientWidth,
-      behavior: "smooth",
-    });
+    const newIndex = Math.max(currentIndex - 1, 0);
+    setCurrentIndex(newIndex);
+    scrollToSlide(newIndex);
   };
 
-  // Scroll right
   const handleScrollRight = () => {
-    if (!productGridRef.current) return;
-    productGridRef.current.scrollBy({
-      left: productGridRef.current.clientWidth,
-      behavior: "smooth",
-    });
+    const newIndex = Math.min(currentIndex + 1, totalSlides - 1);
+    setCurrentIndex(newIndex);
+    scrollToSlide(newIndex);
   };
 
-  // Dot click -> jump to a given "page" index
+  // Dot click handler
   const handleDotClick = (index: number) => {
-    if (!productGridRef.current) return;
-    productGridRef.current.scrollTo({
-      left: productGridRef.current.clientWidth * index,
-      behavior: "smooth",
-    });
+    setCurrentIndex(index);
+    scrollToSlide(index);
   };
 
-  // Build dot range
+  // Dots logic
   const maxDots = 6;
   const [dotStart, dotEnd] = getDotRange(currentIndex, totalSlides, maxDots);
-  const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i).slice(
-    dotStart,
-    dotEnd + 1
-  );
+  const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i)
+    .slice(dotStart, dotEnd + 1);
+
+  if (error) return <div className={styles.error}>Failed to load products</div>;
 
   return (
     <div className={styles.wrapper}>
@@ -153,12 +117,11 @@ export default function ProductGrid() {
           <img
             src="https://plus.unsplash.com/premium_photo-1728657018268-0938eea1d916"
             alt="Special Product"
-            className={styles.halfImageRight}
+            className={styles.halfImageLeft}
           />
         </div>
       </div>
 
-      {/* Show arrows + dots only on mobile */}
       {isMobile && (
         <div className={styles.scrollButtons}>
           <button
@@ -181,7 +144,6 @@ export default function ProductGrid() {
               />
             </svg>
           </button>
-
           <div className={styles.dotsContainer}>
             {dotsToRender.map((dotIndex) => (
               <div
@@ -193,7 +155,6 @@ export default function ProductGrid() {
               />
             ))}
           </div>
-
           <button
             className={styles.arrowScrollButton}
             onClick={handleScrollRight}

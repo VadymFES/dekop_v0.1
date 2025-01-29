@@ -1,170 +1,25 @@
-"use client";
-
 import styles from "./main.module.css";
-import { useState, useEffect, useRef } from "react";
 import MaterialsMain from "../materialsMain/materialsMain";
 import ReviewsSection from "../review/reviewSection";
 import Partners from "../partners/partners";
 import dynamic from 'next/dynamic';
 import Image from "next/image";
 import ProductGrid from "../productGrid/productGrid";
-import { Suspense } from "react";
 import Bestseller from "../bestsellers/bestseller";
 import { ProductWithImages } from "@/app/lib/definitions";
+import Sale from "../saleCarousel/sale";
+import useSWR from 'swr'
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
 
 
 const Main = () => {
 
-// const  products = await getProducts();
 
-  const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
-  const [products, setProducts] = useState<ProductWithImages[]>([]);
+  const { data: products = [], error } = useSWR<ProductWithImages[]>('/api/products', fetcher);
 
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch("/api/products"); // relative path works in the browser
-        const data: ProductWithImages[] = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Failed to fetch products", error);
-      }
-    }
-    fetchProducts();
-  }, []);
-// Section 1: Sale Carousel
-const saleRef = useRef<HTMLDivElement>(null);
-const [saleIndex, setSaleIndex] = useState(0);
-const [saleSlides, setSaleSlides] = useState(1);
-
-const saleScrollLeft = () => {
-  if (!saleRef.current) return;
-  saleRef.current.scrollBy({
-    left: -saleRef.current.clientWidth,
-    behavior: "smooth",
-  });
-};
-
-const saleScrollRight = () => {
-  if (!saleRef.current) return;
-  saleRef.current.scrollBy({
-    left: saleRef.current.clientWidth,
-    behavior: "smooth",
-  });
-};
-
-const saleHandleScroll = () => {
-  if (!saleRef.current) return;
-  const container = saleRef.current;
-  const index = Math.round(container.scrollLeft / container.clientWidth);
-  setSaleIndex(index);
-};
-
-const saleHandleResize = () => {
-  if (!saleRef.current) return;
-  const container = saleRef.current;
-  setSaleSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-  saleHandleScroll();
-};
-
-useEffect(() => {
-  if (saleRef.current) {
-    saleHandleResize();
-    saleRef.current.addEventListener("scroll", saleHandleScroll);
-    window.addEventListener("resize", saleHandleResize);
-  }
-}
-, []);
-
-// // Section 2: Bestsellers
-// const bestsellersRef = useRef<HTMLDivElement>(null);
-// const [bestsellersIndex, setBestsellersIndex] = useState(0);
-// const [bestsellersSlides, setBestsellersSlides] = useState(1);
-
-
-// const bestsellersScrollLeft = () => {
-//   if (!bestsellersRef.current) return;
-//   bestsellersRef.current.scrollBy({
-//     left: -bestsellersRef.current.clientWidth,
-//     behavior: "smooth",
-//   });
-// };
-
-// const bestsellersScrollRight = () => {
-//   if (!bestsellersRef.current) return;
-//   bestsellersRef.current.scrollBy({
-//     left: bestsellersRef.current.clientWidth,
-//     behavior: "smooth",
-//   });
-// };
-
-// const bestsellersHandleScroll = () => {
-//   if (!bestsellersRef.current) return;
-//   const container = bestsellersRef.current;
-//   const index = Math.round(container.scrollLeft / container.clientWidth);
-//   setBestsellersIndex(index);
-// };
-
-// const bestsellersHandleResize = () => {
-//   if (!bestsellersRef.current) return;
-//   const container = bestsellersRef.current;
-//   setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-//   bestsellersHandleScroll();
-// };
-
-// useEffect(() => {
-//   if (bestsellersRef.current) {
-//     bestsellersHandleResize();
-//     bestsellersRef.current.addEventListener("scroll", bestsellersHandleScroll);
-//     window.addEventListener("resize", bestsellersHandleResize);
-//   }
-
-
-
-//   return () => {
-//     if (saleRef.current) {
-//       saleRef.current.removeEventListener("scroll", saleHandleScroll);
-//       window.removeEventListener("resize", saleHandleResize);
-//     }
-//     if (bestsellersRef.current) {
-//       bestsellersRef.current.removeEventListener("scroll", bestsellersHandleScroll);
-//       window.removeEventListener("resize", bestsellersHandleResize);
-//     }
-//   };
-// }, []);
-
-// function getDotRange(
-//   currentIndex: number,
-//   totalSlides: number,
-//   maxDots: number
-// ): [number, number] {
-//   if (totalSlides <= maxDots) {
-//     return [0, totalSlides - 1];
-//   }
-//   const half = Math.floor(maxDots / 2);
-//   let start = currentIndex - half;
-//   let end = start + (maxDots - 1);
-
-//   if (start < 0) {
-//     start = 0;
-//     end = start + (maxDots - 1);
-//   }
-//   if (end >= totalSlides) {
-//     end = totalSlides - 1;
-//     start = end - (maxDots - 1);
-//   }
-//   return [start, end];
-// }
-
-// // 1) Calculate range
-// const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
-
-// // 2) Create the array of dot indices
-// const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
-//   startDot,
-//   endDot + 1
-// );
+  if (error) return <div className={styles.container}>Failed to load products</div>;
 
   return (
     <div className={styles.container}>
@@ -292,11 +147,7 @@ useEffect(() => {
               </svg>
             </button>
           </div>
-
-          
-          <Suspense fallback={<div>Loading...</div>}>
           <ProductGrid />
-          </Suspense>
         </section>
 
 
@@ -540,59 +391,7 @@ useEffect(() => {
               </svg>
             </button>
           </div>
-          <div className={styles.carouselContainer} ref={saleRef}>
-            <div className={styles.carousel}>
-              {/* {products
-                .filter((product) => product.isdiscount) 
-              .map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))} */}
-            </div>
-          </div>
-          <div className={styles.scrollButtons}>
-            <button className={styles.arrowScrollButton} onClick={saleScrollLeft}>
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            </button>
-            <div className={styles.dotsContainer}>
-              {Array.from({ length: saleSlides }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`${styles.dot} ${
-                    i === saleIndex ? styles.activeDot : ""
-                  }`}
-                ></div>
-              ))}
-            </div>
-            <button className={styles.arrowScrollButton} onClick={saleScrollRight}>
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            </button>
-          </div>
+          <Sale products={products} />
         </section>
 
 
@@ -619,9 +418,7 @@ useEffect(() => {
             </svg>
             </button>
           </div>
-
         <Bestseller products={products} />
-
         </section>
 
         <section className={styles.bodyPartners}>
@@ -629,8 +426,6 @@ useEffect(() => {
             <h2 className={styles.bodyContentTitle} >Наші партнери</h2>
           </div>
           <div className={styles.partnersBckg}>
-
-
             <div className={styles.partnersContainer}>
              <Partners />
             </div>
