@@ -13,17 +13,13 @@
     margin-bottom: 10px;
   }
   
-  /* Hides the scrollbar in WebKit-based browsers */
-  .bestsellersContainer::-webkit-scrollbar {
-    display: none;
-  }
+
   
   /* Each item (slide) should snap to start. 
      If your ProductCard has its own outer wrapper, you might put this there. */
   .productCardSlide {
     flex: 0 0 auto;      /* Prevent flex items from shrinking */
     scroll-snap-align: start; /* Snap alignment */
-    margin-right: 1rem;  /* optional spacing between cards */
   }
   
   /* Scroll buttons container */
@@ -73,7 +69,7 @@
   
   /* Hide arrows on smaller screens (optional) */
   @media screen and (max-width: 768px) {
-    .scrollButtons {
+    .arrowScrollButton {
       display: none; 
     }
   }
