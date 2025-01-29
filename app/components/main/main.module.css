@@ -251,7 +251,7 @@
   flex-direction: column;
 }
 
-.bestsellersContainer {
+/* .bestsellersContainer {
   display: flex;
   overflow-x: auto;
   width: 100%;
@@ -261,7 +261,7 @@
 
 .bestsellersContainer::-webkit-scrollbar {
   display: none; 
-}
+} */
 
 .bodyPartners {
   display: flex;

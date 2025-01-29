@@ -1,6 +1,5 @@
 "use client";
 
-
 import styles from "./main.module.css";
 import { useState, useEffect, useRef } from "react";
 import MaterialsMain from "../materialsMain/materialsMain";
@@ -10,6 +9,8 @@ import dynamic from 'next/dynamic';
 import Image from "next/image";
 import ProductGrid from "../productGrid/productGrid";
 import { Suspense } from "react";
+import Bestseller from "../bestsellers/bestseller";
+import { ProductWithImages } from "@/app/lib/definitions";
 
 
 
@@ -17,28 +18,25 @@ const Main = () => {
 
 // const  products = await getProducts();
 
-
   const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
+  const [products, setProducts] = useState<ProductWithImages[]>([]);
 
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch("/api/products"); // relative path works in the browser
+        const data: ProductWithImages[] = await res.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      }
+    }
+    fetchProducts();
+  }, []);
 // Section 1: Sale Carousel
 const saleRef = useRef<HTMLDivElement>(null);
 const [saleIndex, setSaleIndex] = useState(0);
 const [saleSlides, setSaleSlides] = useState(1);
-
-// const [isMobile, setIsMobile] = useState(false);
-
-// useEffect(() => {
-//   const handleResize = () => {
-//     setIsMobile(window.innerWidth < 1024);
-//   };
-
-//   // Check on initial load
-//   handleResize();
-
-//   // Listen to resize events
-//   window.addEventListener("resize", handleResize);
-//   return () => window.removeEventListener("resize", handleResize);
-// }, []);
 
 const saleScrollLeft = () => {
   if (!saleRef.current) return;
@@ -79,151 +77,94 @@ useEffect(() => {
 }
 , []);
 
-// Section 2: Bestsellers
-const bestsellersRef = useRef<HTMLDivElement>(null);
-const [bestsellersIndex, setBestsellersIndex] = useState(0);
-const [bestsellersSlides, setBestsellersSlides] = useState(1);
+// // Section 2: Bestsellers
+// const bestsellersRef = useRef<HTMLDivElement>(null);
+// const [bestsellersIndex, setBestsellersIndex] = useState(0);
+// const [bestsellersSlides, setBestsellersSlides] = useState(1);
 
 
-const bestsellersScrollLeft = () => {
-  if (!bestsellersRef.current) return;
-  bestsellersRef.current.scrollBy({
-    left: -bestsellersRef.current.clientWidth,
-    behavior: "smooth",
-  });
-};
-
-const bestsellersScrollRight = () => {
-  if (!bestsellersRef.current) return;
-  bestsellersRef.current.scrollBy({
-    left: bestsellersRef.current.clientWidth,
-    behavior: "smooth",
-  });
-};
-
-const bestsellersHandleScroll = () => {
-  if (!bestsellersRef.current) return;
-  const container = bestsellersRef.current;
-  const index = Math.round(container.scrollLeft / container.clientWidth);
-  setBestsellersIndex(index);
-};
-
-const bestsellersHandleResize = () => {
-  if (!bestsellersRef.current) return;
-  const container = bestsellersRef.current;
-  setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-  bestsellersHandleScroll();
-};
-
-useEffect(() => {
-  if (bestsellersRef.current) {
-    bestsellersHandleResize();
-    bestsellersRef.current.addEventListener("scroll", bestsellersHandleScroll);
-    window.addEventListener("resize", bestsellersHandleResize);
-  }
-
-
-
-  return () => {
-    if (saleRef.current) {
-      saleRef.current.removeEventListener("scroll", saleHandleScroll);
-      window.removeEventListener("resize", saleHandleResize);
-    }
-    if (bestsellersRef.current) {
-      bestsellersRef.current.removeEventListener("scroll", bestsellersHandleScroll);
-      window.removeEventListener("resize", bestsellersHandleResize);
-    }
-  };
-}, []);
-
-function getDotRange(
-  currentIndex: number,
-  totalSlides: number,
-  maxDots: number
-): [number, number] {
-  if (totalSlides <= maxDots) {
-    return [0, totalSlides - 1];
-  }
-  const half = Math.floor(maxDots / 2);
-  let start = currentIndex - half;
-  let end = start + (maxDots - 1);
-
-  if (start < 0) {
-    start = 0;
-    end = start + (maxDots - 1);
-  }
-  if (end >= totalSlides) {
-    end = totalSlides - 1;
-    start = end - (maxDots - 1);
-  }
-  return [start, end];
-}
-
-// 1) Calculate range
-const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
-
-// 2) Create the array of dot indices
-const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
-  startDot,
-  endDot + 1
-);
-
-// /// Section 3: New Products
-
-// const newProductsRef = useRef<HTMLDivElement>(null);
-// const [newIndex, setNewIndex] = useState(0);
-// const [newSlides, setNewSlides] = useState(1);
-
-// const newScrollLeft = () => {
-//   if (!newProductsRef.current) return;
-//   newProductsRef.current.scrollBy({
-//     left: -newProductsRef.current.clientWidth,
+// const bestsellersScrollLeft = () => {
+//   if (!bestsellersRef.current) return;
+//   bestsellersRef.current.scrollBy({
+//     left: -bestsellersRef.current.clientWidth,
 //     behavior: "smooth",
 //   });
 // };
 
-// const newScrollRight = () => {
-//   if (!newProductsRef.current) return;
-//   newProductsRef.current.scrollBy({
-//     left: newProductsRef.current.clientWidth,
+// const bestsellersScrollRight = () => {
+//   if (!bestsellersRef.current) return;
+//   bestsellersRef.current.scrollBy({
+//     left: bestsellersRef.current.clientWidth,
 //     behavior: "smooth",
 //   });
 // };
 
-// const newHandleScroll = () => {
-//   if (!newProductsRef.current) return;
-//   const container = newProductsRef.current;
+// const bestsellersHandleScroll = () => {
+//   if (!bestsellersRef.current) return;
+//   const container = bestsellersRef.current;
 //   const index = Math.round(container.scrollLeft / container.clientWidth);
-//   setNewIndex(index);
+//   setBestsellersIndex(index);
 // };
-// const newHandleResize = () => {
-//   if (!newProductsRef.current) return;
-//   const container = newProductsRef.current;
-//   if (container) {
-//     setNewSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-//   }
-//   newHandleScroll();
+
+// const bestsellersHandleResize = () => {
+//   if (!bestsellersRef.current) return;
+//   const container = bestsellersRef.current;
+//   setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+//   bestsellersHandleScroll();
 // };
 
 // useEffect(() => {
-//   if (newProductsRef.current) {
-//     newHandleResize();
-//     newProductsRef.current.addEventListener("scroll", newHandleScroll);
-//     window.addEventListener("resize", newHandleResize);
+//   if (bestsellersRef.current) {
+//     bestsellersHandleResize();
+//     bestsellersRef.current.addEventListener("scroll", bestsellersHandleScroll);
+//     window.addEventListener("resize", bestsellersHandleResize);
 //   }
 
+
+
 //   return () => {
-//     if (newProductsRef.current) {
-//       newProductsRef.current.removeEventListener("scroll", newHandleScroll);
-//       window.removeEventListener("resize", newHandleResize);
+//     if (saleRef.current) {
+//       saleRef.current.removeEventListener("scroll", saleHandleScroll);
+//       window.removeEventListener("resize", saleHandleResize);
+//     }
+//     if (bestsellersRef.current) {
+//       bestsellersRef.current.removeEventListener("scroll", bestsellersHandleScroll);
+//       window.removeEventListener("resize", bestsellersHandleResize);
 //     }
 //   };
-// }, 
+// }, []);
 
-// []);
+// function getDotRange(
+//   currentIndex: number,
+//   totalSlides: number,
+//   maxDots: number
+// ): [number, number] {
+//   if (totalSlides <= maxDots) {
+//     return [0, totalSlides - 1];
+//   }
+//   const half = Math.floor(maxDots / 2);
+//   let start = currentIndex - half;
+//   let end = start + (maxDots - 1);
 
+//   if (start < 0) {
+//     start = 0;
+//     end = start + (maxDots - 1);
+//   }
+//   if (end >= totalSlides) {
+//     end = totalSlides - 1;
+//     start = end - (maxDots - 1);
+//   }
+//   return [start, end];
+// }
 
+// // 1) Calculate range
+// const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
 
+// // 2) Create the array of dot indices
+// const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
+//   startDot,
+//   endDot + 1
+// );
 
   return (
     <div className={styles.container}>
@@ -356,72 +297,6 @@ const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slic
           <Suspense fallback={<div>Loading...</div>}>
           <ProductGrid />
           </Suspense>
-
-          {/* <div className={styles.bodyContentGrid} ref={newProductsRef}>
-            <div className={styles.productGrid} >
-              {products
-                .slice(0, 6) 
-                .map((product) => (
-                  <ProductCard key={product.id} products={product} />
-                ))}
-            </div>
-
-            <div className={styles.specialProductShowcase}>
-              <div className={styles.ImageContainer}>
-                <img
-                  src="https://plus.unsplash.com/premium_photo-1728657018268-0938eea1d916?q=80&w=1888&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt="Product Variant 1"
-                  className={styles.halfImageLeft}
-                />
-              </div>
-            </div>
-          </div>
-          {isMobile && (
-        <div className={styles.scrollButtons}>
-          <button className={styles.arrowScrollButton} onClick={newScrollLeft}>
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <div className={styles.dotsContainer}>
-  {Array.from({ length: newSlides }).map((_, i) => (
-    <div
-      key={i}
-      className={`${styles.dot} ${i === newIndex ? styles.activeDot : ""}`}
-    ></div>
-    
-  ))}
-</div>
-          <button className={styles.arrowScrollButton} onClick={newScrollRight}>
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      )} */}
-
         </section>
 
 
@@ -745,63 +620,8 @@ const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slic
             </button>
           </div>
 
-          <div className={styles.bestsellersContainer} ref={bestsellersRef}>
-            {/* {products.map((product) => (
-              <Bestsellers key={product.id} products={[product]} />
-            ))} */}
-          </div>
-          <div className={styles.scrollButtons}>
-            <button
-              className={styles.arrowScrollButton}
-              onClick={bestsellersScrollLeft}
-            >
-                          <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            </button>
-            <div className={styles.dotsContainer}>
-            {dotsToRender.map((dotIndex) => (
-          <div
-            key={dotIndex}
-            className={
-              dotIndex === bestsellersIndex
-                ? `${styles.dot} ${styles.activeDot}`
-                : styles.dot
-            }
-          />
-        ))}
-            </div>
-            <button
-              className={styles.arrowScrollButton}
-              onClick={bestsellersScrollRight}
-            >
-                          <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            </button>
-          </div>
+        <Bestseller products={products} />
+
         </section>
 
         <section className={styles.bodyPartners}>
