@@ -1,6 +1,8 @@
+// definition of the Product and ProductImage interfaces
 export interface Product {
     id: number; // Unique identifier for the product
     name: string; // Name of the product
+    slug: string; // URL-friendly slug of the product
     description: string; // Detailed description of the product
     category: string; // Category (e.g., sofa, table, chair)
     price: number; // Price of the product
