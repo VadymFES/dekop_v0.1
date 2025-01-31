@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { Product, ProductImage } from "@/app/lib/definitions";
 
-export async function GET(request: Request, { params }: { params: { slug: string } }) {
-  const { slug } = params; // Extract the slug from the dynamic route
+export async function GET(
+  request: Request,
+  { params }: { params: { slug: string } }
+) {
+  const { slug } = params; // Get the slug from the request params
 
   try {
     // Fetch the product by slug
