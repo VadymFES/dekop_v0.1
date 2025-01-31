@@ -15,13 +15,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className={styles.productCard}>
-      <Link href={`/product/${product.name}`}>
+      <Link href={`/product/${encodeURIComponent(product.slug)}`}>
         <div>
           <div className={styles.imageWrapper}>
             {firstImage && (
               <Image
                 src={firstImage.image_url}  
-                alt={'product.name'}
+                alt={product.name}
                 className={styles.productImage}
                 width={260}
                 height={260}
