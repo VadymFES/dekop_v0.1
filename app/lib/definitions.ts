@@ -1,6 +1,8 @@
+// definition of the Product and ProductImage interfaces
 export interface Product {
     id: number; // Unique identifier for the product
     name: string; // Name of the product
+    slug: string; // URL-friendly slug of the product
     description: string; // Detailed description of the product
     category: string; // Category (e.g., sofa, table, chair)
     price: number; // Price of the product
@@ -25,3 +27,25 @@ export interface Product {
   export interface ProductWithImages extends Product {
     images: ProductImage[];
   }
+
+  export interface ProductSpecs {
+    id: number; // Unique identifier for the product
+    construction: string; // Construction type (e.g., Eurobook, Modular)
+    dimensions: {
+      length: number; // Length in millimeters
+      depth: number; // Depth in millimeters
+      height: number; // Height in millimeters
+      sleeping_area: {
+        width: number; // Width in millimeters
+        length: number; // Length in millimeters
+      };
+    };
+    material: {
+      type: string; // Material type (e.g., microvelour, leather)
+      composition: string; // Material composition (e.g., 100% polyester)
+      structure: string; // Material structure (e.g., waterproof birch plywood, laminated MDF)
+      filling: string; // Material filling (e.g., hollowfiber)
+      covers: string; // Material covers (e.g., removable)
+    };
+    color: string; // Color of the product
+  };

@@ -13,7 +13,7 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: 'photos.app.goo.gl', // Allow Google images
+                hostname: 'tk.ua', // Allow Google images
             },
             {
                 protocol: 'https',

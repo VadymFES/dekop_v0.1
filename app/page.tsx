@@ -37,11 +37,9 @@ export default function Home() {
           onClick={() => setMenuOpen(false)}
         ></div>
       )}
-
       <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle}/>
-
-        <Main />
-        <Footer />
+      <Main />
+      <Footer />
     </div>
   );
 }

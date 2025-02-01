@@ -1,0 +1,44 @@
+/* Specifications.module.css */
+
+/* Container section */
+.specificationsSection {
+    margin: 2rem 0;
+    padding: 1rem;
+    background-color: #fff; /* or whatever your design calls for */
+    border-radius: 8px;
+  }
+  
+  /* Title for the section */
+  .specsTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  /* Grid to create two columns */
+  .specsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    grid-gap: 2rem; /* Space between columns */
+  }
+  
+  /* Individual column */
+  .specsColumn {
+    line-height: 1.6;
+  }
+  
+  /* Example color-sample box or swatch */
+  .colorSample {
+    width: 100px;
+    height: 60px;
+    background: url('/images/Alpina6-swatch.jpg') no-repeat center/cover;
+    margin-bottom: 1rem;
+  }
+  
+  /* Disclaimer styling */
+  .disclaimer {
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 0.5rem;
+  }
+  
