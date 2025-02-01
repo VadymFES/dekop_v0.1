@@ -3,6 +3,7 @@
 import { GetServerSideProps } from 'next';
 import { ProductWithImages } from '@/app/lib/definitions';
 import Image from 'next/image';
+import ProductLayout from '../layout';
 
 interface ProductPageProps {
   product: ProductWithImages;
@@ -14,7 +15,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
   }
 
   return (
-    <div>
+    <ProductLayout>
       <h1>{product.name}</h1>
       <p>{product.description}</p>
       <div>
@@ -25,12 +26,19 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
             alt={image.alt || product.name}
             width={500}
             height={500}
+            layout="responsive"
           />
         ))}
       </div>
-    </div>
+    </ProductLayout>
   );
 };
+
+
+
+
+
+
 
 // Using getServerSideProps to fetch the data based on the slug
 export const getServerSideProps: GetServerSideProps = async (context) => {
