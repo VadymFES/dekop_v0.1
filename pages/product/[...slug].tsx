@@ -1,16 +1,17 @@
-// pages/product/[slug].tsx
+// pages/product/[...slug].tsx
 
 import { GetServerSideProps } from 'next';
-import { ProductWithImages, ProductSpecs } from '@/app/lib/definitions';
+import { ProductWithImages, ProductSpecs, ProductColor } from '@/app/lib/definitions';
 import ProductLayout from '../layout';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
 import styles from './product.module.css';
 import ProductImages from './images/images';
 import Specifications from './specs/specifications';
+import { ProductActions } from './actions/actions';
 
 interface ProductPageProps {
-  product: ProductWithImages & { specs?: ProductSpecs | null };
+  product: ProductWithImages;
 }
 
 const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
@@ -29,11 +30,13 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
           </li>
           <li className={styles.separator}>|</li>
           <li className={styles.breadcrumb_item}>
-            <Link href="/category">Category</Link> {/* Replace with actual category */}
+            <Link href="/catalog">Каталог</Link>
           </li>
           <li className={styles.separator}>|</li>
           <li className={styles.breadcrumb_item}>
-            <Link href="/subcategory">Subcategory</Link> {/* Replace with actual subcategory */}
+            <Link href={`/category/${product.category}`}>
+              {product.category}
+            </Link>
           </li>
           <li className={styles.separator}>|</li>
           <li className={styles.breadcrumb_item}>{product.name}</li>
@@ -45,11 +48,6 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
           {/* Image Section */}
           <ProductImages product={product} />
 
-          {/* Product Description */}
-          <div className={styles.descriptionSection}>
-            <p>{product.description}</p>
-          </div>
-
           {/* Product Specifications */}
           {product.specs ? (
             <Specifications specs={product.specs} />
@@ -57,26 +55,14 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
             <div>No specifications available.</div>
           )}
 
-          {/* Product Info (Name, Rating, etc.) */}
-          <div className={styles.productInfoSection}>
-            <h1>{product.name}</h1>
-            <div>Rating: {/* Add rating component here */}</div>
-            <div>
-              <button>Add to Favorite</button>
-            </div>
-            <div>
-              <select>
-                <option value="color1">Color 1</option>
-                <option value="color2">Color 2</option>
-              </select>
-            </div>
-            <div>
-              <button>Add to Cart</button>
-            </div>
-            <div>
-              <input type="number" min="1" defaultValue="1" />
-            </div>
+          {/* Product Description */}
+          <div className={styles.descriptionSection}>
+            <div className={styles.descriptionTitle}>Опис</div>
+            <p className={styles.descriptionTxt}>{product.description}</p>
           </div>
+
+          {/* Product Actions */}
+          <ProductActions product={product} />
 
           {/* Delivery Information */}
           <div className={styles.deliveryInfoSection}>
@@ -97,52 +83,59 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
+  
+  // Fetch main product data
   const productRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${slug}`);
-
-  // Log response for debugging
-  console.log('Product response status:', productRes.status);
-  const productBody = await productRes.text();
-  console.log('Product response body:', productBody);
-
+  
   if (!productRes.ok) {
-    return {
-      notFound: true,
-    };
+    return { notFound: true };
   }
 
-  // Parse product data
   let product;
   try {
-    product = JSON.parse(productBody);
+    product = await productRes.json();
   } catch (error) {
     console.error('Failed to parse product JSON:', error);
-    return {
-      notFound: true,
-    };
+    return { notFound: true };
   }
 
-  // Fetch specs data separately using the product id
+  // Parallel fetch for specs and colors
+  const [specsRes, colorsRes] = await Promise.all([
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/product-specs/${product.id}`),
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/product-colors/${product.id}`)
+  ]);
+
+  // Handle specs
   let specs: ProductSpecs | null = null;
   try {
-    const specsRes = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/product-specs/${product.id}`
-    );
     if (specsRes.ok) {
       specs = await specsRes.json();
-    } else {
-      console.warn(`No specs found for product id ${product.id}`);
     }
   } catch (error) {
-    console.error('Error fetching specs:', error);
+    console.error('Error parsing specs:', error);
   }
 
-  // Attach the specs to the product
-  product = { ...product, specs };
+  // Handle colors
+  let colors: ProductColor[] = [];
+  try {
+    if (colorsRes.ok) {
+      colors = await colorsRes.json();
+    }
+  } catch (error) {
+    console.error('Error parsing colors:', error);
+  }
+
+  // Combine all data
+  const fullProduct: ProductWithImages = {
+    ...product,
+    specs,
+    colors
+  };
 
   return {
     props: {
-      product,
-    },
+      product: fullProduct
+    }
   };
 };
 
