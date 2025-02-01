@@ -3,8 +3,8 @@ import { sql } from "@vercel/postgres";
 import { Product, ProductImage } from "@/app/lib/definitions";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { slug: string } }
+  request: Request, 
+  { params }: { params: { slug: string } } // Ensure params is correctly typed
 ) {
   const { slug } = params; // Get the slug from the request params
 
