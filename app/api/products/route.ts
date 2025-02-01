@@ -1,39 +1,57 @@
+// api/products/route.ts
+
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Product, ProductImage } from "@/app/lib/definitions";
+import { Product, ProductImage, ProductColor, ProductSpecs } from "@/app/lib/definitions";
 
 export async function GET() {
   try {
-    // Fetch products (each row is typed as Product, not Product[])
+    // 1. Fetch products.
     const { rows: productRows } = await sql<Product>`SELECT * FROM products`;
-    // console.log("Fetched Products:", productRows);
 
-    // Fetch product images (each row is typed as ProductImage)
+    // 2. Fetch product images.
     const { rows: imageRows } = await sql<ProductImage>`SELECT * FROM product_images`;
-    // console.log("Fetched Images:", imageRows);
 
-    // Build a map of product_id -> array of ProductImage
-    const imagesMap = imageRows.reduce<Record<number, ProductImage[]>>(
-      (acc, image) => {
-        const { product_id } = image;
-        if (!acc[product_id]) {
-          acc[product_id] = [];
-        }
-        acc[product_id].push(image);
-        return acc;
-      },
-      {}
-    );
-    // console.log("Images Map:", imagesMap);
+    // 3. Fetch product specifications.
+    const { rows: specsRows } = await sql<ProductSpecs>`SELECT * FROM product_specs`;
 
-    // Attach images to their corresponding product
+    // 4. Fetch product colors.
+    const { rows: colorRows } = await sql<ProductColor>`SELECT * FROM product_spec_colors`;
+
+    // 5. Map images to their product IDs.
+    const imagesMap = imageRows.reduce<Record<number, ProductImage[]>>((acc, image) => {
+      const { product_id } = image;
+      if (!acc[product_id]) {
+        acc[product_id] = [];
+      }
+      acc[product_id].push(image);
+      return acc;
+    }, {});
+
+    // 6. Map specs to their product IDs.
+    const specsMap = specsRows.reduce<Record<number, ProductSpecs>>((acc, spec) => {
+      acc[spec.product_id] = spec;
+      return acc;
+    }, {});
+
+    // 7. Map colors to their product IDs.
+    const colorsMap = colorRows.reduce<Record<number, ProductColor[]>>((acc, color) => {
+      const key = color.product_id; // Use the product_spec_id from the color row.
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(color);
+      return acc;
+    }, {});
+
+    // 8. Attach images, specs, and colors to their corresponding product.
     const productsWithImages = productRows.map((product) => ({
       ...product,
       images: imagesMap[product.id] || [],
+      specs: specsMap[product.id] || null, // or you could provide a fallback object if needed
+      colors: colorsMap[product.id] || []
     }));
-    // console.log("Products with Images:", productsWithImages);
 
-    // Return JSON response using NextResponse
     return NextResponse.json(productsWithImages, { status: 200 });
   } catch (error) {
     console.error("Error:", error);
