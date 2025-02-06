@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { Product, ProductImage } from "@/app/lib/definitions";
+import type { NextRequest } from "next/server";
 
 export async function GET(
-  request: Request,
-  context: Promise<{ params: { slug: string } }>
+  request: NextRequest,
+  { params }: { params: { slug: string } }
 ) {
-  const { params } = await context;
-  const { slug } = await params;
+  const { slug } = params;
 
   try {
     const { rows: productRows } = await sql<Product>`
       SELECT * FROM products WHERE slug = ${slug}
     `;
-    console.log("Fetched Product:", productRows);
 
     if (productRows.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -24,7 +23,6 @@ export async function GET(
     const { rows: imageRows } = await sql<ProductImage>`
       SELECT * FROM product_images WHERE product_id = ${product.id}
     `;
-    console.log("Fetched Images:", imageRows);
 
     const productWithImages = {
       ...product,
