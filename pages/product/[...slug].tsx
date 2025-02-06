@@ -81,8 +81,11 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
 
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+
   // Fetch main product data
-  const productRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${slug}`);
+  const productRes = await fetch(`${baseUrl}/api/products/${slug}`);
 
   if (!productRes.ok) {
     return { notFound: true };
@@ -98,8 +101,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   // Parallel fetch for specs and colors
   const [specsRes, colorsRes] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/product-specs/${product.id}`),
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/product-colors/${product.id}`)
+    fetch(`${baseUrl}/api/products/product-specs/${product.id}`),
+    fetch(`${baseUrl}/api/products/product-colors/${product.id}`)
   ]);
 
   // Handle specs
