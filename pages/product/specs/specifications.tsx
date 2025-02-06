@@ -1,15 +1,16 @@
-// pages/product/specs/specifications.tsx
-
 import React from 'react';
 import styles from './Specifications.module.css';
-import { ProductSpecs } from '@/app/lib/definitions';
+import { ProductWithImages } from '@/app/lib/definitions';
 
 type SpecificationsProps = {
-  specs: ProductSpecs;
+  product: ProductWithImages;
 };
 
-export default function Specifications({ specs }: SpecificationsProps) {
-  const { construction, dimensions, material, color } = specs;
+export default function Specifications({ product }: SpecificationsProps) {
+  // Destructure from product props
+  const { specs } = product;
+
+  if (!specs) return <div>Специфікації не доступні</div>;
 
   return (
     <section className={styles.specificationsSection}>
@@ -17,34 +18,34 @@ export default function Specifications({ specs }: SpecificationsProps) {
       <div className={styles.specsGrid}>
         {/* Left column */}
         <div className={styles.specsColumn}>
-          {construction && <h3>Конструкція: {construction}</h3>}
+          {specs.construction && <h3>Конструкція: {specs.construction}</h3>}
           <br />
 
-          {dimensions && (
+          {specs.dimensions && (
             <>
               <h4>Розміри:</h4>
-              {dimensions.length != null && (
-                <p>Довжина: {dimensions.length} мм</p>
+              {specs.dimensions.length != null && (
+                <p>Довжина: {specs.dimensions.length} мм</p>
               )}
-              {dimensions.depth != null && (
-                <p>Глибина: {dimensions.depth} мм</p>
+              {specs.dimensions.depth != null && (
+                <p>Глибина: {specs.dimensions.depth} мм</p>
               )}
-              {dimensions.height != null && (
-                <p>Висота: {dimensions.height} мм</p>
+              {specs.dimensions.height != null && (
+                <p>Висота: {specs.dimensions.height} мм</p>
               )}
-              {dimensions.sleeping_area &&
-                ((dimensions.sleeping_area.width != null) ||
-                  (dimensions.sleeping_area.length != null)) && (
+              {specs.dimensions.sleeping_area &&
+                ((specs.dimensions.sleeping_area.width != null) ||
+                  (specs.dimensions.sleeping_area.length != null)) && (
                   <p>
                     Спальне місце:
-                    {dimensions.sleeping_area.width != null &&
-                      ` ${dimensions.sleeping_area.width}`}
-                    {(dimensions.sleeping_area.width != null) &&
-                    (dimensions.sleeping_area.length != null)
+                    {specs.dimensions.sleeping_area.width != null &&
+                      ` ${specs.dimensions.sleeping_area.width}`}
+                    {(specs.dimensions.sleeping_area.width != null &&
+                      specs.dimensions.sleeping_area.length != null)
                       ? ' × '
                       : ''}
-                    {dimensions.sleeping_area.length != null &&
-                      `${dimensions.sleeping_area.length}`} 
+                    {specs.dimensions.sleeping_area.length != null &&
+                      `${specs.dimensions.sleeping_area.length}`}
                     мм
                   </p>
               )}
@@ -53,29 +54,49 @@ export default function Specifications({ specs }: SpecificationsProps) {
 
           <br />
 
-          {material && (
+          {specs.material && (
             <>
               <h4>Матеріал:</h4>
-              {material.type && <p>Тип: {material.type}</p>}
-              {material.composition && (
-                <p>Склад: {material.composition}</p>
+              {specs.material.type && <p>Тип: {specs.material.type}</p>}
+              {specs.material.composition && (
+                <p>Склад: {specs.material.composition}</p>
               )}
-              {material.structure && (
-                <p>Матеріал: {material.structure}</p>
+              {specs.material.structure && (
+                <p>Матеріал: {specs.material.structure}</p>
               )}
-              {material.filling && <p>Наповнення: {material.filling}</p>}
-              {material.covers && <p>Чохли: {material.covers}</p>}
+              {specs.material.filling && (
+                <p>Наповнення: {specs.material.filling}</p>
+              )}
+              {specs.material.covers && <p>Чохли: {specs.material.covers}</p>}
             </>
           )}
 
           <br />
 
-          {color && <h4>Колір: {color}</h4>}
-          {color && (
-            <div className={styles.colorSample}>
-              {/* Optionally, render a color swatch using inline styles */}
-            </div>
-          )}
+          <h4>Колір:</h4>
+          {/* <div className={styles.colorsGrid}>
+            {colors
+              .filter((colorItem) => colorItem.product_id === product.id) // Фільтруємо кольори за product_id
+              .map((colorItem, index) => (
+                <div key={index} className={styles.colorItem}>
+                  <div className={styles.colorSample}>
+                    {colorItem.image_url ? (
+                      <img
+                        src={colorItem.image_url}
+                        alt={`Колір: ${colorItem.color}`}
+                        className={styles.colorImage}
+                      />
+                    ) : (
+                      <div
+                        style={{ backgroundColor: colorItem.color }}
+                        className={styles.colorSwatch}
+                      ></div>
+                    )}
+                  </div>
+                  <p>{colorItem.color}</p>
+                </div>
+              ))}
+          </div> */}
 
           <p className={styles.disclaimer}>
             Відображення кольору на фотографії залежить від налаштувань вашого
@@ -83,16 +104,16 @@ export default function Specifications({ specs }: SpecificationsProps) {
           </p>
         </div>
 
-        {/* Right column (customizable content) */}
+        {/* Right column */}
         <div className={styles.specsColumn}>
-          {material && material.structure && <h3>Корпус дивана</h3>}
-          {material && material.structure && (
-            <p>Матеріал: {material.structure}</p>
+          {specs.material?.structure && <h3>Корпус дивана</h3>}
+          {specs.material?.structure && (
+            <p>Матеріал: {specs.material.structure}</p>
           )}
-          {material && material.filling && (
-            <p>Наповнення: {material.filling}</p>
+          {specs.material?.filling && (
+            <p>Наповнення: {specs.material.filling}</p>
           )}
-          {material && material.covers && <p>Чохли: {material.covers}</p>}
+          {specs.material?.covers && <p>Чохли: {specs.material.covers}</p>}
         </div>
       </div>
     </section>
