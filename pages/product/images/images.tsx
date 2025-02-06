@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ProductWithImages } from '@/app/lib/definitions';
-import styles from './ProductPage.module.css'; // Adjust import path accordingly
+import styles from './ProductPage.module.css';
 
+interface ProductImagesProps {
+  product?: ProductWithImages; // Allow product to be optional if it might be undefined
+}
 
-const ProductImages: React.FC<{ product: ProductWithImages }> = ({ product }) => {
-  // 1) Initialize the selected image to the first image in the array
-  const [selectedImage, setSelectedImage] = useState(product.images[0]);
+const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
+  // Use optional chaining to safely initialize the state.
+  const [selectedImage, setSelectedImage] = useState(product?.images?.[0]);
 
-  // 2) Handle thumbnail click
+  // Early return if product or its images are missing.
+  if (!product || !product.images || product.images.length === 0) {
+    return <div>Зображення не доступні</div>;
+  }
+
+  // Handle thumbnail click
   const handleThumbnailClick = (image: typeof product.images[0]) => {
     setSelectedImage(image);
   };
@@ -17,14 +25,16 @@ const ProductImages: React.FC<{ product: ProductWithImages }> = ({ product }) =>
     <div className={styles.imageSection}>
       {/* Main (selected) image */}
       <div className={styles.mainImageContainer}>
-        <Image
-          key={selectedImage.id}
-          src={selectedImage.image_url}
-          alt={selectedImage.alt || product.name}
-          width={500}
-          height={500}
-          className={styles.mainImage}
-        />
+        {selectedImage && (
+          <Image
+            key={selectedImage.id}
+            src={selectedImage.image_url}
+            alt={selectedImage.alt || product.name}
+            width={500}
+            height={500}
+            className={styles.mainImage}
+          />
+        )}
       </div>
 
       {/* Carousel (thumbnails) */}
@@ -33,7 +43,7 @@ const ProductImages: React.FC<{ product: ProductWithImages }> = ({ product }) =>
           <div
             key={image.id}
             className={
-              image.id === selectedImage.id
+              selectedImage && image.id === selectedImage.id
                 ? styles.thumbnailSelected
                 : styles.thumbnail
             }
