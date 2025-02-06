@@ -8,7 +8,7 @@ import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
 import styles from './product.module.css';
 import ProductImages from './images/images';
 import Specifications from './specs/specifications';
-import { ProductActions } from './actions/actions';
+import ProductActions from './actions/actions';
 
 interface ProductPageProps {
   product: ProductWithImages;
