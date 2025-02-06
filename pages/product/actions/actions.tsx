@@ -4,18 +4,19 @@ import styles from './actions.module.css';
 import { DropdownArrow } from '@/app/ui/icons/dropdown/dropdownArrow';
 import { AddToCartIcon } from '@/app/ui/icons/cart/addToCartIcon';
 import { AlertIcon } from '@/app/ui/icons/alert/alertIcon';
+import Image from 'next/image';
 
 interface ProductActionsProps {
-  product: ProductWithImages;
+  product?: ProductWithImages; // Mark as optional if it might be undefined
 }
 
-export const ProductActions = ({ product }: ProductActionsProps) => {
+const ProductActions = ({ product }: ProductActionsProps) => {
+  // Hooks are called unconditionally at the top:
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState(
-    product.colors?.[0] || { color: 'No Color', image_url: '' }
+    product?.colors?.[0] || { color: 'No Color', image_url: '' }
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,18 +32,12 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
     };
   }, []);
 
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.max(1, parseInt(e.target.value, 10));
-    setQuantity(value);
-  };
+  // Now that all hooks have been called, you can safely conditionally render:
+  if (!product) {
+    return <div>Product not found</div>;
+  }
 
-  const handleColorSelect = (colorOption: typeof selectedColor) => {
-    setSelectedColor(colorOption);
-    setIsDropdownOpen(false);
-  };
-
-  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
-
+  // Now that product is guaranteed, destructure its properties:
   const { name, stock, rating, price, specs, colors } = product;
 
   return (
@@ -84,12 +79,14 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
           <div className={styles.specsItem}>
             <span className={styles.specsTitle}>Колір:</span>
             <div className={styles.customDropdown} ref={dropdownRef}>
-              <div className={styles.selectedOption} onClick={toggleDropdown}>
+              <div className={styles.selectedOption} onClick={() => setIsDropdownOpen((prev) => !prev)}>
                 {selectedColor?.image_url ? (
-                  <img
+                  <Image
                     src={selectedColor.image_url}
                     alt={selectedColor.color}
                     className={styles.colorImage}
+                    width={30}
+                    height={30}
                   />
                 ) : (
                   <span style={{ fontSize: '11px' }}>No images</span>
@@ -104,13 +101,18 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
                     <div
                       key={index}
                       className={styles.optionItem}
-                      onClick={() => handleColorSelect(colorOption)}
+                      onClick={() => {
+                        setSelectedColor(colorOption);
+                        setIsDropdownOpen(false);
+                      }}
                     >
                       {colorOption.image_url ? (
-                        <img
+                        <Image
                           src={colorOption.image_url}
                           alt={colorOption.color}
                           className={styles.optionImage}
+                          width={30}
+                          height={30}
                         />
                       ) : (
                         <span style={{ fontSize: '11px' }}>No images</span>
@@ -155,7 +157,7 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
               type="number"
               min="1"
               value={quantity}
-              onChange={handleQuantityChange}
+              onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10)))}
               className={styles.quantityInput}
             />
             <button
@@ -178,3 +180,5 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
     </>
   );
 };
+
+export default ProductActions;
