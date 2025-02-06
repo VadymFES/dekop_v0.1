@@ -36,7 +36,7 @@ export default function PagesLayout({
   };
 
   return (  
-    <>
+    <html lang="uk">
       <Head>
         <title>
           {`${getPageName()} | Dekop Furniture Enterprise - меблі для вашого дому`}
@@ -47,6 +47,6 @@ export default function PagesLayout({
       <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle} />
       <main>  {children} </main>
       <Footer />
-    </>
+    </html>
   );
 }
