@@ -1,7 +1,7 @@
 // pages/product/[...slug].tsx
 
 import { GetServerSideProps } from 'next';
-import { ProductWithImages, ProductSpecs, ProductColor } from '@/app/lib/definitions';
+import { ProductWithImages } from '@/app/lib/definitions';
 import ProductLayout from '../layout';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -46,7 +46,6 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
       <section className={styles.productContainer}>
         <div className={styles.parent}>
           <div className={styles.leftColumn}>
-
             {/* Image Section */}
             <ProductImages product={product} />
 
@@ -65,13 +64,9 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
           </div>
 
           <div className={styles.rightColumn}>
-
             {/* Product Actions */}
             <ProductActions product={product} />
-
-
-
-            </div>
+          </div>
         </div>
       </section>
     </ProductLayout>
@@ -80,63 +75,40 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
-
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dekop-v0-1.vercel.app';
 
+  try {
+    // Fetch main product data
+    const productRes = await fetch(`${baseUrl}/api/products/${slug}`);
+    if (!productRes.ok) throw new Error('Product not found');
 
-  // Fetch main product data
-  const productRes = await fetch(`${baseUrl}/api/products/${slug}`);
+    const product = await productRes.json();
 
-  if (!productRes.ok) {
+    // Parallel fetch for specs and colors
+    const [specsRes, colorsRes] = await Promise.all([
+      fetch(`${baseUrl}/api/products/product-specs/${product.id}`),
+      fetch(`${baseUrl}/api/products/product-colors/${product.id}`),
+    ]);
+
+    const specs = specsRes.ok ? await specsRes.json() : null;
+    const colors = colorsRes.ok ? await colorsRes.json() : [];
+
+    // Combine all data
+    const fullProduct: ProductWithImages = {
+      ...product,
+      specs,
+      colors,
+    };
+
+    return {
+      props: {
+        product: fullProduct,
+      },
+    };
+  } catch (error) {
+    console.error('Error loading product data:', error);
     return { notFound: true };
   }
-
-  let product;
-  try {
-    product = await productRes.json();
-  } catch (error) {
-    console.error('Failed to parse product JSON:', error);
-    return { notFound: true };
-  }
-
-  // Parallel fetch for specs and colors
-  const [specsRes, colorsRes] = await Promise.all([
-    fetch(`${baseUrl}/api/products/product-specs/${product.id}`),
-    fetch(`${baseUrl}/api/products/product-colors/${product.id}`)
-  ]);
-
-  // Handle specs
-  let specs: ProductSpecs | null = null;
-  try {
-    if (specsRes.ok) {
-      specs = await specsRes.json();
-    }
-  } catch (error) {
-    console.error('Error parsing specs:', error);
-  }
-
-  // Handle colors
-  let colors: ProductColor[] = [];
-  try {
-    if (colorsRes.ok) {
-      colors = await colorsRes.json();
-    }
-  } catch (error) {
-    console.error('Error parsing colors:', error);
-  }
-
-  // Combine all data
-  const fullProduct: ProductWithImages = {
-    ...product,
-    specs,
-    colors
-  };
-
-  return {
-    props: {
-      product: fullProduct
-    }
-  };
 };
 
 export default ProductPage;
