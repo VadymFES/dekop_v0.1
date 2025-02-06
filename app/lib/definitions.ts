@@ -53,6 +53,7 @@ export interface ProductSpecs {
 export interface ProductColor {
   color: string;
   product_id: number;
+  image_url: string;
 }
 
 // Extend the product interface to include images, specs, and an optional array of colors.
