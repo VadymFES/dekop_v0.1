@@ -2,20 +2,18 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { ProductColor } from "@/app/lib/definitions";
 
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  context: Promise<{ params: { productId: string } }>
 ) {
-  const { productId } = params;
+  const { params } = await context;
+  const { productId } = await params;
 
   try {
     const { rows } = await sql<ProductColor>`
-      SELECT
-        product_id,
-        color
-      FROM product_spec_colors
-      WHERE product_id = ${Number(productId)}
+      SELECT product_id, color, image_url FROM product_spec_colors WHERE product_id = ${Number(productId)}
     `;
 
     if (rows.length === 0) {
@@ -28,6 +26,9 @@ export async function GET(
     return NextResponse.json(rows, { status: 200 });
   } catch (error) {
     console.error("Error:", error);
-    return NextResponse.json({ error: "Failed to fetch product colors" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch product colors" },
+      { status: 500 }
+    );
   }
 }

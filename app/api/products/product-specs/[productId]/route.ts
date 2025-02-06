@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { ProductSpecs } from "@/app/lib/definitions"; // Adjust path as needed
+import { ProductSpecs } from "@/app/lib/definitions";
 
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  context: Promise<{ params: { productId: string } }>
 ) {
-  const { productId } = params;
+  const { params } = await context;
+  const { productId } = await params;
 
   try {
-    // Run the SQL query with aliasing (flat keys will be returned)
-    const { rows } = await sql<any>`
+    const { rows } = await sql`
       SELECT
         id,
         product_id,
@@ -24,8 +24,7 @@ export async function GET(
         material_composition AS "material.composition",
         material_structure AS "material.structure",
         material_filling AS "material.filling",
-        material_covers AS "material.covers",
-        color
+        material_covers AS "material.covers"
       FROM product_specs
       WHERE product_id = ${Number(productId)}
     `;
@@ -37,7 +36,6 @@ export async function GET(
       );
     }
 
-    // Transform the flat row into a nested object matching the ProductSpecs interface
     const row = rows[0];
     const specs: ProductSpecs = {
       id: row.id,
@@ -59,7 +57,6 @@ export async function GET(
         filling: row["material.filling"],
         covers: row["material.covers"],
       },
-      color: row.color,
     };
 
     return NextResponse.json(specs, { status: 200 });
