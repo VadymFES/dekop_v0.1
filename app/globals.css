@@ -5,10 +5,11 @@
 /* Root Variables for Color Themes */
 :root {
     --foreground: #160101;
-    --secondary-color: #E2281B;
+    --hover-color: #E2281B;
     --background: #FEFDFC;
     --shadow-color: rgba(22, 1, 1, 0.24);
     --header-box-shadow: 0px 13px 19px -5px #1601013D;
+    --btn-color: #F45145;
 }
 
 /* Global Styles */
