@@ -44,38 +44,35 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
       </nav>
 
       <section className={styles.productContainer}>
-        <section className={styles.parent}>
-          {/* Image Section */}
-          <ProductImages product={product} />
+        <div className={styles.parent}>
+          <div className={styles.leftColumn}>
 
-          {/* Product Specifications */}
-          {product.specs ? (
-            <Specifications specs={product.specs} />
-          ) : (
-            <div>No specifications available.</div>
-          )}
+            {/* Image Section */}
+            <ProductImages product={product} />
 
-          {/* Product Description */}
-          <div className={styles.descriptionSection}>
-            <div className={styles.descriptionTitle}>Опис</div>
-            <p className={styles.descriptionTxt}>{product.description}</p>
+            {/* Product Specifications */}
+            {product.specs ? (
+              <Specifications product={product} />
+            ) : (
+              <div>No specifications available.</div>
+            )}
+
+            {/* Product Description */}
+            <div className={styles.descriptionSection}>
+              <div className={styles.descriptionTitle}>Опис</div>
+              <p className={styles.descriptionTxt}>{product.description}</p>
+            </div>
           </div>
 
-          {/* Product Actions */}
-          <ProductActions product={product} />
+          <div className={styles.rightColumn}>
 
-          {/* Delivery Information */}
-          <div className={styles.deliveryInfoSection}>
-            <h3>Delivery Info</h3>
-            {/* Add delivery details here */}
-          </div>
+            {/* Product Actions */}
+            <ProductActions product={product} />
 
-          {/* Reviews */}
-          <div className={styles.reviewsSection}>
-            <h3>Reviews</h3>
-            {/* Add reviews component here */}
-          </div>
-        </section>
+
+
+            </div>
+        </div>
       </section>
     </ProductLayout>
   );
@@ -83,10 +80,10 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
-  
+
   // Fetch main product data
   const productRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${slug}`);
-  
+
   if (!productRes.ok) {
     return { notFound: true };
   }
