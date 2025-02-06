@@ -81,7 +81,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dekop-v0-1.vercel.app ';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dekop-v0-1.vercel.app';
 
 
   // Fetch main product data
