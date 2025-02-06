@@ -77,19 +77,22 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
 
   // Add event listeners
   useEffect(() => {
-    if (bestsellersRef.current) {
-      bestsellersHandleResize();
-      bestsellersRef.current.addEventListener("scroll", bestsellersHandleScroll);
-      window.addEventListener("resize", bestsellersHandleResize);
-    }
-
+    const container = bestsellersRef.current;
+    if (!container) return;
+  
+    const handleScroll = () => {
+      const index = Math.round(container.scrollLeft / container.clientWidth);
+      setBestsellersIndex(index);
+    };
+  
+    container.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", bestsellersHandleResize);
+  
     return () => {
-      if (bestsellersRef.current) {
-        bestsellersRef.current.removeEventListener("scroll", bestsellersHandleScroll);
-      }
+      container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", bestsellersHandleResize);
     };
-  }, []);
+  }, [bestsellersHandleResize]);
 
   // Dots range
   const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);

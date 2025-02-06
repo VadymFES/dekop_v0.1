@@ -18,7 +18,15 @@ const nextConfig = {
             {
                 protocol: 'https',
                 hostname: 'dekor-1.s3.eu-north-1.amazonaws.com', // Allow AWS images
-            }
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com', // Allow Unsplash images
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.pexels.com', // Allow Pixabay images
+            },
         ],
     },
 };
