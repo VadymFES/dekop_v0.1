@@ -7,8 +7,7 @@ type SpecificationsProps = {
 };
 
 export default function Specifications({ product }: SpecificationsProps) {
-  // Destructure from product props
-  const { specs } = product;
+  const { specs } = product || {};
 
   if (!specs) return <div>Специфікації не доступні</div>;
 
