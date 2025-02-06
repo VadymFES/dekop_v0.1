@@ -1,4 +1,4 @@
-// components/Specifications.tsx
+// pages/product/specs/specifications.tsx
 
 import React from 'react';
 import styles from './Specifications.module.css';
