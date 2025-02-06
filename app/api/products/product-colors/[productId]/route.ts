@@ -5,11 +5,11 @@ import { ProductColor } from "@/app/lib/definitions";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  request: Request,
-  context: Promise<{ params: { productId: string } }>
+  _request: Request,
+  { params }: { params: Promise<{ productId: string }> } 
 ) {
-  const { params } = await context;
-  const { productId } = await params;
+
+  const productId = (await params).productId;
 
   try {
     const { rows } = await sql<ProductColor>`
