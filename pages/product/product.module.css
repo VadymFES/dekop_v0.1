@@ -1,17 +1,16 @@
-.productContainer{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    margin: 1rem 4rem;
+/* Product Container */
+.productContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin: 1rem 4rem;
 }
 
-/* breadcrumb styles  */
-
+/* Breadcrumb Styles */
 .breadcrumbContainer {
-  /* This ensures the breadcrumb is full width and left-aligned. */
   width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1rem 2rem 1rem;
 }
 
 .breadcrumb {
@@ -29,43 +28,177 @@
 
 .separator {
   margin: 0 8px;
+  color: #666;
 }
-
 
 .breadcrumb_item a {
   text-decoration: none;
+  color: #333;
+  transition: color 0.3s ease;
 }
 
 .breadcrumb_item a:hover {
+  color: #0070f3;
   text-decoration: underline;
 }
 
-/* product actions styles */
-
+/* Main Product Layout */
 .parent {
   display: grid;
-  grid-template-columns: 1.5fr 1fr; /* Adjusts for large screens */
-  grid-template-rows: 1fr repeat(2, 1fr); /* Row heights for the sections */
-  grid-column-gap: 30px;
-  grid-row-gap: 20px;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
   width: 100%;
+  position: relative;
+  align-items: stretch; /* This ensures the columns are stretched to the same height */
+  min-height: 100vh; /* Ensures it takes at least the full viewport height */
 }
 
+/* Left Column Styles */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
 
+.imagesSection {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
+.specificationsSection {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+/* Right Column Styles */
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem; /* Optional: Add padding to prevent content touching the edges */
+}
+
+.actionsSection {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
+}
+
+.stickyContainer {
+  position: sticky;
+  top: 20px;
+  background-color: #fff;
+  padding: 10px;
+  z-index: 10;
+  max-height: 80vh; /* Prevent sticky content from exceeding viewport height */
+  overflow-y: auto; /* Scrollable if content overflows */
+}
+
+/* Description Section */
 .descriptionSection {
- grid-area: 3 / 1 / 4 / 2; /* Images section */
-
+  margin: 2rem 0;
+  padding: 1rem;
+  background-color: --var(background); 
+  border-radius: 8px;
 }
 
-.productInfoSection {
-  grid-area: 1 / 2 / 2 / 3; /* Name, rating, favorites, color, cart section */
+.descriptionTitle {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  width: 100%;
+  height: 44px; /* Height of the button */
+  margin-bottom: 24px; /* Remove padding to maintain the round shape */
+  border-radius: 50px; /* Make the button round */
+  font-size: 1.1rem; /* Button font size */
+  background-color: transparent; /* Button background color */
+  color: #000000; /* Button text color */
+  border: 2px solid #16010133;
+  transition: background-color 0.3s ease; /* Smooth transition */
 }
 
+.descriptionTxt {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+}
+
+/* Delivery Info Section */
 .deliveryInfoSection {
-  grid-area: 2 / 2 / 3 / 3; /* Delivery info section */
+  background: --var(background);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
+.deliveryInfoSection h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #2d3436;
+}
+
+/* Reviews Section */
 .reviewsSection {
-  grid-area: 3 / 2 / 4 / 3; /* Reviews section */
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.reviewsSection h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #2d3436;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .productContainer {
+      margin: 1rem;
+  }
+
+  .parent {
+      grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+      position: static;
+      order: -1;
+  }
+
+  .breadcrumbContainer {
+      padding: 0 0.5rem 1rem 0.5rem;
+  }
+
+  .breadcrumb {
+      font-size: 12px;
+  }
+
+  .separator {
+      margin: 0 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .productContainer {
+      margin: 0.5rem;
+  }
+
+  .leftColumn,
+  .rightColumn {
+      gap: 20px;
+  }
+
+  .specificationsSection,
+  .actionsSection,
+  .descriptionSection,
+  .deliveryInfoSection,
+  .reviewsSection {
+      padding: 1rem;
+  }
 }
