@@ -63,7 +63,7 @@ const Footer = () => {
             className={styles.footerSocialIcon} 
             aria-label="Facebook"
           >
-            <img src="/facebook.png" alt="facebook" />
+            <Image src="/facebook.png" alt="facebook" height={30} width={30} />
           </a>
 
           <a 
@@ -73,7 +73,7 @@ const Footer = () => {
             className={styles.footerSocialIcon} 
             aria-label="Viber"
           >
-            <img src="/viber.png" alt="viber" />
+            <Image src="/viber.png" alt="viber" height={30} width={30} />
           </a>
 
           <a 
@@ -83,7 +83,7 @@ const Footer = () => {
             className={styles.footerSocialIcon} 
             aria-label="Telegram"
           >
-            <img src="/telegram.png" alt="telegram" />
+            <Image src="/telegram.png" alt="telegram" height={30} width={30}/>
           </a>
 
         </div>
