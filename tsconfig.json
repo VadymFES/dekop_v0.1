@@ -37,8 +37,12 @@
     ".next/types/**/*.ts",
     "app/lib/placeholder-data.ts",
     "scripts/seed.js",
-    "next.config.mjs"
-, "app/api/products/route.ts"  ],
+  "next.config.mjs",
+  "app/api/products/route.ts",
+  "app/api/products/[slug]/route.ts",
+  "app/api/products/product-colors/[productId]/route.ts",
+  "app/api/products/product-specs/[productId]/route.ts",
+],
   "exclude": [
     "node_modules"
   ]
