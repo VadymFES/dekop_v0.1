@@ -1,4 +1,3 @@
-// pages/layout.tsx
 import React, { useState } from "react";
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
@@ -9,19 +8,15 @@ import "@/app/globals.css";
 export default function PagesLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const getPageName = () => {
-    const pathSegments = router.asPath
-      .split("?")[0]
-      .split("/")
-      .filter(segment => segment !== "");
-    
-    const lastSegment = pathSegments[pathSegments.length - 1];
-    
+    const pathSegments = router.asPath.split("?")[0].split("/").filter(segment => segment !== "");
+    // If there are no segments, default to "Home"
+    const lastSegment = pathSegments[pathSegments.length - 1] || "Home";
     return formatName(lastSegment);
   };
 
@@ -30,13 +25,13 @@ export default function PagesLayout({
       .replace(/-/g, " ")
       .replace(/(^\w|\s\w)/g, m => m.toUpperCase());
   };
-  
+
   const handleMenuToggle = () => {
     setMenuOpen(prev => !prev);
   };
 
-  return (  
-    <html lang="uk">
+  return (
+    <>
       <Head>
         <title>
           {`${getPageName()} | Dekop Furniture Enterprise - меблі для вашого дому`}
@@ -45,8 +40,8 @@ export default function PagesLayout({
         <link rel="icon" href="/favicon.png" sizes="16x16" type="image/png" />
       </Head>
       <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle} />
-      <main>  {children} </main>
+      <main>{children}</main>
       <Footer />
-    </html>
+    </>
   );
 }
