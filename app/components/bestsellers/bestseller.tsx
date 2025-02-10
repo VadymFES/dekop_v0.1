@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import ProductCard from "../productCard/productCard";
 import styles from "./bestseller.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
@@ -67,13 +67,12 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
   };
 
   // Calculate how many slides fit in the container
-  const bestsellersHandleResize = () => {
+  const bestsellersHandleResize = useCallback(() => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
-    // The total number of "screens" or "pages" in the scroll container
     setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
     bestsellersHandleScroll();
-  };
+  }, []);
 
   // Add event listeners
   useEffect(() => {
