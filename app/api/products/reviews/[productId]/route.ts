@@ -78,6 +78,12 @@ export async function DELETE(
   request: Request,
   { params }: { params: { productId: string } }
 ) {
+  const productId = validateProductId(params.productId);
+
+  if (productId === null) {
+    return errorResponse("Invalid productId. Must be a positive number.", 400);
+  }
+
   const { searchParams } = new URL(request.url);
   const reviewId = searchParams.get("id");
 
@@ -88,7 +94,7 @@ export async function DELETE(
   try {
     await sql`
       DELETE FROM reviews
-      WHERE id = ${Number(reviewId)}
+      WHERE id = ${Number(reviewId)} AND product_id = ${productId}
     `;
 
     return NextResponse.json({ message: "Review deleted successfully" }, { status: 200 });
