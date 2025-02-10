@@ -63,3 +63,12 @@ export interface ProductWithImages extends Product {
   // Colors are now stored in a separate table and returned as an array.
   colors: ProductColor[];
 }
+
+export interface Review {
+  id: number;               // Unique identifier for the review
+  product_id: number;       // Identifier linking the review to the product
+  user_name: string;        // Name of the reviewer
+  rating: number;           // Rating given by the reviewer (1-5)
+  comment: string;          // Review comment
+  created_at: string;       // Timestamp when the review was created
+}
