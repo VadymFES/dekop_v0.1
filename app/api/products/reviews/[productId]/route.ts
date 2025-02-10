@@ -75,15 +75,8 @@ export async function POST(
 
 // Delete a review by its ID (optional for admin purposes)
 export async function DELETE(
-  request: Request,
-  { params }: { params: { productId: string } }
+  request: Request
 ) {
-  const productId = validateProductId(params.productId);
-
-  if (productId === null) {
-    return errorResponse("Invalid productId. Must be a positive number.", 400);
-  }
-
   const { searchParams } = new URL(request.url);
   const reviewId = searchParams.get("id");
 
@@ -94,7 +87,7 @@ export async function DELETE(
   try {
     await sql`
       DELETE FROM reviews
-      WHERE id = ${Number(reviewId)} AND product_id = ${productId}
+      WHERE id = ${Number(reviewId)}
     `;
 
     return NextResponse.json({ message: "Review deleted successfully" }, { status: 200 });
@@ -103,3 +96,4 @@ export async function DELETE(
     return errorResponse("Failed to delete review", 500);
   }
 }
+
