@@ -1,8 +1,6 @@
 /* actions.module.css */
-.productActionSection {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.actions {
+    box-sizing: border-box;
   }
   
   .stickyWrapper, .stickyWrapperbtm {
@@ -13,7 +11,7 @@
   }
 
     .stickyWrapperbtm {
-    top: 14rem;
+    top: 13.7rem;
     }
   
   .topSection {
@@ -21,10 +19,11 @@
     flex-direction: column;
   }
   
-  .availabilityWrapper, .ratingWrapper {
+  .availabilityPriceWrapper {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
   
   .productName {
@@ -127,6 +126,11 @@
     cursor: pointer;
   }
 
+  .addToCartButton:hover {
+    background: var(--hover-color);
+    transition: background 0.3s ease;
+  }
+
   .addToCartButton:disabled {
     background: #E3E0E0;
     cursor: not-allowed;
@@ -146,7 +150,7 @@
     font-size: 14px;
   }
   
-  .specsItem {
+  .specsItem, .specsItemDropdown {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -157,7 +161,6 @@
   .specsTitle {
     font-size: 14px;
     font-weight: 300;
-    color: #160101;
   }
   
   .customDropdown {
@@ -225,7 +228,7 @@
   
   .warning,
   .returnPolicy {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300;
     color: #d32f2f;
     margin: 6px 0;
@@ -237,3 +240,70 @@
     display: flex;
     margin-right: 6px;
   }
+
+  @media (max-width: 768px) {
+
+  
+    .stickyWrapper, .stickyWrapperbtm {
+      position: static;
+    }
+  
+    .productName, .productRating {
+      display: none;
+    }
+  
+    .productPrice {
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      margin: 12px 0;
+    }
+  
+    .dimensionsContainer {
+      display: flex;
+      gap: 6px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .specsItem {
+      flex-direction: column;
+    }
+
+    .specsItemDropdown {
+      display: flex;
+
+    }
+
+  
+    .deliverySection {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background-color: #f8f8f8;
+      padding: 16px;
+      border-radius: 8px;
+    }
+  
+    .deliveryItem {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      padding: 10px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  
+    .warning{
+      display: none;
+    }
+    
+    .returnPolicy {
+      font-size: 12px;
+      color: #d32f2f;
+      margin: 6px 0;
+    }
+  }
+  
