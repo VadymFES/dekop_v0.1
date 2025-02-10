@@ -13,7 +13,7 @@ export default function Specifications({ product }: SpecificationsProps) {
 
   return (
     <section className={styles.specificationsSection}>
-      <div className={styles.specsTitle}>Характеристики</div>
+      <div className={styles.specsContainerTitle}>Характеристики</div>
       <div className={styles.specsGrid}>
         {/* Left column */}
         <div className={styles.specsColumn}>
@@ -22,7 +22,7 @@ export default function Specifications({ product }: SpecificationsProps) {
 
           {specs.dimensions && (
             <>
-              <h4>Розміри:</h4>
+              <h4 className={styles.specsTitle}>Розміри:</h4>
               {specs.dimensions.length != null && (
                 <p>Довжина: {specs.dimensions.length} мм</p>
               )}
@@ -55,7 +55,7 @@ export default function Specifications({ product }: SpecificationsProps) {
 
           {specs.material && (
             <>
-              <h4>Матеріал:</h4>
+              <h4 className={styles.specsTitle}>Матеріал:</h4>
               {specs.material.type && <p>Тип: {specs.material.type}</p>}
               {specs.material.composition && (
                 <p>Склад: {specs.material.composition}</p>
@@ -72,7 +72,7 @@ export default function Specifications({ product }: SpecificationsProps) {
 
           <br />
 
-          <h4>Колір:</h4>
+          <h4 className={styles.specsTitle}>Колір:</h4>
           {/* <div className={styles.colorsGrid}>
             {colors
               .filter((colorItem) => colorItem.product_id === product.id) // Фільтруємо кольори за product_id
@@ -105,7 +105,7 @@ export default function Specifications({ product }: SpecificationsProps) {
 
         {/* Right column */}
         <div className={styles.specsColumn}>
-          {specs.material?.structure && <h3>Корпус дивана</h3>}
+          {specs.material?.structure && <h4 className={styles.specsTitle}>Корпус дивана</h4>}
           {specs.material?.structure && (
             <p>Матеріал: {specs.material.structure}</p>
           )}
