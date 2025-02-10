@@ -9,7 +9,7 @@
   }
   
   /* Title for the section */
-  .specsTitle {
+  .specsContainerTitle {
     display: flex;
     justify-content: center; 
     align-items: center;
@@ -23,6 +23,10 @@
     border: 2px solid #16010133;
     transition: background-color 0.3s ease; /* Smooth transition */
   }
+
+  .specsTitle {
+    font-size: 1rem;
+  }
   
   /* Grid to create two columns */
   .specsGrid {
@@ -34,6 +38,7 @@
   /* Individual column */
   .specsColumn {
     line-height: 1.6;
+    font-size: 14px;
   }
   
   /* Example color-sample box or swatch */
@@ -43,11 +48,20 @@
     background: url('/images/Alpina6-swatch.jpg') no-repeat center/cover;
     margin-bottom: 1rem;
   }
+
   
   /* Disclaimer styling */
   .disclaimer {
-    font-size: 0.85rem;
-    color: #999;
+    font-size: 0.75rem;
+    color: var(--hover-color);
     margin-top: 0.5rem;
+  }
+
+  @media screen and (max-width: 768px) {
+.specificationsSection {
+  padding: 0;
+  margin: 0;
+}
+    
   }
   
