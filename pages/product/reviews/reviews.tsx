@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
 import styles from './reviews.module.css';
 import { Review } from '@/app/lib/definitions';
 
