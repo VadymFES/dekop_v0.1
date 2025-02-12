@@ -17,17 +17,24 @@ export default function PagesLayout({
   const getPageName = () => {
     const pathSegments = router.asPath.split("?")[0].split("/").filter(segment => segment !== "");
     const lastSegment = pathSegments[pathSegments.length - 1] || "Home";
+    const pathSegments = router.asPath
+      .split("?")[0]
+      .split("/")
+      .filter((segment) => segment !== "");
+
+    const lastSegment = pathSegments[pathSegments.length - 1] || "Home";
+
     return formatName(lastSegment);
   };
 
   const formatName = (str: string) => {
     return str
       .replace(/-/g, " ")
-      .replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+      .replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
   };
 
   const handleMenuToggle = () => {
-    setMenuOpen(prev => !prev);
+    setMenuOpen((prev) => !prev);
   };
 
   return (
@@ -51,6 +58,11 @@ export default function PagesLayout({
       <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle} />
       <main>{children}</main>
       <Footer />
+      <div>
+        <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle} />
+        <main>{children}</main>
+        <Footer />
+      </div>
     </>
   );
 }
