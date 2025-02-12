@@ -56,15 +56,15 @@ export default function Specifications({ product }: SpecificationsProps) {
           {specs.material && (
             <>
               <h4 className={styles.specsTitle}>Матеріал:</h4>
-              {specs.material.type && <p>Тип: {specs.material.type}</p>}
+              {specs.material.type && <p>Тип тканини: {specs.material.type}</p>}
               {specs.material.composition && (
                 <p>Склад: {specs.material.composition}</p>
               )}
-              {specs.material.structure && (
-                <p>Матеріал: {specs.material.structure}</p>
+              {specs.material.composition && (
+                <p>Наповнення: {specs.material.composition}</p>
               )}
-              {specs.material.filling && (
-                <p>Наповнення: {specs.material.filling}</p>
+              {specs.material.backrest_filling && (
+                <p>Наповнення подушок: {specs.material.backrest_filling}</p>
               )}
               {specs.material.covers && <p>Чохли: {specs.material.covers}</p>}
             </>
@@ -105,14 +105,26 @@ export default function Specifications({ product }: SpecificationsProps) {
 
         {/* Right column */}
         <div className={styles.specsColumn}>
-          {specs.material?.structure && <h4 className={styles.specsTitle}>Корпус дивана</h4>}
-          {specs.material?.structure && (
-            <p>Матеріал: {specs.material.structure}</p>
+          {specs.inner_material && 
+          <h4 className={styles.specsTitle}>Корпус дивана:</h4>}
+          {specs.inner_material?.structure && (
+            <p>Матеріал: {specs.inner_material.structure}</p>
           )}
-          {specs.material?.filling && (
-            <p>Наповнення: {specs.material.filling}</p>
+          {specs.inner_material?.cushion_filling && (
+            <p>Мяке наповнення: {specs.inner_material.cushion_filling}</p>
           )}
-          {specs.material?.covers && <p>Чохли: {specs.material.covers}</p>}
+
+          <br />
+          
+          <h4 className={styles.specsTitle}>Додатково:</h4>
+          <p>Особливості: {specs.additional_features ? 
+              specs.additional_features : 
+              'немає'
+            }</p>
+          <br />
+          <p>Виробництво: Україна</p>
+          <p>Гарантія: 12 місяців</p>
+  
         </div>
       </div>
     </section>
