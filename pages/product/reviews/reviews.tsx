@@ -3,10 +3,10 @@ import styles from './reviews.module.css';
 import { Review } from '@/app/lib/definitions';
 
 interface ProductReviewsProps {
-  reviews: Review[];
+  reviews: Review[] | undefined; // Allow reviews to be undefined
 }
 
-const ProductReviews: React.FC<ProductReviewsProps> = ({ reviews }) => {
+const ProductReviews: React.FC<ProductReviewsProps> = ({ reviews = [] }) => { // Default to empty array
   return (
     <section className={styles.reviewSection}>
       <h2 className={styles.reviewTitle}>Відгуки ({reviews.length})</h2>
@@ -30,7 +30,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ reviews }) => {
       </div>
       <div className={styles.reviewFooter}>
           {/* //show more reviews// */}
-                  
       </div>
     </section>
   );
