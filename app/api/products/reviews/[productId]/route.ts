@@ -45,9 +45,9 @@ export async function GET(
 // Add a new review for a product
 export async function POST(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } } // Ensure the type for params is correct
 ) {
-  const productId = validateProductId(params.productId);
+  const productId = validateProductId(params.productId); // Using params directly without awaiting
   if (productId === null) {
     return errorResponse("Invalid productId. Must be a positive number.", 400);
   }
