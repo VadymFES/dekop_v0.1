@@ -36,10 +36,6 @@
   }
 
   @media screen and (max-width: 768px) {
-  }
-  
-
-  @media screen and (max-width: 480px) {
     .mainImage {
       height: 240px;
     }
@@ -49,4 +45,9 @@
     display: flex;
     gap: 0.5rem;
   }
+  }
+  
+
+  @media screen and (max-width: 480px) {
+
   }
