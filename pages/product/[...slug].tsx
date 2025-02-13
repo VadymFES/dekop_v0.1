@@ -9,9 +9,6 @@ import ProductImages from './images/images';
 import Specifications from './specs/specifications';
 import ProductActions from './actions/actions';
 import ProductReviews from './reviews/reviews';
-import { DeliveryIcon } from '@/app/ui/icons/delivery/deliveryIcon';
-import { NovapostIcon } from '@/app/ui/icons/delivery/novapostIcon';
-import { PostponementIcon } from '@/app/ui/icons/delivery/postponementIcon';
 import PagesLayout from '../layout';
 
 interface ProductPageProps {
@@ -83,59 +80,18 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
 
               {/* Product Actions */}
               <div className={styles.actionsSection}>
-                <ProductActions product={product} />
+                <ProductActions product={product} reviews={reviews} />
               </div>
               {/* Delivery/Payments Section */}
-              <div className={styles.deliveryPaymentContainer}>
-
-                {/* Delivery by Store */}
-                <div className={styles.deliveryOption}>
-                  <DeliveryIcon />
-                  <div className={styles.deliveryDetails}>
-                    <h4 className={styles.deliveryTitle}>Доставка від магазину</h4>
-                    <p className={styles.deliveryDescription}>
-                      Ми забезпечуємо доставку нашим власним курєром по всій Україні. Точні витрати на доставку будуть
-                      розраховані менеджером.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Nova Poshta Delivery */}
-                <div className={styles.deliveryOption}>
-                  <NovapostIcon />
-                  <div className={styles.deliveryDetails}>
-                    <h4 className={styles.deliveryTitle}>Нова Пошта з нами</h4>
-                    <p className={styles.deliveryDescription}>
-                      Надсилаємо замовлення Новою Поштою на відділення або курєром. Вартість доставки за тарифами пошти.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Installment Payment */}
-                <div className={styles.paymentOption}>
-                  <PostponementIcon />
-                  <div className={styles.paymentDetails}>
-                    <h4 className={styles.paymentTitle}>Оплата частинами</h4>
-                    <p className={styles.paymentDescription}>
-                      З Приватбанком зручніше. Ми пропонуємо розстрочку під 0% комісії на 3, 6 або 9 місяців.
-                    </p>
-                  </div>
-                </div>
-
-                <Link href="/payment-info" className={styles.detailsLink}>
-                  Детальніше про способи оплати і терміни доставки
-                </Link>
-              </div>
-
-              {/* Product reviews */}
               <div className={styles.reviewsSection}>
                 <ProductReviews reviews={reviews} />
               </div>
+
             </div>
           </div>
         </section>
       </div>
-      </PagesLayout>
+    </PagesLayout>
   );
 };
 
