@@ -141,7 +141,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_VERCEL_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000';
 
   try {
     // Fetch main product data
