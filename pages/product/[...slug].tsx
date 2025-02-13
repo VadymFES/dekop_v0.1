@@ -63,6 +63,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
 
               {/* Product Specifications */}
               <div className={styles.descriptionSection}>
+                <div className={styles.specsContainerTitle}>Характеристики</div>
                 {product.specs ? (
                   <Specifications product={product} />
                 ) : (
