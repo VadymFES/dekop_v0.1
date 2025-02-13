@@ -13,7 +13,6 @@ export default function Specifications({ product }: SpecificationsProps) {
 
   return (
     <section className={styles.specificationsSection}>
-      <div className={styles.specsContainerTitle}>Характеристики</div>
       <div className={styles.specsGrid}>
         {/* Left column */}
         <div className={styles.specsColumn}>
