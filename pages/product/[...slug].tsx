@@ -1,6 +1,7 @@
+// pages/product/[...slug].tsx
+
 import { GetServerSideProps } from 'next';
-import { ProductWithImages, ProductSpecs, ProductColor, Review } from '@/app/lib/definitions';
-import ProductLayout from '../layout';
+import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
 import styles from './product.module.css';
@@ -11,6 +12,7 @@ import ProductReviews from './reviews/reviews';
 import { DeliveryIcon } from '@/app/ui/icons/delivery/deliveryIcon';
 import { NovapostIcon } from '@/app/ui/icons/delivery/novapostIcon';
 import { PostponementIcon } from '@/app/ui/icons/delivery/postponementIcon';
+import PagesLayout from '../layout';
 
 interface ProductPageProps {
   product: ProductWithImages;
@@ -23,7 +25,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
   }
 
   return (
-    <ProductLayout>
+    <PagesLayout>
       <div className={styles.container}>
         <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
           <ol className={styles.breadcrumb}>
@@ -70,7 +72,6 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
                   <div>No specifications available.</div>
                 )}
               </div>
-
               {/* Product Description */}
               <div className={styles.descriptionSection}>
                 <div className={styles.descriptionTitle}>Опис</div>
@@ -79,11 +80,14 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
             </div>
 
             <div className={styles.rightColumn}>
-              {/* Product Actions */}
-              <ProductActions product={product} />
 
+              {/* Product Actions */}
+              <div className={styles.actionsSection}>
+                <ProductActions product={product} />
+              </div>
               {/* Delivery/Payments Section */}
               <div className={styles.deliveryPaymentContainer}>
+
                 {/* Delivery by Store */}
                 <div className={styles.deliveryOption}>
                   <DeliveryIcon />
@@ -131,26 +135,20 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews }) => {
           </div>
         </section>
       </div>
-    </ProductLayout>
+      </PagesLayout>
   );
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params!;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_VERCEL_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dekop-v0-1.vercel.app';
 
   try {
     // Fetch main product data
     const productRes = await fetch(`${baseUrl}/api/products/${slug}`);
     if (!productRes.ok) throw new Error('Product not found');
-    const product = await productRes.json();
 
-    // Fetch reviews for the product
-    const reviewsRes = await fetch(`${baseUrl}/api/products/reviews/${product.id}`);
-    let reviews: Review[] = [];
-    if (reviewsRes.ok) {
-      reviews = await reviewsRes.json();
-    }
+    const product = await productRes.json();
 
     // Parallel fetch for specs and colors
     const [specsRes, colorsRes] = await Promise.all([
@@ -158,17 +156,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       fetch(`${baseUrl}/api/products/product-colors/${product.id}`),
     ]);
 
-    // Handle specs
-    let specs: ProductSpecs | null = null;
-    if (specsRes.ok) {
-      specs = await specsRes.json();
-    }
-
-    // Handle colors
-    let colors: ProductColor[] = [];
-    if (colorsRes.ok) {
-      colors = await colorsRes.json();
-    }
+    const specs = specsRes.ok ? await specsRes.json() : null;
+    const colors = colorsRes.ok ? await colorsRes.json() : [];
 
     // Combine all data
     const fullProduct: ProductWithImages = {
@@ -180,7 +169,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         product: fullProduct,
-        reviews,
       },
     };
   } catch (error) {
