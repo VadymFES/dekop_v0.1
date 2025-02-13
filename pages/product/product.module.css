@@ -1,4 +1,13 @@
 /* Product Container */
+
+.container {
+  display: flex;
+  max-width: 1920px;
+  justify-content: center;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
 .productContainer {
   display: flex;
   flex-wrap: wrap;
@@ -8,9 +17,7 @@
 
 /* Breadcrumb Styles */
 .breadcrumbContainer {
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 1rem 2rem 1rem;
+  margin: 1.5rem 4rem 0 4rem;
 }
 
 .breadcrumb {
@@ -46,11 +53,13 @@
 .parent {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  gap: 30px;
+  gap: 32px;
   width: 100%;
   position: relative;
-  align-items: stretch; /* This ensures the columns are stretched to the same height */
-  min-height: 100vh; /* Ensures it takes at least the full viewport height */
+  align-items: stretch;
+  /* This ensures the columns are stretched to the same height */
+  min-height: 100vh;
+  /* Ensures it takes at least the full viewport height */
 }
 
 /* Left Column Styles */
@@ -67,80 +76,103 @@
 }
 
 .specificationsSection {
-  background: #f8f9fa;
+  background: var(--background);
   padding: 1.5rem;
   border-radius: 8px;
-  border: 1px solid #e9ecef;
 }
 
 /* Right Column Styles */
 .rightColumn {
   display: flex;
   flex-direction: column;
-  padding: 0 1rem; /* Optional: Add padding to prevent content touching the edges */
-}
-
-.actionsSection {
-  background: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e9ecef;
+  padding: 0 1rem;
+  /* Optional: Add padding to prevent content touching the edges */
 }
 
 .stickyContainer {
   position: sticky;
   top: 20px;
-  background-color: #fff;
   padding: 10px;
   z-index: 10;
-  max-height: 80vh; /* Prevent sticky content from exceeding viewport height */
-  overflow-y: auto; /* Scrollable if content overflows */
+  max-height: 80vh;
+  /* Prevent sticky content from exceeding viewport height */
+  overflow-y: auto;
+  /* Scrollable if content overflows */
 }
 
 /* Description Section */
 .descriptionSection {
   margin: 2rem 0;
   padding: 1rem;
-  background-color: --var(background); 
+  background-color: var(--background);
   border-radius: 8px;
 }
 
 .descriptionTitle {
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
   width: 100%;
-  height: 44px; /* Height of the button */
-  margin-bottom: 24px; /* Remove padding to maintain the round shape */
-  border-radius: 50px; /* Make the button round */
-  font-size: 1.1rem; /* Button font size */
-  background-color: transparent; /* Button background color */
-  color: #000000; /* Button text color */
+  height: 44px;
+  /* Height of the button */
+  margin-bottom: 24px;
+  /* Remove padding to maintain the round shape */
+  border-radius: 50px;
+  /* Make the button round */
+  font-size: 1.1rem;
+  /* Button font size */
+  background-color: transparent;
+  /* Button background color */
   border: 2px solid #16010133;
-  transition: background-color 0.3s ease; /* Smooth transition */
 }
 
 .descriptionTxt {
   font-size: 1rem;
   line-height: 1.6;
-  color: #555;
   margin: 0;
 }
 
-/* Delivery Info Section */
-.deliveryInfoSection {
-  background: --var(background);
-  padding: 1.5rem;
+.deliveryPaymentContainer {
+  padding: 16px;
+  background-color: var(--background);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  margin-top: 33px;
 }
 
-.deliveryInfoSection h3 {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  color: #2d3436;
+.deliveryOption,
+.paymentOption {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
 }
+
+.deliveryDetails,
+.paymentDetails {
+  flex: 1;
+}
+
+.deliveryTitle,
+.paymentTitle {
+  margin: 0;
+  font-size: 1em;
+  padding-bottom: 4px;
+}
+
+.deliveryDescription,
+.paymentDescription {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.detailsLink {
+  display: block;
+  justify-self: flex-end;
+  color: #e60000;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+}
+
 
 /* Reviews Section */
 .reviewsSection {
@@ -156,49 +188,131 @@
   color: #2d3436;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .productContainer {
-      margin: 1rem;
-  }
-
-  .parent {
-      grid-template-columns: 1fr;
-  }
-
-  .rightColumn {
-      position: static;
-      order: -1;
-  }
-
-  .breadcrumbContainer {
-      padding: 0 0.5rem 1rem 0.5rem;
-  }
-
-  .breadcrumb {
-      font-size: 12px;
-  }
-
-  .separator {
-      margin: 0 4px;
-  }
+.productHeader {
+  display: none;
 }
 
-@media (max-width: 480px) {
-  .productContainer {
-      margin: 0.5rem;
+/* Responsive Design */
+/* ---------- Mobile Styles ---------- */
+@media (max-width: 768px) {
+  .parent {
+    display: flex;
+    flex-direction: column;
   }
 
   .leftColumn,
   .rightColumn {
-      gap: 20px;
+    display: contents !important;
   }
 
-  .specificationsSection,
-  .actionsSection,
-  .descriptionSection,
-  .deliveryInfoSection,
+  .breadcrumbContainer {
+    margin: 1rem 1rem 0 1rem;
+  }
+
+/* Product name styling */
+.productHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 10px 0 ;
+}
+
+.productDetails {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.productName {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.inStock {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.outOfStock {
+  background-color: #fce4e4;
+  color: #c62828;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.productSku {
+  font-size: 14px;
+  color: #757575;
+  margin: 4px 0;
+}
+
+.productRatingWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.productRating {
+  font-size: 16px;
+  color: #ff9800;
+}
+
+.favoriteIcon {
+  font-size: 18px;
+  cursor: pointer;
+  color: #b0b0b0;
+}
+
+.favoriteIcon:hover {
+  color: #ff9800;
+}
+
+
+  .imagesSection {
+    order: 1;
+  }
+
+  .actionsSection {
+    order: 2;
+  }
+
+  .deliveryPaymentContainer {
+    order: 3;
+  }
+
+  .specificationsSection {
+    order: 4;
+  }
+
+  .descriptionSection {
+    order: 5;
+  }
+
   .reviewsSection {
-      padding: 1rem;
+    order: 6;
+  }
+
+  .imagesSection, .descriptionSection, 
+  .reviewsSection, .specificationsSection, 
+  .deliveryPaymentContainer, .actionsSection {
+    padding: 0;
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .parent {
+    gap: 8px;
+  }
+
+  .productContainer {
+    margin: 1rem 1rem;
   }
 }

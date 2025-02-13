@@ -23,8 +23,10 @@ export async function GET(
         material_type AS "material.type",
         material_composition AS "material.composition",
         material_structure AS "material.structure",
-        material_filling AS "material.filling",
-        material_covers AS "material.covers"
+        backrest_filling AS "material.backrest_filling",
+        material_covers AS "material.covers",
+        cushion_filling AS "inner_material.cushion_filling",
+        additional_features AS "additional_features"
       FROM product_specs
       WHERE product_id = ${Number(productId)}
     `;
@@ -53,10 +55,14 @@ export async function GET(
       material: {
         type: row["material.type"],
         composition: row["material.composition"],
-        structure: row["material.structure"],
-        filling: row["material.filling"],
+        backrest_filling: row["material.backrest_filling"],
         covers: row["material.covers"],
       },
+      inner_material: {
+        structure: row["inner_material.structure"],
+        cushion_filling: row["inner_material.cushion_filling"],
+      },
+      additional_features: row["additional_features"],
     };
 
     return NextResponse.json(specs, { status: 200 });

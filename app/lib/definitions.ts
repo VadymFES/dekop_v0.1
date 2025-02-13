@@ -38,16 +38,20 @@ export interface ProductSpecs {
       length: number;       // Length in millimeters
     };
   };
-  material: {
-    type: string;           // Material type (e.g., мікровелюр)
-    composition: string;    // Material composition (e.g., поліестер 100%)
-    structure: string;      // Material structure (e.g., вологостійка березова фанера, ламінована ДСП)
-    filling: string;        // Material filling (e.g., холлофайбер)
-    covers: string;         // Material covers (e.g., знімні)
+    material: {
+      type: string;           // Material type (e.g., мікровелюр)
+      composition: string;    // Material composition (e.g., поліестер 100%)
+      backrest_filling: string;        // Material filling (e.g., холлофайбер)
+      covers: string;         // Material covers (e.g., знімні)
+    };
+    inner_material: {
+      structure: string;     // Inner material structure (e.g., пружинний блок)
+      cushion_filling: string;        // Cushions filling (e.g., пінополіуретан)
+      // Note: the single "color" column has been removed from product_specs,
+      // since colors now come from the separate table.
+    };
+    additional_features: string;  // Additional information about the product
   };
-  // Note: the single "color" column has been removed from product_specs,
-  // since colors now come from the separate table.
-}
 
 // New interface for a color, representing a row in product_spec_colors.
 export interface ProductColor {
@@ -62,4 +66,13 @@ export interface ProductWithImages extends Product {
   specs: ProductSpecs;
   // Colors are now stored in a separate table and returned as an array.
   colors: ProductColor[];
+}
+
+export interface Review {
+  id: number;               // Unique identifier for the review
+  product_id: number;       // Identifier linking the review to the product
+  user_name: string;        // Name of the reviewer
+  rating: number;           // Rating given by the reviewer (1-5)
+  comment: string;          // Review comment
+  created_at: string;       // Timestamp when the review was created
 }
