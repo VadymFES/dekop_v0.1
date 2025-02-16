@@ -76,3 +76,22 @@ export interface Review {
   comment: string;          // Review comment
   created_at: string;       // Timestamp when the review was created
 }
+
+export interface CartItem {
+  id: string; // Unique cart item ID
+  product_id: number;
+  slug?: string;
+  name: string;
+  price: number;
+  quantity: number;
+  color?: string;
+  image_url?: string;
+  productDetails?: ProductWithImages;
+}
+
+export interface Cart {
+  id: string; // Cart ID (from the cookie)
+  items: CartItem[];
+  total_items: number;
+  total_price: number;
+}
