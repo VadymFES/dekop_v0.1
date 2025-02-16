@@ -1,5 +1,9 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
 import "./globals.css";
+import QueryProvider from "./providers/QueryProvider";
+
 
 export const metadata: Metadata = {
   title: "Dekop Furniture Enterprise - меблі для вашого дому",
@@ -24,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
