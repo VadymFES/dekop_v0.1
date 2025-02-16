@@ -48,7 +48,7 @@ export async function GET() {
     const productsWithImages = productRows.map((product) => ({
       ...product,
       images: imagesMap[product.id] || [],
-      specs: specsMap[product.id] || null, // or you could provide a fallback object if needed
+      specs: specsMap[product.id] || null,
       colors: colorsMap[product.id] || []
     }));
 
