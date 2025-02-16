@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import styles from './actions.module.css';
@@ -10,6 +12,7 @@ import { NovapostIcon } from '@/app/ui/icons/delivery/novapostIcon';
 import { PostponementIcon } from '@/app/ui/icons/delivery/postponementIcon';
 import Link from 'next/link';
 import ProductReviews from '../reviews/reviews';
+import { useCart } from '@/app/hooks/useCart';
 
 interface ProductActionsProps {
   product?: ProductWithImages;
@@ -23,7 +26,12 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { isLoading, addToCart } = useCart();
 
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart( { productId: product.id.toString(), quantity, color: selectedColor.color });
+  };
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -37,12 +45,14 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
     };
   }, []);
 
-  // Now that all hooks have been called, you can safely conditionally render:
   if (!product) {
     return <div>Product not found</div>;
-  }
+  } 
+  
+  if (isLoading) return <div>Loading...</div>;
 
-  // Now that product is guaranteed, destructure its properties:
+
+
   const { name, stock, rating, price, specs, colors } = product;
 
   return (
@@ -76,59 +86,61 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
           </div>
         </div>
 
-        {colors.length > 0 && (
-          <div className={styles.specsItemDropdown}>
-            <span className={styles.specsTitle}>Колір:</span>
-            <div className={styles.customDropdown} ref={dropdownRef}>
-              <div
-                className={styles.selectedOption}
-                onClick={() => setIsDropdownOpen((prev) => !prev)}
-              >
-                {selectedColor?.image_url ? (
-                  <Image
-                    src={selectedColor.image_url}
-                    alt={selectedColor.color}
-                    className={styles.colorImage}
-                    width={30}
-                    height={30}
-                  />
-                ) : (
-                  <span style={{ fontSize: '11px' }}>No images</span>
-                )}
-                <span>{selectedColor.color}</span>
-                <DropdownArrow />
-              </div>
-
-              {isDropdownOpen && (
-                <div className={styles.dropdownOptions}>
-                  {colors.map((colorOption, index) => (
-                    <div
-                      key={index}
-                      className={styles.optionItem}
-                      onClick={() => {
-                        setSelectedColor(colorOption);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      {colorOption.image_url ? (
-                        <Image
-                          src={colorOption.image_url}
-                          alt={colorOption.color}
-                          className={styles.optionImage}
-                          width={30}
-                          height={30}
-                        />
-                      ) : (
-                        <span style={{ fontSize: '11px' }}>No images</span>
-                      )}
-                      <span>{colorOption.color}</span>
-                    </div>
-                  ))}
-                </div>
+        <div className={styles.specsItemDropdown}>
+          <span className={styles.specsTitle}>Колір:</span>
+          <div className={styles.customDropdown} ref={dropdownRef}>
+            <div
+              className={styles.selectedOption}
+              onClick={() => {
+                if (!colors?.length) return;
+                setIsDropdownOpen((prev) => !prev);
+              }}
+              style={{ cursor: !colors?.length ? 'not-allowed' : 'pointer' }}
+            >
+              {selectedColor?.image_url ? (
+                <Image
+                  src={selectedColor.image_url}
+                  alt={selectedColor.color}
+                  className={styles.colorImage}
+                  width={30}
+                  height={30}
+                />
+              ) : (
+                <span style={{ fontSize: '11px' }}>No images</span>
               )}
+              <span>{selectedColor.color}</span>
+              <DropdownArrow />
             </div>
+
+            {isDropdownOpen && (
+              <div className={styles.dropdownOptions}>
+                {colors.map((colorOption, index) => (
+                  <div
+                    key={index}
+                    className={styles.optionItem}
+                    onClick={() => {
+                      setSelectedColor(colorOption);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    {colorOption.image_url ? (
+                      <Image
+                        src={colorOption.image_url}
+                        alt={colorOption.color}
+                        className={styles.optionImage}
+                        width={30}
+                        height={30}
+                      />
+                    ) : (
+                      <span style={{ fontSize: '11px' }}>No images</span>
+                    )}
+                    <span>{colorOption.color}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         <div className={styles.disclaimerSection}>
           <p className={styles.warning}>
@@ -176,7 +188,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
 
           <button
             className={styles.addToCartButton}
-            onClick={() => console.log('Added to cart')}
+            onClick={handleAddToCart}
             disabled={stock < 1}
           >
             ДОДАТИ В КОШИК <AddToCartIcon />
@@ -185,31 +197,27 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
       </div>
 
       <div className={styles.deliveryPaymentContainer}>
-
-        {/* Delivery by Store */}
         <div className={styles.deliveryOption}>
           <DeliveryIcon />
           <div className={styles.deliveryDetails}>
             <h4 className={styles.deliveryTitle}>Доставка від магазину</h4>
             <p className={styles.deliveryDescription}>
-              Ми забезпечуємо доставку нашим власним курєром по всій Україні. Точні витрати на доставку будуть
+              Ми забезпечуємо доставку нашим власним кур’єром по всій Україні. Точні витрати на доставку будуть
               розраховані менеджером.
             </p>
           </div>
         </div>
 
-        {/* Nova Poshta Delivery */}
         <div className={styles.deliveryOption}>
           <NovapostIcon />
           <div className={styles.deliveryDetails}>
             <h4 className={styles.deliveryTitle}>Нова Пошта з нами</h4>
             <p className={styles.deliveryDescription}>
-              Надсилаємо замовлення Новою Поштою на відділення або курєром. Вартість доставки за тарифами пошти.
+              Надсилаємо замовлення Новою Поштою на відділення або кур’єром. Вартість доставки за тарифами пошти.
             </p>
           </div>
         </div>
 
-        {/* Installment Payment */}
         <div className={styles.paymentOption}>
           <PostponementIcon />
           <div className={styles.paymentDetails}>
@@ -225,11 +233,9 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
         </Link>
       </div>
 
-      {/* Product reviews */}
       <div className={styles.reviewsSection}>
         <ProductReviews reviews={reviews} />
       </div>
-
     </div>
   );
 };
