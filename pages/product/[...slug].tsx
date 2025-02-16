@@ -1,6 +1,7 @@
 // pages/product/[...slug].tsx
 
 import { GetServerSideProps } from 'next';
+import Head from 'next/head';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -9,7 +10,6 @@ import ProductImages from './images/images';
 import Specifications from './specs/specifications';
 import ProductActions from './actions/actions';
 import ProductReviews from './reviews/reviews';
-import PagesLayout from '../layout';
 import SimilarProducts from './similarProducts/similarproducts';
 
 interface ProductPageProps {
@@ -24,7 +24,12 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
   }
 
   return (
-    <PagesLayout>
+    <>
+      <Head>
+        <title>{`${product.name} | Dekop Furniture Enterprise - меблі для вашого дому`}</title>
+        <meta property="og:title" content={product.name} />
+      </Head>
+
       <div className={styles.topContainer}>
         <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
           <ol className={styles.breadcrumb}>
@@ -72,6 +77,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
                   <div>No specifications available.</div>
                 )}
               </div>
+
               {/* Product Description */}
               <div className={styles.descriptionSection}>
                 <div className={styles.descriptionTitle}>Опис</div>
@@ -80,16 +86,14 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
             </div>
 
             <div className={styles.rightColumn}>
-
               {/* Product Actions */}
               <div className={styles.actionsSection}>
                 <ProductActions product={product} reviews={reviews} />
               </div>
-              {/* Delivery/Payments Section */}
+              {/* Reviews Section */}
               <div className={styles.reviewsSection}>
                 <ProductReviews reviews={reviews} />
               </div>
-
             </div>
           </div>
         </section>
@@ -108,7 +112,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
           <SimilarProducts products={similarProducts} />
         </section>
       </div>
-    </PagesLayout>
+    </>
   );
 };
 
