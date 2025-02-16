@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.66.0",
     "@vercel/postgres": "^0.10.0",
     "leaflet": "^1.9.4",
     "next": "^15.1.6",
+    "node-cron": "^3.0.3",
     "react": "^19",
     "react-dom": "^19",
     "react-leaflet": "^5.0.0",
