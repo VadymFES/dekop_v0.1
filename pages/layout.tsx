@@ -51,7 +51,6 @@ export default function PagesLayout({
           onClick={() => setMenuOpen(false)} // Close menu on overlay click
         ></div>
       )}
-
       <Header menuOpen={menuOpen} onMenuToggle={handleMenuToggle} />
       <main>{children}</main>
       <Footer />
