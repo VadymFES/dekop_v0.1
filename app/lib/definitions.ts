@@ -89,6 +89,25 @@ export interface CartItem {
   productDetails?: ProductWithImages;
 }
 
+export interface ProductWithDetails extends CartItem {
+  product_id: number;
+  product_name: string;
+  slug: string;
+  description: string;
+  category: string;
+  product_price: number;
+  stock: number;
+  rating: number;
+  is_on_sale: boolean;
+  is_new: boolean;
+  is_bestseller: boolean;
+  product_created_at: Date;
+  product_updated_at: Date;
+  specs: any;
+  images: any[];
+  colors: any[];
+}
+
 export interface Cart {
   id: string; // Cart ID (from the cookie)
   items: CartItem[];
