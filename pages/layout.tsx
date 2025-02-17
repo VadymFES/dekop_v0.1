@@ -5,7 +5,6 @@ import Head from "next/head";
 import Header from "../app/components/header/header";
 import Footer from "../app/components/footer/footer";
 import "@/app/globals.css";
-import QueryProvider from "../app/providers/QueryProvider";
 import styles from "./layout.module.css";
 
 export default function PagesLayout({ children }: { children: React.ReactNode }) {
