@@ -107,6 +107,16 @@
   gap: 8px;
   margin-top: 10px;
 }
+/* New row that combines quantity controls and the item total price */
+.quantityTotalRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.itemTotalPrice {
+  font-weight: bold;
+  font-size: 16px;
+}
 .quantityControl {
   display: flex;
   align-items: center;
@@ -203,4 +213,126 @@
 }
 .checkoutButton:hover {
   background: #e02929;
+}
+/* -------------------- */
+/* Mobile Responsiveness */
+/* -------------------- */
+@media (max-width: 768px) {
+  /* Ensure the cart sections stack vertically on mobile */
+  .cartContainer {
+    flex-direction: column;
+    margin: 1rem;
+    padding-bottom: 160px; /* Enough space so the fixed panel doesn't cover items */
+  }
+
+  /* Make .cartRight (summary panel) stick to the bottom */
+  .cartRight {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: var(--background);
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    margin-top: 0; /* override any existing margin so it sits at bottom */
+  }
+
+  /* If you want to reduce some content or spacing in the summary on small screens: */
+  .summaryTitle,
+  .totalPrice,
+  .deliveryInfo {
+    margin-bottom: 8px;
+  }
+
+  .continueShopping,
+  .checkoutButton {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  /* Adjust .productItem layout to wrap and reorder elements */
+  .productItem {
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Make the checkbox and image smaller or reorder them */
+  .productItem input[type="checkbox"] {
+    order: 1;
+  }
+  .productImage {
+    order: 2;
+    width: 100px; /* smaller on mobile */
+    flex-shrink: 0;
+  }
+
+  /* Move product details to next row, full width */
+  .productDetails {
+    order: 3;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .productSpecs{
+    display: none;;
+  }
+
+  /* Price & quantity can come below details, also full width */
+  .priceQuantitySection {
+    order: 4;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* The favorite and delete buttons can go on a new row or float to the right */
+  .actions {
+    order: 5;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-left: 0; /* override the desktop margin-left: auto if needed */
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further fine-tune for very small screens if you like */
+
+  .cartContainer {
+    margin: 0;
+    padding: 0;
+  }
+
+  .cartTitle {
+    font-size: 24px;
+  }
+
+  .summaryTitle {
+    font-size: 20px;
+  }
+
+  .selectAll {
+    font-size: 14px;
+  }
+
+  /* Example: reduce size of buttons or text */
+  .quantityControl button {
+    padding: 4px 8px;
+    font-size: 16px;
+  }
+
+  .checkoutButton,
+  .continueShopping {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .itemTotalPrice {
+    font-size: 14px;
+  }
 }
