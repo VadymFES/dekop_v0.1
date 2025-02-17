@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
+import { CartItem, ProductWithDetails } from "@/app/lib/definitions";
 
 /**
  * GET /api/cart
@@ -22,7 +23,7 @@ export async function GET() {
     }
 
     // Fetch cart items with joined product details, specs, images, and colors.
-    const { rows: cartItems } = await sql`
+    const { rows: cartItems }: { rows: ProductWithDetails[] } = await sql`
       SELECT 
         ci.*,
         p.id as product_id,
@@ -55,7 +56,7 @@ export async function GET() {
       WHERE ci.cart_id = ${cartId}
     `;
 
-    const transformedItems = cartItems.map((item: any) => ({
+    const transformedItems = cartItems.map((item: ProductWithDetails) => ({
       ...item,
       productDetails: {
         id: item.product_id,
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
     `;
 
     // Fetch updated cart items with joined product details (same query as GET)
-    const { rows: updatedCartItems } = await sql`
+    const { rows: updatedCartItems }: { rows: ProductWithDetails[] } = await sql`
       SELECT 
         ci.*,
         p.id as product_id,
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
       WHERE ci.cart_id = ${cartId}
     `;
 
-    const transformedItems = updatedCartItems.map((item: any) => ({
+    const transformedItems = updatedCartItems.map((item: ProductWithDetails) => ({
       ...item,
       productDetails: {
         id: item.product_id,
@@ -222,7 +223,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
     // Fetch updated cart items with joined product details (same as GET)
     const cookieStore = await cookies();
     const cartId = cookieStore.get("cartId")?.value;
-    const { rows: updatedCart } = await sql`
+    const { rows: updatedCart }: { rows: ProductWithDetails[] } = await sql`
       SELECT 
         ci.*,
         p.id as product_id,
@@ -255,7 +256,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
       WHERE ci.cart_id = ${cartId}
     `;
 
-    const transformedItems = updatedCart.map((item: any) => ({
+    const transformedItems = updatedCart.map((item: ProductWithDetails) => ({
       ...item,
       productDetails: {
         id: item.product_id,
