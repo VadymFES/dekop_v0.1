@@ -8,21 +8,18 @@ import { CartItem, ProductWithDetails } from "@/app/lib/definitions";
 
 /**
  * GET /api/cart
- * Fetch the user's cart items along with full product details (including specs, images, and colors).
+ * Fetch the user's cart items along with full product details.
  */
 export async function GET() {
   try {
-    // Retrieve cartId from cookies
     const cookieStore = await cookies();
     const cartCookie = cookieStore.get("cartId");
     const cartId = cartCookie?.value;
 
-    // If no cartId exists, return an empty cart
     if (!cartId) {
       return NextResponse.json({ items: [] }, { status: 200 });
     }
 
-    // Fetch cart items with joined product details, specs, images, and colors.
     const { rows: cartItems }: { rows: ProductWithDetails[] } = await sql`
       SELECT 
         ci.*,
@@ -74,7 +71,7 @@ export async function GET() {
         updated_at: item.product_updated_at,
         specs: item.specs,
         images: item.images || [],
-        colors: item.colors || []
+        colors: item.colors || [],
       },
     }));
 
@@ -103,24 +100,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid productId" }, { status: 400 });
     }
 
-    // Retrieve or create cartId
     const cookieStore = await cookies();
     let cartId = cookieStore.get("cartId")?.value;
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7-day expiration
 
-    if (!cartId) {
-      cartId = randomUUID();
-      await sql`
-        INSERT INTO carts (id, expires_at)
-        VALUES (${cartId}, ${expiresAt.toISOString()})
-      `;
+    if (cartId) {
+      // Verify if the cart exists in the DB
+      const result = await sql`SELECT id FROM carts WHERE id = ${cartId}`;
+      if (result.rowCount === 0) {
+        // The cartId in the cookie is stale, create a new cart record.
+        cartId = randomUUID();
+        await sql`INSERT INTO carts (id, expires_at) VALUES (${cartId}, ${expiresAt.toISOString()})`;
+      } else {
+        // Update the cart expiration.
+        await sql`UPDATE carts SET expires_at = ${expiresAt.toISOString()} WHERE id = ${cartId}`;
+      }
     } else {
-      await sql`
-        UPDATE carts SET expires_at = ${expiresAt.toISOString()} WHERE id = ${cartId}
-      `;
+      // No cart exists, so create a new cart.
+      cartId = randomUUID();
+      await sql`INSERT INTO carts (id, expires_at) VALUES (${cartId}, ${expiresAt.toISOString()})`;
     }
 
-    // Upsert cart item (increases quantity if exists)
+    // Upsert cart item (increase quantity if exists)
     await sql`
       INSERT INTO cart_items (cart_id, product_id, quantity, color)
       VALUES (${cartId}, ${numericProductId}, ${quantity}, ${color})
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity
     `;
 
-    // Fetch updated cart items with joined product details (same query as GET)
+    // Fetch updated cart items with full product details.
     const { rows: updatedCartItems }: { rows: ProductWithDetails[] } = await sql`
       SELECT 
         ci.*,
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
         updated_at: item.product_updated_at,
         specs: item.specs,
         images: item.images || [],
-        colors: item.colors || []
+        colors: item.colors || [],
       },
     }));
 
@@ -213,14 +214,12 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    // Update quantity in the cart_items table
     await sql`
       UPDATE cart_items
       SET quantity = ${quantity}
       WHERE id = ${id}
     `;
 
-    // Fetch updated cart items with joined product details (same as GET)
     const cookieStore = await cookies();
     const cartId = cookieStore.get("cartId")?.value;
     const { rows: updatedCart }: { rows: ProductWithDetails[] } = await sql`
@@ -274,7 +273,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
         updated_at: item.product_updated_at,
         specs: item.specs,
         images: item.images || [],
-        colors: item.colors || []
+        colors: item.colors || [],
       },
     }));
 
@@ -301,7 +300,6 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
       DELETE FROM cart_items WHERE id = ${id}
     `;
 
-    // Fetch updated cart items with joined product details (same as GET)
     const cookieStore = await cookies();
     const cartId = cookieStore.get("cartId")?.value;
     const { rows: updatedCart } = await sql`
@@ -355,7 +353,7 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
         updated_at: item.product_updated_at,
         specs: item.specs,
         images: item.images || [],
-        colors: item.colors || []
+        colors: item.colors || [],
       },
     }));
 
