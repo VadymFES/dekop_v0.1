@@ -48,6 +48,8 @@ export function useCart() {
 
   // Fetch cart data; ensure it matches your Cart interface
   const { data: cartData, isLoading, error } = useQuery<Cart>({
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false, // Don't refetch on focus
     queryKey: ['cart'],
     queryFn: fetchCart,
   });
