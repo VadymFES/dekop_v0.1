@@ -92,7 +92,9 @@ export default function Cart() {
               id="selectAll"
               checked={selectedIds.length === cart.length && cart.length > 0}
               onChange={(e) =>
-                setSelectedIds(e.target.checked ? cart.map((item) => item.id) : [])
+                setSelectedIds(
+                  e.target.checked ? cart.map((item) => item.id) : []
+                )
               }
             />
             <label htmlFor="selectAll">Обрати всі</label>
@@ -104,85 +106,114 @@ export default function Cart() {
             <ul className={styles.productList}>
               {cart.map((item: CartItem) => {
                 // Calculate item total price
-                const unitPrice = Number(item.productDetails?.price ?? item.price ?? 0);
+                const unitPrice = Number(
+                  item.productDetails?.price ?? item.price ?? 0
+                );
                 const itemTotalPrice = unitPrice * item.quantity;
 
                 return (
                   <li
                     key={item.id}
-                    className={`${styles.productItem} ${
-                      !selectedIds.includes(item.id) ? styles.unselected : ""
-                    }`}
+                    className={`${styles.productItem} ${!selectedIds.includes(item.id) ? styles.unselected : ""
+                      }`}
                   >
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(item.id)}
-                      onChange={(e) =>
-                        handleCheckboxChange(item.id, e.target.checked)
-                      }
-                    />
-
-                    {/* Product Image */}
-                    <Image
-                      src={
-                        item.image_url ||
-                        item.productDetails?.images?.[0]?.image_url ||
-                        "/default-image.png"
-                      }
-                      alt={item.productDetails?.name || "Товар"}
-                      width={150}
-                      height={100}
-                      className={styles.productImage}
-                    />
-
-                    {/* Product Details */}
-                    <div className={styles.productDetails}>
-                      <span className={styles.inStock}>Є в наявності</span>
-                      <h2>
-                        <Link
-                          href={
-                            item.productDetails?.slug
-                              ? `/product/${item.productDetails.slug}`
-                              : "#"
+                    {/* =========== Header row =========== */}
+                    <div className={styles.productItemHeader}>
+                      <div className={styles.productItemTitle}>
+                        {/* Checkbox */}
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(item.id)}
+                          onChange={(e) =>
+                            handleCheckboxChange(item.id, e.target.checked)
                           }
-                          className={styles.productLink}
-                        >
-                          {item.productDetails?.name || "Без назви"}
-                        </Link>
-                      </h2>
-                      <p className={styles.productMeta}>Арт. №{item.id}</p>
-
-                      {item.productDetails?.specs ? (
-                        <div className={styles.productSpecs}>
-                          <p>
-                            <strong>Довжина:</strong>{" "}
-                            {item.productDetails.specs.dimensions.length} мм
-                          </p>
-                          <p>
-                            <strong>Ширина:</strong>{" "}
-                            {item.productDetails.specs.dimensions.depth} мм
-                          </p>
-                          <p>
-                            <strong>Висота:</strong>{" "}
-                            {item.productDetails.specs.dimensions.height} мм
-                          </p>
+                        />
+                        {/* Product Name & Article */}
+                        <div className={styles.productMetaContainer}>
+                          <h2 className={styles.productName}>
+                            <Link
+                              href={
+                                item.productDetails?.slug
+                                  ? `/product/${item.productDetails.slug}`
+                                  : "#"
+                              }
+                              className={styles.productLink}
+                            >
+                              {item.productDetails?.name || "Без назви"}
+                            </Link>
+                          </h2>
+                          <p className={styles.productMeta}>Арт. №{item.id}</p>
                         </div>
-                      ) : (
-                        <p>Характеристики недоступні</p>
-                      )}
+                        <div className={styles.productAvailabilityDesk}>
+                          <span className={styles.inStock}>Є в наявності</span>
+                        </div>
+                      </div>
 
-                      {item.color && (
-                        <p>
-                          <strong>Колір:</strong> {item.color}
-                        </p>
-                      )}
+                      {/* Column-based productItemActions */}
+                      <div className={styles.productItemActions}>
+                        <div className={styles.productAvailability}>
+                          <span className={styles.inStock}>Є в наявності</span>
+                        </div>
+                        <div className={styles.favoriteButtonContainer}>
+                          <button className={styles.favoriteButton}>⭐</button>
+                        </div>
+                        <div className={styles.deleteButtonContainer}>
+                          <button
+                            className={styles.deleteButton}
+                            onClick={() => removeFromCart(Number(item.id))}
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Quantity + Price Section */}
-                    <div className={styles.priceQuantitySection}>
-                      <div className={styles.quantityTotalRow}>
-                        {/* Quantity Controls */}
+                    {/* =========== Body row =========== */}
+                    <div className={styles.productItemBody}>
+                      {/* Product Image */}
+                      <Image
+                        src={
+                          item.image_url ||
+                          item.productDetails?.images?.[0]?.image_url ||
+                          "/default-image.png"
+                        }
+                        alt={item.productDetails?.name || "Товар"}
+                        width={150}
+                        height={100}
+                        className={styles.productImage}
+                      />
+
+                      {/* Product Description */}
+                      <div className={styles.productDescription}>
+                        <p className={styles.productSpecification}>
+                          {item.color && (
+                            <div className={styles.colorWrapper}>
+                              <strong>Колір:</strong> {item.color} &nbsp;
+                              <Image
+                                src={Array.isArray(item.colors) ? (item.colors[0]?.image_url || "/default-image.png") : item.colors || "/default-image.png"}
+                                alt={item.color}
+                                width={95}
+                                height={33}
+                              />
+                            </div>
+                          )}
+                        </p>
+                        <p className={styles.productSpecification}>
+                          <strong>Розміри:</strong>
+                          {item.productDetails?.specs
+                            ? `${item.productDetails.specs.dimensions.length} x ${item.productDetails.specs.dimensions.depth} x ${item.productDetails.specs.dimensions.height} мм`
+                            : "Не вказано"}
+                        </p>
+                      </div>
+
+
+                      {/* Pricing & Quantity Section */}
+                      <div className={styles.priceQuantitySection}>
+                        <p className={styles.unitPrice}>
+                          <strong>Ціна за одиницю:</strong>{" "}
+                          {unitPrice.toLocaleString()} грн
+                        </p>
+
                         <div className={styles.quantityControl}>
                           <button
                             onClick={() =>
@@ -202,28 +233,10 @@ export default function Cart() {
                           </button>
                         </div>
 
-                        {/* Item total price */}
                         <p className={styles.itemTotalPrice}>
                           {itemTotalPrice.toLocaleString()} грн
                         </p>
                       </div>
-
-                      {/* Unit Price */}
-                      <p className={styles.unitPrice}>
-                        <strong>Ціна за одиницю:</strong>{" "}
-                        {unitPrice.toLocaleString()} грн
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className={styles.actions}>
-                      <button className={styles.favoriteButton}>⭐</button>
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => removeFromCart(Number(item.id))}
-                      >
-                        🗑
-                      </button>
                     </div>
                   </li>
                 );
