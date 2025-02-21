@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import styles from "./cart.module.css";
 import Image from "next/image";
 import Head from "next/head";
@@ -11,24 +11,15 @@ import { HomeIcon } from "@/app/ui/icons/breadcrumbs/homeIcon";
 
 export default function Cart() {
   const { cart, isLoading, error, updateCart, removeFromCart } = useCart();
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const initializedRef = useRef(false);
 
-  // Initialize selection when cart becomes non-empty.
+  // ✅ FIX: Initialize `selectedIds` properly to avoid infinite loops
   useEffect(() => {
-    if (!initializedRef.current && cart.length > 0) {
+    if (cart.length > 0 && selectedIds.length === 0) {
       setSelectedIds(cart.map((item) => item.id));
-      initializedRef.current = true;
     }
   }, [cart]);
-
-  // If cart is empty, reset selection.
-  useEffect(() => {
-    if (cart.length === 0) {
-      setSelectedIds([]);
-    }
-  }, [cart]);
-
   // Calculate totals
   const totalItems: number = cart.reduce(
     (sum: number, item: CartItem) => sum + item.quantity,
@@ -185,7 +176,7 @@ export default function Cart() {
 
                       {/* Product Description */}
                       <div className={styles.productDescription}>
-                        <p className={styles.productSpecification}>
+                        <div className={styles.productSpecification}>
                           {item.color && (
                             <div className={styles.colorWrapper}>
                               <strong>Колір:</strong> {item.color} &nbsp;
@@ -197,7 +188,7 @@ export default function Cart() {
                               />
                             </div>
                           )}
-                        </p>
+                        </div>
                         <p className={styles.productSpecification}>
                           <strong>Розміри:</strong>
                           {item.productDetails?.specs
