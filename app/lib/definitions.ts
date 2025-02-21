@@ -84,8 +84,9 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
-  color?: string;
-  image_url?: string;
+  color?: string; // selected color of the product
+  colors?: ProductColor[]; // images of the product colors
+  image_url?: string; // images of the product
   productDetails?: ProductWithImages;
 }
 
