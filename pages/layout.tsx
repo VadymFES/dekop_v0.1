@@ -22,7 +22,7 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
 
       {/* Header and Layout */}
       <Header menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((prev) => !prev)} />
-      <main>{children}</main>
+      <main className={styles.page}>{children}</main>
       <Footer />
     </>
   );
