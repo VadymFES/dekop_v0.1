@@ -1,8 +1,14 @@
+.topContainer {
+  display: flex;
+  max-width: 1920px;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
 .cartContainer {
   display: flex;
-  height: 100%;
-  max-width: 1920px;
   justify-content: space-between;
+  margin: 1rem 4rem;
 }
 
 /* Breadcrumb at the top */
