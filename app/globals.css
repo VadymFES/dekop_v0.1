@@ -20,8 +20,6 @@ body {
     background: var(--background); /* Set background color */
     font-family: 'Inter', Arial, Helvetica, sans-serif; /* Use Inter font */
     -webkit-font-smoothing: antialiased; /* Improve font rendering */
-    margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
     -webkit-text-size-adjust: 100%;
 }
 
