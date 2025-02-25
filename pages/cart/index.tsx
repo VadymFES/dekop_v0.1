@@ -67,7 +67,7 @@ export default function Cart() {
           </li>
           <li className={styles.separator}>|</li>
           <li className={styles.breadcrumb_item}>
-            <Link href="/cart">Кошик</Link>
+          <li>Кошик</li>
           </li>
         </ol>
       </nav>
