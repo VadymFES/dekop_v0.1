@@ -56,6 +56,7 @@ export default function Cart() {
         <title>Кошик | Dekop Furniture Enterprise - меблі для вашого дому</title>
       </Head>
 
+      <div className={styles.topContainer}>
       {/* Breadcrumb at the top */}
       <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
         <ol className={styles.breadcrumb}>
@@ -256,6 +257,7 @@ export default function Cart() {
           </Link>
           <button className={styles.checkoutButton}>Оформити замовлення</button>
         </div>
+      </div>
       </div>
     </>
   );
