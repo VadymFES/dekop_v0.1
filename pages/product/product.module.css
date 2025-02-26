@@ -3,7 +3,6 @@
   max-width: 1920px;
   justify-content: center;
   flex-direction: column;
-  margin: 0 auto;
 }
 
 .productContainer {
@@ -205,7 +204,7 @@
   }
 
   .breadcrumbContainer {
-    margin: 1rem 1rem 0 1rem;
+    margin: 1rem 1rem 0 4rem;
   }
 
   .productHeader {
@@ -334,5 +333,9 @@
 
   .productContainer {
     margin: 1rem 1rem;
+  }
+
+  .breadcrumbContainer {
+    margin: 1rem 0 0 1rem;
   }
 }
