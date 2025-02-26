@@ -227,9 +227,9 @@ export default function Cart() {
                               </button>
                             </div>
 
-                            <p className={styles.itemTotalPrice}>
+                            <div className={styles.itemTotalPrice}>
                               {itemTotalPrice.toLocaleString()} грн
-                            </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -242,7 +242,6 @@ export default function Cart() {
 
           {/* RIGHT: Summary Panel */}
           <div className={styles.cartRight}>
-            <h2 className={styles.summaryTitle}>Кошик</h2>
             <p>
               <strong>Кількість обраних товарів:</strong> {selectedTotalItems}
             </p>
@@ -251,19 +250,19 @@ export default function Cart() {
               {selectedTotalPrice.toLocaleString()} грн
             </p>
             <p className={styles.deliveryInfo}>
-              Вартість, доставка узгоджується
+              Вартість доставки узгоджується
               <br />
               під час оформлення замовлення
             </p>
-            <Link href="/" className={styles.continueShopping}>
-              Продовжити покупки
-            </Link>
             <button 
               className={styles.checkoutButton} 
               disabled={selectedTotalItems === 0}
             >
               Оформити замовлення
             </button>
+            <Link href="/" className={styles.continueShopping}>
+              Продовжити покупки
+            </Link>
           </div>
         </div>
       </div>
