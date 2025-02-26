@@ -1,8 +1,17 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  justify-content: space-between;
+  min-height: 100vh;  /* ensures the page extends to the full viewport height */
+}
+
+
+.mainContent {
+  flex: 1;                 /* let main content grow to fill vertical space */
+  max-width: 1920px;
+  width: 100%;
+  margin: 0 auto;          /* center horizontally if needed */
+  display: flex;
+  flex-direction: column;
 }
 
 .overlay {
