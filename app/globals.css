@@ -15,7 +15,7 @@
 /* Global Styles */
 html,
 body {
-    height: auto;
+    height: 100%;
     color: var(--foreground); /* Set text color */
     background: var(--background); /* Set background color */
     font-family: 'Inter', Arial, Helvetica, sans-serif; /* Use Inter font */
