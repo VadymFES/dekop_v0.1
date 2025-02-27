@@ -3,10 +3,7 @@
   .productGrid {
     display: grid;
     grid-template-columns: repeat(3, minmax(280px, 1fr));
-    flex-grow: 1;
     min-height: 400px;
-    width: 100%; /* Ensure grid takes full available width */
-    box-sizing: border-box;
     gap: 40px;
   } 
   
