@@ -125,42 +125,42 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
               <div className={styles.dropdown}>
                 <ul className={styles.catalogList}>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/catalog?category=tables"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Столи</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem}  href={"/catalog?category=chairs"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Стільці</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/kithens"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Кухні</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/catalog?category=wardrobes"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Шафи</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/catalog?category=sofas"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Дивани</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/catalog?category=beds"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Ліжка</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/catalog?category=mattresses"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Матраци</span>
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/category"}>
+                    <Link className={styles.dropdownItem} href={"/catalog?category=other"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Інше</span>
                     </Link>
                   </li>
