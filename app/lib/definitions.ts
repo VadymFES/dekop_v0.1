@@ -6,7 +6,7 @@ export interface Product {
   slug: string;             // URL-friendly slug of the product
   description: string;      // Detailed description of the product
   category: string;         // Category (e.g., sofa, table, chair)
-  price: number;            // Price of the product
+  price: number;            // Price of the product (corrected from 'Price')
   stock: number;            // Quantity available in stock
   rating: number;           // Average rating of the product
   is_on_sale: boolean;      // Indicates if the product is on sale
@@ -49,21 +49,18 @@ export interface ProductSpecs {
   has_shelves: boolean;
   leg_height: string | null;
   has_lift_mechanism: boolean;
-  types: string[]; 
+  types: string[];
 }
 
-// New interface for a color, representing a row in product_spec_colors.
 export interface ProductColor {
   color: string;
   product_id: number;
   image_url: string;
 }
 
-// Extend the product interface to include images, specs, and an optional array of colors.
 export interface ProductWithImages extends Product {
   images: ProductImage[];
   specs: ProductSpecs;
-  // Colors are now stored in a separate table and returned as an array.
   colors: ProductColor[];
 }
 
@@ -77,15 +74,15 @@ export interface Review {
 }
 
 export interface CartItem {
-  id: string; // Unique cart item ID
+  id: string;               // Unique cart item ID
   product_id: number;
   slug?: string;
   name: string;
-  price: number;
+  price: number;            // Corrected from 'Price'
   quantity: number;
-  color?: string; // selected color of the product
-  colors?: ProductColor[]; // images of the product colors
-  image_url?: string; // images of the product
+  color?: string;           // Selected color of the product
+  colors?: ProductColor[];  // Images of the product colors
+  image_url?: string;       // Images of the product
   productDetails?: ProductWithImages;
 }
 
@@ -95,7 +92,7 @@ export interface ProductWithDetails extends CartItem {
   slug: string;
   description: string;
   category: string;
-  product_price: number;
+  product_price: number;    // Corrected from 'product_Price'
   stock: number;
   rating: number;
   is_on_sale: boolean;
@@ -109,14 +106,11 @@ export interface ProductWithDetails extends CartItem {
 }
 
 export interface Cart {
-  id: string; // Cart ID (from the cookie)
+  id: string;               // Cart ID (from the cookie)
   items: CartItem[];
   total_items: number;
-  total_price: number;
+  total_price: number;      // Corrected from 'total_Price'
 }
-
-
-// Filter structures for the different furniture categories
 
 export interface FilterOption {
   id: string;
@@ -142,7 +136,7 @@ export interface CategoryFilters {
 export const FURNITURE_FILTERS: CategoryFilters = {
   wardrobes: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'sliding_doors', name: 'Шафи-купе', value: 'sliding_doors' },
@@ -154,7 +148,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -163,7 +157,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Матеріал фасадів',
+      name: 'Material of the facade',
       type: 'checkbox',
       options: [
         { id: 'dsp', name: 'ДСП', value: 'dsp' },
@@ -176,7 +170,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
   ],
   tables: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'coffee', name: 'Журнальні столики', value: 'coffee' },
@@ -185,7 +179,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -194,7 +188,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'wood', name: 'Натуральне дерево', value: 'wood' },
@@ -205,7 +199,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Особливості',
+      name: 'Features',
       type: 'radio',
       options: [
         { id: 'folding', name: 'Розкладний', value: 'folding' },
@@ -213,7 +207,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Форма стільниці',
+      name: 'Form of the table top',
       type: 'checkbox',
       options: [
         { id: 'round', name: 'Круглий', value: 'round' },
@@ -225,7 +219,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
   ],
   chairs: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'kitchen', name: 'Кухонні', value: 'kitchen' },
@@ -238,7 +232,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -247,7 +241,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'wood', name: 'Дерево', value: 'wood' },
@@ -256,10 +250,9 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     }
   ],
-
   sofaBeds: [
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -268,7 +261,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Комплектація',
+      name: 'Complectation',
       type: 'checkbox',
       options: [
         { id: 'shelves', name: 'З поличками', value: 'shelves' },
@@ -279,7 +272,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'leather', name: 'Натуральна шкіра', value: 'leather' },
@@ -288,10 +281,9 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     }
   ],
-
   cornerSofas: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'folding', name: 'Розкладні дивани', value: 'folding' },
@@ -301,7 +293,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -310,7 +302,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Комплектація',
+      name: 'Complectation',
       type: 'checkbox',
       options: [
         { id: 'shelves', name: 'З поличками', value: 'shelves' },
@@ -321,7 +313,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'leather', name: 'Натуральна шкіра', value: 'leather' },
@@ -330,10 +322,9 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     }
   ],
-
   sofas: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'folding', name: 'Розкладні дивани', value: 'folding' },
@@ -343,7 +334,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -352,7 +343,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Комплектація',
+      name: 'Complectation',
       type: 'checkbox',
       options: [
         { id: 'shelves', name: 'З поличками', value: 'shelves' },
@@ -363,7 +354,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'leather', name: 'Натуральна шкіра', value: 'leather' },
@@ -374,7 +365,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
   ],
   beds: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'radio',
       options: [
         { id: 'children', name: 'Дитячі', value: 'children' },
@@ -382,7 +373,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -391,7 +382,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'leather', name: 'Шкіра', value: 'leather' },
@@ -400,7 +391,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Комплектація',
+      name: 'Complectation',
       type: 'checkbox',
       options: [
         { id: 'no_lift', name: 'Без підйомного механізму', value: 'no_lift' },
@@ -411,7 +402,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Розмір',
+      name: 'Dimensions',
       type: 'radio',
       options: [
         { id: 'double', name: 'Двоспальні ліжка', value: 'double' },
@@ -419,7 +410,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Спинка',
+      name: 'Beackrest',
       type: 'radio',
       options: [
         { id: 'high', name: 'Висока', value: 'high' },
@@ -429,7 +420,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
   ],
   mattresses: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'no_springs', name: 'Безпружинні матраци', value: 'no_springs' },
@@ -438,7 +429,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -447,16 +438,16 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Жорсткість',
+      name: 'Hardness',
       type: 'radio',
       options: [
         { id: 'hard', name: 'Жорсткий матрац', value: 'hard' },
-        { id: 'medium', name: 'Помірна жорсткість', value: 'medium' },
+        { id: 'medium', name: 'Помірна Hardness', value: 'medium' },
         { id: 'soft', name: 'М\'який матрац', value: 'soft' },
       ]
     },
     {
-      name: 'Розмір',
+      name: 'Dimensions',
       type: 'radio',
       options: [
         { id: 'single', name: 'Односпальний', value: 'single' },
@@ -466,7 +457,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
   ],
   accessories: [
     {
-      name: 'Тип',
+      name: 'Type',
       type: 'checkbox',
       options: [
         { id: 'wall_shelves', name: 'Настінні полиці', value: 'wall_shelves' },
@@ -479,7 +470,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       ]
     },
     {
-      name: 'Ціна',
+      name: 'Price',
       type: 'range',
       range: {
         min: 0,
@@ -488,7 +479,7 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       }
     },
     {
-      name: 'Матеріал',
+      name: 'Material',
       type: 'checkbox',
       options: [
         { id: 'wood', name: 'Натуральне дерево', value: 'wood' },
