@@ -26,32 +26,31 @@ export interface ProductImage {
 }
 
 export interface ProductSpecs {
-  id: number;               // Unique identifier for the product specs row
-  product_id: number;       // Identifier linking to the product
-  construction: string;     // Construction type (e.g., Єврокнижка)
+  id: number;
+  product_id: number;
+  construction: string;
   dimensions: {
-    length: number;         // Length in millimeters
-    depth: number;          // Depth in millimeters
-    height: number;         // Height in millimeters
-    sleeping_area: {
-      width: number;        // Width in millimeters
-      length: number;       // Length in millimeters
-    };
+    length: number;
+    depth: number;
+    height: number;
+    sleeping_area: { width: number; length: number };
   };
-    material: {
-      type: string;           // Material type (e.g., мікровелюр)
-      composition: string;    // Material composition (e.g., поліестер 100%)
-      backrest_filling: string;        // Material filling (e.g., холлофайбер)
-      covers: string;         // Material covers (e.g., знімні)
-    };
-    inner_material: {
-      structure: string;     // Inner material structure (e.g., пружинний блок)
-      cushion_filling: string;        // Cushions filling (e.g., пінополіуретан)
-      // Note: the single "color" column has been removed from product_specs,
-      // since colors now come from the separate table.
-    };
-    additional_features: string;  // Additional information about the product
+  material: {
+    type: string;
+    composition: string | null;
+    backrest_filling: string;
+    covers: string;
   };
+  inner_material: {
+    structure: string;
+    cushion_filling: string;
+  };
+  additional_features: string | null;
+  has_shelves: boolean;
+  leg_height: string | null;
+  has_lift_mechanism: boolean;
+  types: string[]; 
+}
 
 // New interface for a color, representing a row in product_spec_colors.
 export interface ProductColor {
@@ -115,3 +114,390 @@ export interface Cart {
   total_items: number;
   total_price: number;
 }
+
+
+// Filter structures for the different furniture categories
+
+export interface FilterOption {
+  id: string;
+  name: string;
+  value: string;
+}
+
+export interface FilterGroup {
+  name: string;
+  type: 'checkbox' | 'radio' | 'range' | 'color';
+  options?: FilterOption[];
+  range?: {
+    min: number;
+    max: number;
+    step: number;
+  };
+}
+
+export interface CategoryFilters {
+  [category: string]: FilterGroup[];
+}
+
+export const FURNITURE_FILTERS: CategoryFilters = {
+  wardrobes: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'sliding_doors', name: 'Шафи-купе', value: 'sliding_doors' },
+        { id: 'walk_in', name: 'Гардеробні', value: 'walk_in' },
+        { id: 'one_door', name: 'Однодверні модульні', value: 'one_door' },
+        { id: 'two_doors', name: 'Дводверні модульні', value: 'two_doors' },
+        { id: 'three_doors', name: 'Тридверні модульні', value: 'three_doors' },
+        { id: 'four_doors', name: 'Чотиридверні модульні', value: 'four_doors' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 100000,
+        step: 1000
+      }
+    },
+    {
+      name: 'Матеріал фасадів',
+      type: 'checkbox',
+      options: [
+        { id: 'dsp', name: 'ДСП', value: 'dsp' },
+        { id: 'mdf', name: 'МДФ', value: 'mdf' },
+        { id: 'mirror', name: 'Дзеркало', value: 'mirror' },
+        { id: 'photo', name: 'Фотодрук', value: 'photo' },
+        { id: 'combined', name: 'Комбіновані', value: 'combined' },
+      ]
+    }
+  ],
+  tables: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'coffee', name: 'Журнальні столики', value: 'coffee' },
+        { id: 'dining', name: 'Обідні столи', value: 'dining' },
+        { id: 'computer', name: 'Комп\'ютерні столи', value: 'computer' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 50000,
+        step: 500
+      }
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'wood', name: 'Натуральне дерево', value: 'wood' },
+        { id: 'mdf', name: 'МДФ', value: 'mdf' },
+        { id: 'glass', name: 'Скло', value: 'glass' },
+        { id: 'ceramic', name: 'Склокераміка', value: 'ceramic' },
+        { id: 'aluminum', name: 'Алюміній', value: 'aluminum' },
+      ]
+    },
+    {
+      name: 'Особливості',
+      type: 'radio',
+      options: [
+        { id: 'folding', name: 'Розкладний', value: 'folding' },
+        { id: 'non_folding', name: 'Нерозкладний', value: 'non_folding' },
+      ]
+    },
+    {
+      name: 'Форма стільниці',
+      type: 'checkbox',
+      options: [
+        { id: 'round', name: 'Круглий', value: 'round' },
+        { id: 'oval', name: 'Овальний', value: 'oval' },
+        { id: 'square', name: 'Квадратний', value: 'square' },
+        { id: 'rectangular', name: 'Прямокутний', value: 'rectangular' },
+      ]
+    }
+  ],
+  chairs: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'kitchen', name: 'Кухонні', value: 'kitchen' },
+        { id: 'bar', name: 'Барні', value: 'bar' },
+        { id: 'computer', name: 'Комп\'ютерні', value: 'computer' },
+        { id: 'office', name: 'Офісні', value: 'office' },
+        { id: 'children', name: 'Дитячі', value: 'children' },
+        { id: 'loft', name: 'Стільці Лофт', value: 'loft' },
+        { id: 'stool', name: 'Табуретки', value: 'stool' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 20000,
+        step: 250
+      }
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'wood', name: 'Дерево', value: 'wood' },
+        { id: 'plastic', name: 'Пластик', value: 'plastic' },
+        { id: 'aluminum', name: 'Алюміній', value: 'aluminum' },
+      ]
+    }
+  ],
+
+  sofaBeds: [
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 100000,
+        step: 1000
+      }
+    },
+    {
+      name: 'Комплектація',
+      type: 'checkbox',
+      options: [
+        { id: 'shelves', name: 'З поличками', value: 'shelves' },
+        { id: 'high_legs', name: 'На високих ніжках', value: 'high_legs' },
+        { id: 'low_legs', name: 'На низьких ніжках', value: 'low_legs' },
+        { id: 'lift', name: 'З підйомним механізмом', value: 'lift' },
+        { id: 'no_lift', name: 'Без підйомного механізму', value: 'no_lift' },
+      ]
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'leather', name: 'Натуральна шкіра', value: 'leather' },
+        { id: 'eco_leather', name: 'Еко-шкіра', value: 'eco_leather' },
+        { id: 'textile', name: 'Текстиль', value: 'textile' },
+      ]
+    }
+  ],
+
+  cornerSofas: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'folding', name: 'Розкладні дивани', value: 'folding' },
+        { id: 'kitchen', name: 'Дивани для кухні', value: 'kitchen' },
+        { id: 'office', name: 'Офісні дивани', value: 'office' },
+        { id: 'modular', name: 'Модульні дивани', value: 'modular' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 100000,
+        step: 1000
+      }
+    },
+    {
+      name: 'Комплектація',
+      type: 'checkbox',
+      options: [
+        { id: 'shelves', name: 'З поличками', value: 'shelves' },
+        { id: 'high_legs', name: 'На високих ніжках', value: 'high_legs' },
+        { id: 'low_legs', name: 'На низьких ніжках', value: 'low_legs' },
+        { id: 'lift', name: 'З підйомним механізмом', value: 'lift' },
+        { id: 'no_lift', name: 'Без підйомного механізму', value: 'no_lift' },
+      ]
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'leather', name: 'Натуральна шкіра', value: 'leather' },
+        { id: 'eco_leather', name: 'Еко-шкіра', value: 'eco_leather' },
+        { id: 'textile', name: 'Текстиль', value: 'textile' },
+      ]
+    }
+  ],
+
+  sofas: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'folding', name: 'Розкладні дивани', value: 'folding' },
+        { id: 'kitchen', name: 'Дивани для кухні', value: 'kitchen' },
+        { id: 'office', name: 'Офісні дивани', value: 'office' },
+        { id: 'modular', name: 'Модульні дивани', value: 'modular' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 100000,
+        step: 1000
+      }
+    },
+    {
+      name: 'Комплектація',
+      type: 'checkbox',
+      options: [
+        { id: 'shelves', name: 'З поличками', value: 'shelves' },
+        { id: 'high_legs', name: 'На високих ніжках', value: 'high_legs' },
+        { id: 'low_legs', name: 'На низьких ніжках', value: 'low_legs' },
+        { id: 'lift', name: 'З підйомним механізмом', value: 'lift' },
+        { id: 'no_lift', name: 'Без підйомного механізму', value: 'no_lift' },
+      ]
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'leather', name: 'Натуральна шкіра', value: 'leather' },
+        { id: 'eco_leather', name: 'Еко-шкіра', value: 'eco_leather' },
+        { id: 'textile', name: 'Текстиль', value: 'textile' },
+      ]
+    }
+  ],
+  beds: [
+    {
+      name: 'Тип',
+      type: 'radio',
+      options: [
+        { id: 'children', name: 'Дитячі', value: 'children' },
+        { id: 'adult', name: 'Ліжка для дорослих', value: 'adult' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 80000,
+        step: 1000
+      }
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'leather', name: 'Шкіра', value: 'leather' },
+        { id: 'eco_leather', name: 'Еко-шкіра', value: 'eco_leather' },
+        { id: 'textile', name: 'Текстиль', value: 'textile' },
+      ]
+    },
+    {
+      name: 'Комплектація',
+      type: 'checkbox',
+      options: [
+        { id: 'no_lift', name: 'Без підйомного механізму', value: 'no_lift' },
+        { id: 'parallel_lift', name: 'З механізмом паралельного підйому', value: 'parallel_lift' },
+        { id: 'vertical_lift', name: 'З механізмом вертикального підйому', value: 'vertical_lift' },
+        { id: 'sides', name: 'З бортиками', value: 'sides' },
+        { id: 'soft_headboard', name: 'З м\'яким узголів\'ям', value: 'soft_headboard' },
+      ]
+    },
+    {
+      name: 'Розмір',
+      type: 'radio',
+      options: [
+        { id: 'double', name: 'Двоспальні ліжка', value: 'double' },
+        { id: 'single', name: 'Односпальні ліжка', value: 'single' },
+      ]
+    },
+    {
+      name: 'Спинка',
+      type: 'radio',
+      options: [
+        { id: 'high', name: 'Висока', value: 'high' },
+        { id: 'low', name: 'Низька', value: 'low' },
+      ]
+    }
+  ],
+  mattresses: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'no_springs', name: 'Безпружинні матраци', value: 'no_springs' },
+        { id: 'coconut', name: 'Матраци з кокосовою койрою', value: 'coconut' },
+        { id: 'spring', name: 'Матраци на пружинному блоці', value: 'spring' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 30000,
+        step: 500
+      }
+    },
+    {
+      name: 'Жорсткість',
+      type: 'radio',
+      options: [
+        { id: 'hard', name: 'Жорсткий матрац', value: 'hard' },
+        { id: 'medium', name: 'Помірна жорсткість', value: 'medium' },
+        { id: 'soft', name: 'М\'який матрац', value: 'soft' },
+      ]
+    },
+    {
+      name: 'Розмір',
+      type: 'radio',
+      options: [
+        { id: 'single', name: 'Односпальний', value: 'single' },
+        { id: 'double', name: 'Двоспальний', value: 'double' },
+      ]
+    }
+  ],
+  accessories: [
+    {
+      name: 'Тип',
+      type: 'checkbox',
+      options: [
+        { id: 'wall_shelves', name: 'Настінні полиці', value: 'wall_shelves' },
+        { id: 'book_shelves', name: 'Книжкові полиці', value: 'book_shelves' },
+        { id: 'cabinets', name: 'Тумби', value: 'cabinets' },
+        { id: 'makeup_table', name: 'Столик для макіяжу', value: 'makeup_table' },
+        { id: 'chest_drawers', name: 'Комоди', value: 'chest_drawers' },
+        { id: 'wall_cabinets', name: 'Підвісні шафки', value: 'wall_cabinets' },
+        { id: 'poufs', name: 'Пуфи', value: 'poufs' },
+      ]
+    },
+    {
+      name: 'Ціна',
+      type: 'range',
+      range: {
+        min: 0,
+        max: 15000,
+        step: 250
+      }
+    },
+    {
+      name: 'Матеріал',
+      type: 'checkbox',
+      options: [
+        { id: 'wood', name: 'Натуральне дерево', value: 'wood' },
+        { id: 'textile', name: 'Текстиль', value: 'textile' },
+        { id: 'mdf', name: 'МДФ', value: 'mdf' },
+        { id: 'dsp', name: 'ДСП', value: 'dsp' },
+        { id: 'glass', name: 'Скло', value: 'glass' },
+        { id: 'combined', name: 'Комбіновані', value: 'combined' },
+      ]
+    }
+  ]
+};
