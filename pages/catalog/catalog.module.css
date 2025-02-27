@@ -1,10 +1,9 @@
 /* catalog.module.css */
 .container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: 'Arial', sans-serif;
-    width: 100%; /* Ensure container takes full available width */
+    display: flex;
+    max-width: 1920px;
+    flex-direction: column;
+    margin: 1rem 4rem;
   }
   
   /* Breadcrumbs */
@@ -121,7 +120,8 @@
     gap: 30px;
     min-height: 500px;
     width: 100%; /* Ensure full width */
-    max-width: 1280px; /* Match container max-width */
+    justify-content: space-between;
+
   }
   
   /* Sidebar Filters */
@@ -240,30 +240,27 @@
   /* Product Grid */
   .productGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    flex-grow: 1;
+    grid-template-columns: repeat(3, minmax(280px, 1fr));
     min-height: 400px;
-    width: 100%; /* Ensure grid takes full available width */
-    box-sizing: border-box;
-  }
+}
   
 
 
   
   /* Responsive design */
-  @media (min-width: 768px) {
-    .productGrid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
   
-  @media (min-width: 1024px) {
+  @media (max-width: 1024px) {
     .productGrid {
       grid-template-columns: repeat(3, 1fr);
     }
   }
   
   @media (max-width: 768px) {
+
+    .productGrid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
     .contentWrapper {
       flex-direction: column;
       width: 100%;
