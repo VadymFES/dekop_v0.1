@@ -1,3 +1,5 @@
+// api/[slug]/route.ts
+
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { Product, ProductImage, ProductSpecs } from "@/app/lib/definitions";
