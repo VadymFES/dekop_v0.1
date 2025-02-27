@@ -1,3 +1,4 @@
+// pages/CatalogPage.tsx
 "use client";
 
 import React, { useState, useEffect, ChangeEvent } from "react";
@@ -6,6 +7,8 @@ import Link from "next/link";
 import styles from "./catalog.module.css";
 import { ProductWithImages, FilterGroup, FURNITURE_FILTERS } from "@/app/lib/definitions";
 import ProductCard from "@/app/components/productCard/productCard";
+import ProductGridSkeleton from "@/pages/catalog/components/ui/gridSkeleton/ProductGridSkeleton";
+import FiltersSkeleton from "@/pages/catalog/components/ui/FiltersSkeleton/FiltersSkeleton";
 
 // Category mapping with database values and Ukrainian names
 const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
@@ -61,7 +64,7 @@ export default function CatalogPage() {
 
   const slugData = CATEGORY_SLUG_MAP[slug];
   const dbCategory = slugData?.dbValue || null;
-  const categoryUaName = slugData?.uaName || "Вся продукція";
+  const categoryUaName = slugData?.uaName;
   const pageTitle = categoryUaName;
 
   let finalFilterGroups: FilterGroup[] = [];
@@ -76,16 +79,18 @@ export default function CatalogPage() {
     finalFilterGroups = FURNITURE_FILTERS[slug] || [];
   }
 
-  // Sorting options
   const [sortOption, setSortOption] = useState<string>("default");
 
   useEffect(() => {
-    // Fetch all products for the category
     const fetchAllProducts = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
         if (dbCategory) params.append("category", dbCategory);
+
+        // Add artificial delay for loading state demonstration
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
         const res = await fetch(`/api/products?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch products");
         const data: ProductWithImages[] = await res.json();
@@ -113,10 +118,7 @@ export default function CatalogPage() {
   }, [dbCategory]);
 
   useEffect(() => {
-    // Apply filters and sorting to products
     let matches = [...allProducts];
-
-    // Filter by Type
     if (filterOptions.type.length > 0) {
       matches = matches.filter((p) =>
         p.specs && p.specs.types.some((type: string) => 
@@ -124,8 +126,6 @@ export default function CatalogPage() {
         )
       );
     }
-
-    // Filter by Material
     if (filterOptions.material.length > 0) {
       matches = matches.filter((p) => {
         if (!p.specs || !p.specs.material?.type) return false;
@@ -135,8 +135,6 @@ export default function CatalogPage() {
         );
       });
     }
-
-    // Filter by Complectation (Features)
     if (filterOptions.complectation.length > 0) {
       matches = matches.filter((p) => {
         if (!p.specs) return false;
@@ -150,8 +148,6 @@ export default function CatalogPage() {
         });
       });
     }
-
-    // Filter by Size
     if (filterOptions.size) {
       matches = matches.filter((p) =>
         p.specs && (
@@ -161,13 +157,9 @@ export default function CatalogPage() {
         )
       );
     }
-
-    // Filter by Price
     if (filterOptions.priceMax !== null) {
       matches = matches.filter((p) => parseFloat(p.price.toString()) <= filterOptions.priceMax);
     }
-
-    // Apply sorting
     if (sortOption === "price_asc") {
       matches.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
     } else if (sortOption === "price_desc") {
@@ -175,13 +167,11 @@ export default function CatalogPage() {
     } else if (sortOption === "rating_desc") {
       matches.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
-
     setFilteredProducts(matches);
   }, [allProducts, filterOptions, sortOption]);
 
   const categoryKeys = Object.keys(FURNITURE_FILTERS);
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    // Handle category selection change
     const chosenSlug = e.target.value;
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
     setFilterOptions({
@@ -196,13 +186,11 @@ export default function CatalogPage() {
       hardness: null,
       priceMax: null,
     });
-    setSortOption("default"); // Reset sorting on category change
+    setSortOption("default");
   };
 
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string) => {
-    // Handle filter changes for checkboxes and radios
     const { value, checked, type } = e.target;
-
     setFilterOptions((prev) => {
       const key = groupName.toLowerCase();
       if (type === "checkbox") {
@@ -224,7 +212,6 @@ export default function CatalogPage() {
   };
 
   const handlePriceMaxChange = (e: ChangeEvent<HTMLInputElement>) => {
-    // Handle price range slider changes
     const value = Number(e.target.value);
     setFilterOptions((prev) => ({
       ...prev,
@@ -233,11 +220,9 @@ export default function CatalogPage() {
   };
 
   const handleSortChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    // Handle sorting option changes
     setSortOption(e.target.value);
   };
 
-  // Clear a specific filter value
   const clearFilter = (filterType: string, value: string) => {
     setFilterOptions((prev) => {
       const key = filterType.toLowerCase();
@@ -256,11 +241,8 @@ export default function CatalogPage() {
     });
   };
 
-  // Render selected filters as chips
   const renderSelectedFilters = () => {
     const filters: React.ReactNode[] = [];
-
-    // Price range filter
     if (filterOptions.priceMax !== null && filterOptions.priceMax < priceRange.max) {
       filters.push(
         <div key="price" className={styles.filterChip}>
@@ -274,8 +256,6 @@ export default function CatalogPage() {
         </div>
       );
     }
-
-    // Type filters
     filterOptions.type.forEach((type: string) => {
       const typeName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "type")?.options?.find(o => o.value === type)?.name || type;
       filters.push(
@@ -290,8 +270,6 @@ export default function CatalogPage() {
         </div>
       );
     });
-
-    // Material filters
     filterOptions.material.forEach((material: string) => {
       const materialName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "material")?.options?.find(o => o.value === material)?.name || material;
       filters.push(
@@ -306,8 +284,6 @@ export default function CatalogPage() {
         </div>
       );
     });
-
-    // Complectation filters
     filterOptions.complectation.forEach((feature: string) => {
       const featureName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "complectation")?.options?.find(o => o.value === feature)?.name || feature;
       filters.push(
@@ -322,8 +298,6 @@ export default function CatalogPage() {
         </div>
       );
     });
-
-    // Size filter
     if (filterOptions.size) {
       const sizeName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "size")?.options?.find(o => o.value === filterOptions.size)?.name || filterOptions.size;
       filters.push(
@@ -338,7 +312,6 @@ export default function CatalogPage() {
         </div>
       );
     }
-
     return filters.length > 0 ? (
       <div className={styles.selectedFilters}>
         {filters}
@@ -363,7 +336,6 @@ export default function CatalogPage() {
     ) : null;
   };
 
-  // Render filters for the sidebar
   const renderFilters = () => {
     return finalFilterGroups.map((group) => {
       if (group.type === "range" && group.range) {
@@ -434,7 +406,7 @@ export default function CatalogPage() {
 
       <div className={styles.topControls}>
         <div className={styles.filterControls}>
-          {renderSelectedFilters()}
+          {loading ? null : renderSelectedFilters()}
         </div>
         <div className={styles.sortAndCount}>
           <span className={styles.itemCount}>
@@ -444,6 +416,7 @@ export default function CatalogPage() {
             value={sortOption}
             onChange={handleSortChange}
             className={styles.sortSelect}
+            disabled={loading}
           >
             <option value="default">Сортувати за</option>
             <option value="price_asc">Ціна: від низької до високої</option>
@@ -455,35 +428,43 @@ export default function CatalogPage() {
 
       <div className={styles.contentWrapper}>
         <aside className={`${styles.sidebar} ${loading ? styles.loading : ""}`}>
-          <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
-            Обрати категорію:
-          </label>
-          <select
-            id="categorySelect"
-            value={slug}
-            onChange={handleCategoryChange}
-            className={styles.categorySelect}
-          >
-            <option value="">Всі категорії</option>
-            {categoryKeys.map((catKey) => (
-              <option key={catKey} value={catKey}>
-                {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
-              </option>
-            ))}
-          </select>
-          {renderFilters()}
+          {loading ? (
+            <FiltersSkeleton />
+          ) : (
+            <>
+              <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
+                Обрати категорію:
+              </label>
+              <select
+                id="categorySelect"
+                value={slug}
+                onChange={handleCategoryChange}
+                className={styles.categorySelect}
+              >
+                <option value="">Всі категорії</option>
+                {categoryKeys.map((catKey) => (
+                  <option key={catKey} value={catKey}>
+                    {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
+                  </option>
+                ))}
+              </select>
+              {renderFilters()}
+            </>
+          )}
         </aside>
 
         <div className={styles.productGrid}>
-          {loading && <p>Завантаження...</p>}
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          {!loading && !error && filteredProducts.length === 0 && (
+          {loading ? (
+            <ProductGridSkeleton count={6} />
+          ) : error ? (
+            <p style={{ color: "red" }}>{error}</p>
+          ) : filteredProducts.length === 0 ? (
             <p>Товарів не знайдено.</p>
-          )}
-          {!loading && !error &&
+          ) : (
             filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
-            ))}
+            ))
+          )}
         </div>
       </div>
     </div>
