@@ -45,15 +45,15 @@ export default function CatalogPage() {
   const [error, setError] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
   const [filterOptions, setFilterOptions] = useState<Record<string, any>>({
-    тип: [],
-    матеріал: [],
-    комплектація: [],
-    матеріал_фасадів: [],
-    особливості: null,
-    форма_стільниці: [],
-    розмір: null,
-    спинка: null,
-    жорсткість: null,
+    type: [],
+    material: [],
+    complectation: [],
+    facadeMaterial: [],
+    specifics: null,
+    tabletopShape: [],
+    size: null,
+    backrest: null,
+    hardness: null,
     priceMax: null,
   });
 
@@ -65,7 +65,7 @@ export default function CatalogPage() {
   if (!slug) {
     const allGroups = Object.values(FURNITURE_FILTERS).flat();
     const priceGroups = allGroups.filter(
-      (g) => g.name.toLowerCase() === "ціна" && g.type === "range" && g.range
+      (g) => g.name.toLowerCase() === "price" && g.type === "range" && g.range
     );
     const merged = mergePriceFilters(priceGroups);
     if (merged) finalFilterGroups = [merged];
@@ -108,31 +108,31 @@ export default function CatalogPage() {
   useEffect(() => {
     let matches = [...allProducts];
 
-    // Filter by Тип (Type) - Excludes 'corner'
-    if (filterOptions.тип.length > 0) {
+    // Filter by Type
+    if (filterOptions.type.length > 0) {
       matches = matches.filter((p) =>
         p.specs && p.specs.types.some((type: string) => 
-          filterOptions.тип.includes(type.toLowerCase())
+          filterOptions.type.includes(type.toLowerCase())
         )
       );
     }
 
-    // Filter by Матеріал (Material)
-    if (filterOptions.матеріал.length > 0) {
+    // Filter by Material
+    if (filterOptions.material.length > 0) {
       matches = matches.filter((p) => {
         if (!p.specs || !p.specs.material?.type) return false;
         const materialType = p.specs.material.type.toLowerCase();
-        return filterOptions.матеріал.some((material: string) => 
-          materialType === material.toLowerCase() // Exact match for clarity
+        return filterOptions.material.some((material: string) => 
+          materialType === material.toLowerCase()
         );
       });
     }
 
-    // Filter by Комплектація (Features)
-    if (filterOptions.комплектація.length > 0) {
+    // Filter by Complectation (Features)
+    if (filterOptions.complectation.length > 0) {
       matches = matches.filter((p) => {
         if (!p.specs) return false;
-        return filterOptions.комплектація.every((feature: string) => {
+        return filterOptions.complectation.every((feature: string) => {
           if (feature === "shelves") return p.specs.has_shelves === true;
           if (feature === "high_legs") return p.specs.leg_height === "high";
           if (feature === "low_legs") return p.specs.leg_height === "low";
@@ -143,11 +143,11 @@ export default function CatalogPage() {
       });
     }
 
-    // Filter by Розмір (Size)
-    if (filterOptions.розмір) {
+    // Filter by Size
+    if (filterOptions.size) {
       matches = matches.filter((p) =>
         p.specs && (
-          filterOptions.розмір === "single"
+          filterOptions.size === "single"
             ? p.specs.dimensions?.sleeping_area?.width <= 1000
             : p.specs.dimensions?.sleeping_area?.width >= 1400
         )
@@ -167,15 +167,15 @@ export default function CatalogPage() {
     const chosenSlug = e.target.value;
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
     setFilterOptions({
-      тип: [],
-      матеріал: [],
-      комплектація: [],
-      матеріал_фасадів: [],
-      особливості: null,
-      форма_стільниці: [],
-      розмір: null,
-      спинка: null,
-      жорсткість: null,
+      type: [],
+      material: [],
+      complectation: [],
+      facadeMaterial: [],
+      specifics: null,
+      tabletopShape: [],
+      size: null,
+      backrest: null,
+      hardness: null,
       priceMax: null,
     });
   };
