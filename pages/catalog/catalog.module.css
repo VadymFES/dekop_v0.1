@@ -1,62 +1,83 @@
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1920px;
+    margin: 1rem 4rem;
     padding: 20px;
-    font-family: 'Arial', sans-serif;
+    font-family: Arial, sans-serif;
   }
   
   .breadcrumbs {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
     font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
   }
   
   .breadcrumbSeparator {
-    margin: 0 8px;
-    color: #666;
+    margin: 0 5px;
   }
   
   .breadcrumbActive {
     color: #333;
-    font-weight: 500;
+    font-weight: bold;
   }
   
   .pageTitle {
     font-size: 32px;
     font-weight: bold;
-    margin-bottom: 24px;
-    color: #000;
+    color: #333;
+    margin-bottom: 20px;
   }
   
-  .topFilters {
+  .topControls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .filterControls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  
+  .sortAndCount {
     display: flex;
     align-items: center;
-    margin-bottom: 24px;
-    gap: 10px;
+    gap: 20px;
   }
   
-  .categorySelectLabel {
-    font-weight: 500;
-    font-size: 15px;
+  .itemCount {
+    font-size: 14px;
+    color: #666;
   }
   
-  .categorySelect {
-    padding: 8px 12px;
+  .sortSelect {
+    padding: 8px 16px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
-    min-width: 200px;
+    background-color: white;
+    cursor: pointer;
   }
   
   .contentWrapper {
     display: flex;
-    gap: 30px;
+    gap: 20px;
   }
   
   .sidebar {
     width: 250px;
-    flex-shrink: 0;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 20px; /* Keeps filters fixed at the top of the viewport */
+    height: fit-content;
+    max-height: calc(100vh - 40px); /* Adjust to avoid overflow */
+    overflow-y: auto; /* Allows scrolling if content exceeds viewport height */
   }
   
   .filterSection {
@@ -66,34 +87,32 @@
   .filterTitle {
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 12px;
-    color: #000;
+    margin-bottom: 10px;
+    color: #333;
   }
   
   .filterList {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
-    margin: 0;
   }
   
   .filterItem {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
   
   .checkboxLabel {
     display: flex;
     align-items: center;
-    cursor: pointer;
+    gap: 8px;
     font-size: 14px;
+    color: #333;
+    cursor: pointer;
   }
   
   .checkbox {
-    margin-right: 8px;
-  }
-  
-  .rangeInput {
-    width: 100%;
-    margin: 8px 0;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
   }
   
   .rangeLabel {
@@ -101,140 +120,58 @@
     color: #666;
   }
   
-  .productGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    flex-grow: 1;
-  }
-  
-  /* Applied filter tags styling */
-  .appliedFilters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  
-  .filterTag {
-    display: flex;
-    align-items: center;
-    background-color: #f5f5f5;
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 14px;
-  }
-  
-  .filterTag button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    margin-right: 6px;
-  }
-  
-  .clearFilters {
-    display: flex;
-    align-items: center;
-    background-color: #f5f5f5;
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-  }
-  
-  /* Input range styling to match the design */
   .rangeInput {
-    -webkit-appearance: none;
-    appearance: none;
     width: 100%;
-    height: 4px;
-    background: #ddd;
-    border-radius: 2px;
-    outline: none;
+    margin: 10px 0;
   }
   
-  .rangeInput::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 2px solid #333;
-    border-radius: 50%;
-    cursor: pointer;
+  .productGrid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
   }
   
-  .rangeInput::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 2px solid #333;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
-  /* Price input fields */
-  .priceInputs {
+  .selectedFilters {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
-    align-items: center;
-  }
-  
-  .priceInput {
-    width: 80px;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  /* Radio and checkbox styling */
-  .checkboxLabel input[type="checkbox"],
-  .checkboxLabel input[type="radio"] {
-    accent-color: #333;
-  }
-  
-  /* Sorting dropdown */
-  .sortingContainer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .sortingLabel {
-    margin-right: 8px;
-  }
-  
-  /* Product card actions */
-  .productActions {
-    display: flex;
-    gap: 8px;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-  
-  .actionButton {
-    background: white;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  /* Results count */
-  .resultsCount {
-    text-align: right;
+    flex-wrap: wrap;
     margin-bottom: 10px;
+  }
+  
+  .filterChip {
+    background: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .filterChipRemove {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    margin-left: 5px;
+  }
+  
+  .clearAllFilters {
+    background: none;
+    border: none;
     font-size: 14px;
     color: #666;
+    cursor: pointer;
+    margin-left: 10px;
+    text-decoration: underline;
+  }
+  
+  /* Ensure sidebar stays visible during loading */
+  .sidebar.loading {
+    opacity: 0.7;
+    pointer-events: none; /* Disable interaction while loading */
   }
