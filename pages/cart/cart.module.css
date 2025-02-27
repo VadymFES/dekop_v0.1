@@ -126,7 +126,7 @@
 }
 
 .productMeta {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   font-size: 14px;
   color: #777;
 }
@@ -284,6 +284,7 @@
 
 .productAvailabilityDesk {
   margin-left: 1rem;
+  align-self: flex-start;
 }
 
 /* ============== */
