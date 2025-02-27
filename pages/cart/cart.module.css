@@ -226,6 +226,7 @@
   font-size: 14px;
   color: #444;
   margin: 0;
+  gap: 6px;
 }
 
 .itemTotalPrice {
