@@ -89,7 +89,7 @@ export default function CatalogPage() {
         if (dbCategory) params.append("category", dbCategory);
 
         // Add artificial delay for loading state demonstration
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const res = await fetch(`/api/products?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch products");
