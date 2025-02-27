@@ -7,6 +7,7 @@ import styles from "./catalog.module.css";
 import { ProductWithImages, FilterGroup, FURNITURE_FILTERS } from "@/app/lib/definitions";
 import ProductCard from "@/app/components/productCard/productCard";
 
+// Category mapping with database values and Ukrainian names
 const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
   sofas:      { dbValue: "Диван", uaName: "Дивани" },
   sofaBeds:   { dbValue: "Диван-Ліжко", uaName: "Дивани-ліжка" },
@@ -20,6 +21,7 @@ const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
   accessories:{ dbValue: "Аксесуар", uaName: "Аксесуари" }
 };
 
+// Merge price filter groups for consistent range across categories
 function mergePriceFilters(priceGroups: FilterGroup[]): FilterGroup | null {
   if (priceGroups.length === 0) return null;
   const merged = { ...priceGroups[0] };
@@ -60,6 +62,7 @@ export default function CatalogPage() {
   const slugData = CATEGORY_SLUG_MAP[slug];
   const dbCategory = slugData?.dbValue || null;
   const categoryUaName = slugData?.uaName || "Вся продукція";
+  const pageTitle = categoryUaName;
 
   let finalFilterGroups: FilterGroup[] = [];
   if (!slug) {
@@ -73,7 +76,11 @@ export default function CatalogPage() {
     finalFilterGroups = FURNITURE_FILTERS[slug] || [];
   }
 
+  // Sorting options
+  const [sortOption, setSortOption] = useState<string>("default");
+
   useEffect(() => {
+    // Fetch all products for the category
     const fetchAllProducts = async () => {
       setLoading(true);
       try {
@@ -106,6 +113,7 @@ export default function CatalogPage() {
   }, [dbCategory]);
 
   useEffect(() => {
+    // Apply filters and sorting to products
     let matches = [...allProducts];
 
     // Filter by Type
@@ -159,11 +167,21 @@ export default function CatalogPage() {
       matches = matches.filter((p) => parseFloat(p.price.toString()) <= filterOptions.priceMax);
     }
 
+    // Apply sorting
+    if (sortOption === "price_asc") {
+      matches.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
+    } else if (sortOption === "price_desc") {
+      matches.sort((a, b) => parseFloat(b.price.toString()) - parseFloat(a.price.toString()));
+    } else if (sortOption === "rating_desc") {
+      matches.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    }
+
     setFilteredProducts(matches);
-  }, [allProducts, filterOptions]);
+  }, [allProducts, filterOptions, sortOption]);
 
   const categoryKeys = Object.keys(FURNITURE_FILTERS);
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    // Handle category selection change
     const chosenSlug = e.target.value;
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
     setFilterOptions({
@@ -178,9 +196,11 @@ export default function CatalogPage() {
       hardness: null,
       priceMax: null,
     });
+    setSortOption("default"); // Reset sorting on category change
   };
 
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string) => {
+    // Handle filter changes for checkboxes and radios
     const { value, checked, type } = e.target;
 
     setFilterOptions((prev) => {
@@ -204,6 +224,7 @@ export default function CatalogPage() {
   };
 
   const handlePriceMaxChange = (e: ChangeEvent<HTMLInputElement>) => {
+    // Handle price range slider changes
     const value = Number(e.target.value);
     setFilterOptions((prev) => ({
       ...prev,
@@ -211,58 +232,195 @@ export default function CatalogPage() {
     }));
   };
 
-  const pageTitle = slug ? categoryUaName : "Вся продукція";
+  const handleSortChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    // Handle sorting option changes
+    setSortOption(e.target.value);
+  };
 
-  const renderFilters = finalFilterGroups.map((group) => {
-    if (group.type === "range" && group.range) {
-      return (
-        <div key={group.name} className={styles.filterSection}>
-          <h3 className={styles.filterTitle}>{group.name}</h3>
-          <div>
-            <span className={styles.rangeLabel}>{priceRange.min}</span>
-            <input
-              type="range"
-              min={priceRange.min}
-              max={priceRange.max}
-              step={group.range.step}
-              value={filterOptions.priceMax ?? priceRange.max}
-              onChange={handlePriceMaxChange}
-              className={styles.rangeInput}
-              disabled={priceRange.max === 0}
-            />
-            <span className={styles.rangeLabel}>{filterOptions.priceMax ?? priceRange.max}</span>
-          </div>
-        </div>
-      );
-    } else if ((group.type === "checkbox" || group.type === "radio") && group.options) {
-      return (
-        <div key={group.name} className={styles.filterSection}>
-          <h3 className={styles.filterTitle}>{group.name}</h3>
-          <ul className={styles.filterList}>
-            {group.options.map((opt) => (
-              <li key={opt.id} className={styles.filterItem}>
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type={group.type}
-                    value={opt.value}
-                    checked={
-                      group.type === "checkbox"
-                        ? filterOptions[group.name.toLowerCase()]?.includes(opt.value)
-                        : filterOptions[group.name.toLowerCase()] === opt.value
-                    }
-                    onChange={(e) => handleFilterChange(e, group.name)}
-                    className={styles.checkbox}
-                  />
-                  {opt.name}
-                </label>
-              </li>
-            ))}
-          </ul>
+  // Clear a specific filter value
+  const clearFilter = (filterType: string, value: string) => {
+    setFilterOptions((prev) => {
+      const key = filterType.toLowerCase();
+      if (prev[key] instanceof Array) {
+        return {
+          ...prev,
+          [key]: prev[key].filter((v: string) => v !== value),
+        };
+      } else if (prev[key] === value) {
+        return {
+          ...prev,
+          [key]: null,
+        };
+      }
+      return prev;
+    });
+  };
+
+  // Render selected filters as chips
+  const renderSelectedFilters = () => {
+    const filters: React.ReactNode[] = [];
+
+    // Price range filter
+    if (filterOptions.priceMax !== null && filterOptions.priceMax < priceRange.max) {
+      filters.push(
+        <div key="price" className={styles.filterChip}>
+          Ціна: {priceRange.min} - {filterOptions.priceMax} грн{" "}
+          <button
+            onClick={() => clearFilter("Price", filterOptions.priceMax.toString())}
+            className={styles.filterChipRemove}
+          >
+            ×
+          </button>
         </div>
       );
     }
-    return null;
-  });
+
+    // Type filters
+    filterOptions.type.forEach((type: string) => {
+      const typeName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "type")?.options?.find(o => o.value === type)?.name || type;
+      filters.push(
+        <div key={`type-${type}`} className={styles.filterChip}>
+          Тип: {typeName}{" "}
+          <button
+            onClick={() => clearFilter("Type", type)}
+            className={styles.filterChipRemove}
+          >
+            ×
+          </button>
+        </div>
+      );
+    });
+
+    // Material filters
+    filterOptions.material.forEach((material: string) => {
+      const materialName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "material")?.options?.find(o => o.value === material)?.name || material;
+      filters.push(
+        <div key={`material-${material}`} className={styles.filterChip}>
+          Матеріал: {materialName}{" "}
+          <button
+            onClick={() => clearFilter("Material", material)}
+            className={styles.filterChipRemove}
+          >
+            ×
+          </button>
+        </div>
+      );
+    });
+
+    // Complectation filters
+    filterOptions.complectation.forEach((feature: string) => {
+      const featureName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "complectation")?.options?.find(o => o.value === feature)?.name || feature;
+      filters.push(
+        <div key={`complectation-${feature}`} className={styles.filterChip}>
+          Комплектація: {featureName}{" "}
+          <button
+            onClick={() => clearFilter("Complectation", feature)}
+            className={styles.filterChipRemove}
+          >
+            ×
+          </button>
+        </div>
+      );
+    });
+
+    // Size filter
+    if (filterOptions.size) {
+      const sizeName = FURNITURE_FILTERS.sofas?.find(g => g.name.toLowerCase() === "size")?.options?.find(o => o.value === filterOptions.size)?.name || filterOptions.size;
+      filters.push(
+        <div key="size" className={styles.filterChip}>
+          Розмір: {sizeName}{" "}
+          <button
+            onClick={() => clearFilter("Size", filterOptions.size as string)}
+            className={styles.filterChipRemove}
+          >
+            ×
+          </button>
+        </div>
+      );
+    }
+
+    return filters.length > 0 ? (
+      <div className={styles.selectedFilters}>
+        {filters}
+        <button
+          onClick={() => setFilterOptions({
+            type: [],
+            material: [],
+            complectation: [],
+            facadeMaterial: [],
+            specifics: null,
+            tabletopShape: [],
+            size: null,
+            backrest: null,
+            hardness: null,
+            priceMax: null,
+          })}
+          className={styles.clearAllFilters}
+        >
+          Очистити всі фільтри
+        </button>
+      </div>
+    ) : null;
+  };
+
+  // Render filters for the sidebar
+  const renderFilters = () => {
+    return finalFilterGroups.map((group) => {
+      if (group.type === "range" && group.range) {
+        return (
+          <div key={group.name} className={styles.filterSection}>
+            <h3 className={styles.filterTitle}>{group.name === "Price" ? "Ціна" : group.name}</h3>
+            <div>
+              <span className={styles.rangeLabel}>{priceRange.min}</span>
+              <input
+                type="range"
+                min={priceRange.min}
+                max={priceRange.max}
+                step={group.range.step}
+                value={filterOptions.priceMax ?? priceRange.max}
+                onChange={handlePriceMaxChange}
+                className={styles.rangeInput}
+                disabled={priceRange.max === 0}
+              />
+              <span className={styles.rangeLabel}>{filterOptions.priceMax ?? priceRange.max}</span>
+            </div>
+          </div>
+        );
+      } else if ((group.type === "checkbox" || group.type === "radio") && group.options) {
+        return (
+          <div key={group.name} className={styles.filterSection}>
+            <h3 className={styles.filterTitle}>
+              {group.name === "Type" ? "Тип" :
+               group.name === "Material" ? "Матеріал" :
+               group.name === "Complectation" ? "Комплектація" :
+               group.name === "Size" ? "Розмір" : group.name}
+            </h3>
+            <ul className={styles.filterList}>
+              {group.options.map((opt) => (
+                <li key={opt.id} className={styles.filterItem}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type={group.type}
+                      value={opt.value}
+                      checked={
+                        group.type === "checkbox"
+                          ? filterOptions[group.name.toLowerCase()]?.includes(opt.value)
+                          : filterOptions[group.name.toLowerCase()] === opt.value
+                      }
+                      onChange={(e) => handleFilterChange(e, group.name)}
+                      className={styles.checkbox}
+                    />
+                    {opt.name}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+      return null;
+    });
+  };
 
   return (
     <div className={styles.container}>
@@ -274,27 +432,47 @@ export default function CatalogPage() {
 
       <h1 className={styles.pageTitle}>{pageTitle}</h1>
 
-      <div className={styles.topFilters}>
-        <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
-          Обрати категорію:
-        </label>
-        <select
-          id="categorySelect"
-          value={slug}
-          onChange={handleCategoryChange}
-          className={styles.categorySelect}
-        >
-          <option value="">Всі категорії</option>
-          {categoryKeys.map((catKey) => (
-            <option key={catKey} value={catKey}>
-              {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
-            </option>
-          ))}
-        </select>
+      <div className={styles.topControls}>
+        <div className={styles.filterControls}>
+          {renderSelectedFilters()}
+        </div>
+        <div className={styles.sortAndCount}>
+          <span className={styles.itemCount}>
+            Показані {filteredProducts.length} з {allProducts.length} товарів
+          </span>
+          <select
+            value={sortOption}
+            onChange={handleSortChange}
+            className={styles.sortSelect}
+          >
+            <option value="default">Сортувати за</option>
+            <option value="price_asc">Ціна: від низької до високої</option>
+            <option value="price_desc">Ціна: від високої до низької</option>
+            <option value="rating_desc">Рейтинг: від високого до низького</option>
+          </select>
+        </div>
       </div>
 
       <div className={styles.contentWrapper}>
-        <aside className={styles.sidebar}>{renderFilters}</aside>
+        <aside className={`${styles.sidebar} ${loading ? styles.loading : ""}`}>
+          <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
+            Обрати категорію:
+          </label>
+          <select
+            id="categorySelect"
+            value={slug}
+            onChange={handleCategoryChange}
+            className={styles.categorySelect}
+          >
+            <option value="">Всі категорії</option>
+            {categoryKeys.map((catKey) => (
+              <option key={catKey} value={catKey}>
+                {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
+              </option>
+            ))}
+          </select>
+          {renderFilters()}
+        </aside>
 
         <div className={styles.productGrid}>
           {loading && <p>Завантаження...</p>}
