@@ -1,7 +1,7 @@
 // pages/CatalogPage.tsx
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./catalog.module.css";
@@ -59,7 +59,8 @@ export default function CatalogPage() {
     size: null,
     backrest: null,
     hardness: null,
-    priceMax: null,
+    priceMin: 0, // New state for minimum price
+    priceMax: 0, // Updated to reflect maximum price
   });
 
   const slugData = CATEGORY_SLUG_MAP[slug];
@@ -81,6 +82,7 @@ export default function CatalogPage() {
 
   const [sortOption, setSortOption] = useState<string>("default");
 
+  // Use Suspense-compatible data fetching
   useEffect(() => {
     const fetchAllProducts = async () => {
       setLoading(true);
@@ -103,7 +105,8 @@ export default function CatalogPage() {
           setPriceRange({ min: minPrice, max: maxPrice });
           setFilterOptions((prev) => ({
             ...prev,
-            priceMax: prev.priceMax === null ? maxPrice : prev.priceMax,
+            priceMin: minPrice, // Set initial minimum price
+            priceMax: maxPrice, // Set initial maximum price
           }));
         } else {
           setPriceRange({ min: 0, max: 0 });
@@ -157,8 +160,11 @@ export default function CatalogPage() {
         )
       );
     }
-    if (filterOptions.priceMax !== null) {
-      matches = matches.filter((p) => parseFloat(p.price.toString()) <= filterOptions.priceMax);
+    if (filterOptions.priceMin !== null && filterOptions.priceMax !== null) {
+      matches = matches.filter((p) => {
+        const price = parseFloat(p.price.toString());
+        return price >= filterOptions.priceMin && price <= filterOptions.priceMax;
+      });
     }
     if (sortOption === "price_asc") {
       matches.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
@@ -184,7 +190,8 @@ export default function CatalogPage() {
       size: null,
       backrest: null,
       hardness: null,
-      priceMax: null,
+      priceMin: 0,
+      priceMax: 0,
     });
     setSortOption("default");
   };
@@ -211,11 +218,19 @@ export default function CatalogPage() {
     });
   };
 
-  const handlePriceMaxChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
+  const handlePriceMinChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value); // Use parseFloat for precise decimal handling
     setFilterOptions((prev) => ({
       ...prev,
-      priceMax: value < priceRange.min ? priceRange.min : value > priceRange.max ? priceRange.max : value,
+      priceMin: Math.max(priceRange.min, Math.min(value, prev.priceMax || priceRange.max)),
+    }));
+  };
+
+  const handlePriceMaxChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value); // Use parseFloat for precise decimal handling
+    setFilterOptions((prev) => ({
+      ...prev,
+      priceMax: Math.min(priceRange.max, Math.max(value, prev.priceMin || priceRange.min)),
     }));
   };
 
@@ -243,12 +258,18 @@ export default function CatalogPage() {
 
   const renderSelectedFilters = () => {
     const filters: React.ReactNode[] = [];
-    if (filterOptions.priceMax !== null && filterOptions.priceMax < priceRange.max) {
+    if (filterOptions.priceMin > priceRange.min || filterOptions.priceMax < priceRange.max) {
       filters.push(
         <div key="price" className={styles.filterChip}>
-          Ціна: {priceRange.min} - {filterOptions.priceMax} грн{" "}
+          Ціна: {filterOptions.priceMin.toFixed(2)} - {filterOptions.priceMax.toFixed(2)} грн{" "}
           <button
-            onClick={() => clearFilter("Price", filterOptions.priceMax.toString())}
+            onClick={() => {
+              setFilterOptions((prev) => ({
+                ...prev,
+                priceMin: priceRange.min,
+                priceMax: priceRange.max,
+              }));
+            }}
             className={styles.filterChipRemove}
           >
             ×
@@ -326,7 +347,8 @@ export default function CatalogPage() {
             size: null,
             backrest: null,
             hardness: null,
-            priceMax: null,
+            priceMin: priceRange.min,
+            priceMax: priceRange.max,
           })}
           className={styles.clearAllFilters}
         >
@@ -342,19 +364,41 @@ export default function CatalogPage() {
         return (
           <div key={group.name} className={styles.filterSection}>
             <h3 className={styles.filterTitle}>{group.name === "Price" ? "Ціна" : group.name}</h3>
-            <div>
-              <span className={styles.rangeLabel}>{priceRange.min}</span>
+            <div className={styles.priceRangeWrapper}>
+              <span
+                className={styles.rangeLabel}
+                style={{
+                  left: `${((filterOptions.priceMin - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
+                }}
+              >
+                {filterOptions.priceMin.toFixed(2)}
+              </span>
               <input
                 type="range"
                 min={priceRange.min}
                 max={priceRange.max}
-                step={group.range.step}
-                value={filterOptions.priceMax ?? priceRange.max}
+                value={filterOptions.priceMin}
+                onChange={handlePriceMinChange}
+                className={styles.rangeInput}
+                style={{ zIndex: filterOptions.priceMin > filterOptions.priceMax ? 2 : 1 }}
+              />
+              <span
+                className={styles.rangeLabel}
+                style={{
+                  left: `${((filterOptions.priceMax - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
+                }}
+              >
+                {filterOptions.priceMax.toFixed(2)}
+              </span>
+              <input
+                type="range"
+                min={priceRange.min}
+                max={priceRange.max}
+                value={filterOptions.priceMax}
                 onChange={handlePriceMaxChange}
                 className={styles.rangeInput}
-                disabled={priceRange.max === 0}
+                style={{ zIndex: filterOptions.priceMax < filterOptions.priceMin ? 2 : 1 }}
               />
-              <span className={styles.rangeLabel}>{filterOptions.priceMax ?? priceRange.max}</span>
             </div>
           </div>
         );
@@ -394,6 +438,51 @@ export default function CatalogPage() {
     });
   };
 
+  // Components for Suspense
+  const FiltersSidebar = () => (
+    <aside className={`${styles.sidebar} ${loading ? styles.loading : ""}`}>
+      {loading ? (
+        <FiltersSkeleton />
+      ) : (
+        <>
+          <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
+            Обрати категорію:
+          </label>
+          <select
+            id="categorySelect"
+            value={slug}
+            onChange={handleCategoryChange}
+            className={styles.categorySelect}
+          >
+            <option value="">Всі категорії</option>
+            {categoryKeys.map((catKey) => (
+              <option key={catKey} value={catKey}>
+                {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
+              </option>
+            ))}
+          </select>
+          {renderFilters()}
+        </>
+      )}
+    </aside>
+  );
+
+  const ProductsDisplay = () => (
+    <div className={styles.productGrid}>
+      {loading ? (
+        <ProductGridSkeleton count={6} />
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : filteredProducts.length === 0 ? (
+        <p>Товарів не знайдено.</p>
+      ) : (
+        filteredProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))
+      )}
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.breadcrumbs}>
@@ -427,45 +516,21 @@ export default function CatalogPage() {
       </div>
 
       <div className={styles.contentWrapper}>
-        <aside className={`${styles.sidebar} ${loading ? styles.loading : ""}`}>
-          {loading ? (
+        <Suspense fallback={
+          <aside className={`${styles.sidebar} ${styles.loading}`}>
             <FiltersSkeleton />
-          ) : (
-            <>
-              <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
-                Обрати категорію:
-              </label>
-              <select
-                id="categorySelect"
-                value={slug}
-                onChange={handleCategoryChange}
-                className={styles.categorySelect}
-              >
-                <option value="">Всі категорії</option>
-                {categoryKeys.map((catKey) => (
-                  <option key={catKey} value={catKey}>
-                    {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
-                  </option>
-                ))}
-              </select>
-              {renderFilters()}
-            </>
-          )}
-        </aside>
+          </aside>
+        }>
+          <FiltersSidebar />
+        </Suspense>
 
-        <div className={styles.productGrid}>
-          {loading ? (
+        <Suspense fallback={
+          <div className={styles.productGrid}>
             <ProductGridSkeleton count={6} />
-          ) : error ? (
-            <p style={{ color: "red" }}>{error}</p>
-          ) : filteredProducts.length === 0 ? (
-            <p>Товарів не знайдено.</p>
-          ) : (
-            filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))
-          )}
-        </div>
+          </div>
+        }>
+          <ProductsDisplay />
+        </Suspense>
       </div>
     </div>
   );
