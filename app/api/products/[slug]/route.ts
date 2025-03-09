@@ -1,8 +1,8 @@
-// api/[slug]/route.ts
+// api/products/[slug]/route.ts
 
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
-import { Product, ProductImage, ProductSpecs } from "@/app/lib/definitions";
+import { Product, ProductImage, ProductSpecs, ProductColor } from "@/app/lib/definitions";
 
 export async function GET(
   _request: Request,
@@ -39,11 +39,21 @@ export async function GET(
       sleeping_area_length AS "dimensions.sleeping_area.length",
       material_type AS "material.type",
       material_composition AS "material.composition",
-      material_structure AS "material.structure",
       backrest_filling AS "material.backrest_filling",
       material_covers AS "material.covers",
+      material_structure AS "inner_material.structure",
       cushion_filling AS "inner_material.cushion_filling",
-      additional_features AS "additional_features"
+      additional_features,
+      has_shelves,
+      leg_height,
+      has_lift_mechanism,
+      types,
+      headboard_type,
+      storage_options,
+      armrest_type,
+      seat_height,
+      hardness,
+      core_type
     FROM product_specs
     WHERE product_id = ${product.id}
   `;
@@ -71,18 +81,34 @@ export async function GET(
         covers: row["material.covers"],
       },
       inner_material: {
-        structure: row["material.structure"],
+        structure: row["inner_material.structure"],
         cushion_filling: row["inner_material.cushion_filling"],
       },
-      additional_features: row["additional_features"],
+      additional_features: row.additional_features,
+      has_shelves: row.has_shelves,
+      leg_height: row.leg_height,
+      has_lift_mechanism: row.has_lift_mechanism,
+      types: row.types,
+      headboard_type: row.headboard_type,
+      storage_options: row.storage_options,
+      armrest_type: row.armrest_type,
+      seat_height: row.seat_height,
+      hardness: row.hardness,
+      core_type: row.core_type,
     };
   }
+
+  // Query to get product colors.
+  const { rows: colorRows } = await sql<ProductColor>`
+    SELECT * FROM product_spec_colors WHERE product_id = ${product.id}
+  `;
 
   return NextResponse.json(
     {
       ...product,
       images: imageRows,
       specs,
+      colors: colorRows,
     },
     { status: 200 }
   );
