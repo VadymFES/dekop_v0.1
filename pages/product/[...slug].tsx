@@ -74,7 +74,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
                 {product.specs ? (
                   <Specifications product={product} />
                 ) : (
-                  <div>No specifications available.</div>
+                  <div>Специфікації не доступні</div>
                 )}
               </div>
 
@@ -126,27 +126,55 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (!productRes.ok) throw new Error('Product not found');
     const product = await productRes.json();
 
-    // Fetch specs and colors
-    const [specsRes, colorsRes, similarProductsRes] = await Promise.all([
+    // Fetch specs, colors, and similar products
+    const [specsRes, colorsRes, similarProductsRes, reviewsRes] = await Promise.all([
       fetch(`${baseUrl}/api/products/product-specs/${product.id}`),
       fetch(`${baseUrl}/api/products/product-colors/${product.id}`),
-      fetch(`${baseUrl}/api/products/similarRecommendations/${slug}`) 
+      fetch(`${baseUrl}/api/products/similarRecommendations/${slug}`),
+      fetch(`${baseUrl}/api/products/reviews/${product.id}`)
     ]);
 
-    const specs = specsRes.ok ? await specsRes.json() : null;
+    // Process specs data - THIS IS THE KEY FIX
+    let specsData = null;
+    let categoryOverride = null;
+    
+    if (specsRes.ok) {
+      const specsResponse = await specsRes.json();
+      
+      // Check if the response has a specs property (from our updated API)
+      if (specsResponse && specsResponse.specs) {
+        specsData = specsResponse.specs;  // Extract just the specs object
+        categoryOverride = specsResponse.category; // Get the normalized category from the API
+      } else {
+        // Handle the case where the API hasn't been updated yet
+        specsData = specsResponse;
+      }    
+    }
+
+    // Get other data
     const colors = colorsRes.ok ? await colorsRes.json() : [];
     const similarProducts = similarProductsRes.ok ? await similarProductsRes.json() : [];
+    const reviews = reviewsRes.ok ? await reviewsRes.json() : [];
 
     // Combine all data
     const fullProduct: ProductWithImages = {
       ...product,
-      specs,
+      // Override category if we got a normalized one from the API
+      category: categoryOverride || product.category,
+      specs: specsData,
       colors,
     };
+
+    console.log('Full product with specs:', {
+      id: fullProduct.id,
+      category: fullProduct.category,
+      hasSpecs: Boolean(fullProduct.specs)
+    });
 
     return {
       props: {
         product: fullProduct,
+        reviews,
         similarProducts,
       },
     };
