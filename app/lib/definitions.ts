@@ -315,6 +315,8 @@ export const FURNITURE_FILTERS: CategoryFilters = {
         { id: 'straight', name: 'Прямі', value: 'straight' },
         { id: 'folding', name: 'Розкладні', value: 'folding' },
         { id: 'modular', name: 'Модульні', value: 'modular' },
+        { id: 'kitchen', name: 'Кухонні', value: 'kitchen' },
+        { id: 'office', name: 'Офісні', value: 'office' },
       ],
     },
     {
@@ -402,8 +404,10 @@ export const FURNITURE_FILTERS: CategoryFilters = {
       name: 'Type',
       type: 'checkbox',
       options: [
-        { id: 'modular', name: 'Модульні', value: 'modular' },
         { id: 'folding', name: 'Розкладні', value: 'folding' },
+        { id: 'modular', name: 'Модульні', value: 'modular' },
+        { id: 'kitchen', name: 'Кухонні', value: 'kitchen' },
+        { id: 'office', name: 'Офісні', value: 'office' },
       ],
     },
     {
