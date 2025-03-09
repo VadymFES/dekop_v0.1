@@ -39,11 +39,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className={styles.imageWrapper}>
             {firstImage && (
               <Image
-                src={firstImage.image_url}
-                alt={product.name}
-                className={styles.productImage}
-                width={260}
-                height={260}
+              src={firstImage.image_url}
+              alt={product.name}
+              className={styles.productImage}
+              width={260}
+              height={260}
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
               />
             )}
             {product.is_bestseller && (
