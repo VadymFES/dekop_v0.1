@@ -44,6 +44,7 @@
   
   .filterControls {
     flex: 1;
+    min-height: 70px;
     min-width: 0; /* Prevent flex shrinkage issues */
   }
   
@@ -71,44 +72,39 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 16px;
   }
   
   .filterChip {
     display: flex;
     align-items: center;
-    background-color: #f5f5f5;
+    justify-content: space-between;
     border-radius: 20px;
+    border: 1px solid #1601018A;
     padding: 6px 12px;
-    font-size: 14px;
-  }
-  
-  .filterChipRemove {
-    background: none;
-    border: none;
+    font-size: 12px;
+    font-weight: 300;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 8px;
-    font-size: 16px;
-    color: #666;
   }
-  
-  .filterChipRemove:hover {
-    color: #000;
+
+  .filterChip:hover {
+    background-color: #e8e8e8;
   }
   
   .clearAllFilters {
-    background-color: #f5f5f5;
-    border: none;
     border-radius: 20px;
+    background-color: var(--primary-color);
     padding: 6px 12px;
+    border: 1px solid #1601018A;
     font-size: 14px;
+    color: black;
+    font-weight: 400;
     cursor: pointer;
     display: flex;
     align-items: center;
+    text-decoration: underline dashed;
+    text-underline-offset: 2px; 
   }
+
   
   .clearAllFilters:hover {
     background-color: #e8e8e8;
