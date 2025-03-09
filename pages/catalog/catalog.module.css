@@ -121,7 +121,6 @@
     min-height: 500px;
     width: 100%; /* Ensure full width */
     justify-content: space-between;
-
   }
   
   /* Sidebar Filters */
@@ -200,42 +199,55 @@
     transform: rotate(45deg);
   }
   
-  /* Range input styling */
-  .rangeInput {
-    width: 100%;
-    margin: 12px 0;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: #ddd;
-    border-radius: 2px;
-    outline: none;
-  }
-  
-  .rangeInput::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 2px solid #333;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
-  .rangeInput::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    background: #fff;
-    border: 2px solid #333;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
-  .rangeLabel {
-    font-size: 14px;
-    color: #666;
-  }
+/* catalog.module.css */
+.priceRangeContainer {
+  position: relative;
+  padding: 20px 0;
+  user-select: none;
+  -webkit-user-select: none; /* Для Safari */
+  -ms-user-select: none; /* Для IE/Edge */
+  touch-action: none; /* Запобігає прокручуванню сторінки під час перетягування */
+}
+
+.priceTrack {
+  position: relative;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.priceFill {
+  position: absolute;
+  height: 100%;
+  background: #007bff;
+  border-radius: 2px;
+}
+
+.priceThumb {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 2;
+  touch-action: none; /* Забезпечує правильну взаємодію на сенсорних екранах */
+}
+
+.priceThumb:hover,
+.priceThumb:active {
+  background: #0056b3;
+}
+
+.priceLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #333;
+}
   
   /* Product Grid */
   .productGrid {
