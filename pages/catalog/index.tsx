@@ -16,6 +16,7 @@ import {
 import ProductCard from "@/app/components/productCard/productCard";
 import ProductGridSkeleton from "@/pages/catalog/components/ui/gridSkeleton/ProductGridSkeleton";
 import FiltersSkeleton from "@/pages/catalog/components/ui/FiltersSkeleton/FiltersSkeleton";
+import Xclose from "@/app/ui/icons/x-close/x-close";
 
 const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
   sofas:      { dbValue: "Диван", uaName: "Дивани" },
@@ -155,6 +156,72 @@ export default function CatalogPage() {
     finalFilterGroups = FURNITURE_FILTERS[slug] || [];
   }
 
+  // Функція для отримання фільтрів з URL
+  const getFiltersFromURL = (params: any) => {
+    const type = params.getAll('type') || [];
+    const material = params.getAll('material') || [];
+    const complectation = params.getAll('feature') || []; 
+    const size = params.get('size') || null;
+    const priceMin = params.get('minPrice') ? Number(params.get('minPrice')) : 0;
+    const priceMax = params.get('maxPrice') ? Number(params.get('maxPrice')) : 0;
+    const sort = params.get('sort') || 'default';
+    
+    return {
+      type,
+      material,
+      complectation,
+      size,
+      priceMin,
+      priceMax,
+      sort
+    };
+  };
+
+  // Функція для оновлення URL
+  const updateURLWithFilters = () => {
+    const params = new URLSearchParams();
+    
+    // Зберігаємо категорію
+    if (slug) {
+      params.append("category", slug);
+    }
+    
+    // Додаємо всі активні фільтри
+    if (filterOptions.type.length > 0) {
+      filterOptions.type.forEach((type: string) => params.append("type", type));
+    }
+    
+    if (filterOptions.material.length > 0) {
+      filterOptions.material.forEach((material: string) => params.append("material", material));
+    }
+    
+    if (filterOptions.complectation.length > 0) {
+      filterOptions.complectation.forEach((feature: string) => params.append("feature", feature));
+    }
+    
+    if (filterOptions.size) {
+      params.append("size", filterOptions.size);
+    }
+    
+    // Додаємо ціновий діапазон, якщо він відрізняється від початкового
+    if (filterOptions.priceMin > priceRange.min) {
+      params.append("minPrice", filterOptions.priceMin.toString());
+    }
+    
+    if (filterOptions.priceMax < priceRange.max) {
+      params.append("maxPrice", filterOptions.priceMax.toString());
+    }
+    
+    // Додаємо сортування, якщо воно відрізняється від default
+    if (sortOption !== "default") {
+      params.append("sort", sortOption);
+    }
+    
+    // Оновлюємо URL без перезавантаження сторінки
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+  };
+
   // Додаємо функцію для відлагодження API-запитів
   const logApiRequest = (params: URLSearchParams, action: string) => {
     console.log(`${action} API request:`, {
@@ -185,7 +252,7 @@ export default function CatalogPage() {
         
         const data: ProductWithImages[] = await res.json();
         setAllProducts(data);
-        setFilteredProducts(data); 
+        
         console.log(`Fetched ${data.length} products for category "${dbCategory}"`);
 
         if (data.length > 0) {
@@ -193,11 +260,32 @@ export default function CatalogPage() {
           const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
           const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
           setPriceRange({ min: minPrice, max: maxPrice });
-          setFilterOptions((prev) => ({
-            ...prev,
-            priceMin: minPrice,
-            priceMax: maxPrice,
-          }));
+          
+          // Читаємо фільтри з URL
+          const urlFilters = getFiltersFromURL(searchParams);
+          
+          // Встановлюємо початкові значення фільтрів з URL або за замовчуванням
+          setFilterOptions({
+            type: urlFilters.type,
+            material: urlFilters.material,
+            complectation: urlFilters.complectation,
+            facadeMaterial: [],
+            specifics: null,
+            tabletopShape: [],
+            size: urlFilters.size,
+            backrest: null,
+            hardness: null,
+            priceMin: urlFilters.priceMin || minPrice,
+            priceMax: urlFilters.priceMax || maxPrice,
+          });
+          
+          // Застосовуємо сортування з URL
+          if (urlFilters.sort) {
+            setSortOption(urlFilters.sort);
+          }
+          
+          // Застосовуємо фільтри до продуктів
+          setFilteredProducts(data); 
         } else {
           setPriceRange({ min: 0, max: 0 });
           console.log(`No products found for category "${dbCategory}"`);
@@ -210,7 +298,7 @@ export default function CatalogPage() {
       }
     };
     fetchAllProducts();
-  }, [dbCategory]);
+  }, [dbCategory, searchParams]);
 
   // Ця функція викликається коли змінюються фільтри або продукти
   useEffect(() => {
@@ -314,6 +402,9 @@ export default function CatalogPage() {
     }
     
     setFilteredProducts(matches);
+    
+    // Оновлюємо URL при зміні фільтрів
+    updateURLWithFilters();
   }, [allProducts, filterOptions, sortOption]);
 
   // Функція для побудови запиту з фільтрами
@@ -414,21 +505,18 @@ export default function CatalogPage() {
     const { value, checked, type } = e.target;
     setFilterOptions((prev) => {
       const key = groupName.toLowerCase();
+      const newOptions = { ...prev };
+      
       if (type === "checkbox") {
         const currentValues = prev[key] || [];
-        return {
-          ...prev,
-          [key]: checked
-            ? [...currentValues, value]
-            : currentValues.filter((v: string) => v !== value),
-        };
+        newOptions[key] = checked
+          ? [...currentValues, value]
+          : currentValues.filter((v: string) => v !== value);
       } else if (type === "radio") {
-        return {
-          ...prev,
-          [key]: checked ? value : null,
-        };
+        newOptions[key] = checked ? value : null;
       }
-      return prev;
+      
+      return newOptions;
     });
   };
 
@@ -458,6 +546,9 @@ export default function CatalogPage() {
       setActiveThumb(null);
       document.removeEventListener("mousemove", moveHandler);
       document.removeEventListener("mouseup", upHandler);
+      
+      // Оновлюємо URL після відпускання повзунка
+      updateURLWithFilters();
     };
 
     document.addEventListener("mousemove", moveHandler);
@@ -471,18 +562,15 @@ export default function CatalogPage() {
   const clearFilter = (filterType: string, value: string) => {
     setFilterOptions((prev) => {
       const key = filterType.toLowerCase();
+      const newOptions = { ...prev };
+      
       if (prev[key] instanceof Array) {
-        return {
-          ...prev,
-          [key]: prev[key].filter((v: string) => v !== value),
-        };
+        newOptions[key] = prev[key].filter((v: string) => v !== value);
       } else if (prev[key] === value) {
-        return {
-          ...prev,
-          [key]: null,
-        };
+        newOptions[key] = null;
       }
-      return prev;
+      
+      return newOptions;
     });
   };
 
@@ -490,25 +578,28 @@ export default function CatalogPage() {
     const filters: React.ReactNode[] = [];
     if (filterOptions.priceMin > priceRange.min || filterOptions.priceMax < priceRange.max) {
       filters.push(
-        <div key="price" className={styles.filterChip}>
+        <div 
+          key="price" 
+          className={styles.filterChip}
+          onClick={() => {
+            setFilterOptions((prev) => ({
+              ...prev,
+              priceMin: priceRange.min,
+              priceMax: priceRange.max,
+            }));
+            
+            // Update URL after resetting price filter
+            setTimeout(() => updateURLWithFilters(), 0);
+          }}
+        >
+          <Xclose /> &nbsp;
           Ціна: {filterOptions.priceMin.toFixed()} - {filterOptions.priceMax.toFixed()} грн{" "}
-          <button
-            onClick={() => {
-              setFilterOptions((prev) => ({
-                ...prev,
-                priceMin: priceRange.min,
-                priceMax: priceRange.max,
-              }));
-            }}
-            className={styles.filterChipRemove}
-          >
-            ×
-          </button>
+          
         </div>
       );
     }
     filterOptions.type.forEach((type: string) => {
-      // Пошук відповідного імені типу в фільтрах поточної категорії
+      // Find the corresponding type name in the filters of the current category
       let typeName = type;
       const typeFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "type");
       if (typeFilter && typeFilter.options) {
@@ -517,19 +608,19 @@ export default function CatalogPage() {
       }
       
       filters.push(
-        <div key={`type-${type}`} className={styles.filterChip}>
+        <div 
+          key={`type-${type}`} 
+          className={styles.filterChip}
+          onClick={() => clearFilter("Type", type)}
+        >
+          <Xclose /> &nbsp;
           Тип: {typeName}{" "}
-          <button
-            onClick={() => clearFilter("Type", type)}
-            className={styles.filterChipRemove}
-          >
-            ×
-          </button>
         </div>
       );
     });
+    
     filterOptions.material.forEach((material: string) => {
-      // Пошук відповідного імені матеріалу в фільтрах поточної категорії
+      // Find the corresponding material name in the filters of the current category
       let materialName = material;
       const materialFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "material");
       if (materialFilter && materialFilter.options) {
@@ -538,19 +629,19 @@ export default function CatalogPage() {
       }
       
       filters.push(
-        <div key={`material-${material}`} className={styles.filterChip}>
+        <div 
+          key={`material-${material}`} 
+          className={styles.filterChip}
+          onClick={() => clearFilter("Material", material)}
+        >
+          <Xclose /> &nbsp;
           Матеріал: {materialName}{" "}
-          <button
-            onClick={() => clearFilter("Material", material)}
-            className={styles.filterChipRemove}
-          >
-            ×
-          </button>
-        </div>
+        </div> 
       );
     });
+    
     filterOptions.complectation.forEach((feature: string) => {
-      // Пошук відповідного імені комплектації в фільтрах поточної категорії
+      // Find the corresponding complectation name in the filters of the current category
       let featureName = feature;
       const complectationFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "complectation");
       if (complectationFilter && complectationFilter.options) {
@@ -559,19 +650,19 @@ export default function CatalogPage() {
       }
       
       filters.push(
-        <div key={`complectation-${feature}`} className={styles.filterChip}>
+        <div 
+          key={`complectation-${feature}`} 
+          className={styles.filterChip}
+          onClick={() => clearFilter("Complectation", feature)}
+        >
+          <Xclose /> &nbsp;
           Комплектація: {featureName}{" "}
-          <button
-            onClick={() => clearFilter("Complectation", feature)}
-            className={styles.filterChipRemove}
-          >
-            ×
-          </button>
         </div>
       );
     });
+    
     if (filterOptions.size) {
-      // Пошук відповідного імені розміру в фільтрах поточної категорії
+      // Find the corresponding size name in the filters of the current category
       let sizeName = filterOptions.size;
       const sizeFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "size");
       if (sizeFilter && sizeFilter.options) {
@@ -580,43 +671,46 @@ export default function CatalogPage() {
       }
       
       filters.push(
-        <div key="size" className={styles.filterChip}>
+        <div 
+          key="size" 
+          className={styles.filterChip}
+          onClick={() => clearFilter("Size", filterOptions.size as string)}
+        >
+          <Xclose /> &nbsp;
           Розмір: {sizeName}{" "}
-          <button
-            onClick={() => clearFilter("Size", filterOptions.size as string)}
-            className={styles.filterChipRemove}
-          >
-            ×
-          </button>
         </div>
       );
     }
+    
     return filters.length > 0 ? (
       <div className={styles.selectedFilters}>
         {filters}
         <button
-          onClick={() => setFilterOptions({
-            type: [],
-            material: [],
-            complectation: [],
-            facadeMaterial: [],
-            specifics: null,
-            tabletopShape: [],
-            size: null,
-            backrest: null,
-            hardness: null,
-            priceMin: priceRange.min,
-            priceMax: priceRange.max,
-          })}
+          onClick={() => {
+            setFilterOptions({
+              type: [],
+              material: [],
+              complectation: [],
+              facadeMaterial: [],
+              specifics: null,
+              tabletopShape: [],
+              size: null,
+              backrest: null,
+              hardness: null,
+              priceMin: priceRange.min,
+              priceMax: priceRange.max,
+            });
+            
+            // Update URL after clearing all filters
+            setTimeout(() => {
+              // Keep only the category parameter
+              const newUrl = slug ? `${window.location.pathname}?category=${slug}` : window.location.pathname;
+              window.history.pushState({ path: newUrl }, '', newUrl);
+            }, 0);
+          }}
           className={styles.clearAllFilters}
         >
           Очистити всі фільтри
-        </button>
-        <button
-          onClick={applyFilters}
-          className={styles.applyFiltersButton}
-        >
-          Застосувати фільтри
         </button>
       </div>
     ) : null;
