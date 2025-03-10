@@ -11,6 +11,7 @@ import Specifications from './specs/specifications';
 import ProductActions from './actions/actions';
 import ProductReviews from './reviews/reviews';
 import SimilarProducts from './similarProducts/similarproducts';
+import CATEGORY_SLUG_MAP from './lib/constants';
 
 interface ProductPageProps {
   product: ProductWithImages;
@@ -102,11 +103,17 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
         <section className={styles.similarCarousel}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Схожі товари</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі
+            <Link 
+              href={`/catalog?category=${Object.entries(CATEGORY_SLUG_MAP).find(
+              ([key, { dbValue }]) => dbValue === product.category
+              )?.[0] || ''}`}
+              className={styles.bodyContentButton}
+            >
+              Переглянути всі
               <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </button>
+            </Link>
           </div>
 
           <SimilarProducts products={similarProducts} />
