@@ -135,6 +135,7 @@ export default function CatalogPage() {
     hardness: null,
     priceMin: 0,
     priceMax: 0,
+    status: [],
   });
   const [activeThumb, setActiveThumb] = useState<"min" | "max" | null>(null);
   const [sortOption, setSortOption] = useState<string>("default");
@@ -143,6 +144,19 @@ export default function CatalogPage() {
   const dbCategory = slugData?.dbValue || null;
   const categoryUaName = slugData?.uaName;
   const pageTitle = categoryUaName || 'Всі категорії';
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  const GLOBAL_FILTERS: FilterGroup[] = [
+    {
+      name: 'Status',
+      type: 'checkbox',
+      options: [
+        { id: 'new', name: 'Новинки', value: 'new' },
+        { id: 'on_sale', name: 'Акційні', value: 'on_sale' },
+        { id: 'bestseller', name: 'Популярні', value: 'bestseller' },
+      ],
+    },
+  ];
 
   let finalFilterGroups: FilterGroup[] = [];
   if (!slug) {
@@ -151,9 +165,12 @@ export default function CatalogPage() {
       (g) => g.name.toLowerCase() === "price" && g.type === "range" && g.range
     );
     const merged = mergePriceFilters(priceGroups);
-    if (merged) finalFilterGroups = [merged];
+    // Add global filters first, then add the merged price filter if it exists
+    finalFilterGroups = [...GLOBAL_FILTERS];
+    if (merged) finalFilterGroups.push(merged);
   } else {
-    finalFilterGroups = FURNITURE_FILTERS[slug] || [];
+    // Add global filters for specific category pages too
+    finalFilterGroups = [...GLOBAL_FILTERS, ...(FURNITURE_FILTERS[slug] || [])];
   }
 
   // Функція для отримання фільтрів з URL
@@ -165,6 +182,7 @@ export default function CatalogPage() {
     const priceMin = params.get('minPrice') ? Number(params.get('minPrice')) : 0;
     const priceMax = params.get('maxPrice') ? Number(params.get('maxPrice')) : 0;
     const sort = params.get('sort') || 'default';
+    const status = params.getAll('status') || [];
     
     return {
       type,
@@ -173,7 +191,8 @@ export default function CatalogPage() {
       size,
       priceMin,
       priceMax,
-      sort
+      sort,
+      status,
     };
   };
 
@@ -216,7 +235,11 @@ export default function CatalogPage() {
     if (sortOption !== "default") {
       params.append("sort", sortOption);
     }
-    
+
+    // Додаємо статуси
+    if (filterOptions.status.length > 0) {
+      filterOptions.status.forEach((status: string) => params.append("status", status));
+    }
     // Оновлюємо URL без перезавантаження сторінки
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
@@ -230,181 +253,269 @@ export default function CatalogPage() {
     });
   };
 
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (dbCategory) params.append("category", dbCategory);
-        
-        logApiRequest(params, "Initiating");
-        console.log(`Fetching products with category: "${dbCategory}"`);
+// Modify your fetchAllProducts function in the first useEffect
 
-        // Зменшуємо затримку для швидшого відображення
-        await new Promise(resolve => setTimeout(resolve, 200));
-        const res = await fetch(`/api/products?${params.toString()}`);
-        
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error(`API Error (${res.status}):`, errorText);
-          throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
-        }
-        
-        const data: ProductWithImages[] = await res.json();
-        setAllProducts(data);
-        
-        console.log(`Fetched ${data.length} products for category "${dbCategory}"`);
-
-        if (data.length > 0) {
-          const prices = data.map((p) => parseFloat(p.price.toString())).filter(p => p > 0);
-          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-          const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-          setPriceRange({ min: minPrice, max: maxPrice });
-          
-          // Читаємо фільтри з URL
-          const urlFilters = getFiltersFromURL(searchParams);
-          
-          // Встановлюємо початкові значення фільтрів з URL або за замовчуванням
-          setFilterOptions({
-            type: urlFilters.type,
-            material: urlFilters.material,
-            complectation: urlFilters.complectation,
-            facadeMaterial: [],
-            specifics: null,
-            tabletopShape: [],
-            size: urlFilters.size,
-            backrest: null,
-            hardness: null,
-            priceMin: urlFilters.priceMin || minPrice,
-            priceMax: urlFilters.priceMax || maxPrice,
-          });
-          
-          // Застосовуємо сортування з URL
-          if (urlFilters.sort) {
-            setSortOption(urlFilters.sort);
-          }
-          
-          // Застосовуємо фільтри до продуктів
-          setFilteredProducts(data); 
-        } else {
-          setPriceRange({ min: 0, max: 0 });
-          console.log(`No products found for category "${dbCategory}"`);
-        }
-      } catch (err: any) {
-        console.error("Error fetching products:", err);
-        setError(err.message || "Unknown error");
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const fetchAllProducts = async () => {
+    setLoading(true);
+    try {
+      // Get filters from URL first
+      const urlFilters = getFiltersFromURL(searchParams);
+      
+      // Build full query params including category AND filters
+      const params = new URLSearchParams();
+      if (dbCategory) params.append("category", dbCategory);
+      
+      // Add status filters from URL
+      if (urlFilters.status.length > 0) {
+        urlFilters.status.forEach((status: any) => params.append("status", status));
       }
-    };
-    fetchAllProducts();
-  }, [dbCategory, searchParams]);
+      
+      // Add other filters as needed for initial load
+      if (urlFilters.type.length > 0) {
+        urlFilters.type.forEach((type: any) => params.append("type", type));
+      }
+      
+      if (urlFilters.material.length > 0) {
+        urlFilters.material.forEach((material: any) => params.append("material", material));
+      }
+      
+      if (urlFilters.complectation.length > 0) {
+        urlFilters.complectation.forEach((feature:any) => params.append("feature", feature));
+      }
+      
+      if (urlFilters.size) {
+        params.append("size", urlFilters.size);
+      }
+      
+      if (urlFilters.priceMin) {
+        params.append("minPrice", urlFilters.priceMin.toString());
+      }
+      
+      if (urlFilters.priceMax) {
+        params.append("maxPrice", urlFilters.priceMax.toString());
+      }
+      
+      logApiRequest(params, "Initiating");
+      console.log(`Fetching products with category: "${dbCategory}" and filters applied`);
+
+      // Fetch filtered products directly
+      const res = await fetch(`/api/products?${params.toString()}`);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`API Error (${res.status}):`, errorText);
+        throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
+      }
+      
+      const data = await res.json();
+      
+      // Set both allProducts and filteredProducts to the same initially filtered data
+      setAllProducts(data);
+      setFilteredProducts(data);
+      
+      console.log(`Fetched ${data.length} products with filters applied`);
+
+      if (data.length > 0) {
+        const prices: number[] = data.map((p: ProductWithImages) => parseFloat(p.price.toString())).filter((p: number) => p > 0);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+        setPriceRange({ min: minPrice, max: maxPrice });
+        
+        // Set initial filter values from URL
+        setFilterOptions({
+          type: urlFilters.type,
+          material: urlFilters.material,
+          complectation: urlFilters.complectation,
+          facadeMaterial: [],
+          specifics: null,
+          tabletopShape: [],
+          size: urlFilters.size,
+          backrest: null,
+          hardness: null,
+          priceMin: urlFilters.priceMin || minPrice,
+          priceMax: urlFilters.priceMax || maxPrice,
+          status: urlFilters.status,
+        });
+        
+        // Apply sorting from URL
+        if (urlFilters.sort) {
+          setSortOption(urlFilters.sort);
+        }
+      } else {
+        setPriceRange({ min: 0, max: 0 });
+        console.log(`No products found for category "${dbCategory}" with applied filters`);
+      }
+      
+      // As a second step, fetch ALL products for the category to enable proper filtering
+      // This doesn't affect the display but ensures we have the full dataset for filtering
+      const allProductsParams = new URLSearchParams();
+      if (dbCategory) allProductsParams.append("category", dbCategory);
+      
+      const allProductsRes = await fetch(`/api/products?${allProductsParams.toString()}`);
+      if (allProductsRes.ok) {
+        const allData = await allProductsRes.json();
+        setAllProducts(allData);
+        
+        // Update price range based on all products
+        if (allData.length > 0) {
+          const allPrices: number[] = allData.map((p: ProductWithImages) => parseFloat(p.price.toString())).filter((p: number) => p > 0);
+          const allMinPrice = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+          const allMaxPrice = allPrices.length > 0 ? Math.max(...allPrices) : 0;
+          setPriceRange({ min: allMinPrice, max: allMaxPrice });
+          
+          // Keep user's price filter if set, otherwise use the full range
+          setFilterOptions(prev => ({
+            ...prev,
+            priceMin: urlFilters.priceMin || prev.priceMin || allMinPrice,
+            priceMax: urlFilters.priceMax || prev.priceMax || allMaxPrice
+          }));
+        }
+      }
+      
+    } catch (err: any) {
+      console.error("Error fetching products:", err);
+      setError(err.message || "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchAllProducts();
+}, [dbCategory, searchParams]);
 
   // Ця функція викликається коли змінюються фільтри або продукти
   useEffect(() => {
-    // Застосовуємо фільтрацію на клієнті тільки якщо категорія не змінювалася
-    let matches = [...allProducts];
+    // Don't run this effect on initial component mount
+    if (!allProducts.length) return;
     
-    // Apply type filter
-    if (filterOptions.type.length > 0) {
-      matches = matches.filter((p) => {
-        // Safe guard against undefined specs or types
-        if (!p.specs || !p.specs.types) return false;
-        
-        // Ensure types is treated as an array
-        const productTypes = Array.isArray(p.specs.types) ? p.specs.types : [p.specs.types];
-        
-        return productTypes.some((type) => {
-          if (!type) return false;
-          const typeStr = typeof type === 'string' ? type.toLowerCase() : String(type).toLowerCase();
-          return filterOptions.type.includes(typeStr);
+    // Set filtering state to show loading UI
+    setIsFiltering(true);
+    
+    // Create a timeout to simulate loading and prevent flash
+    const filterTimeout = setTimeout(() => {
+      // Apply all filters
+      let matches = [...allProducts];
+  
+      if (filterOptions.status.length > 0) {
+        matches = matches.filter((p) => {
+          return filterOptions.status.some((status: string) => {
+            if (status === 'new') return p.is_new;
+            if (status === 'on_sale') return p.is_on_sale;
+            if (status === 'bestseller') return p.is_bestseller;
+            return false;
+          });
         });
-      });
-    }
-    
-    // Apply material filter
-    if (filterOptions.material.length > 0) {
-      matches = matches.filter((p) => {
-        if (!p.specs) return false;
-        
-        const materialValue = getMaterialValue(p.specs);
-        if (!materialValue) return false;
-        
-        const materialLower = materialValue.toLowerCase();
-        return filterOptions.material.some((material: string) => 
-          materialLower.includes(material.toLowerCase())
-        );
-      });
-    }
-    
-    // Apply complectation filters
-    if (filterOptions.complectation.length > 0) {
-      matches = matches.filter((p) => {
-        if (!p.specs) return false;
-        
-        return filterOptions.complectation.every((feature: string) => {
-          // Handle various complectation features
-          if (feature === "shelves") {
-            return isSofaSpecs(p.specs) && p.specs.has_shelves === true;
-          }
-          if (feature === "high_legs") {
-            return isSofaSpecs(p.specs) && p.specs.leg_height === "high";
-          }
-          if (feature === "low_legs") {
-            return isSofaSpecs(p.specs) && p.specs.leg_height === "low";
-          }
-          if (feature === "lift") {
-            return isSofaSpecs(p.specs) && p.specs.has_lift_mechanism === true;
-          }
-          if (feature === "no_lift") {
-            return isSofaSpecs(p.specs) && p.specs.has_lift_mechanism === false;
-          }
+      }
+      
+      // Apply type filter
+      if (filterOptions.type.length > 0) {
+        matches = matches.filter((p) => {
+          // Safe guard against undefined specs or types
+          if (!p.specs || !p.specs.types) return false;
           
-          // Check additional features text if applicable
-          const additionalFeatures = getAdditionalFeatures(p.specs);
-          return additionalFeatures ? 
-            additionalFeatures.toLowerCase().includes(feature.toLowerCase()) : 
-            false;
+          // Ensure types is treated as an array
+          const productTypes = Array.isArray(p.specs.types) ? p.specs.types : [p.specs.types];
+          
+          return productTypes.some((type) => {
+            if (!type) return false;
+            const typeStr = typeof type === 'string' ? type.toLowerCase() : String(type).toLowerCase();
+            return filterOptions.type.includes(typeStr);
+          });
         });
-      });
-    }
+      }
+      
+      // Apply material filter
+      if (filterOptions.material.length > 0) {
+        matches = matches.filter((p) => {
+          if (!p.specs) return false;
+          
+          const materialValue = getMaterialValue(p.specs);
+          if (!materialValue) return false;
+          
+          const materialLower = materialValue.toLowerCase();
+          return filterOptions.material.some((material: string) => 
+            materialLower.includes(material.toLowerCase())
+          );
+        });
+      }
+      
+      // Apply complectation filters
+      if (filterOptions.complectation.length > 0) {
+        matches = matches.filter((p) => {
+          if (!p.specs) return false;
+          
+          return filterOptions.complectation.every((feature: string) => {
+            // Handle various complectation features
+            if (feature === "shelves") {
+              return isSofaSpecs(p.specs) && p.specs.has_shelves === true;
+            }
+            if (feature === "high_legs") {
+              return isSofaSpecs(p.specs) && p.specs.leg_height === "high";
+            }
+            if (feature === "low_legs") {
+              return isSofaSpecs(p.specs) && p.specs.leg_height === "low";
+            }
+            if (feature === "lift") {
+              return isSofaSpecs(p.specs) && p.specs.has_lift_mechanism === true;
+            }
+            if (feature === "no_lift") {
+              return isSofaSpecs(p.specs) && p.specs.has_lift_mechanism === false;
+            }
+            
+            // Check additional features text if applicable
+            const additionalFeatures = getAdditionalFeatures(p.specs);
+            return additionalFeatures ? 
+              additionalFeatures.toLowerCase().includes(feature.toLowerCase()) : 
+              false;
+          });
+        });
+      }
+      
+      // Apply size filter
+      if (filterOptions.size) {
+        matches = matches.filter((p) => {
+          if (!p.specs || !p.specs.dimensions) return false;
+          
+          // Make sure we have sleeping_area dimensions
+          if (isSofaSpecs(p.specs) && p.specs.dimensions.sleeping_area) {
+            return filterOptions.size === "single"
+              ? p.specs.dimensions.sleeping_area.width <= 1000
+              : p.specs.dimensions.sleeping_area.width >= 1400;
+          }
+          return false;
+        });
+      }
+      
+      // Apply price filter
+      if (filterOptions.priceMin !== null && filterOptions.priceMax !== null) {
+        matches = matches.filter((p) => {
+          const price = parseFloat(p.price.toString());
+          return price >= filterOptions.priceMin && price <= filterOptions.priceMax;
+        });
+      }
+      
+      // Apply sorting
+      if (sortOption === "price_asc") {
+        matches.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
+      } else if (sortOption === "price_desc") {
+        matches.sort((a, b) => parseFloat(b.price.toString()) - parseFloat(a.price.toString()));
+      } else if (sortOption === "rating_desc") {
+        matches.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      }
+      
+      // Update state with filtered products
+      setFilteredProducts(matches);
+      
+      // Update URL with filters
+      updateURLWithFilters();
+      
+      // Turn off filtering state
+      setIsFiltering(false);
+    }, 300); // 300ms delay - adjust as needed
     
-    // Apply size filter
-    if (filterOptions.size) {
-      matches = matches.filter((p) => {
-        if (!p.specs || !p.specs.dimensions) return false;
-        
-        // Make sure we have sleeping_area dimensions
-        if (isSofaSpecs(p.specs) && p.specs.dimensions.sleeping_area) {
-          return filterOptions.size === "single"
-            ? p.specs.dimensions.sleeping_area.width <= 1000
-            : p.specs.dimensions.sleeping_area.width >= 1400;
-        }
-        return false;
-      });
-    }
-    
-    // Apply price filter
-    if (filterOptions.priceMin !== null && filterOptions.priceMax !== null) {
-      matches = matches.filter((p) => {
-        const price = parseFloat(p.price.toString());
-        return price >= filterOptions.priceMin && price <= filterOptions.priceMax;
-      });
-    }
-    
-    // Apply sorting
-    if (sortOption === "price_asc") {
-      matches.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
-    } else if (sortOption === "price_desc") {
-      matches.sort((a, b) => parseFloat(b.price.toString()) - parseFloat(a.price.toString()));
-    } else if (sortOption === "rating_desc") {
-      matches.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    }
-    
-    setFilteredProducts(matches);
-    
-    // Оновлюємо URL при зміні фільтрів
-    updateURLWithFilters();
+    // Clear timeout on cleanup
+    return () => clearTimeout(filterTimeout);
   }, [allProducts, filterOptions, sortOption]);
 
   // Функція для побудови запиту з фільтрами
@@ -414,6 +525,13 @@ export default function CatalogPage() {
     if (dbCategory) {
       params.append("category", dbCategory);
       console.log(`Adding category filter: ${dbCategory}`);
+    }
+
+    if (filterOptions.status.length > 0) {
+      filterOptions.status.forEach((status: string) => {
+        params.append("status", status);
+        console.log(`Adding status filter: ${status}`);
+      });
     }
     
     if (filterOptions.type.length > 0) {
@@ -494,6 +612,7 @@ export default function CatalogPage() {
       hardness: null,
       priceMin: 0,
       priceMax: 0,
+      status: [],
     });
     setSortOption("default");
     
@@ -576,6 +695,26 @@ export default function CatalogPage() {
 
   const renderSelectedFilters = () => {
     const filters: React.ReactNode[] = [];
+
+    filterOptions.status.forEach((status: string) => {
+      // Determine the display name for the status
+      let statusName = status;
+      if (status === 'new') statusName = 'Новинки';
+      if (status === 'on_sale') statusName = 'Акційні';
+      if (status === 'bestseller') statusName = 'Популярні';
+      
+      filters.push(
+        <div 
+          key={`status-${status}`} 
+          className={styles.filterChip}
+          onClick={() => clearFilter("Status", status)}
+        >
+          <Xclose /> &nbsp;
+          Популярні фільтри: {statusName}{" "}
+        </div>
+      );
+    });
+
     if (filterOptions.priceMin > priceRange.min || filterOptions.priceMax < priceRange.max) {
       filters.push(
         <div 
@@ -699,6 +838,7 @@ export default function CatalogPage() {
               hardness: null,
               priceMin: priceRange.min,
               priceMax: priceRange.max,
+              status: [],
             });
             
             // Update URL after clearing all filters
@@ -759,7 +899,8 @@ export default function CatalogPage() {
         return (
           <div key={group.name} className={styles.filterSection}>
             <h3 className={styles.filterTitle}>
-              {group.name === "Type" ? "Тип" :
+              {group.name === "Status" ? "Популярні фільтри" :
+               group.name === "Type" ? "Тип" :
                group.name === "Material" ? "Матеріал" :
                group.name === "Complectation" ? "Комплектація" :
                group.name === "Size" ? "Розмір" : group.name}
@@ -821,7 +962,7 @@ export default function CatalogPage() {
 
   const ProductsDisplay = () => (
     <div className={styles.productGrid}>
-      {loading ? (
+      {loading || isFiltering ? (
         <ProductGridSkeleton count={6} />
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
@@ -850,9 +991,13 @@ export default function CatalogPage() {
           {loading ? null : renderSelectedFilters()}
         </div>
         <div className={styles.sortAndCount}>
-          <span className={styles.itemCount}>
-            Показані {filteredProducts.length} з {allProducts.length} товарів
-          </span>
+        <span className={styles.itemCount}>
+  {loading || isFiltering ? (
+    "Завантаження товарів..."
+  ) : (
+    `Показані ${filteredProducts.length} з ${allProducts.length} товарів`
+  )}
+</span>
           <select
             value={sortOption}
             onChange={handleSortChange}
