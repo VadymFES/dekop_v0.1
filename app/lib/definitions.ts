@@ -6,10 +6,11 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  category: string; // Ukrainian categories; map to English in API if needed
+  category: string; 
   price: number;
   stock: number;
   rating: number;
+  reviews: number;
   is_on_sale: boolean;
   is_new: boolean;
   is_bestseller: boolean;
