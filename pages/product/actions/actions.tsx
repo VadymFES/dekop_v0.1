@@ -257,7 +257,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
           <div className={styles.deliveryDetails}>
             <h4 className={styles.deliveryTitle}>Доставка від магазину</h4>
             <p className={styles.deliveryDescription}>
-              Ми забезпечуємо доставку нашим власним кур'єром по всій Україні. Точні витрати на доставку будуть
+              Ми забезпечуємо доставку нашим власним кур&apos;єром по всій Україні. Точні витрати на доставку будуть
               розраховані менеджером.
             </p>
           </div>
@@ -268,7 +268,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
           <div className={styles.deliveryDetails}>
             <h4 className={styles.deliveryTitle}>Нова Пошта з нами</h4>
             <p className={styles.deliveryDescription}>
-              Надсилаємо замовлення Новою Поштою на відділення або кур'єром. Вартість доставки за тарифами пошти.
+              Надсилаємо замовлення Новою Поштою на відділення або кур&apos;єром. Вартість доставки за тарифами пошти.
             </p>
           </div>
         </div>
