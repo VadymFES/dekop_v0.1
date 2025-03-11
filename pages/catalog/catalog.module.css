@@ -58,13 +58,24 @@
     font-size: 14px;
     color: #666;
   }
+
+  .sortLabel {
+    font-size: 14px;
+    color: #666;
+  }
   
   .sortSelect {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
     font-size: 14px;
-    background-color: #fff;
+    color: black;
+    padding: 6px 12px;
+    border-radius: 20px;
+    max-width: 200px;
+    cursor: pointer;
+    background-color: var(--background-color);
+  }
+
+  .sortSelect :only-child {
+    display: none;
   }
   
   /* Selected Filters Display */
