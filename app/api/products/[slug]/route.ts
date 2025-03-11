@@ -311,9 +311,9 @@ function mapProductSpecs(normalizedCategory: string, row: any): ProductSpecs | n
 
 export async function GET(
   _request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const slug = params.slug;
+  const slug = (await params).slug;
 
   try {
     // Query to get the product by slug.
