@@ -14,7 +14,8 @@ export async function GET(request: Request) {
     let query = `
       SELECT 
         p.id, p.name, p.slug, p.description, p.category, p.price, p.stock, 
-        p.rating, p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
+        p.rating, COUNT(r.id) AS reviews,
+        p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
         ps.specs_id, ps.construction, ps.dimensions_length, ps.dimensions_width, 
         ps.dimensions_depth, ps.dimensions_height, 
         ps.dimensions_sleeping_area_width, 
@@ -43,6 +44,7 @@ export async function GET(request: Request) {
         ps.headboard_type, ps.storage_options, ps.upholstery, ps.seat_height, ps.weight_capacity, 
         ps.mounting_type, ps.shelf_count, ps.shape, ps.extendable, ps.armrest_type
       FROM products p
+      LEFT JOIN reviews r ON p.id = r.product_id
       LEFT JOIN (
         SELECT 
           id AS specs_id, product_id, construction, dimensions_length, dimensions_width, dimensions_depth, dimensions_height,
@@ -237,7 +239,7 @@ export async function GET(request: Request) {
     // Group by product and specs to aggregate images and colors
     query += ` 
       GROUP BY p.id, ps.specs_id, p.name, p.slug, p.description, p.category, p.price, p.stock, 
-        p.rating, p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
+        p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
         ps.construction, ps.dimensions_length, ps.dimensions_width, ps.dimensions_depth, ps.dimensions_height, 
         ps.dimensions_sleeping_area_width, ps.dimensions_sleeping_area_length, ps.material_type, ps.material_composition, 
         ps.inner_material_structure, ps.material_covers, ps.material_backrest_filling, 
@@ -248,15 +250,14 @@ export async function GET(request: Request) {
         ps.shelf_count, ps.shape, ps.extendable, ps.armrest_type
     `;
 
-    console.log("Executing query:", query);
-    console.log("With values:", values);
+    // Додаємо сортування за рейтингом (опціонально)
+    // query += ` ORDER BY rating DESC`;
 
     const { rows } = await sql.query(query, values);
-    console.log(`Query returned ${rows.length} products`);
 
     const products = rows.map(row => {
       const normalizedCategory = normalizeCategory(row.category);
-      console.log(`Normalizing category: ${row.category} -> ${normalizedCategory}`);
+      // console.log(`Normalizing category: ${row.category} -> ${normalizedCategory}`);
 
       return {
         id: row.id,
@@ -266,7 +267,9 @@ export async function GET(request: Request) {
         category: row.category,
         price: row.price,
         stock: row.stock,
-        rating: row.rating,
+        // Використовуємо розрахований рейтинг і кількість відгуків
+        rating: parseFloat(row.rating) || 0,
+        reviews: parseInt(row.reviews) || 0,
         is_on_sale: row.is_on_sale,
         is_new: row.is_new,
         is_bestseller: row.is_bestseller,
@@ -288,20 +291,29 @@ export async function GET(request: Request) {
 // Helper function to normalize categories
 function normalizeCategory(category: string): string {
   const categoryMap: { [key: string]: string } = {
+    'Диван': 'sofas',
     'диван': 'sofas',
+    'Кутовий Диван': 'corner_sofas',
     'кутовий диван': 'corner_sofas',
+    'Диван-Ліжко': 'sofa_beds',
     'диван-ліжко': 'sofa_beds',
+    'Стілець': 'chairs',
     'стілець': 'chairs',
-    'матрас': 'mattresses',
+    'Матрас': 'mattresses',
     'матрац': 'mattresses',
+    'Стіл': 'tables',
     'стіл': 'tables',
+    'Ліжко': 'beds',
     'ліжко': 'beds',
+    'Шафа': 'wardrobes',
     'шафа': 'wardrobes',
+    'Гардероб': 'wardrobes',
     'гардероб': 'wardrobes',
-    'аксесуар': 'accessories',
+    'Аксесуар': 'accessories',
+    'аксесуар': 'accessories'
   };
 
-  return categoryMap[category.toLowerCase()] || category.toLowerCase();
+  return categoryMap[category] || category.toLowerCase();
 }
 
 // Helper function to map specs by category
