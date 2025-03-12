@@ -1,16 +1,29 @@
-// pages/product/specs/specifications.tsx
-
 import React from 'react';
 import styles from './Specifications.module.css';
 import {
-  ProductWithImages
+  ProductWithImages,
+  ProductSpecs,
+  SofaSpecs,
+  CornerSofaSpecs,
+  BedSpecs,
+  TableSpecs,
+  ChairSpecs,
+  MattressSpecs,
+  WardrobeSpecs,
+  AccessorySpecs,
+  SofaBedSpecs
 } from '@/app/lib/definitions';
 
 type SpecificationsProps = {
-  product: ProductWithImages;
+  product?: ProductWithImages;
 };
 
 export default function Specifications({ product }: SpecificationsProps) {
+  // Early return if product is undefined
+  if (!product) {
+    return <div>Продукт не знайдено</div>;
+  }
+
   // Normalize category for rendering - map Ukrainian categories to English
   const normalizeCategory = (cat: string): string => {
     // Convert to lowercase for consistent matching
@@ -34,7 +47,8 @@ export default function Specifications({ product }: SpecificationsProps) {
     return categoryMap[catLower] || catLower;
   };
 
-  const { specs, category } = product;
+  const specs = product.specs;
+  const category = product.category;
 
   if (!specs) return <div>Специфікації не доступні</div>;
 
@@ -42,18 +56,35 @@ export default function Specifications({ product }: SpecificationsProps) {
   const normalizedCategory = normalizeCategory(category);
   
   // Check if this is a sofa-like product (sofas or corner sofas)
-  const isSofaType = normalizedCategory === 'sofas' || normalizedCategory === 'corner_sofas';
+  const isSofaType = normalizedCategory === 'sofas' || normalizedCategory === 'corner_sofas' || normalizedCategory === 'sofa_beds';
 
-  // Ensure we have the right specs type based on category
-  let typedSpecs: any = specs;
+  // Type guard functions to check product specifications type
+  const isSofaSpecs = (specs: ProductSpecs): specs is SofaSpecs => 
+    specs.category === 'sofas';
   
-  // Ensure the specs object has the right shape for sofa-like items
-  if (isSofaType) {
-    // Make sure we have basic properties initialized
-    if (!typedSpecs.dimensions) typedSpecs.dimensions = {};
-    if (!typedSpecs.material) typedSpecs.material = {};
-    if (!typedSpecs.inner_material) typedSpecs.inner_material = {};
-  }
+  const isCornerSofaSpecs = (specs: ProductSpecs): specs is CornerSofaSpecs => 
+    specs.category === 'corner_sofas';
+    
+  const isSofaBedSpecs = (specs: ProductSpecs): specs is SofaBedSpecs => 
+    specs.category === 'sofa_beds';
+    
+  const isBedSpecs = (specs: ProductSpecs): specs is BedSpecs => 
+    specs.category === 'beds';
+    
+  const isTableSpecs = (specs: ProductSpecs): specs is TableSpecs => 
+    specs.category === 'tables';
+    
+  const isChairSpecs = (specs: ProductSpecs): specs is ChairSpecs => 
+    specs.category === 'chairs';
+    
+  const isMattressSpecs = (specs: ProductSpecs): specs is MattressSpecs => 
+    specs.category === 'mattresses';
+    
+  const isWardrobeSpecs = (specs: ProductSpecs): specs is WardrobeSpecs => 
+    specs.category === 'wardrobes';
+    
+  const isAccessorySpecs = (specs: ProductSpecs): specs is AccessorySpecs => 
+    specs.category === 'accessories';
 
   return (
     <section className={styles.specificationsSection}>
@@ -67,39 +98,39 @@ export default function Specifications({ product }: SpecificationsProps) {
             <p>isSofaType: {String(isSofaType)}</p>
           </div> */}
           
-          {'construction' in typedSpecs && typedSpecs.construction && (
+          {(isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && specs.construction && (
             <>
-              <h3>Конструкція: {typedSpecs.construction}</h3>
+              <h3>Конструкція: {specs.construction}</h3>
               <br />
             </>
           )}
 
-          {typedSpecs.dimensions && (
+          {specs.dimensions && (
             <>
               <h4 className={styles.specsTitle}>Розміри:</h4>
-              {typedSpecs.dimensions.length != null && (
-                <p>Довжина: {typedSpecs.dimensions.length} мм</p>
+              {specs.dimensions.length != null && (
+                <p>Довжина: {specs.dimensions.length} мм</p>
               )}
-              {typedSpecs.dimensions.depth != null && (
-                <p>Глибина: {typedSpecs.dimensions.depth} мм</p>
+              {'depth' in specs.dimensions && specs.dimensions.depth != null && (
+                <p>Глибина: {specs.dimensions.depth} мм</p>
               )}
-              {typedSpecs.dimensions.height != null && (
-                <p>Висота: {typedSpecs.dimensions.height} мм</p>
+              {'height' in specs.dimensions && specs.dimensions.height != null && (
+                <p>Висота: {specs.dimensions.height} мм</p>
               )}
               {/* Check for sleeping area in sofas or corner sofas */}
-              {isSofaType && typedSpecs.dimensions && 
-                'sleeping_area' in typedSpecs.dimensions && 
-                typedSpecs.dimensions.sleeping_area && (
+              {isSofaType && specs.dimensions && 
+                'sleeping_area' in specs.dimensions && 
+                specs.dimensions.sleeping_area && (
                   <p>
                     Спальне місце:
-                    {typedSpecs.dimensions.sleeping_area.width != null &&
-                      ` ${typedSpecs.dimensions.sleeping_area.width}`}
-                    {(typedSpecs.dimensions.sleeping_area.width != null &&
-                      typedSpecs.dimensions.sleeping_area.length != null)
+                    {specs.dimensions.sleeping_area.width != null &&
+                      ` ${specs.dimensions.sleeping_area.width}`}
+                    {(specs.dimensions.sleeping_area.width != null &&
+                      specs.dimensions.sleeping_area.length != null)
                       ? ' × '
                       : ''}
-                    {typedSpecs.dimensions.sleeping_area.length != null &&
-                      `${typedSpecs.dimensions.sleeping_area.length}`}
+                    {specs.dimensions.sleeping_area.length != null &&
+                      `${specs.dimensions.sleeping_area.length}`}
                     мм
                   </p>
               )}
@@ -108,26 +139,30 @@ export default function Specifications({ product }: SpecificationsProps) {
           )}
 
           {/* Render material section based on what's available */}
-          {typedSpecs.material && (
+          {'material' in specs && specs.material && (
             <>
               <h4 className={styles.specsTitle}>Деталі:</h4>
               {/* Render for string material */}
-              {typeof typedSpecs.material === 'string' && (
-                <p>Матеріал: {typedSpecs.material}</p>
+              {typeof specs.material === 'string' && (
+                <p>Матеріал: {specs.material}</p>
               )}
               
               {/* Render for object material */}
-              {typeof typedSpecs.material === 'object' && typedSpecs.material && (
+              {'material' in specs && typeof specs.material === 'object' && specs.material && isSofaType && (
                 <>
-                  {typedSpecs.material.type && <p>Тип тканини: {typedSpecs.material.type}</p>}
-                  {typedSpecs.material.composition && (
-                    <p>Склад: {typedSpecs.material.composition}</p>
-                  )}
-                  {isSofaType && 'backrest_filling' in typedSpecs.material && typedSpecs.material.backrest_filling && (
-                    <p>Наповнення подушок: {typedSpecs.material.backrest_filling}</p>
-                  )}
-                  {isSofaType && 'covers' in typedSpecs.material && typedSpecs.material.covers && (
-                    <p>Чохли: {typedSpecs.material.covers}</p>
+                  {(isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && (
+                    <>
+                      {specs.material.type && <p>Тип тканини: {specs.material.type}</p>}
+                      {specs.material.composition && (
+                        <p>Склад: {specs.material.composition}</p>
+                      )}
+                      {specs.material.backrest_filling && (
+                        <p>Наповнення подушок: {specs.material.backrest_filling}</p>
+                      )}
+                      {specs.material.covers && (
+                        <p>Чохли: {specs.material.covers}</p>
+                      )}
+                    </>
                   )}
                 </>
               )}
@@ -136,74 +171,74 @@ export default function Specifications({ product }: SpecificationsProps) {
           )}
 
           {/* Category-specific fields */}
-          {normalizedCategory === 'beds' && (
+          {isBedSpecs(specs) && (
             <>
-              {typedSpecs.headboard_type && (
-                <p>Тип узголів'я: {typedSpecs.headboard_type}</p>
+              {specs.headboard_type && (
+                <p>Тип узголів&apos;я: {specs.headboard_type}</p>
               )}
-              {typedSpecs.storage_options && (
-                <p>Варіанти зберігання: {typedSpecs.storage_options}</p>
+              {specs.storage_options && (
+                <p>Варіанти зберігання: {specs.storage_options}</p>
               )}
             </>
           )}
 
-          {normalizedCategory === 'tables' && (
+          {isTableSpecs(specs) && (
             <>
-              {typedSpecs.shape && (
-                <p>Форма: {typedSpecs.shape}</p>
+              {specs.shape && (
+                <p>Форма: {specs.shape}</p>
               )}
-              {typedSpecs.extendable !== undefined && (
-                <p>Розкладний: {typedSpecs.extendable ? 'Так' : 'Ні'}</p>
+              {specs.extendable !== undefined && (
+                <p>Розкладний: {specs.extendable ? 'Так' : 'Ні'}</p>
               )}
             </>
           )}
 
-          {normalizedCategory === 'chairs' && (
+          {isChairSpecs(specs) && (
             <>
-              {typedSpecs.upholstery && (
-                <p>Оббивка: {typedSpecs.upholstery}</p>
+              {specs.upholstery && (
+                <p>Оббивка: {specs.upholstery}</p>
               )}
-              {typedSpecs.seat_height && (
-                <p>Висота сидіння: {typedSpecs.seat_height} см</p>
+              {specs.seat_height && (
+                <p>Висота сидіння: {specs.seat_height} см</p>
               )}
-              {typedSpecs.weight_capacity && (
-                <p>Максимальна вага: {typedSpecs.weight_capacity} кг</p>
+              {specs.weight_capacity && (
+                <p>Максимальна вага: {specs.weight_capacity} кг</p>
               )}
             </>
           )}
 
-          {normalizedCategory === 'mattresses' && (
+          {isMattressSpecs(specs) && (
             <>
-              {typedSpecs.type && (
-                <p>Тип: {typedSpecs.type}</p>
+              {specs.type && (
+                <p>Тип: {specs.type}</p>
               )}
-              {typedSpecs.firmness && (
-                <p>Жорсткість: {typedSpecs.firmness}</p>
+              {specs.firmness && (
+                <p>Жорсткість: {specs.firmness}</p>
               )}
-              {typedSpecs.thickness && (
-                <p>Товщина: {typedSpecs.thickness} см</p>
+              {specs.thickness && (
+                <p>Товщина: {specs.thickness} см</p>
               )}
             </>
           )}
 
-          {normalizedCategory === 'wardrobes' && (
+          {isWardrobeSpecs(specs) && (
             <>
-              {typedSpecs.door_count && (
-                <p>Кількість дверей: {typedSpecs.door_count}</p>
+              {specs.door_count && (
+                <p>Кількість дверей: {specs.door_count}</p>
               )}
-              {typedSpecs.door_type && (
-                <p>Тип дверей: {typedSpecs.door_type}</p>
+              {specs.door_type && (
+                <p>Тип дверей: {specs.door_type}</p>
               )}
             </>
           )}
 
-          {normalizedCategory === 'accessories' && (
+          {isAccessorySpecs(specs) && (
             <>
-              {typedSpecs.mounting_type && (
-                <p>Тип кріплення: {typedSpecs.mounting_type}</p>
+              {specs.mounting_type && (
+                <p>Тип кріплення: {specs.mounting_type}</p>
               )}
-              {typedSpecs.shelf_count && (
-                <p>Кількість полиць: {typedSpecs.shelf_count}</p>
+              {specs.shelf_count && (
+                <p>Кількість полиць: {specs.shelf_count}</p>
               )}
             </>
           )}
@@ -218,34 +253,41 @@ export default function Specifications({ product }: SpecificationsProps) {
         {/* Right column */}
         <div className={styles.specsColumn}>
           {/* Sofa-type inner material (for both sofas and corner sofas) */}
-          {isSofaType && typedSpecs.inner_material && (
+          {isSofaType && 
+           ((isSofaSpecs(specs) && specs.inner_material) || 
+            (isCornerSofaSpecs(specs) && specs.inner_material) ||
+            (isSofaBedSpecs(specs) && specs.inner_material)) && (
             <>
               <h4 className={styles.specsTitle}>Корпус дивана:</h4>
-              {typedSpecs.inner_material.structure && (
-                <p>Матеріал: {typedSpecs.inner_material.structure}</p>
+              {((isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && 
+                specs.inner_material?.structure) && (
+                <p>Матеріал: {specs.inner_material.structure}</p>
               )}
-              {typedSpecs.inner_material.cushion_filling && (
-                <p>Мяке наповнення: {typedSpecs.inner_material.cushion_filling}</p>
+              {((isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && 
+                specs.inner_material?.cushion_filling) && (
+                <p>Мяке наповнення: {specs.inner_material.cushion_filling}</p>
               )}
               <br />
             </>
           )}
 
           {/* Wardrobe-specific internal layout */}
-          {normalizedCategory === 'wardrobes' && typedSpecs.internal_layout && (
+          {isWardrobeSpecs(specs) && specs.internal_layout && (
             <>
               <h4 className={styles.specsTitle}>Внутрішнє планування:</h4>
-              <p>{typedSpecs.internal_layout}</p>
+              <p>{specs.internal_layout}</p>
               <br />
             </>
           )}
           
           {/* Additional features section for all product types */}
           <h4 className={styles.specsTitle}>Додатково:</h4>
-          <p>Особливості: {'additional_features' in typedSpecs && typedSpecs.additional_features ? 
-              typedSpecs.additional_features : 
+          <p>Особливості: {
+            ((isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && 
+             specs.additional_features) ? 
+              specs.additional_features : 
               'немає'
-            }</p>
+          }</p>
           <br />
           <p>Виробництво: Україна</p>
           <p>Гарантія: 12 місяців</p>
