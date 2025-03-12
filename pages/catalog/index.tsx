@@ -251,20 +251,20 @@ export default function CatalogPage() {
 
         // Add status filters from URL
         if (urlFilters.status.length > 0) {
-          urlFilters.status.forEach((status: any) => params.append("status", status));
+          urlFilters.status.forEach((status: string) => params.append("status", status));
         }
 
         // Add other filters as needed for initial load
         if (urlFilters.type.length > 0) {
-          urlFilters.type.forEach((type: any) => params.append("type", type));
+          urlFilters.type.forEach((type: string) => params.append("type", type));
         }
 
         if (urlFilters.material.length > 0) {
-          urlFilters.material.forEach((material: any) => params.append("material", material));
+          urlFilters.material.forEach((material: string) => params.append("material", material));
         }
 
         if (urlFilters.complectation.length > 0) {
-          urlFilters.complectation.forEach((feature: any) => params.append("feature", feature));
+          urlFilters.complectation.forEach((feature: string) => params.append("feature", feature));
         }
 
         if (urlFilters.size) {
@@ -355,8 +355,9 @@ export default function CatalogPage() {
           }
         }
 
-      } catch (err: any) {
-        setError(err.message || "Упс! Щось пішло не так. Спробуйте оновити сторінку.");
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Упс! Щось пішло не так. Спробуйте оновити сторінку.";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
