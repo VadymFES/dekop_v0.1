@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import styles from "./cart.module.css";
 import Image from "next/image";
 import Head from "next/head";
@@ -10,7 +10,7 @@ import { CartItem } from "@/app/lib/definitions";
 import { HomeIcon } from "@/app/ui/icons/breadcrumbs/homeIcon";
 
 export default function Cart() {
-  const { cart, isLoading, error, updateCart, removeFromCart } = useCart();
+  const { cart, updateCart, removeFromCart } = useCart();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -191,7 +191,7 @@ export default function Cart() {
                           <p className={styles.productSpecification}>
                             <strong>Розміри:</strong>
                             {item.productDetails?.specs
-                              ? `${item.productDetails.specs.dimensions.length} x ${item.productDetails.specs.dimensions.depth} x ${item.productDetails.specs.dimensions.height} мм`
+                              ? `${item.productDetails.specs.dimensions.length} x ${('width' in item.productDetails.specs.dimensions) ? item.productDetails.specs.dimensions.width : (item.productDetails.specs.dimensions.depth ?? 0)} x ${('height' in item.productDetails.specs.dimensions ? item.productDetails.specs.dimensions.height : 0)} мм`
                               : "Не вказано"}
                           </p>
                         </div>
