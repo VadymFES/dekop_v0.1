@@ -165,7 +165,7 @@ export async function GET(request: Request) {
     `;
 
     const conditions: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | string[] | number[])[] = [];
     let paramIndex = 1;
 
     // Filter by category
@@ -177,7 +177,7 @@ export async function GET(request: Request) {
     // Filter by max price
     if (maxPrice) {
       conditions.push(`p.price <= $${paramIndex++}`);
-      values.push(parseFloat(maxPrice));
+      values.push(parseFloat(maxPrice).toString());
     }
 
     // Filter by types (folding, kitchen, office, modular)
@@ -317,10 +317,10 @@ function normalizeCategory(category: string): string {
 }
 
 // Helper function to map specs by category
-function mapSpecsByCategory(normalizedCategory: string, row: any) {
+function mapSpecsByCategory(normalizedCategory: string, row: Record<string, unknown>) {
   const baseSpecs = {
-    id: row.specs_id,
-    product_id: row.id,
+    id: row.specs_id as number,
+    product_id: row.id as number,
     category: normalizedCategory,
   };
 
@@ -330,139 +330,139 @@ function mapSpecsByCategory(normalizedCategory: string, row: any) {
     case 'sofa_beds':
       return {
         ...baseSpecs,
-        construction: row.construction || '',
+        construction: (row.construction as string) || '',
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || (normalizedCategory === 'corner_sofas' ? 0 : undefined),
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0,
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || (normalizedCategory === 'corner_sofas' ? 0 : undefined),
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0,
           ...(row.dimensions_sleeping_area_width && row.dimensions_sleeping_area_length ? {
             sleeping_area: {
-              width: row.dimensions_sleeping_area_width,
-              length: row.dimensions_sleeping_area_length
+              width: row.dimensions_sleeping_area_width as number,
+              length: row.dimensions_sleeping_area_length as number
             }
           } : {})
         },
         material: {
-          type: row.material_type || '',
-          composition: row.material_composition || null,
-          backrest_filling: row.material_backrest_filling || undefined,
-          covers: row.material_covers || null
+          type: (row.material_type as string) || '',
+          composition: (row.material_composition as string) || null,
+          backrest_filling: (row.material_backrest_filling as string) || undefined,
+          covers: (row.material_covers as string) || null
         },
         inner_material: row.inner_material_structure || row.inner_material_cushion_filling ? {
-          structure: row.inner_material_structure || '',
-          cushion_filling: row.inner_material_cushion_filling || ''
+          structure: (row.inner_material_structure as string) || '',
+          cushion_filling: (row.inner_material_cushion_filling as string) || ''
         } : undefined,
-        additional_features: row.additional_features || undefined,
-        has_shelves: row.has_shelves ?? undefined,
-        leg_height: row.leg_height || undefined,
-        has_lift_mechanism: row.has_lift_mechanism ?? undefined,
-        types: row.types || [],
-        armrest_type: row.armrest_type || undefined,
+        additional_features: (row.additional_features as string) || undefined,
+        has_shelves: row.has_shelves as boolean | undefined,
+        leg_height: (row.leg_height as string) || undefined,
+        has_lift_mechanism: row.has_lift_mechanism as boolean | undefined,
+        types: (row.types as string[]) || [],
+        armrest_type: (row.armrest_type as string) || undefined,
         seat_height: row.seat_height ? Number(row.seat_height) : undefined
       };
 
     case 'beds':
       return {
         ...baseSpecs,
-        construction: row.construction || undefined,
+        construction: (row.construction as string) || undefined,
         dimensions: {
-          length: row.dimensions_length || 0,
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0,
+          length: (row.dimensions_length as number) || 0,
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0,
           ...(row.dimensions_sleeping_area_width && row.dimensions_sleeping_area_length ? {
             sleeping_area: {
-              width: row.dimensions_sleeping_area_width,
-              length: row.dimensions_sleeping_area_length
+              width: row.dimensions_sleeping_area_width as number,
+              length: row.dimensions_sleeping_area_length as number
             }
           } : {})
         },
-        headboard_type: row.headboard_type || null,
-        storage_options: row.storage_options || null,
-        material: row.material_type || ''
+        headboard_type: (row.headboard_type as string) || null,
+        storage_options: (row.storage_options as string) || null,
+        material: (row.material_type as string) || ''
       };
 
     case 'tables':
       return {
         ...baseSpecs,
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || 0,
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || 0,
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0
         },
-        shape: row.shape || undefined,
-        extendable: row.extendable ?? undefined,
-        material: row.material_type || ''
+        shape: (row.shape as string) || undefined,
+        extendable: row.extendable as boolean | undefined,
+        material: (row.material_type as string) || ''
       };
 
     case 'chairs':
       return {
         ...baseSpecs,
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || 0,
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || 0,
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0
         },
-        upholstery: row.upholstery || undefined,
+        upholstery: (row.upholstery as string) || undefined,
         seat_height: row.seat_height ? Number(row.seat_height) : undefined,
         weight_capacity: row.weight_capacity ? Number(row.weight_capacity) : undefined,
-        material: row.material_type || ''
+        material: (row.material_type as string) || ''
       };
 
     case 'mattresses':
       return {
         ...baseSpecs,
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || row.dimensions_depth || 0
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || (row.dimensions_depth as number) || 0
         },
-        type: row.core_type || row.material_type || '',
-        firmness: row.hardness || '',
-        thickness: row.dimensions_height || 0
+        type: (row.core_type as string) || (row.material_type as string) || '',
+        firmness: (row.hardness as string) || '',
+        thickness: (row.dimensions_height as number) || 0
       };
 
     case 'wardrobes':
       return {
         ...baseSpecs,
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || 0,
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || 0,
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0
         },
-        door_count: row.door_count || 0,
-        door_type: row.door_type || '',
-        internal_layout: row.internal_layout || undefined,
-        material: row.material_type || ''
+        door_count: (row.door_count as number) || 0,
+        door_type: (row.door_type as string) || '',
+        internal_layout: (row.internal_layout as string) || undefined,
+        material: (row.material_type as string) || ''
       };
 
     case 'accessories':
       return {
         ...baseSpecs,
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || 0,
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || 0,
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0
         },
-        mounting_type: row.mounting_type || null,
+        mounting_type: (row.mounting_type as string) || null,
         shelf_count: row.shelf_count ? Number(row.shelf_count) : null,
-        material: row.material_type || ''
+        material: (row.material_type as string) || ''
       };
 
     default:
       return {
         ...baseSpecs,
         dimensions: {
-          length: row.dimensions_length || 0,
-          width: row.dimensions_width || 0,
-          depth: row.dimensions_depth || 0,
-          height: row.dimensions_height || 0
+          length: (row.dimensions_length as number) || 0,
+          width: (row.dimensions_width as number) || 0,
+          depth: (row.dimensions_depth as number) || 0,
+          height: (row.dimensions_height as number) || 0
         },
-        material: row.material_type || '',
-        types: row.types || []
+        material: (row.material_type as string) || '',
+        types: (row.types as string[]) || []
       };
   }
 }
