@@ -1,10 +1,76 @@
 // app/api/cart/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
-import { CartItem, ProductWithDetails } from "@/app/lib/definitions";
+import { CartItem, ProductWithImages } from "@/app/lib/definitions";
+
+// Interface to represent the raw cart item data from the database
+interface CartItemWithProductData {
+  id: string;
+  cart_id: string;
+  product_id: number;
+  quantity: number;
+  color: string;
+  product_name: string;
+  slug: string;
+  description: string;
+  category: string;
+  product_price: number;
+  stock: number;
+  rating: number;
+  reviews: number; // This field is in the definitions but not in the DB table
+  is_on_sale: boolean;
+  is_new: boolean;
+  is_bestseller: boolean;
+  product_created_at: string;
+  product_updated_at: string;
+  specs: any; // Using any temporarily as specs come from row_to_json in the DB
+  images: any[]; // Using any[] temporarily as images come from json_agg in the DB
+  colors: any[]; // Using any[] temporarily as colors come from json_agg in the DB
+}
+
+/**
+ * Transforms raw cart item data into the format defined in the app's type definitions
+ */
+function transformCartItems(items: CartItemWithProductData[]): CartItem[] {
+  return items.map((item) => {
+    const productDetails: ProductWithImages = {
+      id: item.product_id,
+      name: item.product_name,
+      slug: item.slug,
+      description: item.description,
+      category: item.category,
+      price: item.product_price,
+      stock: item.stock,
+      rating: item.rating,
+      reviews: 0, // Set default value since the column doesn't exist in DB
+      is_on_sale: item.is_on_sale,
+      is_new: item.is_new,
+      is_bestseller: item.is_bestseller,
+      created_at: item.product_created_at,
+      updated_at: item.product_updated_at,
+      specs: item.specs,
+      images: item.images || [],
+      colors: item.colors || []
+    };
+
+    const cartItem: CartItem = {
+      id: item.id,
+      product_id: item.product_id,
+      slug: item.slug,
+      name: item.product_name,
+      price: item.product_price,
+      quantity: item.quantity,
+      color: item.color,
+      image_url: item.images?.[0]?.image_url || '',
+      productDetails,
+      colors: item.colors
+    };
+
+    return cartItem;
+  });
+}
 
 /**
  * GET /api/cart
@@ -20,9 +86,13 @@ export async function GET() {
       return NextResponse.json({ items: [] }, { status: 200 });
     }
 
-    const { rows: cartItems }: { rows: ProductWithDetails[] } = await sql`
+    const { rows: cartItems } = await sql<CartItemWithProductData>`
       SELECT 
-        ci.*,
+        ci.id,
+        ci.cart_id,
+        ci.product_id,
+        ci.quantity,
+        ci.color,
         p.id as product_id,
         p.name as product_name,
         p.slug,
@@ -53,27 +123,7 @@ export async function GET() {
       WHERE ci.cart_id = ${cartId}
     `;
 
-    const transformedItems = cartItems.map((item: ProductWithDetails) => ({
-      ...item,
-      productDetails: {
-        id: item.product_id,
-        name: item.product_name,
-        slug: item.slug,
-        description: item.description,
-        category: item.category,
-        price: item.product_price,
-        stock: item.stock,
-        rating: item.rating,
-        is_on_sale: item.is_on_sale,
-        is_new: item.is_new,
-        is_bestseller: item.is_bestseller,
-        created_at: item.product_created_at,
-        updated_at: item.product_updated_at,
-        specs: item.specs,
-        images: item.images || [],
-        colors: item.colors || [],
-      },
-    }));
+    const transformedItems = transformCartItems(cartItems);
 
     return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
@@ -130,9 +180,13 @@ export async function POST(request: NextRequest) {
     `;
 
     // Fetch updated cart items with full product details.
-    const { rows: updatedCartItems }: { rows: ProductWithDetails[] } = await sql`
+    const { rows: updatedCartItems } = await sql<CartItemWithProductData>`
       SELECT 
-        ci.*,
+        ci.id,
+        ci.cart_id,
+        ci.product_id,
+        ci.quantity,
+        ci.color,
         p.id as product_id,
         p.name as product_name,
         p.slug,
@@ -163,27 +217,7 @@ export async function POST(request: NextRequest) {
       WHERE ci.cart_id = ${cartId}
     `;
 
-    const transformedItems = updatedCartItems.map((item: ProductWithDetails) => ({
-      ...item,
-      productDetails: {
-        id: item.product_id,
-        name: item.product_name,
-        slug: item.slug,
-        description: item.description,
-        category: item.category,
-        price: item.product_price,
-        stock: item.stock,
-        rating: item.rating,
-        is_on_sale: item.is_on_sale,
-        is_new: item.is_new,
-        is_bestseller: item.is_bestseller,
-        created_at: item.product_created_at,
-        updated_at: item.product_updated_at,
-        specs: item.specs,
-        images: item.images || [],
-        colors: item.colors || [],
-      },
-    }));
+    const transformedItems = transformCartItems(updatedCartItems);
 
     const response = NextResponse.json({ items: transformedItems }, { status: 200 });
     response.cookies.set("cartId", cartId, {
@@ -198,168 +232,5 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error adding to cart:", error);
     return NextResponse.json({ error: "Failed to add item to cart" }, { status: 500 });
-  }
-}
-
-/**
- * PATCH /api/cart/[id]
- * Update the quantity of a cart item.
- */
-export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
-  try {
-    const { id } = context.params;
-    const { quantity } = await request.json();
-
-    if (!id || !quantity || isNaN(Number(quantity))) {
-      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-    }
-
-    await sql`
-      UPDATE cart_items
-      SET quantity = ${quantity}
-      WHERE id = ${id}
-    `;
-
-    const cookieStore = await cookies();
-    const cartId = cookieStore.get("cartId")?.value;
-    const { rows: updatedCart }: { rows: ProductWithDetails[] } = await sql`
-      SELECT 
-        ci.*,
-        p.id as product_id,
-        p.name as product_name,
-        p.slug,
-        p.description,
-        p.category,
-        p.price as product_price,
-        p.stock,
-        p.rating,
-        p.is_on_sale,
-        p.is_new,
-        p.is_bestseller,
-        p.created_at as product_created_at,
-        p.updated_at as product_updated_at,
-        row_to_json(s) as specs,
-        (
-          SELECT json_agg(row_to_json(pi))
-          FROM product_images pi
-          WHERE pi.product_id = p.id
-        ) as images,
-        (
-          SELECT json_agg(row_to_json(psc))
-          FROM product_spec_colors psc
-          WHERE psc.product_id = p.id
-        ) as colors
-      FROM cart_items ci
-      LEFT JOIN products p ON ci.product_id = p.id
-      LEFT JOIN product_specs s ON p.id = s.product_id
-      WHERE ci.cart_id = ${cartId}
-    `;
-
-    const transformedItems = updatedCart.map((item: ProductWithDetails) => ({
-      ...item,
-      productDetails: {
-        id: item.product_id,
-        name: item.product_name,
-        slug: item.slug,
-        description: item.description,
-        category: item.category,
-        price: item.product_price,
-        stock: item.stock,
-        rating: item.rating,
-        is_on_sale: item.is_on_sale,
-        is_new: item.is_new,
-        is_bestseller: item.is_bestseller,
-        created_at: item.product_created_at,
-        updated_at: item.product_updated_at,
-        specs: item.specs,
-        images: item.images || [],
-        colors: item.colors || [],
-      },
-    }));
-
-    return NextResponse.json({ items: transformedItems }, { status: 200 });
-  } catch (error) {
-    console.error("Error updating cart:", error);
-    return NextResponse.json({ error: "Failed to update cart" }, { status: 500 });
-  }
-}
-
-/**
- * DELETE /api/cart/[id]
- * Remove a specific item from the cart.
- */
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-  try {
-    const { id } = context.params;
-
-    if (!id) {
-      return NextResponse.json({ error: "Item ID required" }, { status: 400 });
-    }
-
-    await sql`
-      DELETE FROM cart_items WHERE id = ${id}
-    `;
-
-    const cookieStore = await cookies();
-    const cartId = cookieStore.get("cartId")?.value;
-    const { rows: updatedCart } = await sql`
-      SELECT 
-        ci.*,
-        p.id as product_id,
-        p.name as product_name,
-        p.slug,
-        p.description,
-        p.category,
-        p.price as product_price,
-        p.stock,
-        p.rating,
-        p.is_on_sale,
-        p.is_new,
-        p.is_bestseller,
-        p.created_at as product_created_at,
-        p.updated_at as product_updated_at,
-        row_to_json(s) as specs,
-        (
-          SELECT json_agg(row_to_json(pi))
-          FROM product_images pi
-          WHERE pi.product_id = p.id
-        ) as images,
-        (
-          SELECT json_agg(row_to_json(psc))
-          FROM product_spec_colors psc
-          WHERE psc.product_id = p.id
-        ) as colors
-      FROM cart_items ci
-      LEFT JOIN products p ON ci.product_id = p.id
-      LEFT JOIN product_specs s ON p.id = s.product_id
-      WHERE ci.cart_id = ${cartId}
-    `;
-
-    const transformedItems = updatedCart.map((item: any) => ({
-      ...item,
-      productDetails: {
-        id: item.product_id,
-        name: item.product_name,
-        slug: item.slug,
-        description: item.description,
-        category: item.category,
-        price: item.product_price,
-        stock: item.stock,
-        rating: item.rating,
-        is_on_sale: item.is_on_sale,
-        is_new: item.is_new,
-        is_bestseller: item.is_bestseller,
-        created_at: item.product_created_at,
-        updated_at: item.product_updated_at,
-        specs: item.specs,
-        images: item.images || [],
-        colors: item.colors || [],
-      },
-    }));
-
-    return NextResponse.json({ items: transformedItems }, { status: 200 });
-  } catch (error) {
-    console.error("Error deleting cart item:", error);
-    return NextResponse.json({ error: "Failed to remove item" }, { status: 500 });
   }
 }
