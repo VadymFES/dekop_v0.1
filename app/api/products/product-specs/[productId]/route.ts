@@ -24,7 +24,7 @@ export async function GET(
     }
 
     console.log("Product found:", productRows[0]);
-    let category = productRows[0].category.trim().toLowerCase();
+    const category = productRows[0].category.trim().toLowerCase();
     console.log("Raw category from database:", category);
 
     // Define a mapping from Ukrainian categories to English categories
@@ -76,8 +76,9 @@ export async function GET(
       } else if (typeof row.types === 'string') {
         // If it's a JSON string
         try {
-          types = JSON.parse(row.types);
-        } catch (e) {
+            types = JSON.parse(row.types);
+          } catch (error) {
+            console.error("Failed to parse JSON types:", error);
           // If it's a comma-separated string
           types = row.types.split(',').map((t: string) => t.trim());
         }
@@ -94,15 +95,21 @@ export async function GET(
       sofaSpecs.construction = row.construction || '';
       
       // Initialize dimensions with both width (for corner sofas) and depth (for regular sofas)
-      sofaSpecs.dimensions = {
-        length: row.length || 0,
-        depth: row.depth || 0,
-        height: row.height || 0
-      };
-      
-      // Add width for corner sofas (they need both width and depth)
       if (!isSofa) {
-        (sofaSpecs.dimensions as any).width = row.width || 0;
+        // For corner sofas include width
+        sofaSpecs.dimensions = {
+          length: row.length || 0,
+          width: row.width || 0,
+          depth: row.depth || 0,
+          height: row.height || 0
+        };
+      } else {
+        // For regular sofas
+        sofaSpecs.dimensions = {
+          length: row.length || 0,
+          depth: row.depth || 0,
+          height: row.height || 0
+        };
       }
 
       // Only add sleeping area if both dimensions exist
@@ -250,13 +257,13 @@ export async function GET(
         additional_features: row.additional_features || ''
       }, { status: 200 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching product specs:", error);
     return NextResponse.json(
       { 
         error: "Failed to fetch product specs",
-        message: error.message,
-        stack: error.stack 
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined 
       },
       { status: 500 }
     );
