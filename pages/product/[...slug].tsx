@@ -11,13 +11,24 @@ import Specifications from './specs/specifications';
 import ProductActions from './actions/actions';
 import ProductReviews from './reviews/reviews';
 import SimilarProducts from './similarProducts/similarproducts';
-import CATEGORY_SLUG_MAP from './lib/constants';
 
 interface ProductPageProps {
   product: ProductWithImages;
   reviews: Review[];
   similarProducts: ProductWithImages[];
 }
+
+const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
+  sofas:      { dbValue: "Диван", uaName: "Дивани" },
+  sofaBeds:   { dbValue: "Диван-Ліжко", uaName: "Дивани-ліжка" },
+  cornerSofas:{ dbValue: "Кутовий Диван", uaName: "Кутові дивани" }, 
+  chairs:     { dbValue: "Стілець", uaName: "Стільці" },
+  tables:     { dbValue: "Стіл", uaName: "Столи" },
+  wardrobes:  { dbValue: "Шафа", uaName: "Шафи" },
+  beds:       { dbValue: "Ліжко", uaName: "Ліжка" },
+  mattresses: { dbValue: "Матрац", uaName: "Матраци" },
+  accessories:{ dbValue: "Аксесуар", uaName: "Аксесуари" }
+};
 
 const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProducts }) => {
   if (!product) {
@@ -105,7 +116,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
             <h2 className={styles.bodyContentTitle}>Схожі товари</h2>
             <Link 
               href={`/catalog?category=${Object.entries(CATEGORY_SLUG_MAP).find(
-              ([key, { dbValue }]) => dbValue === product.category
+              ([, { dbValue }]) => dbValue === product.category
               )?.[0] || ''}`}
               className={styles.bodyContentButton}
             >
