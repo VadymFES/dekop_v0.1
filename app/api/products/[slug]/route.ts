@@ -47,8 +47,51 @@ function normalizeCategory(category: string): string {
   return categoryMap[category] || category.toLowerCase();
 }
 
+// Interface for the raw database row data
+interface ProductSpecRow {
+  id?: number;
+  product_id?: number;
+  construction?: string;
+  dimensions_length?: number | string;
+  dimensions_width?: number | string;
+  dimensions_depth?: number | string;
+  dimensions_height?: number | string;
+  dimensions_sleeping_area_width?: number | string;
+  dimensions_sleeping_area_length?: number | string;
+  material?: string;
+  material_type?: string;
+  material_composition?: string;
+  material_backrest_filling?: string;
+  material_covers?: string;
+  inner_material_structure?: string;
+  inner_material_cushion_filling?: string;
+  additional_features?: string;
+  has_shelves?: boolean | number | string;
+  leg_height?: string;
+  has_lift_mechanism?: boolean | number | string;
+  types?: string[];
+  armrest_type?: string;
+  seat_height?: number | string;
+  headboard_type?: string;
+  storage_options?: string;
+  shape?: string;
+  extendable?: boolean | number | string;
+  upholstery?: string;
+  weight_capacity?: number | string;
+  type?: string;
+  core_type?: string;
+  hardness?: string;
+  door_count?: number | string;
+  door_type?: string;
+  internal_layout?: string;
+  mounting_type?: string;
+  shelf_count?: number | string;
+  // Add any other fields that might appear in your database rows
+  [key: string]: any;
+}
+
 // Функція для маппінгу специфікацій залежно від категорії
-function mapProductSpecs(normalizedCategory: string, row: any): ProductSpecs | null {
+function mapProductSpecs(normalizedCategory: string, row: ProductSpecRow): ProductSpecs | null {
   if (!row) return null;
   
   // Базова функція для безпечного отримання числових значень
@@ -388,7 +431,7 @@ export async function GET(
     }));
 
     // Query to get the product specs based on category
-    let specsRows: any[] = [];
+    let specsRows: ProductSpecRow[] = [];
     
     // Визначаємо правильну таблицю специфікацій на основі категорії
     switch (normalizedCategory) {
