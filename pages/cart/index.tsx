@@ -6,7 +6,7 @@ import Image from "next/image";
 import Head from "next/head";
 import Link from "next/link";
 import { useCart } from "@/app/hooks/useCart";
-import { CartItem } from "@/app/lib/definitions";
+import { CartItem, ProductSpecs } from "@/app/lib/definitions";
 import { HomeIcon } from "@/app/ui/icons/breadcrumbs/homeIcon";
 
 export default function Cart() {
@@ -47,6 +47,66 @@ export default function Cart() {
     } else {
       setSelectedIds((prev) => prev.filter((id) => id !== itemId));
     }
+  };
+
+  // Helper functions for dimensions (copied from actions component)
+  const getWidthValue = (specs: ProductSpecs) => {
+    if (!specs?.dimensions) return null;
+    
+    // For mattresses and other products with width
+    if ('width' in specs.dimensions && specs.dimensions.width !== undefined && specs.dimensions.width > 0) {
+      return specs.dimensions.width;
+    }
+    return null;
+  };
+  
+  const getDepthValue = (specs: ProductSpecs) => {
+    if (!specs?.dimensions) return null;
+    
+    // For all products with depth
+    if ('depth' in specs.dimensions && specs.dimensions.depth !== undefined && specs.dimensions.depth > 0) {
+      return specs.dimensions.depth;
+    }
+    return null;
+  };
+  
+  // Function to get height, considering different field names in different categories
+  const getHeight = (specs: ProductSpecs) => {
+    if (!specs?.dimensions) return null;
+    
+    // If there is height, return it
+    if ('height' in specs.dimensions && specs.dimensions.height !== undefined && specs.dimensions.height > 0) {
+      return specs.dimensions.height;
+    }
+    // If category is mattress, use thickness as height
+    else if (specs.category === 'mattresses' && 'thickness' in specs && specs.thickness > 0) {
+      return specs.thickness;
+    }
+    return null;
+  };
+
+  // Function to format dimensions string
+  const formatDimensions = (specs: ProductSpecs) => {
+    if (!specs?.dimensions?.length) return "Не вказано";
+    
+    const lengthValue = specs.dimensions.length;
+    const dimensionParts = [`${lengthValue}`];
+    
+    const widthValue = getWidthValue(specs);
+    const depthValue = getDepthValue(specs);
+    const heightValue = getHeight(specs);
+    
+    if (widthValue !== null) {
+      dimensionParts.push(`${widthValue}`);
+    } else if (depthValue !== null) {
+      dimensionParts.push(`${depthValue}`);
+    }
+    
+    if (heightValue !== null) {
+      dimensionParts.push(`${heightValue}`);
+    }
+    
+    return dimensionParts.join(' x ') + ' мм';
   };
 
   return (
@@ -189,9 +249,9 @@ export default function Cart() {
                             )}
                           </div>
                           <p className={styles.productSpecification}>
-                            <strong>Розміри:</strong>
+                            <strong>Розміри:</strong>{" "}
                             {item.productDetails?.specs
-                              ? `${item.productDetails.specs.dimensions.length} x ${('width' in item.productDetails.specs.dimensions) ? item.productDetails.specs.dimensions.width : (item.productDetails.specs.dimensions.depth ?? 0)} x ${('height' in item.productDetails.specs.dimensions ? item.productDetails.specs.dimensions.height : 0)} мм`
+                              ? formatDimensions(item.productDetails.specs)
                               : "Не вказано"}
                           </p>
                         </div>
