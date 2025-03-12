@@ -18,6 +18,18 @@ interface ProductPageProps {
   similarProducts: ProductWithImages[];
 }
 
+const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
+  sofas:      { dbValue: "Диван", uaName: "Дивани" },
+  sofaBeds:   { dbValue: "Диван-Ліжко", uaName: "Дивани-ліжка" },
+  cornerSofas:{ dbValue: "Кутовий Диван", uaName: "Кутові дивани" }, 
+  chairs:     { dbValue: "Стілець", uaName: "Стільці" },
+  tables:     { dbValue: "Стіл", uaName: "Столи" },
+  wardrobes:  { dbValue: "Шафа", uaName: "Шафи" },
+  beds:       { dbValue: "Ліжко", uaName: "Ліжка" },
+  mattresses: { dbValue: "Матрац", uaName: "Матраци" },
+  accessories:{ dbValue: "Аксесуар", uaName: "Аксесуари" }
+};
+
 const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProducts }) => {
   if (!product) {
     return <div>Product not found</div>;
@@ -74,7 +86,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
                 {product.specs ? (
                   <Specifications product={product} />
                 ) : (
-                  <div>No specifications available.</div>
+                  <div>Специфікації не доступні</div>
                 )}
               </div>
 
@@ -102,11 +114,17 @@ const ProductPage: React.FC<ProductPageProps> = ({ product, reviews, similarProd
         <section className={styles.similarCarousel}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Схожі товари</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі
+            <Link 
+              href={`/catalog?category=${Object.entries(CATEGORY_SLUG_MAP).find(
+              ([, { dbValue }]) => dbValue === product.category
+              )?.[0] || ''}`}
+              className={styles.bodyContentButton}
+            >
+              Переглянути всі
               <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </button>
+            </Link>
           </div>
 
           <SimilarProducts products={similarProducts} />
@@ -126,27 +144,55 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     if (!productRes.ok) throw new Error('Product not found');
     const product = await productRes.json();
 
-    // Fetch specs and colors
-    const [specsRes, colorsRes, similarProductsRes] = await Promise.all([
+    // Fetch specs, colors, and similar products
+    const [specsRes, colorsRes, similarProductsRes, reviewsRes] = await Promise.all([
       fetch(`${baseUrl}/api/products/product-specs/${product.id}`),
       fetch(`${baseUrl}/api/products/product-colors/${product.id}`),
-      fetch(`${baseUrl}/api/products/similarRecommendations/${slug}`) 
+      fetch(`${baseUrl}/api/products/similarRecommendations/${slug}`),
+      fetch(`${baseUrl}/api/products/reviews/${product.id}`)
     ]);
 
-    const specs = specsRes.ok ? await specsRes.json() : null;
+    // Process specs data - THIS IS THE KEY FIX
+    let specsData = null;
+    let categoryOverride = null;
+    
+    if (specsRes.ok) {
+      const specsResponse = await specsRes.json();
+      
+      // Check if the response has a specs property (from our updated API)
+      if (specsResponse && specsResponse.specs) {
+        specsData = specsResponse.specs;  // Extract just the specs object
+        categoryOverride = specsResponse.category; // Get the normalized category from the API
+      } else {
+        // Handle the case where the API hasn't been updated yet
+        specsData = specsResponse;
+      }    
+    }
+
+    // Get other data
     const colors = colorsRes.ok ? await colorsRes.json() : [];
     const similarProducts = similarProductsRes.ok ? await similarProductsRes.json() : [];
+    const reviews = reviewsRes.ok ? await reviewsRes.json() : [];
 
     // Combine all data
     const fullProduct: ProductWithImages = {
       ...product,
-      specs,
+      // Override category if we got a normalized one from the API
+      category: categoryOverride || product.category,
+      specs: specsData,
       colors,
     };
+
+    console.log('Full product with specs:', {
+      id: fullProduct.id,
+      category: fullProduct.category,
+      hasSpecs: Boolean(fullProduct.specs)
+    });
 
     return {
       props: {
         product: fullProduct,
+        reviews,
         similarProducts,
       },
     };

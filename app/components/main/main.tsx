@@ -9,6 +9,7 @@ import Bestseller from "../bestsellers/bestseller";
 import { ProductWithImages } from "@/app/lib/definitions";
 import Sale from "../saleCarousel/sale";
 import useSWR from 'swr'
+import Link from "next/link";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
@@ -128,7 +129,7 @@ const Main = () => {
         <section className={styles.bodyContent}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Новинки</h2>
-            <button className={styles.bodyContentButton}>
+            <Link href="/catalog?status=new" className={styles.bodyContentButton}>
               Переглянути всі
               <svg
                 width="35"
@@ -145,7 +146,7 @@ const Main = () => {
                   strokeLinejoin="round"
                 />
               </svg>
-            </button>
+            </Link>
           </div>
           <ProductGrid />
         </section>
@@ -377,7 +378,10 @@ const Main = () => {
               className={styles.bankBannerImage} 
               width={1400}
               height={400}
-              >
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="/banner.jpg"
+            >
             </Image>
 
         </section>
@@ -385,11 +389,11 @@ const Main = () => {
         <section className={styles.saleCarousel}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Розпродаж</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі
+            <Link href="/catalog?status=on_sale" className={styles.bodyContentButton}>Переглянути всі
               <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </button>
+            </Link>
           </div>
           <Sale products={products} />
         </section>
@@ -412,11 +416,11 @@ const Main = () => {
         <section className={styles.bodyBestsellers}>
           <div className={styles.bodyContentHeader}>
             <h2 className={styles.bodyContentTitle}>Популярне</h2>
-            <button className={styles.bodyContentButton}>Переглянути всі
+            <Link href="/catalog?status=bestseller" className={styles.bodyContentButton}>Переглянути всі
               <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            </button>
+            </Link>
           </div>
         <Bestseller products={products} />
         </section>

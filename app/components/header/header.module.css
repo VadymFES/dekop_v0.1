@@ -64,7 +64,7 @@
 
 
 .navButton,
-.menuTextButton {
+.menuTextButton, .navButtonCatalog {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -76,8 +76,22 @@
   cursor: pointer;
   padding: 0 16px;
   transition: color 0.3s ease;
-  background: none; /* Remove default button background */
+  background: none; 
 }
+
+.catalogArrow {
+  transition: transform 0.3s ease;
+}
+
+.navButtonCatalog:hover .catalogArrow {
+  transform: rotate(90deg);
+}
+
+.catalogContainer:hover .catalogArrow {
+  transform: rotate(90deg);
+}
+
+
 
 .navButton:hover,
 .menuTextButton:hover {
@@ -120,11 +134,6 @@
   transform: translateX(-50%);
   width: 90%; /* Set the width of the border to half of the dropdown */
   border-top: 1px solid #1601013D; /* Define the border style */
-}
-
-.dropdownItem {
-  padding: 10px 16px;
-  cursor: pointer;
 }
 
 .rightIcons {
@@ -217,7 +226,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 16px;
+  padding: 15px 16px;
   text-decoration: none;
   color: #160101;
   cursor: pointer;

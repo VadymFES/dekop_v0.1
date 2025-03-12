@@ -1,8 +1,0 @@
-{
-    "functions": {
-      "api/cleanup/route.ts": {
-        "schedule": "0 0 * * *" 
-      }
-    }
-  }
-  

@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { Product, ProductImage, ProductSpecs } from "@/app/lib/definitions";
 
+// Extended interface to match what's returned from the database
+interface ProductImageWithProductId extends ProductImage {
+  product_id: number;
+}
+
+// Extended interface to match what's returned from the database
+interface ProductSpecsWithProductId extends Omit<ProductSpecs, 'product_id'> {
+  product_id: number;
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ slug: string }> }
@@ -37,7 +47,7 @@ export async function GET(
     const idsJsonb = JSON.stringify(similarProductIds);
 
     // Query product_images using the JSONB array method
-    const { rows: imageRows } = await sql<ProductImage>`
+    const { rows: imageRows } = await sql<ProductImageWithProductId>`
       SELECT * FROM product_images 
       WHERE product_id = ANY(
         ARRAY(
@@ -47,7 +57,7 @@ export async function GET(
     `;
 
     // Query product_specs using the JSONB array method
-    const { rows: specsRows } = await sql<ProductSpecs>`
+    const { rows: specsRows } = await sql<ProductSpecsWithProductId>`
       SELECT * FROM product_specs 
       WHERE product_id = ANY(
         ARRAY(
@@ -57,13 +67,13 @@ export async function GET(
     `;
 
     // 5️⃣ Organize images and specs by product
-    const imagesMap = imageRows.reduce<Record<number, ProductImage[]>>((acc, image) => {
+    const imagesMap = imageRows.reduce<Record<number, ProductImageWithProductId[]>>((acc, image) => {
       if (!acc[image.product_id]) acc[image.product_id] = [];
       acc[image.product_id].push(image);
       return acc;
     }, {});
 
-    const specsMap = specsRows.reduce<Record<number, ProductSpecs>>((acc, spec) => {
+    const specsMap = specsRows.reduce<Record<number, ProductSpecsWithProductId>>((acc, spec) => {
       acc[spec.product_id] = spec;
       return acc;
     }, {});

@@ -32,6 +32,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
     if (!product) return;
     addToCart( { productId: product.id.toString(), quantity, color: selectedColor.color });
   };
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -51,9 +52,46 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
   
   if (isLoading) return <div>Loading...</div>;
 
-
-
   const { name, stock, rating, price, specs, colors } = product;
+  
+  // Check if we have specs and dimensions to display
+  const showDimensions = specs && specs.dimensions;
+
+  // Функції для отримання розмірів, враховуючи різну структуру для різних категорій
+  const getWidthValue = () => {
+    if (!specs?.dimensions) return null;
+    
+    // Для матраців та інших товарів з width
+    if ('width' in specs.dimensions && specs.dimensions.width !== undefined && specs.dimensions.width > 0) {
+      return specs.dimensions.width;
+    }
+    return null;
+  };
+  
+  const getDepthValue = () => {
+    if (!specs?.dimensions) return null;
+    
+    // Для всіх товарів з depth
+    if ('depth' in specs.dimensions && specs.dimensions.depth !== undefined && specs.dimensions.depth > 0) {
+      return specs.dimensions.depth;
+    }
+    return null;
+  };
+  
+  // Функція для отримання висоти, враховуючи різні назви поля у різних категоріях
+  const getHeight = () => {
+    if (!specs?.dimensions) return null;
+    
+    // Якщо є height, повертаємо її
+    if ('height' in specs.dimensions && specs.dimensions.height !== undefined && specs.dimensions.height > 0) {
+      return specs.dimensions.height;
+    }
+    // Якщо категорія матрац, використовуємо thickness як висоту
+    else if (specs.category === 'mattresses' && 'thickness' in specs && specs.thickness > 0) {
+      return specs.thickness;
+    }
+    return null;
+  };
 
   return (
     <div className={styles.parent}>
@@ -71,20 +109,37 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
       </div>
 
       <div className={styles.staticContainer}>
-        <div className={styles.dimensionsContainer}>
-          <div className={styles.specsItem}>
-            <span className={styles.specsTitle}>Довжина:</span>
-            <span>{specs?.dimensions.length}мм</span>
+        {showDimensions && (
+          <div className={styles.dimensionsContainer}>
+            {specs?.dimensions?.length !== undefined && specs.dimensions.length > 0 && (
+              <div className={styles.specsItem}>
+                <span className={styles.specsTitle}>Довжина:</span>
+                <span>{specs.dimensions.length}мм</span>
+              </div>
+            )}
+            
+            {getWidthValue() !== null && (
+              <div className={styles.specsItem}>
+                <span className={styles.specsTitle}>Ширина:</span>
+                <span>{getWidthValue()}мм</span>
+              </div>
+            )}
+            
+            {getDepthValue() !== null && (
+              <div className={styles.specsItem}>
+                <span className={styles.specsTitle}>Глибина:</span>
+                <span>{getDepthValue()}мм</span>
+              </div>
+            )}
+            
+            {getHeight() !== null && (
+              <div className={styles.specsItem}>
+                <span className={styles.specsTitle}>Висота:</span>
+                <span>{getHeight()}мм</span>
+              </div>
+            )}
           </div>
-          <div className={styles.specsItem}>
-            <span className={styles.specsTitle}>Ширина:</span>
-            <span>{specs?.dimensions.depth}мм</span>
-          </div>
-          <div className={styles.specsItem}>
-            <span className={styles.specsTitle}>Висота:</span>
-            <span>{specs?.dimensions.height}мм</span>
-          </div>
-        </div>
+        )}
 
         <div className={styles.specsItemDropdown}>
           <span className={styles.specsTitle}>Колір:</span>
@@ -202,7 +257,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
           <div className={styles.deliveryDetails}>
             <h4 className={styles.deliveryTitle}>Доставка від магазину</h4>
             <p className={styles.deliveryDescription}>
-              Ми забезпечуємо доставку нашим власним кур’єром по всій Україні. Точні витрати на доставку будуть
+              Ми забезпечуємо доставку нашим власним кур&apos;єром по всій Україні. Точні витрати на доставку будуть
               розраховані менеджером.
             </p>
           </div>
@@ -213,7 +268,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
           <div className={styles.deliveryDetails}>
             <h4 className={styles.deliveryTitle}>Нова Пошта з нами</h4>
             <p className={styles.deliveryDescription}>
-              Надсилаємо замовлення Новою Поштою на відділення або кур’єром. Вартість доставки за тарифами пошти.
+              Надсилаємо замовлення Новою Поштою на відділення або кур&apos;єром. Вартість доставки за тарифами пошти.
             </p>
           </div>
         </div>

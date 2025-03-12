@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styles from './reviewSection.module.css';
 import Review from './review';
-import Pagination from '../pagination/pagination';
 
 const reviewsData = [
   { rating: 5, text: 'Чудовий сервіс та якість!', author: 'Іван Іваненко', date: '2024-10-27' },
@@ -43,12 +42,6 @@ const ReviewsSection = () => {
           />
         ))}
       </div>
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
     </section>
   );
 };
