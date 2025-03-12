@@ -27,21 +27,6 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
     setIsCatalogView(true);
   };
 
-  const handleMouseLeave = (e: React.MouseEvent) => {
-    // Check if the mouse is moving to the dropdown area
-    const relatedTarget = e.relatedTarget as Node;
-    if (catalogRef.current && catalogRef.current.contains(relatedTarget)) {
-      return; // Don't close if moving to dropdown
-    }
-    
-    // Don't close if moving from dropdown to the catalog button
-    if (catalogButtonRef.current && catalogButtonRef.current.contains(relatedTarget)) {
-      return;
-    }
-    
-    setIsCatalogView(false);
-  };
-
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -57,7 +42,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
   };
 
   // Add an extra property to track if the mouse is over the dropdown
-  const [isOverDropdown, setIsOverDropdown] = useState(false);
+  const [, setIsOverDropdown] = useState(false);
   
   const handleDropdownMouseEnter = () => {
     setIsOverDropdown(true);
