@@ -23,7 +23,7 @@ export default function Cart() {
       const allDataLoaded = cart.every(item => 
         item.productDetails?.name && 
         item.productDetails?.price &&
-        item.colors &&
+        // item.colors &&
         item.productDetails?.specs
       );
       
