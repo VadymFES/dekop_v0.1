@@ -16,16 +16,24 @@ export default function Cart() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
-    // Simulate loading state 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
-
-    if (cart.length > 0 && selectedIds.length === 0) {
-      setSelectedIds(cart.map((item) => item.id));
+    if (cart.length === 0) {
+      setIsLoading(true);
+    } else {
+      // Check if all required properties are loaded
+      const allDataLoaded = cart.every(item => 
+        item.productDetails?.name && 
+        item.productDetails?.price &&
+        item.colors &&
+        item.productDetails?.specs
+      );
+      
+      if (allDataLoaded) {
+        setIsLoading(false);
+        if (selectedIds.length === 0) {
+          setSelectedIds(cart.map((item) => item.id));
+        }
+      }
     }
-    
-    return () => clearTimeout(timer);
   }, [cart]);
   
   // Calculate totals
