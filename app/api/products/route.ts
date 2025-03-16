@@ -1,6 +1,25 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 
+// Helper function to normalize category names
+function normalizeCategory(category: string): string {
+  // Convert category names to their normalized form
+  const categoryMap: Record<string, string> = {
+    'corner sofa': 'corner_sofas',
+    'sofa': 'sofas',
+    'sofa bed': 'sofa_beds',
+    'bed': 'beds',
+    'table': 'tables',
+    'chair': 'chairs',
+    'mattress': 'mattresses',
+    'wardrobe': 'wardrobes',
+    'accessory': 'accessories'
+  };
+  
+  const lowerCategory = category.toLowerCase();
+  return categoryMap[lowerCategory] || lowerCategory;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
@@ -281,39 +300,17 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json(products, { status: 200 });
+    // Add Cache-Control header to the response
+    return NextResponse.json(products, { 
+      status: 200,
+      headers: { 
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600' 
+      }
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
-}
-
-// Helper function to normalize categories
-function normalizeCategory(category: string): string {
-  const categoryMap: { [key: string]: string } = {
-    'Диван': 'sofas',
-    'диван': 'sofas',
-    'Кутовий Диван': 'corner_sofas',
-    'кутовий диван': 'corner_sofas',
-    'Диван-Ліжко': 'sofa_beds',
-    'диван-ліжко': 'sofa_beds',
-    'Стілець': 'chairs',
-    'стілець': 'chairs',
-    'Матрас': 'mattresses',
-    'матрац': 'mattresses',
-    'Стіл': 'tables',
-    'стіл': 'tables',
-    'Ліжко': 'beds',
-    'ліжко': 'beds',
-    'Шафа': 'wardrobes',
-    'шафа': 'wardrobes',
-    'Гардероб': 'wardrobes',
-    'гардероб': 'wardrobes',
-    'Аксесуар': 'accessories',
-    'аксесуар': 'accessories'
-  };
-
-  return categoryMap[category] || category.toLowerCase();
 }
 
 // Helper function to map specs by category
