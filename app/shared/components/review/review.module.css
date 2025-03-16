@@ -1,0 +1,40 @@
+.review {
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: #F4F3F3;
+  width: 384px;
+  height: 174px;
+  position: relative; /* Allow absolute positioning of the author */
+  display: flex;
+  flex-direction: column; /* Align items vertically */
+  justify-content: center; /* Center content vertically */
+  text-align: center; /* Center text */
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #777;
+}
+
+.rating {
+  font-weight: bold;
+}
+
+.text {
+  margin: 8px 0;
+  flex-grow: 1; /* Allow text to take available space */
+  display: flex;
+  justify-content: center; /* Center text horizontally */
+  align-items: center; /* Center text vertically */
+}
+
+.author {
+  position: absolute; /* Position author absolutely */
+  bottom: 10px; /* Distance from the bottom */
+  right: 10px; /* Distance from the right */
+  font-style: italic;
+  color: #333;
+}

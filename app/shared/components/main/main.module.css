@@ -1,0 +1,552 @@
+.container {
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  height: auto; /* Full height of the viewport */
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+
+.headerImage {
+  height: 32rem;
+  background: url('/image_mainscreen.png') no-repeat center center; /* Your header image */
+  background-size: cover; /* Cover the entire area */
+  display: flex;
+  flex-direction: column; /* Stack header content vertically */
+  align-items: center; /* Center horizontally */
+  text-align: center; /* Center text */
+}
+
+.heading {
+  font-size: 4rem; 
+  font-weight: 900;
+  font-style: italic;
+  line-height: 88px;
+  color: #4A502B;
+  padding-bottom: 10px; /* Optional: add space below if needed */
+  margin-bottom: 1.5rem;
+}
+
+.subheading {
+  width: 400px;
+  height: 84px;
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem; 
+  margin-right: 33rem;
+}
+
+.ctaButton {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  width: 282px;
+  height: 44px; /* Height of the button */
+  padding: 0; /* Remove padding to maintain the round shape */
+  border-radius: 50px; /* Make the button round */
+  font-size: 1.1rem; /* Button font size */
+  background-color: #F45145; /* Button background color */
+  color: #FEFDFC; /* Button text color */
+  border: none; /* No border */
+  cursor: pointer; /* Pointer on hover */
+  transition: background-color 0.3s ease; /* Smooth transition */
+  margin-right: 33rem;
+  gap: 8px;
+}
+
+.ctaButton:hover {
+  background-color: #ca3b3b; /* Darker shade on hover */
+}
+
+.advantages_container {
+  display: flex; 
+  justify-content: space-around; /* Distribute space around children */
+  height: 8.4rem; /* Fixed height */
+  background-color: #F4F3F3; /* Background color */
+  padding: 20px 0; /* Padding on top and bottom */
+  overflow-x: auto;    /* Hides horizontal scrollbar if any slight overflow occurs */
+  overflow-y: hidden;
+}
+
+.advantage {
+  display: flex; 
+  flex-direction: column; /* Stack icon and text vertically */
+  align-items: center; /* Center items horizontally */
+  gap: 10px; /* Space between icon and text */
+}
+
+.iconBox {
+  width: 60px; /* Width of the icon box */
+  height: 60px; /* Height of the icon box */
+  background-color: #d3d3d3; /* Gray background */
+  border-radius: 8px; /* Rounded corners */
+  display: flex; /* Flexbox for centering the SVG */
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.3); /* Shadow effect */
+}
+
+.iconImage {
+  object-fit: contain; /* Scale the icon to maintain aspect ratio */
+}
+
+.advantageText {
+  margin-top: 8px; /* Space between icon and text */
+  text-align: center; /* Center the text */
+  font-size: 1rem; 
+  color: #E2281B; /* Text color */
+}
+
+.bodyContent {
+  display: flex; /* Flexbox for body content */
+  flex-direction: column;
+  align-items: center; /* Center items horizontally */
+  height: 850px;
+  margin: 1.5rem 4rem;
+  gap: 24px;
+}
+
+.bodyContentHeader {
+  display: flex;              /* Use flexbox for layout */
+  justify-content: space-between; /* Distribute space between the title and button */
+  align-items: center;        /* Vertically align items in the center */
+  padding: 20px 0;            /* Add padding for spacing */
+  width: 100%;                /* Make the header span the full width */
+}
+
+.bodyContentTitle {
+  font-size: 2rem;            /* Adjust the font size for the title */
+  font-weight: 700;           /* Bold text */
+  overflow: hidden;
+}
+
+.bodyContentButton {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  width: 384px;
+  height: 44px; /* Height of the button */
+  padding: 0; /* Remove padding to maintain the round shape */
+  border-radius: 50px; /* Make the button round */
+  font-size: 1.1rem; /* Button font size */
+  background-color: transparent; /* Button background color */
+  color: #000000; /* Button text color */
+  border: 2px solid #E2281B;
+  cursor: pointer; /* Pointer on hover */
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.bodyContentButton:hover {
+  color: #E2281B;
+  transition: 0.4s;
+}
+
+/* .bodyContentGrid {
+  display: flex;
+  gap: 20px; 
+  justify-content: space-between; 
+  height: 730px;
+  
+} */
+
+
+
+.bodyCategories {
+  display: flex; /* Flexbox for categories section */
+  flex-direction: column; /* Stack children vertically */
+  gap: 20px; /* Space between categories */
+  margin: 1rem 4rem; /* Margin on top and bottom */
+}
+
+.advantages_container_categories {
+  display: flex; /* Use flexbox */
+  justify-content: space-around; /* Distribute space around children */
+  height: 115px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 16px; /* Adjust spacing between items */
+}
+
+.iconBoxCatg{
+  width: 98px; /* Width of the icon box */
+  height: 115px; /* Height of the icon box */
+  background-color: #F4F3F3; /* Gray background */
+  border-radius: 22px; /* Rounded corners */
+  display: flex; /* Flexbox for centering the SVG */
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
+  }
+
+.advantageCtgText{
+  text-align: center; /* Center the text */
+  font-size: 1rem; 
+}
+
+.bankBanner {
+  display: flex;
+  margin: 1rem 4rem;
+  align-items: center; /* Aligns items vertically in the center */
+  justify-content: center; /* Centers items horizontally */
+}
+
+.bankBannerImage{
+  max-width: 100%;
+  height: auto;
+  display: block; 
+  border-radius: 6px;
+}
+
+
+/* carousel */
+
+.saleCarousel {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
+  margin: 1rem 4rem;
+  flex-direction: column;
+}
+
+.bodyContentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* .carouselContainer {
+  display: flex;
+  overflow-x: auto; 
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+} */
+
+/* .carousel {
+  display: flex;
+  justify-content: space-between;
+  transition: transform 0.3s ease;
+} */
+
+/*Materials styles*/
+
+.bodyMaterials {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center horizontally */
+  margin: 1rem 4rem; /* Remove side margins to prevent overflow */
+  flex-direction: column;
+}
+
+/* .materialsContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 2rem; 
+} */
+
+/*Bestsellers styles*/
+
+.bodyBestsellers {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
+  margin: 1rem 4rem;
+  flex-direction: column;
+}
+
+/* .bestsellersContainer {
+  display: flex;
+  overflow-x: auto;
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.bestsellersContainer::-webkit-scrollbar {
+  display: none; 
+} */
+
+.bodyPartners {
+  display: flex;
+  align-items: center;
+  margin: 1rem 4rem;
+  flex-direction: column;
+  height: auto; /* Allow the height to adjust based on content */
+  max-width: 1920px;
+}
+
+.reviewsContainer {
+  max-width: 100%;
+}
+
+.bodyReviews {
+  display: flex; /* Flexbox for body content */
+  align-items: center; /* Center items horizontally */
+  margin: 1rem 4rem;
+  flex-direction: column;
+}
+
+.scrollButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.arrowScrollButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 4rem;
+  display: flex;
+  align-items: center;
+}
+
+.arrowScrollButton:active{
+  transform: scale(0.9);
+}
+
+/* Dots container */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  max-width: 150px;
+}
+
+/* Individual dot */
+.dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 0.25rem;
+  transition: background-color 0.3s ease;
+}
+
+.activeDot {
+  background-color: #F45145;
+}
+
+/* Responsive design */
+
+@media screen and (max-width: 1500px) {
+
+  .bodyContent {
+    height: auto;
+  }
+
+
+  /* .bodyContentGrid{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+  } */
+
+  .heading {
+    font-size: 3.5rem; 
+    line-height: 70px;
+  }
+
+  .subheading {
+    width: 350px;
+    font-size: 1.2rem;
+    margin-right: 25rem;
+  }
+
+  .ctaButton {
+    width: 250px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1.2rem; 
+    margin-right: 25rem;
+  }
+
+
+}
+
+
+@media screen and (max-width: 1024px) {
+
+  .heading{
+    font-size: 2.5rem; 
+    line-height: 70px;
+  }
+
+  .subheading {
+    width: 350px;
+    font-size: 1.2rem;
+    margin-right: 17rem;
+  }
+
+  .ctaButton {
+    width: 250px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1.2rem; 
+    margin-right: 17rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .headerImage {
+    height: 20rem; /* Reduce the height on smaller screens */
+    padding-top: 5vh; /* Adjust the padding for smaller screens */
+  }
+
+  .heading {
+    font-size: 2rem; 
+    line-height: 50px;
+  }
+
+  .subheading {
+    width: 350px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    height: 60px;
+  }
+
+  .ctaButton {
+    width: 220px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1.1rem; 
+  }
+
+
+  .bodyContentButton {
+    width: 220px;
+    height: 55px;
+    font-size: 1rem;
+}
+
+
+
+  /* .bodyContentGrid {
+    display: flex;
+    justify-content: flex-start;
+    overflow: auto;
+    height: auto;
+  } */
+
+  .scrollButtons {
+    width: 50%; /* Hide the dots on smaller screens */
+  }
+
+  .arrowScrollButton {
+    margin: 0 1rem; /* Adjust the margin */
+  }
+
+
+}
+
+@media screen and (max-width: 600px)  { 
+
+  .headerImage {
+    height: 20rem; /* Further reduce the height on very small screens */
+    padding-top: 4vh; /* Adjust the padding for very small screens */
+  }
+
+  .heading {
+    font-size: 2rem; 
+    line-height: 35px;
+    margin: 0;
+    }
+
+  .subheading {
+    width: 350px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .bodyContent,
+  .bodyCategories,
+  .bodyMaterials,
+  .bodyBestsellers,
+  .bodyReviews,
+  .bodyPartners,
+  .bankBanner,
+  .saleCarousel {
+    margin: 1rem 1rem;
+  }
+
+.arrowScrollButton{
+  display: none;
+}
+
+}
+
+@media screen and (max-width: 480px)  {
+
+  .headerImage {
+    height: 20rem; /* Further reduce the height on very small screens */
+    padding-top: 4vh; /* Adjust the padding for very small screens */
+  }
+
+  .heading {
+    font-size: 2.5rem; 
+    line-height: 35px;
+    margin: 0;
+    }
+
+  .subheading {
+display: none;
+  }
+
+  .ctaButton {
+    width: 180px;
+    height: 44px; 
+    padding: 0; 
+    border-radius: 50px; 
+    font-size: 1rem; 
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+
+
+  .advantages_container {
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    height: auto; 
+    gap: 0.5rem;
+  }
+
+  .advantage {
+    gap: 2px; 
+  }
+
+  .advantageText {
+    font-size: 0.8rem;
+  }
+
+  .advantages_container_categories{
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .categories, 
+  .iconBoxCatg {
+    width: 100px;
+    height: 100px;
+  }
+
+.bodyContentButton {
+    width: 160px;
+    height: 40px;
+    font-size: 0.8rem;
+}
+
+.bodyContentTitle {
+  font-size: 1.5rem;            
+}
+
+
+  .iconBoxCatg {
+    margin: 0.3rem;
+  }
+
+
+
+}

@@ -1,0 +1,141 @@
+.productCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative; /* For proper positioning of elements */
+    overflow: hidden; 
+    height: 350px; /* Set a default height for the card */
+    width: 300px; /* Set a fixed width to maintain consistency */
+    transition: transform 0.3s ease; /* Smooth transition for scale */
+    flex: 1 1 auto; /* Картки можуть рости і зменшуватись */
+    margin: 0.5rem; /* Відстань між картками */
+  }
+  
+  .productImage {
+    width: 300px;
+    height: 260px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  
+  .imageWrapper {
+    position: relative;
+    transition: transform 0.3s ease; /* Smooth scaling */
+
+  }
+
+  .salesLeaderLabel {
+    background-color: #F3DDF8;
+    color: #160101;
+  }
+
+  .newLabel {
+    background-color: #DAF2C2;
+    color: #160101;
+  }
+
+  .discountLabel {
+    background-color: #F45145;
+    color: #FEFDFC;
+  }
+  
+  .salesLeaderLabel,
+  .discountLabel,
+  .newLabel {
+    position: absolute;
+    right: 0;
+    bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px 0 6px 0;
+    z-index: 3; 
+    transition: transform 0.3s ease; /* Smooth transition */
+  }
+
+  .productDetails {
+    display: flex;
+    justify-content: space-between; /* Create two columns */
+    align-items: flex-start; /* Align items at the start */
+    padding: 14px 16px 0;
+    transition: transform 0.3s ease, top 0.3s ease; /* Smooth movement */
+  }
+  
+  .productCard:hover .productDetails {
+    transform: translateY(-20px); /* Move the details up by 10px */
+  }
+  
+  .productInfo,
+  .productMeta {
+    display: flex;
+    flex-direction: column; /* Stack name/type and rating/price in two rows */
+    width: auto;
+  }
+  
+  .productMeta {
+    text-align: right; /* Right-align the rating and price */
+  }
+  
+  .productName,
+  .productPrice
+   {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #160101;
+  }
+  
+  .productPrice {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2e1a18;
+  }
+  
+  .productType, 
+  .productRating {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: #160101;
+  }
+  
+  .productName, .productType, .productRating, .productPrice {
+    margin: 6px 0 0;
+  }
+  
+  /* Scale inner content on hover */
+.productCard:hover .imageWrapper {
+  transform: scale(0.95); /* Scale down both the image and label */
+}
+  
+  /* Add to Cart Button */
+  .addToCartButton {
+    position: absolute; /* Position button absolutely within the card */
+    bottom: -40px; /* Start hidden below the card */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust for centering */
+    height: 35px;
+    width: 95%;
+    padding: 8px 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    background-color: transparent;
+    color: #ff3939;
+    border: none;
+    cursor: pointer;
+    border-top: 1px solid #900000;
+    transition: bottom 0.3s ease, transform 0.3s ease; /* Transition effect for sliding up */
+  }
+  
+  /* Show button on hover */
+  .productCard:hover .addToCartButton {
+    bottom: 1px; 
+    transform: translateX(-50%); 
+  }
+  
+  .addToCartButton:hover {
+    color: #E2281B;
+    transition: 0.3s; ;
+  }
+
