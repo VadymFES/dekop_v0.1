@@ -6,7 +6,11 @@ import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
 
 // Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
-  const res = await fetch('/cart/api');
+  const res = await fetch('/cart/api', {
+    headers: {
+      'Cache-Control': 'no-store'
+    }
+  });
   if (!res.ok) throw new Error('Failed to fetch cart');
   return res.json();
 };
@@ -189,13 +193,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const removeFromCartMutation = useMutation({
     mutationFn: (id: string) => removeFromCartAPI(id),
     onMutate: async (id) => {
+      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       
+      // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
       
       if (previousCart) {
         const updatedItems = previousCart.items.filter(item => item.id !== id);
         
+        // Set the updated cart
         queryClient.setQueryData(['cart'], {
           ...previousCart,
           items: updatedItems
@@ -211,6 +218,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.error('Remove from cart failed:', error);
     },
     onSettled: () => {
+      // Only invalidate after the mutation has completed
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
