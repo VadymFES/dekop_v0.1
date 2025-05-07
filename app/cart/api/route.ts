@@ -1,9 +1,10 @@
-// app/api/cart/route.ts
+// app/cart/api/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
-import { randomUUID } from "crypto";
 import { CartItem, ProductWithImages } from "@/app/lib/definitions";
+import { handleApiError } from "@/app/lib/error";
+import { randomUUID } from "crypto";
 
 // Interface to represent the raw cart item data from the database
 interface CartItemWithProductData {
@@ -19,15 +20,15 @@ interface CartItemWithProductData {
   product_price: number;
   stock: number;
   rating: number;
-  reviews: number; // This field is in the definitions but not in the DB table
+  reviews: number;
   is_on_sale: boolean;
   is_new: boolean;
   is_bestseller: boolean;
   product_created_at: string;
   product_updated_at: string;
-  specs: any; // Using any temporarily as specs come from row_to_json in the DB
-  images: any[]; // Using any[] temporarily as images come from json_agg in the DB
-  colors: any[]; // Using any[] temporarily as colors come from json_agg in the DB
+  specs: any;
+  images: any[];
+  colors: any[];
 }
 
 /**
@@ -52,7 +53,7 @@ function transformCartItems(items: CartItemWithProductData[]): CartItem[] {
       updated_at: item.product_updated_at,
       specs: item.specs,
       images: item.images || [],
-      colors: item.colors || []
+      colors: item.colors || [],
     };
 
     const cartItem: CartItem = {
@@ -63,14 +64,17 @@ function transformCartItems(items: CartItemWithProductData[]): CartItem[] {
       price: item.product_price,
       quantity: item.quantity,
       color: item.color,
-      image_url: item.images?.[0]?.image_url || '',
+      image_url: item.images?.[0]?.image_url || "",
       productDetails,
-      colors: item.colors
+      colors: item.colors,
     };
 
     return cartItem;
   });
 }
+
+// Define params type as a plain object (Next.js will handle Promise resolution if needed)
+type Params = { id: string };
 
 /**
  * GET /api/cart
@@ -83,13 +87,7 @@ export async function GET() {
     const cartId = cartCookie?.value;
 
     if (!cartId) {
-      return NextResponse.json({ items: [] }, { 
-        status: 200,
-        headers: {
-          // Use private cache for cart data since it's user-specific
-          'Cache-Control': 'private, max-age=60, stale-while-revalidate=300'
-        }
-      });
+      return NextResponse.json({ items: [] }, { status: 200 });
     }
 
     const { rows: cartItems } = await sql<CartItemWithProductData>`
@@ -131,18 +129,13 @@ export async function GET() {
 
     const transformedItems = transformCartItems(cartItems);
 
-    return NextResponse.json({ items: transformedItems }, { 
-      status: 200,
-      headers: {
-        // Use private cache for cart data since it's user-specific
-        'Cache-Control': 'private, max-age=60, stale-while-revalidate=300'
-      }
-    });
+    return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
     console.error("Error fetching cart:", error);
     return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
   }
 }
+
 
 /**
  * POST /api/cart
@@ -231,21 +224,16 @@ export async function POST(request: NextRequest) {
 
     const transformedItems = transformCartItems(updatedCartItems);
 
-    const response = NextResponse.json({ items: transformedItems }, { 
-      status: 200,
-      headers: {
-        // No caching for mutation responses
-        'Cache-Control': 'no-store'
-      }
-    });
-    
-    response.cookies.set("cartId", cartId, {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    });
+    const response = NextResponse.json({ items: transformedItems }, { status: 200 });
+    if (cartId) {
+      response.cookies.set("cartId", cartId, {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+    }
 
     return response;
   } catch (error) {
@@ -258,39 +246,24 @@ export async function POST(request: NextRequest) {
  * PATCH /api/cart/[id]
  * Update the quantity of a cart item.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const id = (await params).id;
     const { quantity } = await request.json();
-    
-    if (!id) {
-      return NextResponse.json({ error: "Cart item ID is required" }, { status: 400 });
+
+    if (!id || !quantity || isNaN(Number(quantity))) {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
-    
-    if (quantity < 0) {
-      return NextResponse.json({ error: "Quantity must be non-negative" }, { status: 400 });
-    }
-    
+
+    await sql`
+      UPDATE cart_items
+      SET quantity = ${quantity}
+      WHERE id = ${id}
+    `;
+
     const cookieStore = await cookies();
     const cartId = cookieStore.get("cartId")?.value;
-    
-    if (!cartId) {
-      return NextResponse.json({ error: "No active cart found" }, { status: 404 });
-    }
-    
-    if (quantity === 0) {
-      // Remove the item if quantity is zero
-      await sql`DELETE FROM cart_items WHERE id = ${id} AND cart_id = ${cartId}`;
-    } else {
-      // Update the quantity
-      await sql`UPDATE cart_items SET quantity = ${quantity} WHERE id = ${id} AND cart_id = ${cartId}`;
-    }
-    
-    // Fetch updated cart items
-    const { rows: updatedCartItems } = await sql<CartItemWithProductData>`
+    const { rows: updatedCart } = await sql<CartItemWithProductData>`
       SELECT 
         ci.id,
         ci.cart_id,
@@ -326,49 +299,34 @@ export async function PATCH(
       LEFT JOIN product_specs s ON p.id = s.product_id
       WHERE ci.cart_id = ${cartId}
     `;
-    
-    const transformedItems = transformCartItems(updatedCartItems);
-    
-    return NextResponse.json({ items: transformedItems }, { 
-      status: 200,
-      headers: {
-        // No caching for mutation responses
-        'Cache-Control': 'no-store'
-      }
-    });
+
+    const transformedItems = transformCartItems(updatedCart);
+
+    return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
-    console.error("Error updating cart item:", error);
-    return NextResponse.json({ error: "Failed to update cart item" }, { status: 500 });
+    return handleApiError(error, "Failed to update cart item quantity");
   }
 }
 
 /**
  * DELETE /api/cart/[id]
- * Remove an item from the cart.
+ * Remove a specific item from the cart.
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
-    
+    const id = (await params).id;
+
     if (!id) {
-      return NextResponse.json({ error: "Cart item ID is required" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
-    
+
+    await sql`
+      DELETE FROM cart_items WHERE id = ${id}
+    `;
+
     const cookieStore = await cookies();
     const cartId = cookieStore.get("cartId")?.value;
-    
-    if (!cartId) {
-      return NextResponse.json({ error: "No active cart found" }, { status: 404 });
-    }
-    
-    // Delete the cart item
-    await sql`DELETE FROM cart_items WHERE id = ${id} AND cart_id = ${cartId}`;
-    
-    // Fetch updated cart items
-    const { rows: updatedCartItems } = await sql<CartItemWithProductData>`
+    const { rows: updatedCart } = await sql<CartItemWithProductData>`
       SELECT 
         ci.id,
         ci.cart_id,
@@ -404,18 +362,11 @@ export async function DELETE(
       LEFT JOIN product_specs s ON p.id = s.product_id
       WHERE ci.cart_id = ${cartId}
     `;
-    
-    const transformedItems = transformCartItems(updatedCartItems);
-    
-    return NextResponse.json({ items: transformedItems }, { 
-      status: 200,
-      headers: {
-        // No caching for mutation responses
-        'Cache-Control': 'no-store'
-      }
-    });
+
+    const transformedItems = transformCartItems(updatedCart);
+
+    return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
-    console.error("Error removing cart item:", error);
-    return NextResponse.json({ error: "Failed to remove cart item" }, { status: 500 });
+    return handleApiError(error, "Failed to remove item from cart");
   }
 }
