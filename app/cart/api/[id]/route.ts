@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
 import { CartItem, ProductWithImages } from "@/app/lib/definitions";
+import { handleApiError } from "@/app/lib/error";
 
 // Interface to represent the raw cart item data from the database
 interface CartItemWithProductData {
@@ -136,8 +137,7 @@ export async function PATCH(
 
     return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
-    console.error("Error updating cart:", error);
-    return NextResponse.json({ error: "Failed to update cart" }, { status: 500 });
+    return handleApiError(error, "Failed to update cart item quantity");
   }
 }
 
@@ -146,14 +146,14 @@ export async function PATCH(
  * Remove a specific item from the cart.
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const id = ((await params).id);
 
     if (!id) {
-      return NextResponse.json({ error: "Item ID required" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
     await sql`
@@ -203,7 +203,6 @@ export async function DELETE(
 
     return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
-    console.error("Error deleting cart item:", error);
-    return NextResponse.json({ error: "Failed to remove item" }, { status: 500 });
+    return handleApiError(error, "Failed to remove item from cart");
   }
 }

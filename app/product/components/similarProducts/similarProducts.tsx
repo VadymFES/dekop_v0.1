@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import ProductCard from '@/app/components/productCard/productCard';
+import ProductCard from '@/app/shared/components/productCard/productCard';
 import { ProductWithImages } from '@/app/lib/definitions';
 import styles from './similar.module.css';
 

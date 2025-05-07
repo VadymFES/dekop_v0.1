@@ -1,8 +1,10 @@
 // app/layout.tsx
-
 import type { Metadata } from "next";
+import QueryProvider from "@/app/providers/QueryProvider";
+import ClientLayout from "./ClientLayout";
 import "./globals.css";
-import QueryProvider from "./providers/QueryProvider";
+import { CartProvider } from "./context/CartContext";
+
 
 export const metadata: Metadata = {
   title: "Dekop Furniture Enterprise - меблі для вашого дому",
@@ -29,11 +31,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <QueryProvider>
-        <body>
-          {children}
-        </body>
-      </QueryProvider>
+      <body>
+        <QueryProvider>
+          <CartProvider>
+          <ClientLayout>{children}</ClientLayout>
+          </CartProvider>
+        </QueryProvider>
+      </body>
     </html>
   );
 }

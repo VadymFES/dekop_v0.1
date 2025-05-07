@@ -30,8 +30,9 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
             key={selectedImage.id}
             src={selectedImage.image_url}
             alt={selectedImage.alt || product.name}
-            width={500}
-            height={500}
+            width={500} 
+            height={500} 
+            sizes="(max-width: 768px) 100vw, 500px"
             className={styles.mainImage}
           />
         )}
@@ -52,8 +53,9 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
             <Image
               src={image.image_url}
               alt={image.alt || product.name}
-              width={80}
-              height={80}
+              width={80} 
+              height={80} 
+              sizes="(max-width: 768px) 100vw, 80px"
             />
           </div>
         ))}

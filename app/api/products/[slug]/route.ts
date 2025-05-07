@@ -347,7 +347,7 @@ function mapProductSpecs(normalizedCategory: string, row: ProductSpecRow): Produ
 
     default:
       // Для невідомих категорій повертаємо null
-      console.log(`Unknown category: ${normalizedCategory}, cannot create specs`);
+      // console.log(`Unknown category: ${normalizedCategory}, cannot create specs`);
       return null;
   }
 }
@@ -482,7 +482,7 @@ export async function GET(
         break;
       default:
         // Якщо категорія не відповідає жодній таблиці, залишаємо пустий масив
-        console.log(`Unknown category: ${normalizedCategory}`);
+        // console.log(`Unknown category: ${normalizedCategory}`);
         break;
     }
 
@@ -524,7 +524,11 @@ export async function GET(
       reviewsList: reviews
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(response, { status: 200,
+      headers: {
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600'
+      }
+     });
   } catch (error) {
     console.error("Error fetching product details:", error);
     return NextResponse.json({ error: "Failed to fetch product details" }, { status: 500 });

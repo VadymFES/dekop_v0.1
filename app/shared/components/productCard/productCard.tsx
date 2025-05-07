@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./productCard.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
-import { useCart } from "@/app/hooks/useCart";
+import { useCart } from "@/app/context/CartContext";
 
 interface ProductCardProps {
   product: ProductWithImages;

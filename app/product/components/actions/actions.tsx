@@ -11,8 +11,8 @@ import { DeliveryIcon } from '@/app/ui/icons/delivery/deliveryIcon';
 import { NovapostIcon } from '@/app/ui/icons/delivery/novapostIcon';
 import { PostponementIcon } from '@/app/ui/icons/delivery/postponementIcon';
 import Link from 'next/link';
-import ProductReviews from '../reviews/reviews';
-import { useCart } from '@/app/hooks/useCart';
+import ProductReviews from '../../reviews/reviews';
+import { useCart } from '@/app/context/CartContext';
 
 interface ProductActionsProps {
   product?: ProductWithImages;
