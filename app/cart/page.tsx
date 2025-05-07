@@ -17,7 +17,7 @@ export default function Cart() {
 
   useEffect(() => {
     if (cart.length === 0) {
-      setIsLoading(true);
+      setIsLoading(false);
     } else {
       // Check if all required properties are loaded
       const allDataLoaded = cart.every(item => 
