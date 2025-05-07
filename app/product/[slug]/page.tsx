@@ -1,24 +1,16 @@
 // app/product/[slug]/page.tsx
 
-import { Metadata } from 'next';
+import { Metadata, ResolvingMetadata } from 'next';
 import { ProductWithImages } from '@/app/lib/definitions';
 import { notFound } from 'next/navigation';
 
 // Import client components
 import ClientProductPage from './client-page';
 
-// Define type for page props
-interface ProductPageProps {
-  params: {
-    slug: string;
-  };
-}
-
-// Define type for metadata props
-interface GenerateMetadataProps {
-  params: {
-    slug: string;
-  };
+// Type for page props with Promise
+interface PageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
@@ -100,9 +92,12 @@ async function getProductData(slug: string) {
 }
 
 // Generate metadata for the page
-export async function generateMetadata({ params }: GenerateMetadataProps): Promise<Metadata> {
-  const awaitedParams = await Promise.resolve(params);
-  const slug = awaitedParams.slug;
+export async function generateMetadata(
+  { params, searchParams }: PageProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  // Await the Promise to get the slug
+  const { slug } = await params;
   const data = await getProductData(slug);
 
   if (!data || !data.product) {
@@ -111,18 +106,22 @@ export async function generateMetadata({ params }: GenerateMetadataProps): Promi
     };
   }
 
+  // Optionally access parent metadata
+  const previousImages = (await parent).openGraph?.images || [];
+
   return {
     title: `${data.product.name} | Dekop Furniture Enterprise - меблі для вашого дому`,
     openGraph: {
       title: data.product.name,
+      images: [...(previousImages || [])],
     },
   };
 }
 
-// Main component - Server Component that passes data to Client Component
-export default async function ProductPage({ params }: ProductPageProps) {
-  const awaitedParams = await Promise.resolve(params);
-  const slug = awaitedParams.slug;
+// Main component
+export default async function ProductPage({ params, searchParams }: PageProps) {
+  // Await the Promise to get the slug
+  const { slug } = await params;
   const data = await getProductData(slug);
   
   if (!data || !data.product) {
