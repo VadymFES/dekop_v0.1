@@ -70,7 +70,7 @@ function getMaterialValue(specs: ProductSpecs | null): string | null {
   return null;
 }
 
-export default function CatalogPage() {
+function CatalogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("category") || "";
@@ -813,5 +813,13 @@ export default function CatalogPage() {
         </Suspense>
       </div>
     </div>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={<div className={styles.loading}>Loading catalog...</div>}>
+      <CatalogContent />
+    </Suspense>
   );
 }
