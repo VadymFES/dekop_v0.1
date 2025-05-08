@@ -9,6 +9,11 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   filterValues, 
   onPriceChange 
 }) => {
+
+  if (!priceRange || priceRange.min === undefined || priceRange.max === undefined ||
+    filterValues.priceMin === undefined || filterValues.priceMax === undefined) {
+  return null;
+}
   const rangeRef = useRef<HTMLDivElement>(null);
   
   // Calculate percentage positions for slider thumbs
@@ -30,6 +35,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
     const trackWidth = trackRect.width;
     const startValue = thumb === "min" ? filterValues.priceMin : filterValues.priceMax;
     const valueRange = priceRange.max - priceRange.min;
+    const priceStep = 500; // Step size for price adjustment
     
     // Handle mouse movement
     const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
@@ -40,14 +46,16 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
       
       // Calculate new value based on thumb being dragged
       let newValue = startValue + deltaValue;
+
+      newValue = Math.round(newValue / priceStep) * priceStep;
       
       if (thumb === "min") {
         // Constrain min value between price range min and current max value
-        newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - 100));
+        newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - priceStep));
         onPriceChange("min", newValue);
       } else {
         // Constrain max value between current min value and price range max
-        newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + 100));
+        newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + priceStep));
         onPriceChange("max", newValue);
       }
     };
