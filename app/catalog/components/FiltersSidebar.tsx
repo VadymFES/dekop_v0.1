@@ -8,6 +8,7 @@ import FiltersSkeleton from '../components/ui/FiltersSkeleton/FiltersSkeleton';
 
 export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   loading,
+  isCategoryLoading,
   slug,
   filters,
   priceRange,
@@ -70,7 +71,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
 
   return (
     <aside className={`${styles.sidebar} ${loading ? styles.loading : ""}`}>
-      {loading ? (
+      {isCategoryLoading ? ( 
         <FiltersSkeleton />
       ) : (
         <>
