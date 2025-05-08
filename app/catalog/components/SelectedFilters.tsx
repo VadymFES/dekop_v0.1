@@ -6,15 +6,12 @@ import { FilterChip } from './FilterChip';
 import { SelectedFiltersProps } from '../types';
 
 export const SelectedFilters: React.FC<SelectedFiltersProps> = ({
-  loading,
   filters,
   priceRange,
   slug,
   clearFilter,
   clearAllFilters,
-  updateURLWithFilters
 }) => {
-  if (loading) return null;
 
   const filterChips: ReactNode[] = [];
   
@@ -45,7 +42,6 @@ export const SelectedFilters: React.FC<SelectedFiltersProps> = ({
         onClick={() => {
           // Reset price filter to full range
           clearFilter("Price", "range");
-          setTimeout(() => updateURLWithFilters(), 100);
         }}
       />
     );
