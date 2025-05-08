@@ -1,7 +1,7 @@
 // /app/catalog/CatalogContent.tsx
 'use client';
 
-import React, { useReducer, useEffect, useMemo, ChangeEvent } from "react";
+import React, { useReducer, useState, useEffect, useMemo, ChangeEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./catalog.module.css";
 import { FURNITURE_FILTERS, FilterGroup } from "@/app/lib/definitions";
@@ -86,6 +86,7 @@ export default function CatalogContent(): React.ReactElement {
   useEffect(() => {
     const fetchAllProducts = async (): Promise<void> => {
       dispatch(actions.setLoading(true));
+      dispatch(actions.setIsFiltering(true));
       try {
         const urlFilters = getFiltersFromURL(searchParams);
         
@@ -170,13 +171,22 @@ export default function CatalogContent(): React.ReactElement {
   }, [dbCategory, searchParams, getFiltersFromURL]);
 
   // Event handlers
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const chosenSlug = e.target.value;
+    setIsCategoryLoading(true); 
     dispatch(actions.setLoading(true));
     dispatch(actions.resetFilters({ min: 0, max: 0 }));
     dispatch(actions.setPriceRange({ min: 0, max: 0 }));
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
   };
+
+  useEffect(() => {
+    if (!loading) {
+      setIsCategoryLoading(false);
+    }
+  }, [loading]);
 
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string): void => {
     const { value, checked, type } = e.target;
@@ -197,10 +207,10 @@ export default function CatalogContent(): React.ReactElement {
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
     dispatch(actions.setFilters({
       priceMin: thumb === "min"
-        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - 100))
+        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - 1200))
         : filters.priceMin,
       priceMax: thumb === "max"
-        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + 100))
+        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + 1200))
         : filters.priceMax,
     }));
   };
@@ -241,7 +251,7 @@ export default function CatalogContent(): React.ReactElement {
     <div className={styles.container}>
       <Breadcrumbs title={pageTitle} />
       <h1 className={styles.pageTitle}>{pageTitle}</h1>
-
+  
       <div className={styles.topControls}>
         <div className={styles.filterControls}>
           <SelectedFilters
@@ -260,11 +270,12 @@ export default function CatalogContent(): React.ReactElement {
           disabled={loading} 
         />
       </div>
-
-      <div className={styles.contentWrapper}>
-        <React.Suspense fallback={<div className={`${styles.sidebar} ${styles.loading}`}>Loading filters...</div>}>
+  
+      <React.Suspense>
+        <div className={styles.contentWrapper}>
           <FiltersSidebar 
             loading={loading}
+            isCategoryLoading={isCategoryLoading}
             slug={slug}
             filters={filters}
             priceRange={priceRange}
@@ -273,16 +284,14 @@ export default function CatalogContent(): React.ReactElement {
             handleFilterChange={handleFilterChange}
             handlePriceChange={handlePriceChange}
           />
-        </React.Suspense>
-        <React.Suspense fallback={<div className={styles.productGrid}>Loading products...</div>}>
           <ProductsDisplay 
             loading={loading}
             isFiltering={isFiltering}
             error={error}
             filteredProducts={filteredProducts}
           />
-        </React.Suspense>
-      </div>
+        </div>
+      </React.Suspense>
     </div>
   );
 }
