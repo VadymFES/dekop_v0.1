@@ -126,9 +126,17 @@ export const useFilterLogic = (
           });
       }
 
-      dispatch({ type: 'SET_FILTERED_PRODUCTS', payload: sortedMatches });
+      // Use the combined action to update both filtered products and filtering state in one dispatch
+      dispatch({ 
+        type: 'APPLY_FILTER_RESULTS', 
+        payload: {
+          filteredProducts: sortedMatches,
+          isFiltering: false
+        }
+      });
+      
+      // Move updateURL after dispatching
       updateURL();
-      dispatch({ type: 'SET_IS_FILTERING', payload: false });
     }, 300); // Debounce filtering for better performance
 
     // Cleanup timeout on dependency changes
