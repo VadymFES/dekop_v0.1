@@ -46,6 +46,7 @@ export type CatalogAction =
   | { type: 'SET_FILTERS'; payload: Partial<FilterOptions> }
   | { type: 'RESET_FILTERS'; payload: PriceRange }
   | { type: 'SET_SORT_OPTION'; payload: string }
+  | { type: 'APPLY_FILTER_RESULTS'; payload: { filteredProducts: ProductWithImages[], isFiltering: boolean }}
   | { type: 'SET_IS_FILTERING'; payload: boolean };
 
 export interface FilterChipProps {
@@ -73,6 +74,7 @@ export interface PriceRangeFilterProps {
 
 export interface FiltersSidebarProps {
   loading: boolean;
+  isCategoryLoading: boolean;
   slug: string;
   filters: FilterOptions;
   priceRange: PriceRange;

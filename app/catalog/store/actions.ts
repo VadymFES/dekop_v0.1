@@ -36,6 +36,14 @@ export const setFilteredProducts = (products: ProductWithImages[]): CatalogActio
 });
 
 /**
+ * Apply filter results
+ */
+export const applyFilterResults = (filteredProducts: ProductWithImages[], isFiltering: boolean): CatalogAction => ({
+  type: 'APPLY_FILTER_RESULTS',
+  payload: { filteredProducts, isFiltering }
+});
+
+/**
  * Set price range
  */
 export const setPriceRange = (range: PriceRange): CatalogAction => ({

@@ -20,6 +20,13 @@ export function catalogReducer(state: CatalogState, action: CatalogAction): Cata
       
     case 'SET_FILTERED_PRODUCTS':
       return { ...state, filteredProducts: action.payload };
+
+    case 'APPLY_FILTER_RESULTS':
+      return {
+          ...state,
+          filteredProducts: action.payload.filteredProducts,
+          isFiltering: action.payload.isFiltering
+        };
       
     case 'SET_PRICE_RANGE':
       return { ...state, priceRange: action.payload };
