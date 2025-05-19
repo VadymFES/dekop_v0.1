@@ -4,7 +4,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(280px, 1fr));
     min-height: 400px;
-    padding-left: 140px;
+    /* padding-left: 140px; */
     gap: 40px;
   } 
   
@@ -69,3 +69,16 @@
       opacity: 1;
     }
   }
+
+  /* Add to productGridSkeleton.module.css */
+.loadingMoreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 40px;
+}
+
+@media (max-width: 768px) {
+  .loadingMoreGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
