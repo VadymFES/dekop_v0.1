@@ -24,7 +24,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
         return (
           <PriceRangeFilter
             key={group.name}
-            title="Ціна"
+            title="Ціна (грн)"
             priceRange={priceRange}
             filterValues={filters}
             onPriceChange={handlePriceChange}
