@@ -1,0 +1,119 @@
+/* Wrapper matches main wrapper */
+.wrapper {
+  width: 100%;
+}
+
+.bodyContentGrid {
+  display: flex;
+  height: 730px;
+}
+
+.productGrid {
+  display: grid;
+  /* Matches the main product grid: 3 columns, 2 rows */
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  height: 730px; 
+  width: fit-content; /* or 100%, depending on your main grid setup */
+}
+
+/* ————— SKELETON CARD ————— */
+.skeletonCard {
+  /* Make each skeleton card fill the entire grid cell */
+  width: 300px;
+  height: 350px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* or space-between, up to you */
+  align-items: flex-start; /* or center, up to you */
+  
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-sizing: border-box; /* ensures padding doesn’t shrink the card */
+  overflow: hidden;
+}
+
+/* Image portion */
+.skeletonImage {
+  /* Fill available width, keep some fixed height or ratio as in main cards */
+  width: 100%;
+  height: 200px;       /* Example height — adjust to match main card */
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+/* Text portion */
+.skeletonText {
+  width: 100%;
+  background: #f0f0f0;
+  height: 16px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* For the last text line, if you want a shorter width */
+.skeletonText:last-child {
+  width: 60%;
+}
+
+/* ————— SPECIAL SHOWCASE ————— */
+.specialProductShowcase {
+  display: flex;
+  height: 100%; 
+}
+
+.skeletonShowcase {
+  width: 100%;
+  height: 100%;
+  background: #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+
+
+/* ————— MEDIA QUERIES (same as main) ————— */
+@media screen and (max-width: 1500px) {
+  .bodyContentGrid {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .specialProductShowcase {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .bodyContentGrid {
+    display: flex;
+    justify-content: flex-start;
+    overflow: auto;
+    height: auto;
+  }
+
+  .productGrid {
+    display: flex;
+    gap: 16px;
+    height: auto;
+  }
+
+}
+
+@media screen and (max-width: 480px) {
+  .productGrid {
+    display: flex;
+    flex-wrap: nowrap;
+    transition: transform 0.3s ease;
+    gap: 16px;
+    height: auto;
+  }
+
+  .productGrid > * {
+    flex: 0 0 auto;
+  }
+}

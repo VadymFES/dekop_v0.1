@@ -135,7 +135,7 @@
     width: 260px;
     min-width: 260px; /* Prevent shrinking */
     flex-shrink: 0;
-    box-sizing: border-box; /* Ensure padding is included in width */
+    box-sizing: border-box;
   }
   
   .sidebar.loading {
