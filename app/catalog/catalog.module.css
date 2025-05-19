@@ -236,7 +236,7 @@
 /* catalog.module.css */
 .priceRangeContainer {
   position: relative;
-  padding: 20px 0;
+  padding: 30px 0;
   user-select: none;
   -webkit-user-select: none; /* Для Safari */
   -ms-user-select: none; /* Для IE/Edge */
@@ -253,15 +253,15 @@
 .priceFill {
   position: absolute;
   height: 100%;
-  background: #007bff;
+  background: #342C2C;
   border-radius: 2px;
 }
 
 .priceThumb {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  background: #007bff;
+  width: 12px;
+  height: 12px;
+  background: #342C2C;
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -272,15 +272,49 @@
 
 .priceThumb:hover,
 .priceThumb:active {
-  background: #0056b3;
+  background: #E2281B;
 }
 
-.priceLabels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
+.priceBubble {
+  position: absolute;
+  transform: translateX(-50%);
+  top: -38px;
+  border: 1px solid var(--background);
+  border-radius: 4px;
+  padding: 5px 15px;
   font-size: 14px;
-  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--background);
+  z-index: 3;
+  box-shadow: 0px 0px 3px 0px #1601018A;
+}
+
+.priceBubble:after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--background);
+}
+
+.priceBubble:before {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 8px solid var(--background);
+  z-index: -1;
 }
   
   /* Product Grid */
