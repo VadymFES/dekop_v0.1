@@ -212,7 +212,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
                   </li>
                   <li>
                     <Link className={styles.dropdownItem} href={"/catalog?category=other"}>
-                      <span className={`${styles.navButton} ${styles.navButtonCat}`}>Інше</span>
+                      <span className={`${styles.navButton} ${styles.navButtonCat}`}>Всі категорії</span>
                     </Link>
                   </li>
                 </ul>
