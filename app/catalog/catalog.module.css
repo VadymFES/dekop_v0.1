@@ -192,34 +192,46 @@
     font-size: 14px;
   }
   
-  .checkbox {
-    margin-right: 10px;
-    width: 16px;
-    height: 16px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    appearance: none;
-    -webkit-appearance: none;
-    position: relative;
-    cursor: pointer;
-  }
-  
-  .checkbox:checked {
-    background-color: #333;
-    border-color: #333;
-  }
-  
-  .checkbox:checked::after {
-    content: '';
-    position: absolute;
-    width: 5px;
-    height: 9px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    top: 2px;
-    left: 5px;
-    transform: rotate(45deg);
-  }
+.checkbox {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  padding: 4px;
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0px 0px 3px 0px #1601018A;
+  box-sizing: border-box;
+}
+
+.checkbox:checked::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: transparent;
+  border: 1px solid #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: #160101;
+  border-radius: 50%; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
   
 /* catalog.module.css */
 .priceRangeContainer {
