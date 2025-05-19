@@ -28,6 +28,7 @@ export default function ClientProductPage({
 }: ClientProductPageProps) {
   return (
     <div className={styles.topContainer}>
+      <div className={styles.secondaryContainer}>
       <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
         <ol className={styles.breadcrumb}>
           <li className={styles.breadcrumb_item}>
@@ -115,5 +116,6 @@ export default function ClientProductPage({
         <SimilarProducts products={similarProducts} />
       </section>
     </div>
+  </div>
   );
 }
