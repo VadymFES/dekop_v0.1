@@ -1,8 +1,15 @@
 .topContainer {
   display: flex;
-  max-width: 1920px;
   justify-content: center;
+  max-width: 1920px;
   flex-direction: column;
+  margin: 0 auto;
+  height: auto;
+}
+
+.secondaryContainer {
+  margin: 1rem 4rem;
+
 }
 
 .productContainer {

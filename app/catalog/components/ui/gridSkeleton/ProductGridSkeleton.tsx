@@ -1,9 +1,9 @@
-// components/ProductGridSkeleton.tsx
+// components/ui/gridSkeleton/ProductGridSkeleton.tsx
 import styles from "./productGridSkeleton.module.css";
 
-const ProductGridSkeleton = ({ count = 6 }: { count?: number }) => {
+const ProductGridSkeleton = ({ count = 6, isLoadingMore = false }: { count?: number, isLoadingMore?: boolean }) => {
   return (
-    <div className={styles.productGrid}>
+    <div className={isLoadingMore ? styles.loadingMoreGrid : styles.productGrid}>
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className={`${styles.productCard} ${styles.skeletonCard}`}>
           <div className={styles.skeletonImage}></div>

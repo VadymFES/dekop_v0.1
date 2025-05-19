@@ -24,7 +24,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
         return (
           <PriceRangeFilter
             key={group.name}
-            title="Ціна"
+            title="Ціна (грн)"
             priceRange={priceRange}
             filterValues={filters}
             onPriceChange={handlePriceChange}
@@ -75,8 +75,9 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
         <FiltersSkeleton />
       ) : (
         <>
+        <div className={styles.categoryContainer}>
           <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
-            Обрати категорію:
+            Оберіть категорію:
           </label>
           <select
             id="categorySelect"
@@ -91,6 +92,7 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
               </option>
             ))}
           </select>
+        </div>
           {renderFilters()}
         </>
       )}

@@ -24,7 +24,17 @@
   .imageWrapper {
     position: relative;
     transition: transform 0.3s ease; /* Smooth scaling */
+  }
 
+  .labelsContainer {
+    position: absolute;
+    right: 0;
+    bottom: 4px;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 4px;
+    z-index: 3;
+    transition: transform 0.3s ease;
   }
 
   .salesLeaderLabel {
@@ -45,14 +55,10 @@
   .salesLeaderLabel,
   .discountLabel,
   .newLabel {
-    position: absolute;
-    right: 0;
-    bottom: 4px;
     font-size: 12px;
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 6px 0 6px 0;
-    z-index: 3; 
     transition: transform 0.3s ease; /* Smooth transition */
   }
 
@@ -136,6 +142,5 @@
   
   .addToCartButton:hover {
     color: #E2281B;
-    transition: 0.3s; ;
+    transition: 0.3s;
   }
-

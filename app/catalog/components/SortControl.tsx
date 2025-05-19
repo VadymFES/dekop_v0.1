@@ -15,10 +15,11 @@ export const SortControl: React.FC<SortControlProps> = ({ sortOption, onChange, 
       className={styles.sortSelect}
       disabled={disabled}
     >
-      <option value="rating_desc">Популярністю</option>
-      <option value="price_asc">Ціною: від низької до високої</option>
-      <option value="price_desc">Ціною: від високої до низької</option>
-      <option value="reviews_desc">Відгуками</option>
+
+    <option value="rating_desc" className={styles.sortOption}>Популярністю</option>
+    <option value="price_asc" className={styles.sortOption}>Ціною: від низької до високої</option>
+    <option value="price_desc" className={styles.sortOption}>Ціною: від високої до низької</option>
+    <option value="reviews_desc" className={styles.sortOption}>Відгуками</option>
     </select>
   </div>
 );

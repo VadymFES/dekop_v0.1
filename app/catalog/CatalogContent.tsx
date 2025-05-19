@@ -249,6 +249,7 @@ export default function CatalogContent(): React.ReactElement {
 
   return (
     <div className={styles.container}>
+      <div className={styles.contentContainer}>
       <Breadcrumbs title={pageTitle} />
       <h1 className={styles.pageTitle}>{pageTitle}</h1>
   
@@ -292,6 +293,7 @@ export default function CatalogContent(): React.ReactElement {
           />
         </div>
       </React.Suspense>
+      </div>
     </div>
   );
 }

@@ -1,219 +1,279 @@
 /* catalog.module.css */
 .container {
-    display: flex;
-    max-width: 1920px;
-    flex-direction: column;
-    margin: 1rem 4rem;
-  }
-  
-  /* Breadcrumbs */
-  .breadcrumbs {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-  
-  .breadcrumbSeparator {
-    margin: 0 8px;
-    color: #666;
-  }
-  
-  .breadcrumbActive {
-    color: #333;
-    font-weight: 500;
-  }
-  
-  /* Page Title */
-  .pageTitle {
-    font-size: 32px;
-    font-weight: bold;
-    margin-bottom: 24px;
-    color: #000;
-  }
-  
-  /* Top Controls - Sort and Filter Display */
-  .topControls {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    width: 100%; /* Ensure full width */
-  }
-  
-  .filterControls {
-    flex: 1;
-    min-height: 70px;
-    min-width: 0; /* Prevent flex shrinkage issues */
-  }
-  
-  .sortAndCount {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  
-  .itemCount {
-    font-size: 14px;
-    color: #666;
-  }
+  display: flex;
+  max-width: 1920px;
+  flex-direction: column;
+  margin: 0 auto;
+  height: auto;
+}
 
-  .sortLabel {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .sortSelect {
-    font-size: 14px;
-    color: black;
-    padding: 6px 12px;
-    border-radius: 20px;
-    max-width: 200px;
-    cursor: pointer;
-    background-color: var(--background-color);
-  }
+.contentContainer {
+  margin: 1rem 4rem;
+}
 
-  .sortSelect :only-child {
-    display: none;
-  }
-  
-  /* Selected Filters Display */
-  .selectedFilters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .filterChip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 20px;
-    border: 1px solid #1601018A;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 300;
-    cursor: pointer;
-  }
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
 
-  .filterChip:hover {
-    background-color: #e8e8e8;
-  }
-  
-  .clearAllFilters {
-    border-radius: 20px;
-    background-color: var(--primary-color);
-    padding: 6px 12px;
-    border: 1px solid #1601018A;
-    font-size: 14px;
-    color: black;
-    font-weight: 400;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    text-decoration: underline dashed;
-    text-underline-offset: 2px; 
-  }
+.breadcrumbSeparator {
+  margin: 0 8px;
+  color: #666;
+}
 
-  
-  .clearAllFilters:hover {
-    background-color: #e8e8e8;
-  }
-  
-  /* Main Content Layout */
-  .contentWrapper {
-    display: flex;
-    gap: 30px;
-    min-height: 500px;
-    width: 100%; /* Ensure full width */
-    justify-content: space-between;
-  }
-  
-  /* Sidebar Filters */
-  .sidebar {
-    width: 260px;
-    min-width: 260px; /* Prevent shrinking */
-    flex-shrink: 0;
-    box-sizing: border-box;
-  }
-  
-  .sidebar.loading {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-  
-  .filterSection {
-    margin-bottom: 24px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 16px;
-  }
-  
-  .filterSection:last-child {
-    border-bottom: none;
-  }
-  
-  .filterTitle {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 16px;
-    color: #000;
-  }
-  
-  .filterList {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .filterItem {
-    margin-bottom: 10px;
-  }
-  
-  .checkboxLabel {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .checkbox {
-    margin-right: 10px;
-    width: 16px;
-    height: 16px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    appearance: none;
-    -webkit-appearance: none;
-    position: relative;
-    cursor: pointer;
-  }
-  
-  .checkbox:checked {
-    background-color: #333;
-    border-color: #333;
-  }
-  
-  .checkbox:checked::after {
-    content: '';
-    position: absolute;
-    width: 5px;
-    height: 9px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    top: 2px;
-    left: 5px;
-    transform: rotate(45deg);
-  }
-  
+.breadcrumbActive {
+  color: #333;
+  font-weight: 500;
+}
+
+/* Page Title */
+.pageTitle {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #000;
+}
+
+/* Top Controls - Sort and Filter Display */
+.topControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  /* Ensure full width */
+}
+
+.filterControls {
+  flex: 1;
+  min-height: 70px;
+  min-width: 0;
+  /* Prevent flex shrinkage issues */
+}
+
+.sortAndCount {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.itemCount {
+  font-size: 14px;
+  color: #666;
+}
+
+.sortLabel {
+  font-size: 14px;
+  color: #666;
+}
+
+.sortSelect {
+  font-size: 14px;
+  color: #333;
+  padding: 8px 36px 8px 12px;
+  border-radius: 20px;
+  max-width: 220px;
+  width: 100%;
+  cursor: pointer;
+  background-color: var(--background);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Custom dropdown arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Selected Filters Display */
+.selectedFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 20px;
+  border: 1px solid #1601018A;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.filterChip:hover {
+  background-color: #e8e8e8;
+}
+
+.clearAllFilters {
+  border-radius: 20px;
+  background-color: var(--primary-color);
+  padding: 6px 12px;
+  border: 1px solid #1601018A;
+  font-size: 14px;
+  color: black;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+}
+
+
+.clearAllFilters:hover {
+  background-color: #e8e8e8;
+}
+
+/* Main Content Layout */
+.contentWrapper {
+  display: flex;
+  gap: 30px;
+  min-height: 500px;
+  width: 100%;
+  gap: 60px;
+  /* justify-content: space-between; */
+  margin: 1rem 4rem;
+}
+
+/* Sidebar Filters */
+.sidebar {
+  width: 290px;
+  min-width: 260px;
+  /* Prevent shrinking */
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.sidebar.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.filterSection {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 16px;
+}
+
+.filterSection:last-child {
+  border-bottom: none;
+}
+
+.categoryContainer {
+  margin-bottom: 12px;
+}
+
+.categorySelect {
+  font-size: 14px;
+  color: black;
+  margin-left: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 140px;
+  cursor: pointer;
+  background-color: var(--background);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  /* Custom dropdown arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.filterTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #000;
+}
+
+.filterList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filterItem {
+  margin-bottom: 10px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.checkbox {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  padding: 4px;
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0px 0px 3px 0px #1601018A;
+  box-sizing: border-box;
+}
+
+.checkbox:checked::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: transparent;
+  border: 1px solid #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
 /* catalog.module.css */
 .priceRangeContainer {
   position: relative;
-  padding: 20px 0;
+  max-width: 240px;
+  margin-left: 30px;
+  padding: 30px 0 15px 0;
   user-select: none;
-  -webkit-user-select: none; /* Для Safari */
-  -ms-user-select: none; /* Для IE/Edge */
-  touch-action: none; /* Запобігає прокручуванню сторінки під час перетягування */
+  -webkit-user-select: none;
+  /* Для Safari */
+  -ms-user-select: none;
+  /* Для IE/Edge */
+  touch-action: none;
+  /* Запобігає прокручуванню сторінки під час перетягування */
 }
 
 .priceTrack {
@@ -226,78 +286,112 @@
 .priceFill {
   position: absolute;
   height: 100%;
-  background: #007bff;
+  background: #342C2C;
   border-radius: 2px;
 }
 
 .priceThumb {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  background: #007bff;
+  width: 12px;
+  height: 12px;
+  background: #342C2C;
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
   z-index: 2;
-  touch-action: none; /* Забезпечує правильну взаємодію на сенсорних екранах */
+  touch-action: none;
+  /* Забезпечує правильну взаємодію на сенсорних екранах */
 }
 
 .priceThumb:hover,
 .priceThumb:active {
-  background: #0056b3;
+  background: #E2281B;
 }
 
-.priceLabels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
+.priceBubble {
+  position: absolute;
+  transform: translateX(-50%);
+  top: -38px;
+  border: 1px solid var(--background);
+  border-radius: 4px;
+  padding: 5px 15px;
   font-size: 14px;
-  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--background);
+  z-index: 3;
+  user-select: none;
+  box-shadow: 0px 0px 3px 0px #1601018A;
 }
-  
-  /* Product Grid */
+
+.priceBubble:after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--background);
+}
+
+.priceBubble:before {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 8px solid var(--background);
+  z-index: -1;
+}
+
+/* Product Grid */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  grid-template-rows: max-content;
+  min-height: 400px;
+}
+
+/* Responsive design */
+
+@media (max-width: 1024px) {
   .productGrid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(280px, 1fr));
-    min-height: 400px;
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
-  
 
+@media (max-width: 768px) {
 
-  
-  /* Responsive design */
-  
-  @media (max-width: 1024px) {
-    .productGrid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  @media (max-width: 768px) {
 
-    .productGrid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-    .contentWrapper {
-      flex-direction: column;
-      width: 100%;
-    }
-    
-    .sidebar {
-      width: 100%;
-      min-width: 100%;
-      margin-bottom: 20px;
-    }
-    
-    .topControls {
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .sortAndCount {
-      width: 100%;
-      justify-content: space-between;
-    }
+  .contentWrapper {
+    flex-direction: column;
+    width: 100%;
   }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .topControls {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sortAndCount {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

@@ -28,14 +28,12 @@ const Main = () => {
         <div className={styles.headerImage}>
           <h1 className={styles.heading}>Сучасні меблі для Вашої оселі</h1>
           <p className={styles.subheading}>Розкішний вибір стильних корпусних та мяких меблів від нашого власного виробництва та передових постачальників</p>
-          <button className={styles.ctaButton}>До каталогу
-
+          <Link href="/catalog" className={styles.ctaButton}>
+            До каталогу
             <svg width="27" height="26" viewBox="0 0 27 26" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M13.4997 17.6667L18.1663 13M18.1663 13L13.4997 8.33337M18.1663 13H8.83301M25.1663 13C25.1663 19.4434 19.943 24.6667 13.4997 24.6667C7.05635 24.6667 1.83301 19.4434 1.83301 13C1.83301 6.55672 7.05635 1.33337 13.4997 1.33337C19.943 1.33337 25.1663 6.55672 25.1663 13Z" stroke="#FEFDFC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-
-
-          </button>
+          </Link>
         </div>
 
         <div className={styles.advantages_container}>
@@ -372,17 +370,17 @@ const Main = () => {
         </section>
 
         <section className={styles.bankBanner}>
-            <Image
-              src="/banner.jpg" 
-              alt="bank" 
-              className={styles.bankBannerImage} 
-              width={1400}
-              height={400}
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL="/banner.jpg"
-            >
-            </Image>
+          <Image
+            src="/banner.jpg"
+            alt="bank"
+            className={styles.bankBannerImage}
+            width={1400}
+            height={400}
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="/banner.jpg"
+          >
+          </Image>
 
         </section>
 
@@ -418,11 +416,11 @@ const Main = () => {
             <h2 className={styles.bodyContentTitle}>Популярне</h2>
             <Link href="/catalog?status=bestseller" className={styles.bodyContentButton}>Переглянути всі
               <svg width="35" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+                <path d="M11 15L15 11M15 11L11 7M15 11H7M21 11C21 16.5228 16.5228 21 11 21C5.47715 21 1 16.5228 1 11C1 5.47715 5.47715 1 11 1C16.5228 1 21 5.47715 21 11Z" stroke="#160101" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </Link>
           </div>
-        <Bestseller products={products} />
+          <Bestseller products={products} />
         </section>
 
         <section className={styles.bodyPartners}>
@@ -431,7 +429,7 @@ const Main = () => {
           </div>
           <div className={styles.partnersBckg}>
             <div className={styles.partnersContainer}>
-             <Partners />
+              <Partners />
             </div>
           </div>
         </section>
