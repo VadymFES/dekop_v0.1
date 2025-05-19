@@ -10,11 +10,12 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   onPriceChange 
 }) => {
 
+  const rangeRef = useRef<HTMLDivElement>(null);
+
   if (!priceRange || priceRange.min === undefined || priceRange.max === undefined ||
     filterValues.priceMin === undefined || filterValues.priceMax === undefined) {
   return null;
 }
-  const rangeRef = useRef<HTMLDivElement>(null);
   
   // Calculate percentage positions for slider thumbs
   const minPercentage = priceRange.max > priceRange.min ?
