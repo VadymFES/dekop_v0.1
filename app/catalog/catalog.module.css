@@ -132,7 +132,7 @@
   
   /* Sidebar Filters */
   .sidebar {
-    width: 260px;
+    width: 280px;
     min-width: 260px; /* Prevent shrinking */
     flex-shrink: 0;
     box-sizing: border-box;
@@ -152,11 +152,26 @@
   .filterSection:last-child {
     border-bottom: none;
   }
+
+  .categoryContainer {
+    margin-bottom: 12px;
+  }
+
+  .categorySelect {
+    font-size: 14px;
+    color: black;
+    margin-left: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    max-width: auto;
+    cursor: pointer;
+    background-color: var(--background-color);
+  }
   
   .filterTitle {
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 16px;
+    margin-bottom: 16px;    
     color: #000;
   }
   
