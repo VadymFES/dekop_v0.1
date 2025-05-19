@@ -39,21 +39,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className={styles.imageWrapper}>
             {firstImage && (
               <Image
-              src={firstImage.image_url}
-              alt={product.name}
-              className={styles.productImage}
-              width={260}
-              height={260}
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
+                src={firstImage.image_url}
+                alt={product.name}
+                className={styles.productImage}
+                width={260}
+                height={260}
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
               />
             )}
-            {product.is_bestseller && (
-              <div className={styles.salesLeaderLabel}>Лідер продажів</div>
+            
+            {(product.is_bestseller || product.is_new || product.is_on_sale) && (
+              <div className={styles.labelsContainer}>
+                {product.is_bestseller && (
+                  <div className={styles.salesLeaderLabel}>Лідер продажів</div>
+                )}
+                {product.is_new && (
+                  <div className={styles.newLabel}>Новинка</div>
+                )}
+                {product.is_on_sale && (
+                  <div className={styles.discountLabel}>Знижка</div>
+                )}
+              </div>
             )}
-            {product.is_new && <div className={styles.newLabel}>Новинка</div>}
-            {product.is_on_sale && <div className={styles.discountLabel}>Знижка</div>}
           </div>
 
           <div className={styles.productDetails}>
