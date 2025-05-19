@@ -26,6 +26,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   // Enhanced price handle drag functionality
   const handlePriceThumbDrag = (thumb: "min" | "max", e: React.MouseEvent): void => {
     e.preventDefault();
+    e.stopPropagation();
 
     // Get initial position
     const startX = e.clientX;
@@ -76,16 +77,18 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
       <h3 className={styles.filterTitle}>{title}</h3>
       <div className={styles.priceRangeContainer} ref={rangeRef}>
         <div className={styles.priceTrack}>
-          {/* Price indicator bubbles */}
+          {/* Price indicator bubbles*/}
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMin}`}
-            style={{ left: `${minPercentage}%` }}
+            style={{ left: `${minPercentage}%`, cursor: 'grab' }}
+            onMouseDown={(e) => handlePriceThumbDrag("min", e)}
           >
             {Math.round(filterValues.priceMin)}
           </div>
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMax}`}
-            style={{ left: `${maxPercentage}%` }}
+            style={{ left: `${maxPercentage}%`, cursor: 'grab' }}
+            onMouseDown={(e) => handlePriceThumbDrag("max", e)}
           >
             {Math.round(filterValues.priceMax)}
           </div>
