@@ -1,197 +1,201 @@
 /* catalog.module.css */
 .container {
-    display: flex;
-    max-width: 1920px;
-    flex-direction: column;
-    margin: 1rem 4rem;
-  }
-  
-  /* Breadcrumbs */
-  .breadcrumbs {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-  
-  .breadcrumbSeparator {
-    margin: 0 8px;
-    color: #666;
-  }
-  
-  .breadcrumbActive {
-    color: #333;
-    font-weight: 500;
-  }
-  
-  /* Page Title */
-  .pageTitle {
-    font-size: 32px;
-    font-weight: bold;
-    margin-bottom: 24px;
-    color: #000;
-  }
-  
-  /* Top Controls - Sort and Filter Display */
-  .topControls {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    width: 100%; /* Ensure full width */
-  }
-  
-  .filterControls {
-    flex: 1;
-    min-height: 70px;
-    min-width: 0; /* Prevent flex shrinkage issues */
-  }
-  
-  .sortAndCount {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  
-  .itemCount {
-    font-size: 14px;
-    color: #666;
-  }
+  display: flex;
+  max-width: 1920px;
+  flex-direction: column;
+  margin: 1rem 4rem;
+}
 
-  .sortLabel {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .sortSelect {
-    font-size: 14px;
-    color: black;
-    padding: 6px 12px;
-    border-radius: 20px;
-    max-width: 200px;
-    cursor: pointer;
-    background-color: var(--background-color);
-  }
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
 
-  .sortSelect :only-child {
-    display: none;
-  }
-  
-  /* Selected Filters Display */
-  .selectedFilters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .filterChip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 20px;
-    border: 1px solid #1601018A;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 300;
-    cursor: pointer;
-  }
+.breadcrumbSeparator {
+  margin: 0 8px;
+  color: #666;
+}
 
-  .filterChip:hover {
-    background-color: #e8e8e8;
-  }
-  
-  .clearAllFilters {
-    border-radius: 20px;
-    background-color: var(--primary-color);
-    padding: 6px 12px;
-    border: 1px solid #1601018A;
-    font-size: 14px;
-    color: black;
-    font-weight: 400;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    text-decoration: underline dashed;
-    text-underline-offset: 2px; 
-  }
+.breadcrumbActive {
+  color: #333;
+  font-weight: 500;
+}
 
-  
-  .clearAllFilters:hover {
-    background-color: #e8e8e8;
-  }
-  
-  /* Main Content Layout */
-  .contentWrapper {
-    display: flex;
-    gap: 30px;
-    min-height: 500px;
-    width: 100%; /* Ensure full width */
-    justify-content: space-between;
-  }
-  
-  /* Sidebar Filters */
-  .sidebar {
-    width: 280px;
-    min-width: 260px; /* Prevent shrinking */
-    flex-shrink: 0;
-    box-sizing: border-box;
-  }
-  
-  .sidebar.loading {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-  
-  .filterSection {
-    margin-bottom: 24px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 16px;
-  }
-  
-  .filterSection:last-child {
-    border-bottom: none;
-  }
+/* Page Title */
+.pageTitle {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #000;
+}
 
-  .categoryContainer {
-    margin-bottom: 12px;
-  }
+/* Top Controls - Sort and Filter Display */
+.topControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  /* Ensure full width */
+}
 
-  .categorySelect {
-    font-size: 14px;
-    color: black;
-    margin-left: 5px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    max-width: auto;
-    cursor: pointer;
-    background-color: var(--background-color);
-  }
-  
-  .filterTitle {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 16px;    
-    color: #000;
-  }
-  
-  .filterList {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .filterItem {
-    margin-bottom: 10px;
-  }
-  
-  .checkboxLabel {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
+.filterControls {
+  flex: 1;
+  min-height: 70px;
+  min-width: 0;
+  /* Prevent flex shrinkage issues */
+}
+
+.sortAndCount {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.itemCount {
+  font-size: 14px;
+  color: #666;
+}
+
+.sortLabel {
+  font-size: 14px;
+  color: #666;
+}
+
+.sortSelect {
+  font-size: 14px;
+  color: black;
+  padding: 6px 12px;
+  border-radius: 20px;
+  max-width: 200px;
+  cursor: pointer;
+  background-color: var(--background-color);
+}
+
+.sortSelect :only-child {
+  display: none;
+}
+
+/* Selected Filters Display */
+.selectedFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 20px;
+  border: 1px solid #1601018A;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.filterChip:hover {
+  background-color: #e8e8e8;
+}
+
+.clearAllFilters {
+  border-radius: 20px;
+  background-color: var(--primary-color);
+  padding: 6px 12px;
+  border: 1px solid #1601018A;
+  font-size: 14px;
+  color: black;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+}
+
+
+.clearAllFilters:hover {
+  background-color: #e8e8e8;
+}
+
+/* Main Content Layout */
+.contentWrapper {
+  display: flex;
+  gap: 30px;
+  min-height: 500px;
+  width: 100%;
+  /* Ensure full width */
+  justify-content: space-between;
+}
+
+/* Sidebar Filters */
+.sidebar {
+  width: 280px;
+  min-width: 260px;
+  /* Prevent shrinking */
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.sidebar.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.filterSection {
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 16px;
+}
+
+.filterSection:last-child {
+  border-bottom: none;
+}
+
+.categoryContainer {
+  margin-bottom: 12px;
+}
+
+.categorySelect {
+  font-size: 14px;
+  color: black;
+  margin-left: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  max-width: auto;
+  cursor: pointer;
+  background-color: var(--background-color);
+}
+
+.filterTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #000;
+}
+
+.filterList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filterItem {
+  margin-bottom: 10px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 .checkbox {
   margin-right: 10px;
   width: 20px;
@@ -226,21 +230,24 @@
   width: 5px;
   height: 5px;
   background-color: #160101;
-  border-radius: 50%; 
+  border-radius: 50%;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   box-sizing: border-box;
 }
-  
+
 /* catalog.module.css */
 .priceRangeContainer {
   position: relative;
   padding: 30px 0;
   user-select: none;
-  -webkit-user-select: none; /* Для Safari */
-  -ms-user-select: none; /* Для IE/Edge */
-  touch-action: none; /* Запобігає прокручуванню сторінки під час перетягування */
+  -webkit-user-select: none;
+  /* Для Safari */
+  -ms-user-select: none;
+  /* Для IE/Edge */
+  touch-action: none;
+  /* Запобігає прокручуванню сторінки під час перетягування */
 }
 
 .priceTrack {
@@ -267,7 +274,8 @@
   transform: translate(-50%, -50%);
   cursor: pointer;
   z-index: 2;
-  touch-action: none; /* Забезпечує правильну взаємодію на сенсорних екранах */
+  touch-action: none;
+  /* Забезпечує правильну взаємодію на сенсорних екранах */
 }
 
 .priceThumb:hover,
@@ -316,47 +324,47 @@
   border-top: 8px solid var(--background);
   z-index: -1;
 }
-  
-  /* Product Grid */
-  .productGrid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(280px, 1fr));
-    grid-template-rows: max-content;
-    min-height: 400px;
+
+/* Product Grid */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  grid-template-rows: max-content;
+  min-height: 400px;
 }
-  
-  /* Responsive design */
-  
-  @media (max-width: 1024px) {
-    .productGrid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  @media (max-width: 768px) {
 
-    .productGrid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+/* Responsive design */
 
-    .contentWrapper {
-      flex-direction: column;
-      width: 100%;
-    }
-    
-    .sidebar {
-      width: 100%;
-      min-width: 100%;
-      margin-bottom: 20px;
-    }
-    
-    .topControls {
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .sortAndCount {
-      width: 100%;
-      justify-content: space-between;
-    }
+@media (max-width: 1024px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
+}
+
+@media (max-width: 768px) {
+
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contentWrapper {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .topControls {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sortAndCount {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
