@@ -12,18 +12,18 @@ export interface PriceRange {
 }
 
 export interface FilterOptions {
-  type: string[];
-  material: string[];
-  complectation: string[];
-  facadeMaterial: string[];
-  specifics: string | null;
-  tabletopShape: string[];
-  size: string | null;
-  backrest: string | null;
-  hardness: string | null;
+type?: string[] | null;
+  material?: string[] | null;
+  complectation?: string[] | null;
+  facadeMaterial?: string[] | null;
+  specifics?: string | null;
+  tabletopShape?: string[] | null;
+  size?: string | null;
+  backrest?: string | null;
+  hardness?: string | null;
   priceMin: number;
   priceMax: number;
-  status: string[];
+  status?: string[] | null;
 }
 
 export interface CatalogState {
