@@ -1,6 +1,11 @@
+// /app/catalog/components/PriceRangeFilter.tsx
 import React, { useRef } from 'react';
 import styles from '../catalog.module.css';
 import { PriceRangeFilterProps } from '../types';
+
+// Constants for price range configuration
+const PRICE_STEP = 500;
+const MIN_PRICE_GAP = 500;
 
 export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   title,
@@ -36,7 +41,6 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
     const trackWidth = trackRect.width;
     const startValue = thumb === "min" ? filterValues.priceMin : filterValues.priceMax;
     const valueRange = priceRange.max - priceRange.min;
-    const priceStep = 500; // Step size for price adjustment
 
     // Handle mouse movement
     const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
@@ -48,15 +52,16 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
       // Calculate new value based on thumb being dragged
       let newValue = startValue + deltaValue;
 
-      newValue = Math.round(newValue / priceStep) * priceStep;
+      // Round to nearest step
+      newValue = Math.round(newValue / PRICE_STEP) * PRICE_STEP;
 
       if (thumb === "min") {
-        // Constrain min value between price range min and current max value
-        newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - priceStep));
+        // Constrain min value between price range min and current max value minus minimum gap
+        newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - MIN_PRICE_GAP));
         onPriceChange("min", newValue);
       } else {
-        // Constrain max value between current min value and price range max
-        newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + priceStep));
+        // Constrain max value between current min value plus minimum gap and price range max
+        newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + MIN_PRICE_GAP));
         onPriceChange("max", newValue);
       }
     };
