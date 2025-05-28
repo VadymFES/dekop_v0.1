@@ -301,6 +301,28 @@ export interface FilterGroup {
   };
 }
 
+// Defines the structure for a price range
+export interface PriceRange {
+  min: number;
+  max: number;
+}
+
+// Defines the structure for the filters state
+export interface FiltersState {
+  type?: string[] | null;
+  material?: string[] | null;
+  complectation?: string[] | null;
+  facadeMaterial?: string[] | null; 
+  specifics?: string | null;        
+  tabletopShape?: string[] | null;  
+  size?: string | null;
+  backrest?: string | null;         
+  hardness?: string | null;      
+  status?: string[] | null;
+  priceMin: number;
+  priceMax: number;
+}
+
 // Interface for category-specific filters
 export interface CategoryFilters {
   [category: string]: FilterGroup[];
