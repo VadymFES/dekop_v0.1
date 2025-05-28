@@ -1,7 +1,7 @@
 // /app/catalog/CatalogContent.tsx
 'use client';
 
-import React, { useReducer, useState, useEffect, useMemo, ChangeEvent, useCallback } from "react";
+import React, { useReducer, useState, useEffect, useMemo, ChangeEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./catalog.module.css";
 import { FURNITURE_FILTERS, FilterGroup } from "@/app/lib/definitions";
@@ -11,6 +11,7 @@ import { catalogReducer } from "./store/reducer";
 import { initialState } from "./store/initialState";
 import * as actions from "./store/actions";
 import { useFiltersFromUrl } from "./hooks/useFiltersFromUrl";
+import { useUpdateUrl } from "./hooks/useUpdateUrl";
 import { useFilterLogic } from "./hooks/useFilterLogic";
 
 // Components
@@ -19,25 +20,17 @@ import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
 import { ProductsDisplay } from "./components/ProductsDisplay";
-import MobileFilterSortControls from './components/MobileFilterSortControls.tsx';
-import FilterModal from './components/FilterModal';
-import SortSheet from './components/SortSheet.tsx';
 
 export default function CatalogContent(): React.ReactElement {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("category") || "";
 
-  // State for responsive view
-  const [isMobileView, setIsMobileView] = useState(false);
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showSortSheet, setShowSortSheet] = useState(false);
-  
   // State management with reducer
   const [state, dispatch] = useReducer(catalogReducer, initialState);
-  const { 
-    allProducts, filteredProducts, loading, error, 
-    priceRange, filters, sortOption, isFiltering 
+  const {
+    allProducts, filteredProducts, loading, error,
+    priceRange, filters, sortOption, isFiltering
   } = state;
 
   // Get category information
@@ -48,58 +41,10 @@ export default function CatalogContent(): React.ReactElement {
 
   // Custom hooks
   const getFiltersFromURL = useFiltersFromUrl();
-  
-  // Memoized URL update function - this fixes the infinite re-render issue
-  const updateURLWithFilters = useCallback(() => {
-    const params = new URLSearchParams();
-    
-    // Add category if exists
-    if (slug) {
-      params.set('category', slug);
-    }
-    
-    // Add filters to URL params with null/undefined checks
-    if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
-      params.set('status', filters.status.join(','));
-    }
-    
-    if (filters.type && Array.isArray(filters.type) && filters.type.length > 0) {
-      params.set('type', filters.type.join(','));
-    }
-    
-    if (filters.material && Array.isArray(filters.material) && filters.material.length > 0) {
-      params.set('material', filters.material.join(','));
-    }
-    
-    if (filters.complectation && Array.isArray(filters.complectation) && filters.complectation.length > 0) {
-      params.set('complectation', filters.complectation.join(','));
-    }
-    
-    if (filters.size) {
-      params.set('size', filters.size);
-    }
-    
-    // Only add price params if they differ from the full range
-    if (filters.priceMin !== null && filters.priceMin !== undefined && filters.priceMin !== priceRange.min) {
-      params.set('priceMin', filters.priceMin.toString());
-    }
-    
-    if (filters.priceMax !== null && filters.priceMax !== undefined && filters.priceMax !== priceRange.max) {
-      params.set('priceMax', filters.priceMax.toString());
-    }
-    
-    if (sortOption && sortOption !== 'rating_desc') { // assuming rating_desc is default
-      params.set('sort', sortOption);
-    }
-    
-    // Update URL without page reload
-    const newURL = params.toString() ? `?${params.toString()}` : window.location.pathname;
-    window.history.replaceState({}, '', newURL);
-    
-  }, [filters, priceRange, sortOption, slug]); // Only these dependencies
-  
+  const updateURLWithFilters = useUpdateUrl(filters, priceRange, sortOption, slug);
+
   // Apply filtering logic
-  useFilterLogic(allProducts, filters, sortOption, updateURLWithFilters, dispatch);
+  useFilterLogic(allProducts, filters, priceRange, sortOption, updateURLWithFilters, dispatch);
 
   // Memoized filter groups to avoid recalculations
   const finalFilterGroups = useMemo(() => {
@@ -121,31 +66,20 @@ export default function CatalogContent(): React.ReactElement {
       );
       const merged = mergePriceFilters(priceGroups);
       const result = [...GLOBAL_FILTERS];
-      
-      // Fixed type issue - ensure merged is a proper FilterGroup with specific type
+
       if (merged) {
         // Only add the price filter if it has a valid type
-        if (merged.type === 'range' || merged.type === 'checkbox' || 
-            merged.type === 'radio' || merged.type === 'color') {
+        if (merged.type === 'range' || merged.type === 'checkbox' ||
+          merged.type === 'radio' || merged.type === 'color') {
           result.push(merged);
         }
       }
       return result;
-    } 
-    
+    }
+
     // Return category-specific filters plus global filters
     return [...GLOBAL_FILTERS, ...(FURNITURE_FILTERS[slug] || [])];
   }, [slug]);
-
-  // Effect for handling responsive view
-  useEffect(() => {
-    const checkScreenWidth = () => {
-      setIsMobileView(window.innerWidth < 768);
-    };
-    checkScreenWidth(); // Initial check
-    window.addEventListener("resize", checkScreenWidth);
-    return () => window.removeEventListener("resize", checkScreenWidth);
-  }, []);
 
   // Fetch products
   useEffect(() => {
@@ -154,21 +88,22 @@ export default function CatalogContent(): React.ReactElement {
       dispatch(actions.setIsFiltering(true));
       try {
         const urlFilters = getFiltersFromURL(searchParams);
-        
+
         // Build API query params for filtered products
         const params = new URLSearchParams();
         if (dbCategory) params.append("category", dbCategory);
-        
+
         // Add filters to params
         urlFilters.status.forEach(status => params.append("status", status));
         urlFilters.type.forEach(type => params.append("type", type));
         urlFilters.material.forEach(material => params.append("material", material));
         urlFilters.complectation.forEach(feature => params.append("feature", feature));
-        
-        if (urlFilters.size) params.append("size", urlFilters.size);
-        if (urlFilters.priceMin) params.append("minPrice", urlFilters.priceMin.toString());
-        if (urlFilters.priceMax) params.append("maxPrice", urlFilters.priceMax.toString());
 
+        if (urlFilters.size) params.append("size", urlFilters.size);
+        if (urlFilters.priceMin !== null && urlFilters.priceMax !== null) {
+          params.append("minPrice", urlFilters.priceMin.toString());
+          params.append("maxPrice", urlFilters.priceMax.toString());
+        }
         // Fetch filtered products
         const res = await fetch(`/api/products?${params.toString()}`);
         if (!res.ok) {
@@ -177,51 +112,56 @@ export default function CatalogContent(): React.ReactElement {
         const data = await res.json();
         dispatch(actions.setFilteredProducts(data));
 
-        // Handle price range and filters setup from filtered results
-        if (data.length > 0) {
-          const prices = data.map((p: { price: number | string }) => 
-            parseFloat(p.price.toString())).filter((p: number) => p > 0);
-          const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-          const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-          
-          dispatch(actions.setFilters({
-            type: urlFilters.type,
-            material: urlFilters.material,
-            complectation: urlFilters.complectation,
-            size: urlFilters.size,
-            priceMin: urlFilters.priceMin || minPrice,
-            priceMax: urlFilters.priceMax || maxPrice,
-            status: urlFilters.status,
-          }));
-          
-          dispatch(actions.setSortOption(urlFilters.sort));
-        }
-
         // Fetch all products in category for complete data (for filtering)
         const allProductsParams = new URLSearchParams();
         if (dbCategory) allProductsParams.append("category", dbCategory);
-        
+
         const allProductsRes = await fetch(`/api/products?${allProductsParams.toString()}`);
         if (allProductsRes.ok) {
           const allData = await allProductsRes.json();
           dispatch(actions.setAllProducts(allData));
 
           if (allData.length > 0) {
-            // Calculate price range from all products
-            const allPrices = allData.map((p: { price: number | string }) => 
+            const allPrices = allData.map((p: { price: number | string }) =>
               parseFloat(p.price.toString())).filter((p: number) => p > 0);
             const allMinPrice = allPrices.length > 0 ? Math.min(...allPrices) : 0;
             const allMaxPrice = allPrices.length > 0 ? Math.max(...allPrices) : 0;
-            
+
             dispatch(actions.setPriceRange({ min: allMinPrice, max: allMaxPrice }));
-            
-            // Only update price filters if they weren't set from URL
-            if (!urlFilters.priceMin && !urlFilters.priceMax) {
-              dispatch(actions.setFilters({
-                priceMin: allMinPrice,
-                priceMax: allMaxPrice
-              }));
+
+            // New logic to determine initial price filters based on URL params and global price range
+            let resolvedPriceMin, resolvedPriceMax;
+
+            if (urlFilters.priceMin && urlFilters.priceMax) {
+              // Case 1: Both minPrice and maxPrice are in the URL
+              resolvedPriceMin = urlFilters.priceMin;
+              resolvedPriceMax = urlFilters.priceMax;
+            } else if (urlFilters.priceMin) {
+              // Case 2: Only minPrice is in the URL
+              resolvedPriceMin = urlFilters.priceMin;
+              resolvedPriceMax = allMaxPrice; 
+            } else if (urlFilters.priceMax) {
+              // Case 3: Only maxPrice is in the URL
+              resolvedPriceMin = allMinPrice; 
+              resolvedPriceMax = urlFilters.priceMax;
+            } else {
+              // Case 4: Neither minPrice nor maxPrice is in the URL
+              resolvedPriceMin = allMinPrice;
+              resolvedPriceMax = allMaxPrice;
             }
+
+            // Set all filters including the resolved price filters
+            dispatch(actions.setFilters({
+              type: urlFilters.type,
+              material: urlFilters.material,
+              complectation: urlFilters.complectation,
+              size: urlFilters.size,
+              priceMin: resolvedPriceMin,
+              priceMax: resolvedPriceMax,
+              status: urlFilters.status,
+            }));
+
+            dispatch(actions.setSortOption(urlFilters.sort));
           }
         }
       } catch (err) {
@@ -240,7 +180,7 @@ export default function CatalogContent(): React.ReactElement {
 
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const chosenSlug = e.target.value;
-    setIsCategoryLoading(true); 
+    setIsCategoryLoading(true);
     dispatch(actions.setLoading(true));
     dispatch(actions.resetFilters({ min: 0, max: 0 }));
     dispatch(actions.setPriceRange({ min: 0, max: 0 }));
@@ -256,13 +196,13 @@ export default function CatalogContent(): React.ReactElement {
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string): void => {
     const { value, checked, type } = e.target;
     const key = groupName.toLowerCase() as keyof typeof filters;
-    
-    if (type === "checkbox" && filters[key] && Array.isArray(filters[key])) {
+
+    if (type === "checkbox" && Array.isArray(filters[key])) {
       const currentValues = Array.isArray(filters[key]) ? [...(filters[key] as string[])] : [];
       const newValues = checked
         ? [...currentValues, value]
         : currentValues.filter(v => v !== value);
-      
+
       dispatch(actions.setFilters({ [key]: newValues }));
     } else if (type === "radio") {
       dispatch(actions.setFilters({ [key]: checked ? value : null }));
@@ -270,16 +210,14 @@ export default function CatalogContent(): React.ReactElement {
   };
 
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
-    const currentPriceMin = filters.priceMin ?? priceRange.min;
-    const currentPriceMax = filters.priceMax ?? priceRange.max;
-    
+    const priceStep = 500; 
     dispatch(actions.setFilters({
       priceMin: thumb === "min"
-        ? Math.max(priceRange.min, Math.min(value, currentPriceMax - 1200))
-        : currentPriceMin,
+        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - priceStep))
+        : filters.priceMin,
       priceMax: thumb === "max"
-        ? Math.min(priceRange.max, Math.max(value, currentPriceMin + 1200))
-        : currentPriceMax,
+        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + priceStep))
+        : filters.priceMax,
     }));
   };
 
@@ -289,7 +227,7 @@ export default function CatalogContent(): React.ReactElement {
 
   const clearFilter = (filterType: string, value: string): void => {
     const key = filterType.toLowerCase() as keyof typeof filters;
-    
+
     if (filterType === "Price" && value === "range") {
       dispatch(actions.setFilters({
         priceMin: priceRange.min,
@@ -297,8 +235,8 @@ export default function CatalogContent(): React.ReactElement {
       }));
       return;
     }
-    
-    if (filters[key] && Array.isArray(filters[key])) {
+
+    if (Array.isArray(filters[key])) {
       dispatch(actions.setFilters({
         [key]: (filters[key] as string[]).filter(v => v !== value)
       }));
@@ -318,41 +256,31 @@ export default function CatalogContent(): React.ReactElement {
   return (
     <div className={styles.container}>
       <div className={styles.contentContainer}>
-      <Breadcrumbs title={pageTitle} />
-      <h1 className={styles.pageTitle}>{pageTitle}</h1>
-  
-      <div className={styles.topControls}>
-        <div className={styles.filterControls}>
-          <SelectedFilters
-            loading={loading}
-            filters={filters}
-            priceRange={priceRange}
-            slug={slug}
-            clearFilter={clearFilter}
-            clearAllFilters={clearAllFilters}
-            updateURLWithFilters={updateURLWithFilters}
+        <Breadcrumbs title={pageTitle} />
+        <h1 className={styles.pageTitle}>{pageTitle}</h1>
+
+        <div className={styles.topControls}>
+          <div className={styles.filterControls}>
+            <SelectedFilters
+              loading={loading}
+              filters={filters}
+              priceRange={priceRange}
+              slug={slug}
+              clearFilter={clearFilter}
+              clearAllFilters={clearAllFilters}
+              updateURLWithFilters={updateURLWithFilters}
+            />
+          </div>
+          <SortControl
+            sortOption={sortOption}
+            onChange={handleSortChange}
+            disabled={loading}
           />
         </div>
-        {!isMobileView && (
-          <SortControl 
-            sortOption={sortOption} 
-            onChange={handleSortChange} 
-            disabled={loading} 
-          />
-        )}
-      </div>
-  
-      {isMobileView && (
-        <MobileFilterSortControls
-          onShowFilters={() => setShowFilterModal(true)}
-          onShowSort={() => setShowSortSheet(true)}
-        />
-      )}
-  
-      <React.Suspense>
-        <div className={styles.contentWrapper}>
-          {!isMobileView && (
-            <FiltersSidebar 
+
+        <React.Suspense>
+          <div className={styles.contentWrapper}>
+            <FiltersSidebar
               loading={loading}
               isCategoryLoading={isCategoryLoading}
               slug={slug}
@@ -363,39 +291,15 @@ export default function CatalogContent(): React.ReactElement {
               handleFilterChange={handleFilterChange}
               handlePriceChange={handlePriceChange}
             />
-          )}
-          <ProductsDisplay 
-            loading={loading}
-            isFiltering={isFiltering}
-            error={error}
-            filteredProducts={filteredProducts}
-          />
-        </div>
-      </React.Suspense>
+            <ProductsDisplay
+              loading={loading}
+              isFiltering={isFiltering}
+              error={error}
+              filteredProducts={filteredProducts}
+            />
+          </div>
+        </React.Suspense>
       </div>
-
-      <FilterModal
-        isOpen={showFilterModal}
-        onClose={() => setShowFilterModal(false)}
-        loading={loading}
-        isCategoryLoading={isCategoryLoading}
-        slug={slug}
-        filters={filters}
-        priceRange={priceRange}
-        finalFilterGroups={finalFilterGroups}
-        handleCategoryChange={handleCategoryChange}
-        handleFilterChange={handleFilterChange}
-        handlePriceChange={handlePriceChange}
-        clearAllFilters={clearAllFilters}
-      />
-
-      <SortSheet
-        isOpen={showSortSheet}
-        onClose={() => setShowSortSheet(false)}
-        sortOption={sortOption}
-        onSortChange={handleSortChange}
-        disabled={loading}
-      />
     </div>
   );
 }
