@@ -23,10 +23,10 @@ export const useFilterLogic = (
       // Create a copy of products to work with
       let matches = [...allProducts];
 
-      // Apply status filters
-      if (filters.status.length > 0) {
+      // Apply status filters with null check
+      if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
         matches = matches.filter(p => 
-          filters.status.some(status => {
+          filters.status!.some(status => {
             if (status === 'new') return p.is_new;
             if (status === 'on_sale') return p.is_on_sale;
             if (status === 'bestseller') return p.is_bestseller;
@@ -35,35 +35,35 @@ export const useFilterLogic = (
         );
       }
 
-      // Apply type filters
-      if (filters.type.length > 0) {
+      // Apply type filters with null check
+      if (filters.type && Array.isArray(filters.type) && filters.type.length > 0) {
         matches = matches.filter(p => {
           if (!p.specs?.types) return false;
           const productTypes = Array.isArray(p.specs.types) ? p.specs.types : [p.specs.types];
           return productTypes.some(type => {
             if (!type) return false;
             const typeStr = typeof type === 'string' ? type.toLowerCase() : String(type).toLowerCase();
-            return filters.type.includes(typeStr);
+            return filters.type!.includes(typeStr);
           });
         });
       }
 
-      // Apply material filters
-      if (filters.material.length > 0) {
+      // Apply material filters with null check
+      if (filters.material && Array.isArray(filters.material) && filters.material.length > 0) {
         matches = matches.filter(p => {
           const materialValue = getMaterialValue(p.specs);
           if (!materialValue) return false;
-          return filters.material.some(material =>
+          return filters.material!.some(material =>
             materialValue.toLowerCase().includes(material.toLowerCase())
           );
         });
       }
 
-      // Apply complectation filters
-      if (filters.complectation.length > 0) {
+      // Apply complectation filters with null check
+      if (filters.complectation && Array.isArray(filters.complectation) && filters.complectation.length > 0) {
         matches = matches.filter(p => {
           if (!p.specs) return false;
-          return filters.complectation.every(feature => {
+          return filters.complectation!.every(feature => {
             if (feature === "shelves") return isSofaSpecs(p.specs) && p.specs.has_shelves === true;
             if (feature === "high_legs") return isSofaSpecs(p.specs) && p.specs.leg_height === "high";
             if (feature === "low_legs") return isSofaSpecs(p.specs) && p.specs.leg_height === "low";
@@ -90,11 +90,12 @@ export const useFilterLogic = (
         });
       }
 
-      // Apply price filter
-      if (filters.priceMin !== null && filters.priceMax !== null) {
+      // Apply price filter with null and undefined checks
+      if (filters.priceMin !== null && filters.priceMin !== undefined && 
+          filters.priceMax !== null && filters.priceMax !== undefined) {
         matches = matches.filter(p => {
           const price = parseFloat(p.price.toString());
-          return price >= filters.priceMin && price <= filters.priceMax;
+          return price >= filters.priceMin! && price <= filters.priceMax!;
         });
       }
 
