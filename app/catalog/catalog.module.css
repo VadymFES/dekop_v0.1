@@ -394,4 +394,76 @@
     width: 100%;
     justify-content: space-between;
   }
+
+  /* Hide desktop filters and sort controls on mobile */
+  .sidebar {
+    display: none;
+  }
+  /* Ensure this selector is specific enough if .sortAndCount is used elsewhere for mobile */
+  .topControls > .sortAndCount { /* More specific selector for desktop sort */
+    display: none;
+  }
+
+  /* MobileFilterSortControls specific styles */
+  .mobileControlsContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional: add some shadow */
+  }
+
+  .mobileFilterButton {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: #f9f9f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px; /* Adjusted for better readability */
+  }
+
+  .mobileSortButton {
+    padding: 10px; /* Adjusted for a better touch target */
+    border: 1px solid #ccc;
+    border-radius: 50%; /* Makes it circular */
+    background-color: #f9f9f9;
+    cursor: pointer;
+    display: flex; /* For centering icon if needed */
+    align-items: center; /* For centering icon if needed */
+    justify-content: center; /* For centering icon if needed */
+  }
+}
+
+@media (max-width: 480px) {
+  .productGrid {
+    grid-template-columns: 1fr; /* Single column for very small screens */
+  }
+
+  .contentContainer { /* Reduce margins on very small screens */
+    margin: 1rem 1rem;
+  }
+
+  .contentWrapper { /* Reduce margins on very small screens */
+    margin: 1rem 1rem;
+  }
+
+  .pageTitle {
+    font-size: 24px; /* Adjust page title size for smaller screens */
+  }
+
+  .mobileFilterButton {
+    padding: 8px 12px; /* Slightly reduce padding */
+    font-size: 13px;
+  }
+
+  .mobileSortButton {
+    padding: 8px;
+  }
 }

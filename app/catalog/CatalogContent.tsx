@@ -1,7 +1,7 @@
 // /app/catalog/CatalogContent.tsx
 'use client';
 
-import React, { useReducer, useState, useEffect, useMemo, ChangeEvent } from "react";
+import React, { useReducer, useState, useEffect, useMemo, ChangeEvent, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./catalog.module.css";
 import { FURNITURE_FILTERS, FilterGroup } from "@/app/lib/definitions";
@@ -11,7 +11,6 @@ import { catalogReducer } from "./store/reducer";
 import { initialState } from "./store/initialState";
 import * as actions from "./store/actions";
 import { useFiltersFromUrl } from "./hooks/useFiltersFromUrl";
-import { useUpdateUrl } from "./hooks/useUpdateUrl";
 import { useFilterLogic } from "./hooks/useFilterLogic";
 
 // Components
@@ -20,11 +19,19 @@ import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
 import { ProductsDisplay } from "./components/ProductsDisplay";
+import MobileFilterSortControls from './components/MobileFilterSortControls.tsx';
+import FilterModal from './components/FilterModal';
+import SortSheet from './components/SortSheet.tsx';
 
 export default function CatalogContent(): React.ReactElement {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("category") || "";
+
+  // State for responsive view
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showSortSheet, setShowSortSheet] = useState(false);
   
   // State management with reducer
   const [state, dispatch] = useReducer(catalogReducer, initialState);
@@ -41,7 +48,55 @@ export default function CatalogContent(): React.ReactElement {
 
   // Custom hooks
   const getFiltersFromURL = useFiltersFromUrl();
-  const updateURLWithFilters = useUpdateUrl(filters, priceRange, sortOption, slug);
+  
+  // Memoized URL update function - this fixes the infinite re-render issue
+  const updateURLWithFilters = useCallback(() => {
+    const params = new URLSearchParams();
+    
+    // Add category if exists
+    if (slug) {
+      params.set('category', slug);
+    }
+    
+    // Add filters to URL params with null/undefined checks
+    if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
+      params.set('status', filters.status.join(','));
+    }
+    
+    if (filters.type && Array.isArray(filters.type) && filters.type.length > 0) {
+      params.set('type', filters.type.join(','));
+    }
+    
+    if (filters.material && Array.isArray(filters.material) && filters.material.length > 0) {
+      params.set('material', filters.material.join(','));
+    }
+    
+    if (filters.complectation && Array.isArray(filters.complectation) && filters.complectation.length > 0) {
+      params.set('complectation', filters.complectation.join(','));
+    }
+    
+    if (filters.size) {
+      params.set('size', filters.size);
+    }
+    
+    // Only add price params if they differ from the full range
+    if (filters.priceMin !== null && filters.priceMin !== undefined && filters.priceMin !== priceRange.min) {
+      params.set('priceMin', filters.priceMin.toString());
+    }
+    
+    if (filters.priceMax !== null && filters.priceMax !== undefined && filters.priceMax !== priceRange.max) {
+      params.set('priceMax', filters.priceMax.toString());
+    }
+    
+    if (sortOption && sortOption !== 'rating_desc') { // assuming rating_desc is default
+      params.set('sort', sortOption);
+    }
+    
+    // Update URL without page reload
+    const newURL = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newURL);
+    
+  }, [filters, priceRange, sortOption, slug]); // Only these dependencies
   
   // Apply filtering logic
   useFilterLogic(allProducts, filters, sortOption, updateURLWithFilters, dispatch);
@@ -81,6 +136,16 @@ export default function CatalogContent(): React.ReactElement {
     // Return category-specific filters plus global filters
     return [...GLOBAL_FILTERS, ...(FURNITURE_FILTERS[slug] || [])];
   }, [slug]);
+
+  // Effect for handling responsive view
+  useEffect(() => {
+    const checkScreenWidth = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    checkScreenWidth(); // Initial check
+    window.addEventListener("resize", checkScreenWidth);
+    return () => window.removeEventListener("resize", checkScreenWidth);
+  }, []);
 
   // Fetch products
   useEffect(() => {
@@ -192,7 +257,7 @@ export default function CatalogContent(): React.ReactElement {
     const { value, checked, type } = e.target;
     const key = groupName.toLowerCase() as keyof typeof filters;
     
-    if (type === "checkbox" && Array.isArray(filters[key])) {
+    if (type === "checkbox" && filters[key] && Array.isArray(filters[key])) {
       const currentValues = Array.isArray(filters[key]) ? [...(filters[key] as string[])] : [];
       const newValues = checked
         ? [...currentValues, value]
@@ -205,13 +270,16 @@ export default function CatalogContent(): React.ReactElement {
   };
 
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
+    const currentPriceMin = filters.priceMin ?? priceRange.min;
+    const currentPriceMax = filters.priceMax ?? priceRange.max;
+    
     dispatch(actions.setFilters({
       priceMin: thumb === "min"
-        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - 1200))
-        : filters.priceMin,
+        ? Math.max(priceRange.min, Math.min(value, currentPriceMax - 1200))
+        : currentPriceMin,
       priceMax: thumb === "max"
-        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + 1200))
-        : filters.priceMax,
+        ? Math.min(priceRange.max, Math.max(value, currentPriceMin + 1200))
+        : currentPriceMax,
     }));
   };
 
@@ -230,7 +298,7 @@ export default function CatalogContent(): React.ReactElement {
       return;
     }
     
-    if (Array.isArray(filters[key])) {
+    if (filters[key] && Array.isArray(filters[key])) {
       dispatch(actions.setFilters({
         [key]: (filters[key] as string[]).filter(v => v !== value)
       }));
@@ -265,26 +333,37 @@ export default function CatalogContent(): React.ReactElement {
             updateURLWithFilters={updateURLWithFilters}
           />
         </div>
-        <SortControl 
-          sortOption={sortOption} 
-          onChange={handleSortChange} 
-          disabled={loading} 
-        />
+        {!isMobileView && (
+          <SortControl 
+            sortOption={sortOption} 
+            onChange={handleSortChange} 
+            disabled={loading} 
+          />
+        )}
       </div>
+  
+      {isMobileView && (
+        <MobileFilterSortControls
+          onShowFilters={() => setShowFilterModal(true)}
+          onShowSort={() => setShowSortSheet(true)}
+        />
+      )}
   
       <React.Suspense>
         <div className={styles.contentWrapper}>
-          <FiltersSidebar 
-            loading={loading}
-            isCategoryLoading={isCategoryLoading}
-            slug={slug}
-            filters={filters}
-            priceRange={priceRange}
-            finalFilterGroups={finalFilterGroups}
-            handleCategoryChange={handleCategoryChange}
-            handleFilterChange={handleFilterChange}
-            handlePriceChange={handlePriceChange}
-          />
+          {!isMobileView && (
+            <FiltersSidebar 
+              loading={loading}
+              isCategoryLoading={isCategoryLoading}
+              slug={slug}
+              filters={filters}
+              priceRange={priceRange}
+              finalFilterGroups={finalFilterGroups}
+              handleCategoryChange={handleCategoryChange}
+              handleFilterChange={handleFilterChange}
+              handlePriceChange={handlePriceChange}
+            />
+          )}
           <ProductsDisplay 
             loading={loading}
             isFiltering={isFiltering}
@@ -294,6 +373,29 @@ export default function CatalogContent(): React.ReactElement {
         </div>
       </React.Suspense>
       </div>
+
+      <FilterModal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        loading={loading}
+        isCategoryLoading={isCategoryLoading}
+        slug={slug}
+        filters={filters}
+        priceRange={priceRange}
+        finalFilterGroups={finalFilterGroups}
+        handleCategoryChange={handleCategoryChange}
+        handleFilterChange={handleFilterChange}
+        handlePriceChange={handlePriceChange}
+        clearAllFilters={clearAllFilters}
+      />
+
+      <SortSheet
+        isOpen={showSortSheet}
+        onClose={() => setShowSortSheet(false)}
+        sortOption={sortOption}
+        onSortChange={handleSortChange}
+        disabled={loading}
+      />
     </div>
   );
 }
