@@ -1,0 +1,184 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modalOverlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modalContent {
+  background-color: var(--background-color);
+  width: 100%;
+  max-height: 85vh; 
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.modalOverlay.open .modalContent {
+  transform: translateY(0);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px; /* Increased margin */
+  padding-bottom: 10px; /* Added padding */
+  border-bottom: 1px solid #eee; /* Separator for header */
+}
+
+.modalTitle {
+  font-size: 1.25em; /* Slightly adjusted */
+  font-weight: bold;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.8em; /* Increased for better touch */
+  cursor: pointer;
+  padding: 5px; /* Added padding for easier click */
+  line-height: 1; /* Ensure X is vertically centered */
+}
+
+.modalBody {
+  flex-grow: 1;
+  overflow-y: auto;
+  /* Styles for filter groups, options, etc. within the modal */
+}
+
+.filterGroup {
+  margin-bottom: 20px;
+}
+
+.groupTitle {
+  font-size: 1.1em;
+  font-weight: 600; /* Medium bold */
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.input[type="checkbox"],
+.input[type="radio"] {
+  margin-right: 12px;
+  width: 22px; /* Larger for touch */
+  height: 22px; /* Larger for touch */
+  cursor: pointer;
+  accent-color: var(--primary-color); /* Use accent-color for modern styling */
+}
+
+.label,
+.colorLabel {
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.colorLabel {
+  display: flex;
+  align-items: center;
+}
+
+.colorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  display: inline-block;
+}
+
+.select {
+  width: 100%;
+  padding: 12px 15px; /* Increased padding */
+  border-radius: 8px; /* Standardized border-radius */
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  font-size: 1em;
+  margin-bottom: 10px; /* Spacing for select element */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+}
+
+
+.modalFooter {
+  display: flex;
+  justify-content: space-between; /* space-around to space-between for full width buttons */
+  gap: 10px; /* Gap between buttons */
+  padding-top: 20px; /* Increased padding */
+  border-top: 1px solid #eee;
+  margin-top: 10px; /* Margin to separate from body */
+}
+
+.applyButton,
+.clearButton {
+  flex-grow: 1; /* Make buttons take equal width */
+  padding: 12px 20px; /* Increased padding for better touch */
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.applyButton {
+  background-color: var(--primary-color); /* Use theme color */
+  color: white;
+  border: none;
+}
+
+.applyButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.clearButton {
+  background-color: #f0f0f0; /* Lighter background for clear */
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.clearButton:disabled {
+  background-color: #e0e0e0;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+/* PriceRangeFilter specific styles within modal if needed */
+/* Ensure PriceRangeFilter styles are adapted or scoped if they conflict */
+
+/* Example: if PriceRangeFilter has its own .container or specific classes */
+.modalBody .priceRangeContainer { /* Scoping PriceRangeFilter styles */
+  margin-left: 0; /* Reset margin if needed for modal layout */
+  max-width: 100%; /* Allow full width if appropriate */
+}
+
