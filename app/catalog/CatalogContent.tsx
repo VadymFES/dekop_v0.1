@@ -20,6 +20,7 @@ import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
 import { ProductsDisplay } from "./components/ProductsDisplay";
+import FilterModal from "./components/FilterModal";
 
 export default function CatalogContent(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -32,6 +33,10 @@ export default function CatalogContent(): React.ReactElement {
     allProducts, filteredProducts, loading, error,
     priceRange, filters, sortOption, isFiltering
   } = state;
+
+  // Mobile specific states
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   // Get category information
   const slugData = CATEGORY_SLUG_MAP[slug];
@@ -245,6 +250,16 @@ export default function CatalogContent(): React.ReactElement {
     }
   };
 
+  // Effect to detect mobile screen
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const clearAllFilters = (): void => {
     dispatch(actions.resetFilters(priceRange));
     setTimeout(() => {
@@ -253,11 +268,31 @@ export default function CatalogContent(): React.ReactElement {
     }, 0);
   };
 
+  // Modal close handler
+  const handleCloseModal = (): void => {
+    setIsMobileFiltersOpen(false);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.contentContainer}>
         <Breadcrumbs title={pageTitle} />
         <h1 className={styles.pageTitle}>{pageTitle}</h1>
+
+        {/* Mobile Controls */}
+        <div className={styles.mobileControlsContainer}>
+          <button 
+            onClick={() => setIsMobileFiltersOpen(true)} 
+            className={styles.mobileFiltersButton}
+          >
+            Фільтри
+          </button>
+          <SortControl 
+            sortOption={sortOption} 
+            onChange={handleSortChange} 
+            disabled={loading} 
+          />
+        </div>
 
         <div className={styles.topControls}>
           <div className={styles.filterControls}>
@@ -280,6 +315,7 @@ export default function CatalogContent(): React.ReactElement {
 
         <React.Suspense>
           <div className={styles.contentWrapper}>
+            {/* Desktop FiltersSidebar */}
             <FiltersSidebar
               loading={loading}
               isCategoryLoading={isCategoryLoading}
@@ -299,6 +335,22 @@ export default function CatalogContent(): React.ReactElement {
             />
           </div>
         </React.Suspense>
+
+        {/* Mobile FilterModal */}
+        <FilterModal
+          isOpen={isMobileFiltersOpen}
+          onClose={handleCloseModal}
+          loading={loading}
+          isCategoryLoading={isCategoryLoading}
+          slug={slug}
+          filters={filters}
+          priceRange={priceRange}
+          finalFilterGroups={finalFilterGroups}
+          handleCategoryChange={handleCategoryChange}
+          handleFilterChange={handleFilterChange}
+          handlePriceChange={handlePriceChange}
+          clearAllFilters={clearAllFilters}
+        />
       </div>
     </div>
   );
