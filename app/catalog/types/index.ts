@@ -82,6 +82,9 @@ export interface FiltersSidebarProps {
   handleCategoryChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleFilterChange: (e: React.ChangeEvent<HTMLInputElement>, groupName: string) => void;
   handlePriceChange: (thumb: "min" | "max", value: number) => void;
+  isMobile?: boolean;
+  isMobileFiltersOpen?: boolean;
+  onCloseMobileFilters?: () => void;
 }
 
 export interface ProductsDisplayProps {
