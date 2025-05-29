@@ -6,7 +6,14 @@ import { CATEGORY_SLUG_MAP } from '../types';
 import { PriceRangeFilter } from './PriceRangeFilter';
 import FiltersSkeleton from '../components/ui/FiltersSkeleton/FiltersSkeleton';
 
-export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
+// Extended props interface for mobile support
+interface ExtendedFiltersSidebarProps extends FiltersSidebarProps {
+  isMobile?: boolean;
+  isMobileFiltersOpen?: boolean;
+  onCloseMobileFilters?: () => void;
+}
+
+export const FiltersSidebar: React.FC<ExtendedFiltersSidebarProps> = ({
   loading,
   isCategoryLoading,
   slug,
@@ -15,8 +22,17 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
   finalFilterGroups,
   handleCategoryChange,
   handleFilterChange,
-  handlePriceChange
+  handlePriceChange,
+  isMobile = false,
+  isMobileFiltersOpen = false,
+  onCloseMobileFilters
 }) => {
+  
+  // Don't render on mobile unless modal is open
+  if (isMobile && !isMobileFiltersOpen) {
+    return null;
+  }
+
   // Render filter components based on filter groups
   const renderFilters = () => {
     return finalFilterGroups.map(group => {
@@ -69,34 +85,62 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
     });
   };
 
+  // Determine CSS classes - apply modal class when on mobile and modal is open
+  const sidebarClasses = [
+    styles.sidebar,
+    loading ? styles.loading : '',
+    isMobile && isMobileFiltersOpen ? styles.modal : ''
+  ].filter(Boolean).join(' ');
+
+  const mainContent = (
+    <>
+      <div className={styles.categoryContainer}>
+        <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
+          Оберіть категорію:
+        </label>
+        <select
+          id="categorySelect"
+          value={slug}
+          onChange={handleCategoryChange}
+          className={styles.categorySelect}
+        >
+          <option value="">Всі категорії</option>
+          {Object.keys(CATEGORY_SLUG_MAP).map(catKey => (
+            <option key={catKey} value={catKey}>
+              {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
+            </option>
+          ))}
+        </select>
+      </div>
+      {renderFilters()}
+    </>
+  );
+
   return (
-    <aside className={`${styles.sidebar} ${loading ? styles.loading : ""}`}>
-      {isCategoryLoading ? ( 
-        <FiltersSkeleton />
-      ) : (
-        <>
-        <div className={styles.categoryContainer}>
-          <label htmlFor="categorySelect" className={styles.categorySelectLabel}>
-            Оберіть категорію:
-          </label>
-          <select
-            id="categorySelect"
-            value={slug}
-            onChange={handleCategoryChange}
-            className={styles.categorySelect}
+    <aside className={sidebarClasses}>
+      {/* Mobile Modal Header - only shown when in modal mode */}
+      {isMobile && isMobileFiltersOpen && (
+        <div className={styles.modalHeader}>
+          <div className={styles.modalTitle}>Фільтри</div>
+          <button 
+            className={styles.closeButton}
+            onClick={onCloseMobileFilters}
+            aria-label="Закрити фільтри"
+            type="button"
           >
-            <option value="">Всі категорії</option>
-            {Object.keys(CATEGORY_SLUG_MAP).map(catKey => (
-              <option key={catKey} value={catKey}>
-                {CATEGORY_SLUG_MAP[catKey]?.uaName || catKey}
-              </option>
-            ))}
-          </select>
+            ×
+          </button>
         </div>
-          {renderFilters()}
-        </>
       )}
+      
+      {/* Content area - wrapped in modalContent div when in modal mode */}
+      <div className={isMobile && isMobileFiltersOpen ? styles.modalContent : ''}>
+        {isCategoryLoading ? ( 
+          <FiltersSkeleton />
+        ) : (
+          mainContent
+        )}
+      </div>
     </aside>
   );
 };
-
