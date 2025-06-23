@@ -1,3 +1,4 @@
+/* FilterModal CSS - Matching catalog.module.css style */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -8,10 +9,11 @@
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  z-index: 1000;
+  z-index: 9999;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+  overscroll-behavior: contain;
 }
 
 .modalOverlay.open {
@@ -20,17 +22,18 @@
 }
 
 .modalContent {
-  background-color: var(--background-color);
+  background-color: var(--background, #ffffff);
   width: 100%;
-  max-height: 85vh; 
-  border-radius: 16px 16px 0 0;
-  padding: 20px;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-  overflow-y: auto;
+  max-width: 600px;
+  max-height: 90vh;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   transform: translateY(100%);
   transition: transform 0.3s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  margin-top: 5rem;
 }
 
 .modalOverlay.open .modalContent {
@@ -41,144 +44,357 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px; /* Increased margin */
-  padding-bottom: 10px; /* Added padding */
-  border-bottom: 1px solid #eee; /* Separator for header */
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid #eee;
+  background-color: var(--background, #ffffff);
+  border-radius: 20px 20px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .modalTitle {
-  font-size: 1.25em; /* Slightly adjusted */
+  font-size: 16px;
   font-weight: bold;
+  margin: 0;
+  color: #000;
 }
 
 .closeButton {
   background: none;
   border: none;
-  font-size: 1.8em; /* Increased for better touch */
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 5px; /* Added padding for easier click */
-  line-height: 1; /* Ensure X is vertically centered */
+  font-size: 24px;
+  color: #666;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closeButton:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.closeButton:active {
+  background-color: #e8e8e8;
+}
+
+.closeButton::before {
+  content: '×';
+  line-height: 1;
 }
 
 .modalBody {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
-  /* Styles for filter groups, options, etc. within the modal */
+  padding: 8px 24px 24px 24px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .filterGroup {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 16px;
+}
+
+.filterGroup:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .groupTitle {
-  font-size: 1.1em;
-  font-weight: 600; /* Medium bold */
-  margin-bottom: 12px;
-  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #000;
 }
 
 .filterOption {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  gap: 10px;
+  min-height: 32px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .input[type="checkbox"],
 .input[type="radio"] {
-  margin-right: 12px;
-  width: 22px; /* Larger for touch */
-  height: 22px; /* Larger for touch */
+  width: 20px;
+  height: 20px;
+  padding: 4px;
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
   cursor: pointer;
-  accent-color: var(--primary-color); /* Use accent-color for modern styling */
+  box-shadow: 0px 0px 3px 0px #1601018A;
+  box-sizing: border-box;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.input[type="checkbox"]:checked::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: transparent;
+  border: 1px solid #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.input[type="radio"]:checked::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: transparent;
+  border: 1px solid #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
 }
 
 .label,
 .colorLabel {
-  font-size: 1em;
+  font-size: 14px;
+  color: #333;
   cursor: pointer;
+  flex: 1;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .colorLabel {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .colorSwatch {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  margin-right: 10px;
   border: 1px solid #ddd;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .select {
+  font-size: 14px;
+  color: #333;
+  padding: 8px 36px 8px 12px;
+  border-radius: 20px;
   width: 100%;
-  padding: 12px 15px; /* Increased padding */
-  border-radius: 8px; /* Standardized border-radius */
+  cursor: pointer;
+  background-color: var(--background, #ffffff);
   border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  font-size: 1em;
-  margin-bottom: 10px; /* Spacing for select element */
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 15px center;
+  background-position: right 12px center;
   background-size: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 8px;
 }
 
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.select:hover {
+  border-color: #999;
+}
 
 .modalFooter {
   display: flex;
-  justify-content: space-between; /* space-around to space-between for full width buttons */
-  gap: 10px; /* Gap between buttons */
-  padding-top: 20px; /* Increased padding */
+  gap: 12px;
+  padding: 20px 24px;
   border-top: 1px solid #eee;
-  margin-top: 10px; /* Margin to separate from body */
+  background-color: var(--background, #ffffff);
+  position: sticky;
+  bottom: 0;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
 .applyButton,
 .clearButton {
-  flex-grow: 1; /* Make buttons take equal width */
-  padding: 12px 20px; /* Increased padding for better touch */
-  border-radius: 8px;
-  font-size: 1em;
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   text-align: center;
+  border: 1px solid #1601018A;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .applyButton {
-  background-color: var(--primary-color); /* Use theme color */
+  background-color: var(--primary-color, #007bff);
   color: white;
-  border: none;
+  border-color: var(--primary-color, #007bff);
+}
+
+.applyButton:hover:not(:disabled) {
+  background-color: var(--primary-color-dark, #0056b3);
+  border-color: var(--primary-color-dark, #0056b3);
+}
+
+.applyButton:active:not(:disabled) {
+  background-color: #e8e8e8;
 }
 
 .applyButton:disabled {
-  background-color: #ccc;
+  background-color: #e8e8e8;
+  color: #666;
   cursor: not-allowed;
+  border-color: #ccc;
 }
 
 .clearButton {
-  background-color: #f0f0f0; /* Lighter background for clear */
+  background-color: var(--background, #ffffff);
   color: #333;
-  border: 1px solid #ccc;
+  border: 1px solid #1601018A;
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+}
+
+.clearButton:hover:not(:disabled) {
+  background-color: #e8e8e8;
+}
+
+.clearButton:active:not(:disabled) {
+  background-color: #ddd;
 }
 
 .clearButton:disabled {
-  background-color: #e0e0e0;
+  background-color: #f8f8f8;
   color: #aaa;
   cursor: not-allowed;
+  border-color: #ddd;
+  text-decoration: none;
 }
 
-/* PriceRangeFilter specific styles within modal if needed */
-/* Ensure PriceRangeFilter styles are adapted or scoped if they conflict */
-
-/* Example: if PriceRangeFilter has its own .container or specific classes */
-.modalBody .priceRangeContainer { /* Scoping PriceRangeFilter styles */
-  margin-left: 0; /* Reset margin if needed for modal layout */
-  max-width: 100%; /* Allow full width if appropriate */
+/* PriceRangeFilter specific styles within modal */
+.modalBody .priceRangeContainer {
+  margin-left: 0;
+  max-width: 100%;
+  padding: 16px 0;
 }
 
+/* Responsive improvements */
+@media (max-width: 480px) {
+  .modalContent {
+    border-radius: 16px 16px 0 0;
+    max-height: 95vh;
+  }
+  
+  .modalHeader {
+    padding: 16px 20px 12px 20px;
+  }
+  
+  .modalTitle {
+    font-size: 16px;
+  }
+  
+  .modalBody {
+    padding: 8px 20px 20px 20px;
+  }
+  
+  .modalFooter {
+    padding: 16px 20px;
+    gap: 10px;
+  }
+  
+  .applyButton,
+  .clearButton {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .filterGroup {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .modalHeader {
+    padding: 12px 16px 8px 16px;
+  }
+  
+  .modalBody {
+    padding: 8px 16px 16px 16px;
+  }
+  
+  .modalFooter {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .applyButton,
+  .clearButton {
+    width: 100%;
+    margin: 0;
+  }
+  
+  .pageTitle {
+    font-size: 20px;
+    margin: 0.8rem 10px;
+  }
+}
