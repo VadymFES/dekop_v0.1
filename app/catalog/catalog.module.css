@@ -5,18 +5,28 @@
   flex-direction: column;
   margin: 0 auto;
   height: auto;
+  align-items: center;
+  /* width: fit-content; */
 }
 
 .contentContainer {
   margin: 1rem 4rem;
 }
 
-/* Breadcrumbs */
+.mobileContent {
+  margin: 0;
+}
+
+.tabletContent {
+  margin: 1rem 2rem;
+}
+
 .breadcrumbs {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
   font-size: 14px;
+  padding: 0 15px;
 }
 
 .breadcrumbSeparator {
@@ -29,15 +39,14 @@
   font-weight: 500;
 }
 
-/* Page Title */
 .pageTitle {
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 24px;
   color: #000;
+  padding: 0 15px;
 }
 
-/* Top Controls - Sort and Filter Display */
 .topControls {
   display: flex;
   justify-content: space-between;
@@ -45,25 +54,31 @@
   margin-bottom: 20px;
   flex-wrap: wrap;
   width: 100%;
-  /* Ensure full width */
+  padding: 0 15px;
+}
+
+.mobileTopControls {
+  padding: 0 15px;
+  margin-bottom: 10px;
 }
 
 .filterControls {
   flex: 1;
   min-height: 70px;
   min-width: 0;
-  /* Prevent flex shrinkage issues */
 }
 
 .sortAndCount {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .itemCount {
   font-size: 14px;
   color: #666;
+  white-space: nowrap;
 }
 
 .sortLabel {
@@ -83,16 +98,15 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  /* Custom dropdown arrow */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #cccccc;
 }
 
-/* Selected Filters Display */
 .selectedFilters {
   display: flex;
   flex-wrap: wrap;
@@ -109,15 +123,16 @@
   font-size: 12px;
   font-weight: 300;
   cursor: pointer;
+  background-color: #fff;
 }
 
 .filterChip:hover {
-  background-color: #e8e8e8;
+  background-color: #f5f5f5;
 }
 
 .clearAllFilters {
   border-radius: 20px;
-  background-color: var(--primary-color);
+  background-color: var(--primary-color, #f0f0f0);
   padding: 6px 12px;
   border: 1px solid #1601018A;
   font-size: 14px;
@@ -130,27 +145,47 @@
   text-underline-offset: 2px;
 }
 
-
 .clearAllFilters:hover {
   background-color: #e8e8e8;
 }
 
-/* Main Content Layout */
 .contentWrapper {
   display: flex;
-  gap: 30px;
+  gap: 40px;
   min-height: 500px;
-  width: 100%;
-  gap: 60px;
-  /* justify-content: space-between; */
+  /* width: 100%; */
+  /* align-items: center; */
   margin: 1rem 4rem;
 }
 
-/* Sidebar Filters */
+.mobileContentWrapper {
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.tabletContentWrapper {
+  gap: 30px;
+  margin: 1rem 2rem;
+}
+
+.productsContainer {
+  flex: 1;
+  width: 100%;
+}
+
+.mobileProducts {
+  padding: 0 15px;
+}
+
+.tabletProducts {
+  width: 100%;
+}
+
 .sidebar {
   width: 290px;
   min-width: 260px;
-  /* Prevent shrinking */
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -187,13 +222,13 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  /* Custom dropdown arrow */
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ddd;
 }
 
 .filterTitle {
@@ -232,6 +267,7 @@
   cursor: pointer;
   box-shadow: 0px 0px 3px 0px #1601018A;
   box-sizing: border-box;
+  border: 1px solid #ddd;
 }
 
 .checkbox:checked::before {
@@ -261,7 +297,6 @@
   box-sizing: border-box;
 }
 
-/* catalog.module.css */
 .priceRangeContainer {
   position: relative;
   max-width: 240px;
@@ -269,11 +304,8 @@
   padding: 30px 0 15px 0;
   user-select: none;
   -webkit-user-select: none;
-  /* Для Safari */
   -ms-user-select: none;
-  /* Для IE/Edge */
   touch-action: none;
-  /* Запобігає прокручуванню сторінки під час перетягування */
 }
 
 .priceTrack {
@@ -301,7 +333,6 @@
   cursor: pointer;
   z-index: 2;
   touch-action: none;
-  /* Забезпечує правильну взаємодію на сенсорних екранах */
 }
 
 .priceThumb:hover,
@@ -352,118 +383,421 @@
   z-index: -1;
 }
 
-/* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(280px, 1fr));
-  grid-template-rows: max-content;
-  min-height: 400px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  width: fit-content;
 }
 
-/* Responsive design */
+.mobileControlsContainer {
+  display: none;
+}
+
+.sortControlContainer { 
+  position: relative;
+}
+
+.sortToggleButton {
+  font-size: 14px;
+  color: #333;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left; 
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.sortToggleButton .sortIconPlaceholder {
+  font-size: 16px;
+}
+
+.sortDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; 
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); 
+  z-index: 200; 
+  min-width: 240px;
+  padding: 8px 0;
+  list-style: none; 
+  margin: 0;
+}
+
+.sortDropdownOption {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.sortDropdownOption:hover {
+  background-color: #f5f5f5;
+}
+
+.sortDropdownOption.activeSortOption {
+  font-weight: 600;
+  background-color: #e9e9e9;
+}
+
+.loadingSkeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.filterBadge {
+  color: #E2281B;
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+@media (max-width: 1100px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
 @media (max-width: 1024px) {
   .productGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .sidebar {
+    display: none !important;
+  }
+  
+  .contentContainer {
+    margin: 1rem 2rem;
+  }
+  
+  .contentWrapper {
+    gap: 30px;
+    margin: 1rem 2rem;
+  }
+  
+  .pageTitle {
+    font-size: 28px;
   }
 }
 
 @media (max-width: 768px) {
 
+  .container {
+    width: 100%;
+    padding: 0 15px;
+  }
+
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 0;
   }
 
   .contentWrapper {
     flex-direction: column;
     width: 100%;
+    margin: 0;
+    gap: 0;
   }
 
-  .sidebar {
+  .sidebar:not(.modal) { 
+    display: none !important;
+  }
+  
+  .desktopFiltersSidebar {
+     display: none !important;
+  }
+
+  .topControls .sortAndCount { 
+    display: none !important;
+  }
+  
+  .topControls .sortControlContainer {
+     display: none !important; 
+  }
+
+  .filterControls {
     width: 100%;
-    min-width: 100%;
-    margin-bottom: 20px;
+    min-height: auto;
+    padding: 10px 0;
+  }
+  
+  .selectedFilters {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+  
+  .filterChip {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  
+  .clearAllFilters {
+    font-size: 12px;
+    padding: 5px 10px;
   }
 
+  .contentContainer {
+    margin: 0;
+  }
+  
+  .pageTitle {
+    font-size: 22px; 
+    margin: 1rem 15px; 
+    padding-bottom: 10px;
+  }
+  
   .topControls {
-    flex-direction: column;
-    gap: 16px;
+    padding: 0 15px;
+    margin-bottom: 10px;
   }
 
-  .sortAndCount {
-    width: 100%;
-    justify-content: space-between;
+  .breadcrumbs {
+    padding: 0 15px;
   }
 
-  /* Hide desktop filters and sort controls on mobile */
-  .sidebar {
-    display: none;
-  }
-  /* Ensure this selector is specific enough if .sortAndCount is used elsewhere for mobile */
-  .topControls > .sortAndCount { /* More specific selector for desktop sort */
-    display: none;
-  }
-
-  /* MobileFilterSortControls specific styles */
   .mobileControlsContainer {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    padding: 10px 15px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--background);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e0e0e0;
+    gap: 10px;
+  }
+
+  .mobileFiltersButton {
+    flex-grow: 1;
+    flex-basis: 0;
+    border-radius: 20px;
+    border: 1px solid #cccccc;
+    padding: 10px 15px;
+    background-color: var(--background);
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  
+  .mobileFiltersButton:active {
+    background-color: #f0f0f0;
+  }
+
+  .mobileControlsContainer .sortControlContainer {
+    position: relative;
+    flex-grow: 1;
+    flex-basis: 0;
+  }
+
+  .mobileControlsContainer .sortToggleButton {
+    width: 100%;
+    padding: 10px 12px;
+    justify-content: center;
+    font-size: 14px; 
+    font-weight: 500;
+  }
+  
+  .mobileControlsContainer .sortToggleButton .sortIconPlaceholder {
+    font-size: 18px;
+  }
+  
+  .mobileControlsContainer .sortDropdown {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: white;
+    border-top: 1px solid #e0e0e0; 
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 1100;
+    padding: 10px 0 20px 0;
+    max-height: 50vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .mobileControlsContainer .sortDropdownOption {
+    padding: 15px 20px;
+    font-size: 15px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .mobileControlsContainer .sortDropdownOption:last-child {
+    border-bottom: none;
+  }
+  
+  .mobileControlsContainer .sortDropdownOption.activeSortOption {
+    font-weight: bold;
+    color: var(--primary-color, #007bff);
+  }
+
+  .sidebar.modal { 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh; 
+    background-color: white;
+    z-index: 1050;
+    overflow-y: auto;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .sidebar.modal .modalHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    background-color: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional: add some shadow */
+    border-bottom: 1px solid #eee;
+    background-color: #f8f8f8;
+  }
+  
+  .sidebar.modal .modalTitle {
+    font-size: 16px;
+    font-weight: 600;
   }
 
-  .mobileFilterButton {
-    padding: 8px 16px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    background-color: #f9f9f9;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .sidebar.modal .closeButton { 
+    display: block !important;
+    position: static;
+    font-size: 28px;
+    font-weight: normal;
+    color: #555;
+    background: none;
+    border: none;
     cursor: pointer;
-    font-size: 14px; /* Adjusted for better readability */
+    padding: 5px; 
   }
-
-  .mobileSortButton {
-    padding: 10px; /* Adjusted for a better touch target */
-    border: 1px solid #ccc;
-    border-radius: 50%; /* Makes it circular */
-    background-color: #f9f9f9;
-    cursor: pointer;
-    display: flex; /* For centering icon if needed */
-    align-items: center; /* For centering icon if needed */
-    justify-content: center; /* For centering icon if needed */
+  
+  .sidebar.modal .closeButton:active {
+    color: #000;
+  }
+  
+  .sidebar.modal .modalContent {
+    padding: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  
+  .sidebar.modal .categoryContainer,
+  .sidebar.modal .filterSection {
+    padding-left: 0; 
+    padding-right: 0;
+  }
+  
+  .sidebar.modal .categorySelect {
+    max-width: 100%; 
   }
 }
 
 @media (max-width: 480px) {
-  .productGrid {
-    grid-template-columns: 1fr; /* Single column for very small screens */
-  }
-
-  .contentContainer { /* Reduce margins on very small screens */
-    margin: 1rem 1rem;
-  }
-
-  .contentWrapper { /* Reduce margins on very small screens */
-    margin: 1rem 1rem;
-  }
-
   .pageTitle {
-    font-size: 24px; /* Adjust page title size for smaller screens */
+    font-size: 20px;
+    margin: 0.8rem 15px;
   }
-
-  .mobileFilterButton {
-    padding: 8px 12px; /* Slightly reduce padding */
+  
+  .mobileControlsContainer {
+    padding: 8px 15px;
+    gap: 8px;
+  }
+  
+  .mobileFiltersButton,
+  .mobileControlsContainer .sortToggleButton {
     font-size: 13px;
+    padding: 8px 12px; 
+  }
+  
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
-  .mobileSortButton {
-    padding: 8px;
+  .sortLabel {
+    display: none;
+  }
+  
+  .sidebar.modal .modalContent {
+    padding: 12px;
+  }
+  
+  .filterChip {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .clearAllFilters {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pageTitle {
+    font-size: 18px;
+    margin: 0.6rem 10px;
+  }
+  
+  .mobileControlsContainer {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  
+  .mobileFiltersButton,
+  .mobileControlsContainer .sortToggleButton {
+    font-size: 12px;
+    padding: 6px 10px; 
+  }
+  
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .sidebar.modal .modalContent {
+    padding: 10px;
+  }
+  
+  .breadcrumbs {
+    font-size: 12px;
+    padding: 0 10px;
   }
 }
