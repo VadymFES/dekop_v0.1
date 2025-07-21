@@ -71,7 +71,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
       ) : (
         visibleProducts.map((product, index) => {
           const isLastItem = index === visibleProducts.length - 1;
-          return (
+          return (            
             <div
               key={product.id}
               ref={isLastItem ? lastProductRef : null}
