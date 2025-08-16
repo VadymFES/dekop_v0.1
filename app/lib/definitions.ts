@@ -22,6 +22,7 @@ export interface Product {
 export interface ProductImage {
   id: number;
   image_url: string;
+  url: string;
   alt: string;
   is_primary: boolean;
 }
@@ -322,6 +323,32 @@ export interface FiltersState {
   priceMin: number;
   priceMax: number;
 }
+
+// Interface for filter options used in catalog components
+export interface FilterOptions {
+  type?: string[];
+  material?: string[];
+  status?: string[];
+  complectation?: string[];
+  priceMin?: number;
+  priceMax?: number;
+}
+
+// Performance monitoring types
+export interface PerformanceLogEntry {
+  timestamp: number;
+  changes: Record<string, { from: unknown; to: unknown }>;
+}
+
+export interface LogContext {
+  component?: string;
+  action?: string;
+  data?: Record<string, unknown>;
+  error?: Error;
+}
+
+// Generic callback type for utilities
+export type GenericCallback<T extends unknown[] = unknown[], R = unknown> = (...args: T) => R;
 
 // Interface for category-specific filters
 export interface CategoryFilters {

@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
-import { CartItem, ProductWithImages } from "@/app/lib/definitions";
+import { CartItem, ProductWithImages, ProductSpecs, ProductImage, ProductColor } from "@/app/lib/definitions";
 import { handleApiError } from "@/app/lib/error";
 
 // Interface to represent the raw cart item data from the database
@@ -25,9 +25,9 @@ interface CartItemWithProductData {
   is_bestseller: boolean;
   product_created_at: string;
   product_updated_at: string;
-  specs: any;
-  images: any[];
-  colors: any[];
+  specs: ProductSpecs | null;
+  images: ProductImage[];
+  colors: ProductColor[];
 }
 
 /**
