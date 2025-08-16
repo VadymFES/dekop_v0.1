@@ -4,6 +4,7 @@ import styles from '../catalog.module.css';
 import { FiltersSidebarProps } from '../types';
 import { CATEGORY_SLUG_MAP } from '../types';
 import { PriceRangeFilter } from './PriceRangeFilter';
+import { DOMErrorBoundary } from './DOMErrorBoundary';
 import FiltersSkeleton from '../components/ui/FiltersSkeleton/FiltersSkeleton';
 
 // Extended props interface for mobile support
@@ -38,13 +39,31 @@ export const FiltersSidebar: React.FC<ExtendedFiltersSidebarProps> = ({
     return finalFilterGroups.map(group => {
       if (group.type === "range" && group.range) {
         return (
-          <PriceRangeFilter
+          <DOMErrorBoundary
             key={group.name}
-            title="Ціна (грн)"
-            priceRange={priceRange}
-            filterValues={filters}
-            onPriceChange={handlePriceChange}
-          />
+            componentName="PriceRangeFilter"
+            fallback={
+              <div style={{ 
+                padding: '15px', 
+                textAlign: 'center', 
+                border: '1px solid #ddd', 
+                borderRadius: '6px',
+                margin: '10px 0',
+                backgroundColor: '#f8f9fa',
+                color: '#6c757d'
+              }}>
+                <p>Фільтр ціни тимчасово недоступний</p>
+                <small>Спробуйте оновити сторінку</small>
+              </div>
+            }
+          >
+            <PriceRangeFilter
+              title="Ціна (грн)"
+              priceRange={priceRange}
+              filterValues={filters}
+              onPriceChange={handlePriceChange}
+            />
+          </DOMErrorBoundary>
         );
       } else if ((group.type === "checkbox" || group.type === "radio") && group.options) {
         const groupTitles: Record<string, string> = {
