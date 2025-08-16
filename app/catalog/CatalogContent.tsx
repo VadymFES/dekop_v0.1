@@ -12,7 +12,6 @@ import { initialState } from "./store/initialState";
 import * as actions from "./store/actions";
 import { useFiltersFromUrl } from "./hooks/useFiltersFromUrl";
 import { useUpdateUrl } from "./hooks/useUpdateUrl";
-import { useFilterLogic } from "./hooks/useFilterLogic";
 
 // Components
 import { Breadcrumbs } from "./components/Breadcrumbs";
@@ -24,14 +23,9 @@ import FilterModal from "./components/FilterModal";
 import { CatalogErrorBoundary } from "./components/CatalogErrorBoundary";
 import { HookErrorBoundary } from "./components/HookErrorBoundary";
 import { DOMErrorBoundary } from "./components/DOMErrorBoundary";
-import { ProductsDisplayFallback } from "./components/ProductsDisplayFallback";
 import { FilterLogicProvider } from "./components/FilterLogicProvider";
 import { DebugLogger } from "./utils/debugLogger";
-import { 
-  useRenderCounter, 
-  useRenderPerformance 
-} from "./utils/performanceMonitor";
-import { useLifecycleTracker } from "./utils/hookPerformanceTracker";
+
 
 export default function CatalogContent(): React.ReactElement {
   // Performance monitoring (disabled in tests)
@@ -483,9 +477,17 @@ export default function CatalogContent(): React.ReactElement {
                   <DOMErrorBoundary
                     componentName="ProductsDisplay"
                     fallback={
-                      <ProductsDisplayFallback 
-                        onRetry={() => window.location.reload()}
-                      />
+                      <div style={{ 
+                        padding: '20px', 
+                        textAlign: 'center', 
+                        border: '1px solid #ddd', 
+                        borderRadius: '6px',
+                        margin: '10px 0',
+                        backgroundColor: '#f8f9fa',
+                        color: '#6c757d'
+                      }}>
+                        <p>Виникла помилка при завантаженні товарів. Спробуйте оновити сторінку.</p>
+                      </div>
                     }
                   >
                     <ProductsDisplay
