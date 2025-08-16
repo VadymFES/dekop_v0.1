@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import styles from './filterModal.module.css';
 import { PriceRangeFilter } from './PriceRangeFilter';
+import { DOMErrorBoundary } from './DOMErrorBoundary';
 import { CATEGORY_SLUG_MAP } from '../types';
 import { FilterGroup, FiltersState, PriceRange } from '@/app/lib/definitions';
 
@@ -43,13 +44,31 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
     if (group.type === 'range' && group.range) {
       return (
-        <PriceRangeFilter
-          key={group.name} // React key
-          title={group.name} // Use group name as title
-          priceRange={group.range} // Pass the group's range object
-          filterValues={filters}  // Pass the main filters state
-          onPriceChange={handlePriceChange} // Pass the handler
-        />
+        <DOMErrorBoundary
+          key={group.name}
+          componentName="PriceRangeFilter (Modal)"
+          fallback={
+            <div style={{ 
+              padding: '10px', 
+              textAlign: 'center', 
+              border: '1px solid #ddd', 
+              borderRadius: '4px',
+              margin: '5px 0',
+              backgroundColor: '#f8f9fa',
+              color: '#6c757d',
+              fontSize: '14px'
+            }}>
+              <p>Фільтр ціни недоступний</p>
+            </div>
+          }
+        >
+          <PriceRangeFilter
+            title={group.name} // Use group name as title
+            priceRange={group.range} // Pass the group's range object
+            filterValues={filters}  // Pass the main filters state
+            onPriceChange={handlePriceChange} // Pass the handler
+          />
+        </DOMErrorBoundary>
       );
     }
 
