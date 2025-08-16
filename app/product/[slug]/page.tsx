@@ -111,9 +111,27 @@ export async function generateMetadata(
 
   return {
     title: `${data.product.name} | Dekop Furniture Enterprise - меблі для вашого дому`,
+    description: `${data.product.name} - ${data.product.category}. Ціна: ${data.product.price} грн. ${data.product.description || 'Якісні меблі для вашого дому.'}`,
+    keywords: `${data.product.name}, ${data.product.category}, меблі, купити меблі, ${data.product.price} грн`,
     openGraph: {
-      title: data.product.name,
-      images: [...(previousImages || [])],
+      title: `${data.product.name} | Dekop Furniture Enterprise`,
+      description: `${data.product.name} - ${data.product.category}. Ціна: ${data.product.price} грн.`,
+      type: 'website',
+      images: [
+        {
+          url: data.product.images?.[0]?.url || '/og-image.png',
+          width: 800,
+          height: 600,
+          alt: data.product.name,
+        },
+        ...(previousImages || [])
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${data.product.name} | Dekop Furniture Enterprise`,
+      description: `${data.product.name} - ${data.product.category}. Ціна: ${data.product.price} грн.`,
+      images: [data.product.images?.[0]?.url || '/og-image.png'],
     },
   };
 }
