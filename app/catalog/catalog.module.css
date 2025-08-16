@@ -11,6 +11,7 @@
 
 .contentContainer {
   margin: 1rem 4rem;
+  width: fit-content;
 }
 
 .mobileContent {
@@ -390,6 +391,11 @@
   width: fit-content;
 }
 
+.productCardWrapper {
+  display: flex;
+  justify-content: center;
+}
+
 .mobileControlsContainer {
   display: none;
 }
@@ -468,9 +474,12 @@
   margin-left: 4px;
 }
 
-@media (max-width: 1100px) {
+@media (min-width: 1920px) {
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+    .contentContainer {
+    margin: 1.5rem;
   }
 }
 
@@ -788,6 +797,7 @@
   }
   
   .productGrid {
+    width: 100%;
     grid-template-columns: 1fr;
     gap: 8px;
   }
