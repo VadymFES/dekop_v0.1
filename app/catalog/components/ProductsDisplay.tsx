@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState, useCallback } from 'react';
 import styles from '../catalog.module.css';
 import { ProductsDisplayProps } from '../types';
+import { DebugLogger } from '../utils/debugLogger';
 import { ProductWithImages } from '@/app/lib/definitions';
 import ProductCard from '@/app/shared/components/productCard/productCard';
 import ProductGridSkeleton from '../components/ui/gridSkeleton/ProductGridSkeleton';
@@ -29,10 +30,17 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
       const timer = setTimeout(() => {
         setShowSkeleton(false);
       }, 100);
-      return () => clearTimeout(timer);
+      
+      // Cleanup function to prevent memory leaks and state updates on unmounted components
+      return () => {
+        clearTimeout(timer);
+      };
     } else {
       setShowSkeleton(true);
     }
+    
+    // No cleanup needed for the else case since no async operations are started
+    return undefined;
   }, [loading, isFiltering]);
 
   useEffect(() => {
@@ -45,19 +53,60 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   const lastProductRef: ObserverCallback = useCallback(node => {
     if (loading || !node) return;
 
-    const observer: IntersectionObserver = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
-      if (entries[0].isIntersecting && visibleProducts.length < filteredProducts.length) {
-        const nextPage: number = page + 1;
-        setPage(nextPage);
-        setVisibleProducts((prevProducts: ProductWithImages[]) => [
-          ...prevProducts,
-          ...filteredProducts.slice(prevProducts.length, nextPage * productsPerPage)
-        ]);
-      }
-    }, { threshold: 0.1, rootMargin: '50px' });
+    let observer: IntersectionObserver | null = null;
+    
+    try {
+      observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+        try {
+          if (entries[0]?.isIntersecting && visibleProducts.length < filteredProducts.length) {
+            const nextPage: number = page + 1;
+            setPage(nextPage);
+            setVisibleProducts((prevProducts: ProductWithImages[]) => [
+              ...prevProducts,
+              ...filteredProducts.slice(prevProducts.length, nextPage * productsPerPage)
+            ]);
+          }
+        } catch (error) {
+          DebugLogger.domWarning('Error in IntersectionObserver callback', {
+            component: 'ProductsDisplay',
+            action: 'IntersectionObserver callback',
+            error: error as Error
+          });
+        }
+      }, { threshold: 0.1, rootMargin: '50px' });
 
-    observer.observe(node);
-    return () => observer.disconnect();
+      observer.observe(node);
+      DebugLogger.debug('Created and attached IntersectionObserver', {
+        component: 'ProductsDisplay',
+        action: 'lastProductRef'
+      });
+    } catch (error) {
+      DebugLogger.domError('Error creating or using IntersectionObserver', {
+        component: 'ProductsDisplay',
+        action: 'lastProductRef',
+        error: error as Error
+      });
+      return;
+    }
+    
+    // Return cleanup function
+    return () => {
+      try {
+        if (observer) {
+          observer.disconnect();
+          DebugLogger.cleanup('Disconnected IntersectionObserver', {
+            component: 'ProductsDisplay',
+            action: 'cleanup'
+          });
+        }
+      } catch (error) {
+        DebugLogger.domError('Error disconnecting IntersectionObserver', {
+          component: 'ProductsDisplay',
+          action: 'cleanup',
+          error: error as Error
+        });
+      }
+    };
   }, [loading, visibleProducts.length, filteredProducts.length, page]);
 
   return (
