@@ -1,0 +1,95 @@
+# LLMs.txt - AI Model Information File
+# Website: Dekop Furniture Enterprise
+# Last Updated: 2025-01-28
+
+## Company Information
+- **Company Name**: Dekop Furniture Enterprise
+- **Industry**: Furniture Retail & Manufacturing
+- **Location**: Ukraine
+- **Language**: Ukrainian (uk)
+- **Website**: https://dekop.com.ua
+
+## Website Description
+Dekop Furniture Enterprise is a modern furniture retailer specializing in:
+- Living room furniture: sofas, sofa beds, corner sofas
+- Bedroom furniture: beds, mattresses, wardrobes
+- Dining furniture: tables, chairs
+- Custom furniture orders
+- Home accessories
+
+## Key Features
+- **Product Catalog**: Wide selection of furniture with filtering and sorting
+- **Mobile Responsive**: Optimized for desktop, tablet, and mobile devices
+- **E-commerce**: Online shopping cart and ordering system
+- **Product Reviews**: Customer feedback and ratings
+- **Custom Orders**: Individual furniture customization service
+- **Delivery**: Nationwide delivery across Ukraine
+
+## Technology Stack
+- **Framework**: Next.js 13+ with App Router
+- **Language**: TypeScript
+- **Styling**: CSS Modules with responsive design
+- **Database**: PostgreSQL (inferred from API structure)
+- **Deployment**: Vercel (inferred from configuration)
+
+## Main Pages
+- **Homepage** (/): Featured products, categories, company information
+- **Catalog** (/catalog): Full product catalog with filters
+- **Product Pages** (/product/[slug]): Detailed product information
+- **Cart** (/cart): Shopping cart and checkout
+- **About Us** (/about-us): Company information
+- **Individual Orders** (/individual-order): Custom furniture requests
+
+## Product Categories
+1. **Sofas** (sofas): Traditional sofas and seating
+2. **Sofa Beds** (sofaBeds): Convertible sofa-bed furniture
+3. **Corner Sofas** (cornerSofas): L-shaped and sectional sofas
+4. **Chairs** (chairs): Dining and accent chairs
+5. **Tables** (tables): Dining, coffee, and side tables
+6. **Wardrobes** (wardrobes): Bedroom storage solutions
+7. **Beds** (beds): Bed frames and bedroom furniture
+8. **Mattresses** (mattresses): Sleep accessories
+9. **Accessories** (accessories): Home decor and furniture accessories
+
+## API Endpoints
+- `/api/products` - Product catalog
+- `/api/products/[slug]` - Individual product details
+- `/api/products/product-specs/[id]` - Product specifications
+- `/api/products/product-colors/[id]` - Product color options
+- `/api/products/similarRecommendations/[slug]` - Similar products
+- `/api/products/reviews/[id]` - Product reviews
+
+## SEO & Accessibility
+- **Structured Data**: JSON-LD for products with Schema.org markup
+- **Meta Tags**: Comprehensive OpenGraph and Twitter Card support
+- **Heading Structure**: Proper H1-H6 hierarchy for accessibility
+- **Language**: HTML lang="uk" for Ukrainian content
+- **Sitemap**: Dynamic XML sitemap with all pages and products
+- **Mobile First**: Responsive design with mobile-optimized navigation
+
+## Contact Information
+- **Schedule**: Working hours displayed in footer
+- **Location**: Physical store information available
+- **Customer Service**: Contact forms and support information
+- **Partnerships**: Partner and supplier information
+
+## Special Features
+- **Price Range Filters**: Interactive price sliders for product filtering
+- **Mobile Modal Filters**: Touch-optimized filter interface for mobile
+- **Product Image Galleries**: Multiple product images with zoom functionality
+- **Stock Status**: Real-time inventory availability
+- **Similar Products**: AI-powered product recommendations
+- **Breadcrumb Navigation**: Clear page hierarchy and navigation
+
+## Data Protection
+- Customer data handled according to Ukrainian data protection laws
+- Secure shopping cart and checkout process
+- Privacy-focused analytics implementation
+
+## Notes for AI Models
+- This is a Ukrainian furniture e-commerce website
+- All content is primarily in Ukrainian language
+- Focus on furniture retail, home decor, and interior design topics
+- Company specializes in modern furniture for Ukrainian homes
+- E-commerce functionality includes cart, filters, search, and reviews
+- Mobile-first responsive design with advanced filtering capabilities
