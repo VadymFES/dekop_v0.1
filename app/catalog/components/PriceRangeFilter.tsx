@@ -73,12 +73,18 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   }
 
   // Validate price range makes sense
-  if (priceRange.max <= priceRange.min) {
+  // Allow the case where both min and max are 0 (price range not yet loaded)
+  if (priceRange.max < priceRange.min || (priceRange.max === priceRange.min && priceRange.max !== 0)) {
     DebugLogger.domWarning('Invalid price range - max must be greater than min', {
       component: 'PriceRangeFilter',
       action: 'validation',
       data: { min: priceRange.min, max: priceRange.max }
     });
+    return null;
+  }
+
+  // Don't render if price range is not yet loaded (both min and max are 0)
+  if (priceRange.min === 0 && priceRange.max === 0) {
     return null;
   }
 

@@ -41,7 +41,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
     
     // No cleanup needed for the else case since no async operations are started
     return undefined;
-  }, [loading, isFiltering]);
+  }, [loading, isFiltering, filteredProducts.length]);
 
   useEffect(() => {
     setPage(1);
@@ -111,7 +111,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
 
   return (
     <div className={styles.productGrid}>
-      {showSkeleton ? (
+      {showSkeleton && filteredProducts.length > 0 ? (
         <ProductGridSkeleton count={9} />
       ) : error ? (
         <p style={{ color: "red" }}>Упс! Щось пішло не так. Спробуйте оновити сторінку</p>
