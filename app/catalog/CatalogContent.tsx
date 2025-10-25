@@ -82,8 +82,30 @@ export default function CatalogContent(): React.ReactElement {
   // Track if price filters have been initialized to prevent infinite loop
   const priceFiltersInitialized = useRef(false);
 
-  // Initialize filters from URL on mount
+  // Track if we're updating URL to prevent reading it back
+  const isUpdatingURL = useRef(false);
+
+  // Track previous search params to detect external changes
+  const previousSearchParams = useRef<string>('');
+
+  // Initialize filters from URL on mount or when URL changes externally
   useEffect(() => {
+    const currentParams = searchParams?.toString() || '';
+
+    // Skip if we just updated the URL ourselves
+    if (isUpdatingURL.current) {
+      isUpdatingURL.current = false;
+      previousSearchParams.current = currentParams;
+      return;
+    }
+
+    // Skip if params haven't actually changed
+    if (previousSearchParams.current === currentParams) {
+      return;
+    }
+
+    previousSearchParams.current = currentParams;
+
     const urlFilters = getFiltersFromURL(searchParams);
     dispatch(actions.setFilters(urlFilters));
     dispatch(actions.setSortOption(urlFilters.sort));
@@ -204,17 +226,25 @@ export default function CatalogContent(): React.ReactElement {
     filters.status.forEach(status => params.append("status", status));
 
     const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+    // Mark that we're updating the URL so we don't read it back
+    isUpdatingURL.current = true;
     router.push(newUrl, { scroll: false });
   }, [filters, priceRange, sortOption, slug, router]);
 
-  // Debounced URL update
+  // Debounced URL update - only update after user stops changing filters
   useEffect(() => {
+    // Don't update URL if we're still loading initial data
+    if (loading && products.length === 0) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       updateURL();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [updateURL]);
+  }, [updateURL, loading, products.length]);
 
   // Event handlers
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
