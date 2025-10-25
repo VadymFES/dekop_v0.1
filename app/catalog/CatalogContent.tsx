@@ -135,10 +135,10 @@ export default function CatalogContent(): React.ReactElement {
   // Update products in state when query completes
   useEffect(() => {
     // Create a stable key to identify the current products
-    const currentProductsKey = fetchedProducts?.map(p => p.id).join(',') || '';
+    const currentProductsKey = fetchedProducts?.map(p => p.id).join(',') || 'EMPTY';
 
     // Only process if products actually changed
-    if (previousProductsKey.current === currentProductsKey && currentProductsKey !== '') {
+    if (previousProductsKey.current === currentProductsKey) {
       return; // Products haven't changed, skip
     }
 
@@ -167,7 +167,7 @@ export default function CatalogContent(): React.ReactElement {
         }
       }
     } else if (fetchedProducts && fetchedProducts.length === 0) {
-      // Handle empty results
+      // Handle empty results - dispatch once
       dispatch(actions.setProducts([]));
       dispatch(actions.setPriceRange({ min: 0, max: 0 }));
     }
