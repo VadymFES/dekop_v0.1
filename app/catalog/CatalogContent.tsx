@@ -1,7 +1,7 @@
 // /app/catalog/CatalogContent.tsx
 'use client';
 
-import React, { useReducer, useState, useEffect, useMemo, ChangeEvent, useCallback } from "react";
+import React, { useReducer, useState, useEffect, useMemo, ChangeEvent, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import styles from "./catalog.module.css";
@@ -79,11 +79,19 @@ export default function CatalogContent(): React.ReactElement {
   // Custom hook to parse URL filters
   const getFiltersFromURL = useFiltersFromUrl();
 
+  // Track if price filters have been initialized to prevent infinite loop
+  const priceFiltersInitialized = useRef(false);
+
   // Initialize filters from URL on mount
   useEffect(() => {
     const urlFilters = getFiltersFromURL(searchParams);
     dispatch(actions.setFilters(urlFilters));
     dispatch(actions.setSortOption(urlFilters.sort));
+
+    // If URL has price filters, mark as initialized
+    if (urlFilters.priceMin > 0 || urlFilters.priceMax > 0) {
+      priceFiltersInitialized.current = true;
+    }
   }, [searchParams, getFiltersFromURL]);
 
   // Build query params for TanStack Query
@@ -101,29 +109,32 @@ export default function CatalogContent(): React.ReactElement {
 
   // Update products in state when query completes
   useEffect(() => {
-    if (fetchedProducts && fetchedProducts.length >= 0) {
+    if (fetchedProducts && fetchedProducts.length > 0) {
       dispatch(actions.setProducts(fetchedProducts));
 
       // Calculate price range from fetched products
-      if (fetchedProducts.length > 0) {
-        const prices = fetchedProducts
-          .map(p => parseFloat(p.price.toString()))
-          .filter(p => p > 0);
+      const prices = fetchedProducts
+        .map(p => parseFloat(p.price.toString()))
+        .filter(p => p > 0);
 
-        if (prices.length > 0) {
-          const minPrice = Math.min(...prices);
-          const maxPrice = Math.max(...prices);
-          dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
+      if (prices.length > 0) {
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
 
-          // Set initial price filters if not set from URL
-          if (filters.priceMin === 0 && filters.priceMax === 0) {
-            dispatch(actions.setFilters({
-              priceMin: minPrice,
-              priceMax: maxPrice
-            }));
-          }
+        // Set initial price filters ONLY ONCE (if not already initialized)
+        if (!priceFiltersInitialized.current) {
+          dispatch(actions.setFilters({
+            priceMin: minPrice,
+            priceMax: maxPrice
+          }));
+          priceFiltersInitialized.current = true;
         }
       }
+    } else if (fetchedProducts && fetchedProducts.length === 0) {
+      // Handle empty results
+      dispatch(actions.setProducts([]));
+      dispatch(actions.setPriceRange({ min: 0, max: 0 }));
     }
   }, [fetchedProducts]);
 
@@ -214,6 +225,8 @@ export default function CatalogContent(): React.ReactElement {
     dispatch(actions.setLoading(true));
     dispatch(actions.resetFilters({ min: 0, max: 0 }));
     dispatch(actions.setPriceRange({ min: 0, max: 0 }));
+    // Reset price filters initialization when category changes
+    priceFiltersInitialized.current = false;
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
   };
 
@@ -276,6 +289,8 @@ export default function CatalogContent(): React.ReactElement {
 
   const clearAllFilters = (): void => {
     dispatch(actions.resetFilters(priceRange));
+    // Reset price filters initialization when clearing all filters
+    priceFiltersInitialized.current = false;
     router.push(slug ? `/catalog?category=${slug}` : "/catalog", { scroll: false });
   };
 
