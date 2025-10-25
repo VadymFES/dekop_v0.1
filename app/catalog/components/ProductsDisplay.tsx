@@ -15,9 +15,8 @@ interface ObserverCallback {
 
 export const ProductsDisplay = memo<ProductsDisplayProps>(({
   loading,
-  isFiltering,
   error,
-  filteredProducts
+  products
 }) => {
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [visibleProducts, setVisibleProducts] = useState<ProductWithImages[]>([]);
@@ -25,7 +24,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   const productsPerPage = 9;
 
   useEffect(() => {
-    if (!loading && !isFiltering) {
+    if (!loading) {
       const timer = setTimeout(() => {
         setShowSkeleton(false);
       }, 100);
@@ -33,12 +32,12 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
     } else {
       setShowSkeleton(true);
     }
-  }, [loading, isFiltering]);
+  }, [loading]);
 
   useEffect(() => {
     setPage(1);
-    setVisibleProducts(filteredProducts.slice(0, productsPerPage));
-  }, [filteredProducts]);
+    setVisibleProducts(products.slice(0, productsPerPage));
+  }, [products]);
 
 
 
@@ -46,19 +45,19 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
     if (loading || !node) return;
 
     const observer: IntersectionObserver = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
-      if (entries[0].isIntersecting && visibleProducts.length < filteredProducts.length) {
+      if (entries[0].isIntersecting && visibleProducts.length < products.length) {
         const nextPage: number = page + 1;
         setPage(nextPage);
         setVisibleProducts((prevProducts: ProductWithImages[]) => [
           ...prevProducts,
-          ...filteredProducts.slice(prevProducts.length, nextPage * productsPerPage)
+          ...products.slice(prevProducts.length, nextPage * productsPerPage)
         ]);
       }
     }, { threshold: 0.1, rootMargin: '50px' });
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [loading, visibleProducts.length, filteredProducts.length, page]);
+  }, [loading, visibleProducts.length, products.length, page, products, productsPerPage]);
 
   return (
     <div className={styles.productGrid}>
@@ -66,7 +65,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
         <ProductGridSkeleton count={9} />
       ) : error ? (
         <p style={{ color: "red" }}>Упс! Щось пішло не так. Спробуйте оновити сторінку</p>
-      ) : filteredProducts.length === 0 ? (
+      ) : products.length === 0 ? (
         <p>Товарів не знайдено. Спробуйте змінити фільтри або категорію.</p>
       ) : (
         visibleProducts.map((product, index) => {
