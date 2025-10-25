@@ -42,3 +42,12 @@ export const mergePriceFilters = (priceGroups: FilterGroup[]): FilterGroup | nul
   }
   return merged;
 };
+
+// Export all stable dependency utilities
+export * from './stableDependencies';
+export * from './safeDomAccess';
+export * from './memoizationHelpers';
+
+// Export performance monitoring utilities
+export * from './performanceMonitor';
+export * from './hookPerformanceTracker';

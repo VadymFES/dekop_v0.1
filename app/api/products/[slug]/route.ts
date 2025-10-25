@@ -412,6 +412,7 @@ export async function GET(
     const imageRows: ProductImage[] = rawImageRows.map(row => ({
       id: row.id,
       image_url: row.image_url || '',
+      url: row.image_url || '', 
       alt: row.alt || '',
       is_primary: Boolean(row.is_primary)
     }));

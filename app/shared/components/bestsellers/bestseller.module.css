@@ -69,5 +69,9 @@
     .arrowScrollButton {
       display: none; 
     }
+
+    .bestsellersContainer {
+      gap: 12px;
+    }
   }
   

@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import styles from '../catalog.module.css';
 import { ProductsDisplayProps } from '../types';
+import { DebugLogger } from '../utils/debugLogger';
 import { ProductWithImages } from '@/app/lib/definitions';
 import ProductCard from '@/app/shared/components/productCard/productCard';
 import ProductGridSkeleton from '../components/ui/gridSkeleton/ProductGridSkeleton';
@@ -31,7 +32,11 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
       const timer = setTimeout(() => {
         setShowSkeleton(false);
       }, 100);
-      return () => clearTimeout(timer);
+      
+      // Cleanup function to prevent memory leaks and state updates on unmounted components
+      return () => {
+        clearTimeout(timer);
+      };
     } else {
       setShowSkeleton(true);
     }
@@ -80,7 +85,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
       ) : (
         visibleProducts.map((product, index) => {
           const isLastItem = index === visibleProducts.length - 1;
-          return (
+          return (            
             <div
               key={product.id}
               ref={isLastItem ? lastProductRef : null}

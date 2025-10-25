@@ -19,6 +19,13 @@ import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
 import { ProductsDisplay } from "./components/ProductsDisplay";
+import FilterModal from "./components/FilterModal";
+import { CatalogErrorBoundary } from "./components/CatalogErrorBoundary";
+import { HookErrorBoundary } from "./components/HookErrorBoundary";
+import { DOMErrorBoundary } from "./components/DOMErrorBoundary";
+import { FilterLogicProvider } from "./components/FilterLogicProvider";
+import { DebugLogger } from "./utils/debugLogger";
+
 
 /**
  * Fetch products from API with filters
@@ -62,6 +69,11 @@ function buildSearchParams(
 }
 
 export default function CatalogContent(): React.ReactElement {
+  // Performance monitoring (disabled in tests)
+  // const renderCount = useRenderCounter('CatalogContent');
+  // useRenderPerformance('CatalogContent');
+  // const { getLifetimeMs } = useLifecycleTracker('CatalogContent');
+  
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("category") || "";
@@ -69,6 +81,10 @@ export default function CatalogContent(): React.ReactElement {
   // State management with reducer
   const [state, dispatch] = useReducer(catalogReducer, initialState);
   const { products, loading, error, priceRange, filters, sortOption } = state;
+
+  // Mobile specific states
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   // Get category information
   const slugData = CATEGORY_SLUG_MAP[slug];
@@ -296,12 +312,13 @@ export default function CatalogContent(): React.ReactElement {
   };
 
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
+    const priceStep = 500; 
     dispatch(actions.setFilters({
       priceMin: thumb === "min"
-        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - 1200))
+        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - priceStep))
         : filters.priceMin,
       priceMax: thumb === "max"
-        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + 1200))
+        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + priceStep))
         : filters.priceMax,
     }));
   };
@@ -330,11 +347,68 @@ export default function CatalogContent(): React.ReactElement {
     }
   };
 
+  // Effect to detect mobile screen with proper cleanup
+  useEffect(() => {
+    const checkMobile = () => {
+      try {
+        setIsMobile(window.innerWidth < 768);
+      } catch (error) {
+        DebugLogger.domWarning('Error checking mobile screen size', {
+          component: 'CatalogContent',
+          action: 'checkMobile',
+          error: error as Error
+        });
+        // Fallback to desktop view if window is not available
+        setIsMobile(false);
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add event listener with error handling
+    try {
+      window.addEventListener('resize', checkMobile);
+      DebugLogger.debug('Added resize event listener', {
+        component: 'CatalogContent',
+        action: 'useEffect (mobile detection)'
+      });
+    } catch (error) {
+      DebugLogger.domError('Error adding resize event listener', {
+        component: 'CatalogContent',
+        action: 'useEffect (mobile detection)',
+        error: error as Error
+      });
+    }
+    
+    // Cleanup function to remove event listener
+    return () => {
+      try {
+        window.removeEventListener('resize', checkMobile);
+        DebugLogger.cleanup('Removed resize event listener', {
+          component: 'CatalogContent',
+          action: 'useEffect cleanup'
+        });
+      } catch (error) {
+        DebugLogger.domError('Error removing resize event listener', {
+          component: 'CatalogContent',
+          action: 'useEffect cleanup',
+          error: error as Error
+        });
+      }
+    };
+  }, []);
+
   const clearAllFilters = (): void => {
     dispatch(actions.resetFilters(priceRange));
     // Reset price filters initialization when clearing all filters
     priceFiltersInitialized.current = false;
     router.push(slug ? `/catalog?category=${slug}` : "/catalog", { scroll: false });
+  };
+
+  // Modal close handler
+  const handleCloseModal = (): void => {
+    setIsMobileFiltersOpen(false);
   };
 
   return (
