@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback } from 'react';
+import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import styles from '../catalog.module.css';
 import { ProductsDisplayProps } from '../types';
 import { ProductWithImages } from '@/app/lib/definitions';
@@ -23,6 +23,9 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   const [page, setPage] = useState(1);
   const productsPerPage = 9;
 
+  // Track previous products to prevent unnecessary updates
+  const previousProductsRef = useRef<string>('');
+
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
@@ -35,9 +38,16 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   }, [loading]);
 
   useEffect(() => {
-    setPage(1);
-    setVisibleProducts(products.slice(0, productsPerPage));
-  }, [products]);
+    // Create a stable identifier for the products array
+    const currentProductsKey = products.map(p => p.id).join(',');
+
+    // Only update if products actually changed
+    if (previousProductsRef.current !== currentProductsKey) {
+      previousProductsRef.current = currentProductsKey;
+      setPage(1);
+      setVisibleProducts(products.slice(0, productsPerPage));
+    }
+  }, [products, productsPerPage]);
 
 
 

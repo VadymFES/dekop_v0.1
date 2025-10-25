@@ -88,6 +88,9 @@ export default function CatalogContent(): React.ReactElement {
   // Track previous search params to detect external changes
   const previousSearchParams = useRef<string>('');
 
+  // Track previous products to avoid unnecessary dispatches
+  const previousProductsKey = useRef<string>('');
+
   // Initialize filters from URL on mount or when URL changes externally
   useEffect(() => {
     const currentParams = searchParams?.toString() || '';
@@ -131,6 +134,16 @@ export default function CatalogContent(): React.ReactElement {
 
   // Update products in state when query completes
   useEffect(() => {
+    // Create a stable key to identify the current products
+    const currentProductsKey = fetchedProducts?.map(p => p.id).join(',') || '';
+
+    // Only process if products actually changed
+    if (previousProductsKey.current === currentProductsKey && currentProductsKey !== '') {
+      return; // Products haven't changed, skip
+    }
+
+    previousProductsKey.current = currentProductsKey;
+
     if (fetchedProducts && fetchedProducts.length > 0) {
       dispatch(actions.setProducts(fetchedProducts));
 
