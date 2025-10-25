@@ -92,7 +92,6 @@ export interface SelectedFiltersProps {
   slug: string;
   clearFilter: (filterType: string, value: string) => void;
   clearAllFilters: () => void;
-  updateURLWithFilters: () => void;
 }
 
 // Category mapping constants

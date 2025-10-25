@@ -202,49 +202,49 @@ export default function CatalogContent(): React.ReactElement {
     return [...GLOBAL_FILTERS, ...(FURNITURE_FILTERS[slug] || [])];
   }, [slug]);
 
-  // Update URL when filters change (with debounce to prevent too many updates)
-  const updateURL = useCallback(() => {
-    const params = new URLSearchParams();
-    if (slug) params.append("category", slug);
-
-    filters.type.forEach(type => params.append("type", type));
-    filters.material.forEach(material => params.append("material", material));
-    filters.complectation.forEach(feature => params.append("feature", feature));
-
-    if (filters.size) params.append("size", filters.size);
-
-    if (filters.priceMin > priceRange.min) {
-      params.append("minPrice", Math.floor(filters.priceMin).toString());
-    }
-
-    if (filters.priceMax < priceRange.max) {
-      params.append("maxPrice", Math.floor(filters.priceMax).toString());
-    }
-
-    if (sortOption !== "rating_desc") params.append("sort", sortOption);
-
-    filters.status.forEach(status => params.append("status", status));
-
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-
-    // Mark that we're updating the URL so we don't read it back
-    isUpdatingURL.current = true;
-    router.push(newUrl, { scroll: false });
-  }, [filters, priceRange, sortOption, slug, router]);
-
-  // Debounced URL update - only update after user stops changing filters
+  // Debounced URL update - update URL after user stops changing filters
   useEffect(() => {
     // Don't update URL if we're still loading initial data
     if (loading && products.length === 0) {
       return;
     }
 
+    // Don't update URL if filters haven't been initialized yet
+    if (!priceFiltersInitialized.current && filters.priceMin === 0 && filters.priceMax === 0) {
+      return;
+    }
+
     const timer = setTimeout(() => {
-      updateURL();
+      const params = new URLSearchParams();
+      if (slug) params.append("category", slug);
+
+      filters.type.forEach(type => params.append("type", type));
+      filters.material.forEach(material => params.append("material", material));
+      filters.complectation.forEach(feature => params.append("feature", feature));
+
+      if (filters.size) params.append("size", filters.size);
+
+      if (filters.priceMin > priceRange.min) {
+        params.append("minPrice", Math.floor(filters.priceMin).toString());
+      }
+
+      if (filters.priceMax < priceRange.max) {
+        params.append("maxPrice", Math.floor(filters.priceMax).toString());
+      }
+
+      if (sortOption !== "rating_desc") params.append("sort", sortOption);
+
+      filters.status.forEach(status => params.append("status", status));
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+      // Mark that we're updating the URL so we don't read it back
+      isUpdatingURL.current = true;
+      router.push(newUrl, { scroll: false });
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [updateURL, loading, products.length]);
+  }, [filters, priceRange, sortOption, slug, router, loading, products.length]);
 
   // Event handlers
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
@@ -339,7 +339,6 @@ export default function CatalogContent(): React.ReactElement {
               slug={slug}
               clearFilter={clearFilter}
               clearAllFilters={clearAllFilters}
-              updateURLWithFilters={updateURL}
             />
           </div>
           <SortControl
