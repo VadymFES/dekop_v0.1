@@ -8,17 +8,23 @@ import ProductGrid from "../productGrid/productGrid";
 import Bestseller from "../bestsellers/bestseller";
 import { ProductWithImages } from "@/app/lib/definitions";
 import Sale from "../saleCarousel/sale";
-import useSWR from 'swr'
+import { useQuery } from '@tanstack/react-query';
 import Link from "next/link";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = async (url: string): Promise<ProductWithImages[]> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch products');
+  return res.json();
+};
+
 const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
 
-
 const Main = () => {
-
-
-  const { data: products = [], error } = useSWR<ProductWithImages[]>('/api/products', fetcher);
+  const { data: products = [], error } = useQuery<ProductWithImages[]>({
+    queryKey: ['products', 'all'],
+    queryFn: () => fetcher('/api/products'),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   if (error) return <div className={styles.container}>Failed to load products</div>;
 

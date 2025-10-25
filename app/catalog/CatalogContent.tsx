@@ -1,17 +1,17 @@
 // /app/catalog/CatalogContent.tsx
 'use client';
 
-import React, { useReducer, useState, useEffect, useMemo, useCallback, ChangeEvent } from "react";
+import React, { useReducer, useState, useEffect, useMemo, ChangeEvent, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import styles from "./catalog.module.css";
-import { FURNITURE_FILTERS, FilterGroup } from "@/app/lib/definitions";
+import { FURNITURE_FILTERS, FilterGroup, ProductWithImages } from "@/app/lib/definitions";
 import { CATEGORY_SLUG_MAP } from "./types";
 import { mergePriceFilters } from "./utils";
 import { catalogReducer } from "./store/reducer";
 import { initialState } from "./store/initialState";
 import * as actions from "./store/actions";
 import { useFiltersFromUrl } from "./hooks/useFiltersFromUrl";
-import { useUpdateUrl } from "./hooks/useUpdateUrl";
 
 // Components
 import { Breadcrumbs } from "./components/Breadcrumbs";
@@ -27,6 +27,47 @@ import { FilterLogicProvider } from "./components/FilterLogicProvider";
 import { DebugLogger } from "./utils/debugLogger";
 
 
+/**
+ * Fetch products from API with filters
+ */
+const fetchProducts = async (params: URLSearchParams): Promise<ProductWithImages[]> => {
+  const res = await fetch(`/api/products?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed to fetch products");
+  return res.json();
+};
+
+/**
+ * Build URL search params from filters
+ */
+function buildSearchParams(
+  dbCategory: string | null,
+  filters: any,
+  sortOption: string
+): URLSearchParams {
+  const params = new URLSearchParams();
+
+  if (dbCategory) params.append("category", dbCategory);
+
+  // Add filters
+  filters.status.forEach((status: string) => params.append("status", status));
+  filters.type.forEach((type: string) => params.append("type", type));
+  filters.material.forEach((material: string) => params.append("material", material));
+  filters.complectation.forEach((feature: string) => params.append("feature", feature));
+
+  if (filters.size) params.append("size", filters.size);
+  if (filters.priceMin > 0) params.append("minPrice", filters.priceMin.toString());
+  if (filters.priceMax > 0 && filters.priceMax < 1000000) {
+    params.append("maxPrice", filters.priceMax.toString());
+  }
+
+  // Add sort
+  if (sortOption && sortOption !== "rating_desc") {
+    params.append("sort", sortOption);
+  }
+
+  return params;
+}
+
 export default function CatalogContent(): React.ReactElement {
   // Performance monitoring (disabled in tests)
   // const renderCount = useRenderCounter('CatalogContent');
@@ -39,10 +80,7 @@ export default function CatalogContent(): React.ReactElement {
 
   // State management with reducer
   const [state, dispatch] = useReducer(catalogReducer, initialState);
-  const {
-    allProducts, filteredProducts, loading, error,
-    priceRange, filters, sortOption, isFiltering
-  } = state;
+  const { products, loading, error, priceRange, filters, sortOption } = state;
 
   // Mobile specific states
   const [isMobile, setIsMobile] = useState(false);
@@ -54,72 +92,116 @@ export default function CatalogContent(): React.ReactElement {
   const categoryUaName = slugData?.uaName;
   const pageTitle = categoryUaName || 'Всі категорії';
 
-  // Custom hooks wrapped in error handling
+  // Custom hook to parse URL filters
   const getFiltersFromURL = useFiltersFromUrl();
-  
-  // Memoize filter objects before passing to hooks for stable dependencies
-  // Enhanced memoization with better stability checks
-  const memoizedFilters = useMemo(() => {
-    // Create stable sorted arrays to prevent reference changes
-    const stableType = filters.type ? [...filters.type].sort() : [];
-    const stableMaterial = filters.material ? [...filters.material].sort() : [];
-    const stableComplectation = filters.complectation ? [...filters.complectation].sort() : [];
-    const stableFacadeMaterial = filters.facadeMaterial ? [...filters.facadeMaterial].sort() : [];
-    const stableTabletopShape = filters.tabletopShape ? [...filters.tabletopShape].sort() : [];
-    const stableStatus = filters.status ? [...filters.status].sort() : [];
 
-    return {
-      type: stableType,
-      material: stableMaterial,
-      complectation: stableComplectation,
-      facadeMaterial: stableFacadeMaterial,
-      tabletopShape: stableTabletopShape,
-      status: stableStatus,
-      size: filters.size || null,
-      specifics: filters.specifics || null,
-      backrest: filters.backrest || null,
-      hardness: filters.hardness || null,
-      priceMin: filters.priceMin,
-      priceMax: filters.priceMax
-    };
-  }, [
-    // Use stable string representations for array dependencies
-    filters.type?.slice().sort().join(',') || '',
-    filters.material?.slice().sort().join(',') || '',
-    filters.complectation?.slice().sort().join(',') || '',
-    filters.facadeMaterial?.slice().sort().join(',') || '',
-    filters.tabletopShape?.slice().sort().join(',') || '',
-    filters.status?.slice().sort().join(',') || '',
-    filters.size,
-    filters.specifics,
-    filters.backrest,
-    filters.hardness,
-    filters.priceMin,
-    filters.priceMax
-  ]);
+  // Track if price filters have been initialized to prevent infinite loop
+  const priceFiltersInitialized = useRef(false);
 
-  // Memoize price range for stable dependencies with validation
-  const memoizedPriceRange = useMemo(() => ({
-    min: Math.max(0, priceRange.min || 0),
-    max: Math.max(0, priceRange.max || 0)
-  }), [priceRange.min, priceRange.max]);
+  // Track if we're updating URL to prevent reading it back
+  const isUpdatingURL = useRef(false);
 
-  // Get the updateURL function from the hook with stabilized dependencies
-  const updateURLWithFilters = useUpdateUrl(memoizedFilters, memoizedPriceRange, sortOption, slug);
+  // Track previous search params to detect external changes
+  const previousSearchParams = useRef<string>('');
 
-  // Create stable updateURL callback using useCallback with primitive dependencies only
-  const stableUpdateURL = useCallback(() => {
-    try {
-      updateURLWithFilters();
-    } catch (error) {
-      console.error('Error updating URL with filters:', error);
-      // Graceful fallback - don't break the filtering process
+  // Track previous products to avoid unnecessary dispatches
+  const previousProductsKey = useRef<string>('');
+
+  // Initialize filters from URL on mount or when URL changes externally
+  useEffect(() => {
+    const currentParams = searchParams?.toString() || '';
+
+    // Skip if we just updated the URL ourselves
+    if (isUpdatingURL.current) {
+      isUpdatingURL.current = false;
+      previousSearchParams.current = currentParams;
+      return;
     }
-  }, [updateURLWithFilters]);
 
-  // Hook logic will be applied inside FilterLogicProvider wrapped in error boundary
+    // Skip if params haven't actually changed
+    if (previousSearchParams.current === currentParams) {
+      return;
+    }
 
-  // Memoized filter groups to avoid recalculations
+    previousSearchParams.current = currentParams;
+
+    const urlFilters = getFiltersFromURL(searchParams);
+    dispatch(actions.setFilters(urlFilters));
+    dispatch(actions.setSortOption(urlFilters.sort));
+
+    // If URL has price filters, mark as initialized
+    if (urlFilters.priceMin > 0 || urlFilters.priceMax > 0) {
+      priceFiltersInitialized.current = true;
+    }
+  }, [searchParams, getFiltersFromURL]);
+
+  // Build query params for TanStack Query
+  const queryParams = useMemo(() => {
+    return buildSearchParams(dbCategory, filters, sortOption);
+  }, [dbCategory, filters, sortOption]);
+
+  // Fetch products with TanStack Query (automatic deduplication and caching)
+  const { data: fetchedProducts = [], isLoading, error: queryError } = useQuery<ProductWithImages[]>({
+    queryKey: ['products', queryParams.toString()],
+    queryFn: () => fetchProducts(queryParams),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: true,
+  });
+
+  // Update products in state when query completes
+  useEffect(() => {
+    // Create a stable key to identify the current products
+    const currentProductsKey = fetchedProducts?.map(p => p.id).join(',') || 'EMPTY';
+
+    // Only process if products actually changed
+    if (previousProductsKey.current === currentProductsKey) {
+      return; // Products haven't changed, skip
+    }
+
+    previousProductsKey.current = currentProductsKey;
+
+    if (fetchedProducts && fetchedProducts.length > 0) {
+      dispatch(actions.setProducts(fetchedProducts));
+
+      // Calculate price range from fetched products
+      const prices = fetchedProducts
+        .map(p => parseFloat(p.price.toString()))
+        .filter(p => p > 0);
+
+      if (prices.length > 0) {
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
+
+        // Set initial price filters ONLY ONCE (if not already initialized)
+        if (!priceFiltersInitialized.current) {
+          dispatch(actions.setFilters({
+            priceMin: minPrice,
+            priceMax: maxPrice
+          }));
+          priceFiltersInitialized.current = true;
+        }
+      }
+    } else if (fetchedProducts && fetchedProducts.length === 0) {
+      // Handle empty results - dispatch once
+      dispatch(actions.setProducts([]));
+      dispatch(actions.setPriceRange({ min: 0, max: 0 }));
+    }
+  }, [fetchedProducts]);
+
+  // Update loading state
+  useEffect(() => {
+    dispatch(actions.setLoading(isLoading));
+  }, [isLoading]);
+
+  // Update error state
+  useEffect(() => {
+    if (queryError) {
+      dispatch(actions.setError(queryError.message));
+    }
+  }, [queryError]);
+
+  // Memoized filter groups
   const finalFilterGroups = useMemo(() => {
     const GLOBAL_FILTERS: FilterGroup[] = [{
       name: 'Status',
@@ -132,7 +214,6 @@ export default function CatalogContent(): React.ReactElement {
     }];
 
     if (!slug) {
-      // For "All categories" view, merge price filters from all categories
       const allGroups = Object.values(FURNITURE_FILTERS).flat();
       const priceGroups = allGroups.filter(
         (g) => g.name.toLowerCase() === "price" && g.type === "range" && g.range
@@ -140,130 +221,59 @@ export default function CatalogContent(): React.ReactElement {
       const merged = mergePriceFilters(priceGroups);
       const result = [...GLOBAL_FILTERS];
 
-      if (merged) {
-        // Only add the price filter if it has a valid type
-        if (merged.type === 'range' || merged.type === 'checkbox' ||
-          merged.type === 'radio' || merged.type === 'color') {
-          result.push(merged);
-        }
+      if (merged && (merged.type === 'range' || merged.type === 'checkbox' ||
+          merged.type === 'radio' || merged.type === 'color')) {
+        result.push(merged);
       }
       return result;
     }
 
-    // Return category-specific filters plus global filters
     return [...GLOBAL_FILTERS, ...(FURNITURE_FILTERS[slug] || [])];
   }, [slug]);
 
-  // Create stable dependencies for the fetch effect
-  const stableFetchDependencies = useMemo(() => {
-    const searchParamsStr = searchParams ? searchParams.toString() : '';
-    return {
-      dbCategory: dbCategory || '',
-      searchParamsString: searchParamsStr
-    };
-  }, [dbCategory, searchParams]);
-
-  // Fetch products
+  // Debounced URL update - update URL after user stops changing filters
   useEffect(() => {
-    const fetchAllProducts = async (): Promise<void> => {
-      dispatch(actions.setLoading(true));
-      dispatch(actions.setIsFiltering(true));
-      try {
-        const urlFilters = getFiltersFromURL(searchParams);
+    // Don't update URL if we're still loading initial data
+    if (loading && products.length === 0) {
+      return;
+    }
 
-        // Build API query params for filtered products
-        const params = new URLSearchParams();
-        if (stableFetchDependencies.dbCategory) {
-          params.append("category", stableFetchDependencies.dbCategory);
-        }
+    // Don't update URL if filters haven't been initialized yet
+    if (!priceFiltersInitialized.current && filters.priceMin === 0 && filters.priceMax === 0) {
+      return;
+    }
 
-        // Add filters to params
-        urlFilters.status.forEach(status => params.append("status", status));
-        urlFilters.type.forEach(type => params.append("type", type));
-        urlFilters.material.forEach(material => params.append("material", material));
-        urlFilters.complectation.forEach(feature => params.append("feature", feature));
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (slug) params.append("category", slug);
 
-        if (urlFilters.size) params.append("size", urlFilters.size);
-        if (urlFilters.priceMin !== null && urlFilters.priceMax !== null) {
-          params.append("minPrice", urlFilters.priceMin.toString());
-          params.append("maxPrice", urlFilters.priceMax.toString());
-        }
-        // Fetch filtered products
-        const res = await fetch(`/api/products?${params.toString()}`);
-        if (!res.ok) {
-          throw new Error("Упс! Щось пішло не так. Спробуйте оновити сторінку.");
-        }
-        const data = await res.json();
-        dispatch(actions.setFilteredProducts(data));
+      filters.type.forEach(type => params.append("type", type));
+      filters.material.forEach(material => params.append("material", material));
+      filters.complectation.forEach(feature => params.append("feature", feature));
 
-        // Fetch all products in category for complete data (for filtering)
-        const allProductsParams = new URLSearchParams();
-        if (stableFetchDependencies.dbCategory) {
-          allProductsParams.append("category", stableFetchDependencies.dbCategory);
-        }
+      if (filters.size) params.append("size", filters.size);
 
-        const allProductsRes = await fetch(`/api/products?${allProductsParams.toString()}`);
-        if (allProductsRes.ok) {
-          const allData = await allProductsRes.json();
-          dispatch(actions.setAllProducts(allData));
-
-          if (allData.length > 0) {
-            const allPrices = allData.map((p: { price: number | string }) =>
-              parseFloat(p.price.toString())).filter((p: number) => p > 0);
-            const allMinPrice = allPrices.length > 0 ? Math.min(...allPrices) : 0;
-            const allMaxPrice = allPrices.length > 0 ? Math.max(...allPrices) : 0;
-
-            dispatch(actions.setPriceRange({ min: allMinPrice, max: allMaxPrice }));
-
-            // New logic to determine initial price filters based on URL params and global price range
-            let resolvedPriceMin, resolvedPriceMax;
-
-            if (urlFilters.priceMin && urlFilters.priceMax) {
-              // Case 1: Both minPrice and maxPrice are in the URL
-              resolvedPriceMin = urlFilters.priceMin;
-              resolvedPriceMax = urlFilters.priceMax;
-            } else if (urlFilters.priceMin) {
-              // Case 2: Only minPrice is in the URL
-              resolvedPriceMin = urlFilters.priceMin;
-              resolvedPriceMax = allMaxPrice; 
-            } else if (urlFilters.priceMax) {
-              // Case 3: Only maxPrice is in the URL
-              resolvedPriceMin = allMinPrice; 
-              resolvedPriceMax = urlFilters.priceMax;
-            } else {
-              // Case 4: Neither minPrice nor maxPrice is in the URL
-              resolvedPriceMin = allMinPrice;
-              resolvedPriceMax = allMaxPrice;
-            }
-
-            // Set all filters including the resolved price filters
-            dispatch(actions.setFilters({
-              type: urlFilters.type,
-              material: urlFilters.material,
-              complectation: urlFilters.complectation,
-              size: urlFilters.size,
-              priceMin: resolvedPriceMin,
-              priceMax: resolvedPriceMax,
-              status: urlFilters.status,
-            }));
-
-            dispatch(actions.setSortOption(urlFilters.sort));
-          }
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Упс! Щось пішло не так. Спробуйте оновити сторінку.";
-        dispatch(actions.setError(errorMessage));
-      } finally {
-        dispatch(actions.setLoading(false));
+      if (filters.priceMin > priceRange.min) {
+        params.append("minPrice", Math.floor(filters.priceMin).toString());
       }
-    };
 
-    fetchAllProducts();
-  }, [
-    stableFetchDependencies.dbCategory,
-    stableFetchDependencies.searchParamsString,
-    getFiltersFromURL
-  ]);
+      if (filters.priceMax < priceRange.max) {
+        params.append("maxPrice", Math.floor(filters.priceMax).toString());
+      }
+
+      if (sortOption !== "rating_desc") params.append("sort", sortOption);
+
+      filters.status.forEach(status => params.append("status", status));
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+      // Mark that we're updating the URL so we don't read it back
+      isUpdatingURL.current = true;
+      router.push(newUrl, { scroll: false });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [filters, priceRange, sortOption, slug, router, loading, products.length]);
 
   // Event handlers
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
@@ -274,6 +284,8 @@ export default function CatalogContent(): React.ReactElement {
     dispatch(actions.setLoading(true));
     dispatch(actions.resetFilters({ min: 0, max: 0 }));
     dispatch(actions.setPriceRange({ min: 0, max: 0 }));
+    // Reset price filters initialization when category changes
+    priceFiltersInitialized.current = false;
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
   };
 
@@ -389,10 +401,9 @@ export default function CatalogContent(): React.ReactElement {
 
   const clearAllFilters = (): void => {
     dispatch(actions.resetFilters(priceRange));
-    setTimeout(() => {
-      const newUrl = slug ? `${window.location.pathname}?category=${slug}` : window.location.pathname;
-      window.history.pushState({ path: newUrl }, '', newUrl);
-    }, 0);
+    // Reset price filters initialization when clearing all filters
+    priceFiltersInitialized.current = false;
+    router.push(slug ? `/catalog?category=${slug}` : "/catalog", { scroll: false });
   };
 
   // Modal close handler
@@ -406,121 +417,44 @@ export default function CatalogContent(): React.ReactElement {
         <Breadcrumbs title={pageTitle} />
         <h1 className={styles.pageTitle}>{pageTitle}</h1>
 
-        {/* Mobile Controls */}
-        <div className={styles.mobileControlsContainer}>
-          <button 
-            onClick={() => setIsMobileFiltersOpen(true)} 
-            className={styles.mobileFiltersButton}
-          >
-            Фільтри
-          </button>
-          <SortControl 
-            sortOption={sortOption} 
-            onChange={handleSortChange} 
-            disabled={loading} 
+        <div className={styles.topControls}>
+          <div className={styles.filterControls}>
+            <SelectedFilters
+              loading={loading}
+              filters={filters}
+              priceRange={priceRange}
+              slug={slug}
+              clearFilter={clearFilter}
+              clearAllFilters={clearAllFilters}
+            />
+          </div>
+          <SortControl
+            sortOption={sortOption}
+            onChange={handleSortChange}
+            disabled={loading}
           />
         </div>
 
-        {/* Wrap the entire content in HookErrorBoundary to catch hook-related errors */}
-        <HookErrorBoundary
-          onError={(error, errorInfo) => {
-            console.error('Hook error in CatalogContent:', error, errorInfo);
-            // Could send to error reporting service here
-          }}
-        >
-          {/* Temporarily simplified for testing */}
-          {process.env.NODE_ENV === 'test' ? (
-            <div>Test content</div>
-          ) : (
-            <FilterLogicProvider
-              allProducts={allProducts}
-              filters={memoizedFilters}
-              priceRange={memoizedPriceRange}
-              sortOption={sortOption}
-              updateURL={stableUpdateURL}
-              dispatch={dispatch}
-            >
-            <CatalogErrorBoundary>
-              <div className={styles.topControls}>
-                <div className={styles.filterControls}>
-                  <SelectedFilters
-                    loading={loading}
-                    filters={filters}
-                    priceRange={priceRange}
-                    slug={slug}
-                    clearFilter={clearFilter}
-                    clearAllFilters={clearAllFilters}
-                    updateURLWithFilters={stableUpdateURL}
-                  />
-                </div>
-                <SortControl
-                  sortOption={sortOption}
-                  onChange={handleSortChange}
-                  disabled={loading}
-                />
-              </div>
-
-              <React.Suspense>
-                <div className={styles.contentWrapper}>
-                  {/* Desktop FiltersSidebar */}
-                  <FiltersSidebar
-                    loading={loading}
-                    isCategoryLoading={isCategoryLoading}
-                    slug={slug}
-                    filters={filters}
-                    priceRange={priceRange}
-                    finalFilterGroups={finalFilterGroups}
-                    handleCategoryChange={handleCategoryChange}
-                    handleFilterChange={handleFilterChange}
-                    handlePriceChange={handlePriceChange}
-                  />
-                  <DOMErrorBoundary
-                    componentName="ProductsDisplay"
-                    fallback={
-                      <div style={{ 
-                        padding: '20px', 
-                        textAlign: 'center', 
-                        border: '1px solid #ddd', 
-                        borderRadius: '6px',
-                        margin: '10px 0',
-                        backgroundColor: '#f8f9fa',
-                        color: '#6c757d'
-                      }}>
-                        <p>Виникла помилка при завантаженні товарів. Спробуйте оновити сторінку.</p>
-                      </div>
-                    }
-                  >
-                    <ProductsDisplay
-                      loading={loading}
-                      isFiltering={isFiltering}
-                      error={error}
-                      filteredProducts={filteredProducts}
-                    />
-                  </DOMErrorBoundary>
-                </div>
-              </React.Suspense>
-            </CatalogErrorBoundary>
-
-            {/* Mobile FilterModal */}
-            <CatalogErrorBoundary>
-              <FilterModal
-                isOpen={isMobileFiltersOpen}
-                onClose={handleCloseModal}
-                loading={loading}
-                isCategoryLoading={isCategoryLoading}
-                slug={slug}
-                filters={filters}
-                priceRange={priceRange}
-                finalFilterGroups={finalFilterGroups}
-                handleCategoryChange={handleCategoryChange}
-                handleFilterChange={handleFilterChange}
-                handlePriceChange={handlePriceChange}
-                clearAllFilters={clearAllFilters}
-              />
-            </CatalogErrorBoundary>
-          </FilterLogicProvider>
-              )}
-        </HookErrorBoundary>
+        <React.Suspense>
+          <div className={styles.contentWrapper}>
+            <FiltersSidebar
+              loading={loading}
+              isCategoryLoading={isCategoryLoading}
+              slug={slug}
+              filters={filters}
+              priceRange={priceRange}
+              finalFilterGroups={finalFilterGroups}
+              handleCategoryChange={handleCategoryChange}
+              handleFilterChange={handleFilterChange}
+              handlePriceChange={handlePriceChange}
+            />
+            <ProductsDisplay
+              loading={loading}
+              error={error}
+              products={products}
+            />
+          </div>
+        </React.Suspense>
       </div>
     </div>
   );

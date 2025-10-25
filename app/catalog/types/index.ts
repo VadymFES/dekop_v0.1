@@ -27,27 +27,22 @@ type?: string[] | null;
 }
 
 export interface CatalogState {
-  allProducts: ProductWithImages[];
-  filteredProducts: ProductWithImages[];
+  products: ProductWithImages[];
   loading: boolean;
   error: string | null;
   priceRange: PriceRange;
   filters: FilterOptions;
   sortOption: string;
-  isFiltering: boolean;
 }
 
-export type CatalogAction = 
+export type CatalogAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_ALL_PRODUCTS'; payload: ProductWithImages[] }
-  | { type: 'SET_FILTERED_PRODUCTS'; payload: ProductWithImages[] }
+  | { type: 'SET_PRODUCTS'; payload: ProductWithImages[] }
   | { type: 'SET_PRICE_RANGE'; payload: PriceRange }
   | { type: 'SET_FILTERS'; payload: Partial<FilterOptions> }
   | { type: 'RESET_FILTERS'; payload: PriceRange }
-  | { type: 'SET_SORT_OPTION'; payload: string }
-  | { type: 'APPLY_FILTER_RESULTS'; payload: { filteredProducts: ProductWithImages[], isFiltering: boolean }}
-  | { type: 'SET_IS_FILTERING'; payload: boolean };
+  | { type: 'SET_SORT_OPTION'; payload: string };
 
 export interface FilterChipProps {
   label: string;
@@ -89,9 +84,8 @@ export interface FiltersSidebarProps {
 
 export interface ProductsDisplayProps {
   loading: boolean;
-  isFiltering: boolean;
   error: string | null;
-  filteredProducts: ProductWithImages[];
+  products: ProductWithImages[];
 }
 
 export interface SelectedFiltersProps {
@@ -101,7 +95,6 @@ export interface SelectedFiltersProps {
   slug: string;
   clearFilter: (filterType: string, value: string) => void;
   clearAllFilters: () => void;
-  updateURLWithFilters: () => void;
 }
 
 // Category mapping constants
