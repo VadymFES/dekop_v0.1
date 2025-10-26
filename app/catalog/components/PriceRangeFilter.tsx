@@ -6,7 +6,6 @@ import { DebugLogger, safeDOMAccess, safeEventListener } from '../utils/debugLog
 
 // Constants for price range configuration
 const PRICE_STEP = 500;
-const MIN_PRICE_GAP = 500;
 
 // Safe DOM access utility function using centralized logger
 const safeGetBoundingRect = (element: HTMLElement | null): DOMRect | null => {

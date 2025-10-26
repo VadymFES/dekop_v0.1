@@ -327,13 +327,12 @@ export default function CatalogContent(): React.ReactElement {
   };
 
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
-    const priceStep = 500; 
     dispatch(actions.setFilters({
       priceMin: thumb === "min"
-        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - priceStep))
+        ? Math.max(priceRange.min, Math.min(value, filters.priceMax))
         : filters.priceMin,
       priceMax: thumb === "max"
-        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + priceStep))
+        ? Math.min(priceRange.max, Math.max(value, filters.priceMin))
         : filters.priceMax,
     }));
   };
