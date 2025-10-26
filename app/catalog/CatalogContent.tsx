@@ -55,10 +55,9 @@ function buildSearchParams(
   filters.complectation.forEach((feature: string) => params.append("feature", feature));
 
   if (filters.size) params.append("size", filters.size);
+  // Only send price filters if they are valid (greater than 0)
   if (filters.priceMin > 0) params.append("minPrice", filters.priceMin.toString());
-  if (filters.priceMax > 0 && filters.priceMax < 1000000) {
-    params.append("maxPrice", filters.priceMax.toString());
-  }
+  if (filters.priceMax > 0) params.append("maxPrice", filters.priceMax.toString());
 
   // Add sort
   if (sortOption && sortOption !== "rating_desc") {
@@ -126,10 +125,20 @@ export default function CatalogContent(): React.ReactElement {
     previousSearchParams.current = currentParams;
 
     const urlFilters = getFiltersFromURL(searchParams);
-    dispatch(actions.setFilters(urlFilters));
+
+    // Only apply non-price filters from URL initially
+    // Price filters will be set after products are loaded
+    const filtersToApply = {
+      ...urlFilters,
+      // Don't apply 0,0 price filters from URL - wait for products to load
+      priceMin: urlFilters.priceMin > 0 ? urlFilters.priceMin : 0,
+      priceMax: urlFilters.priceMax > 0 ? urlFilters.priceMax : 0,
+    };
+
+    dispatch(actions.setFilters(filtersToApply));
     dispatch(actions.setSortOption(urlFilters.sort));
 
-    // If URL has price filters, mark as initialized
+    // If URL has VALID price filters (not 0,0), mark as initialized
     if (urlFilters.priceMin > 0 || urlFilters.priceMax > 0) {
       priceFiltersInitialized.current = true;
     }
@@ -171,10 +180,11 @@ export default function CatalogContent(): React.ReactElement {
       if (prices.length > 0) {
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
-        dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
 
-        // Set initial price filters ONLY ONCE (if not already initialized)
+        // Only update price range on initial load
+        // After that, keep the original range to prevent slider from jumping when filters are applied
         if (!priceFiltersInitialized.current) {
+          dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
           dispatch(actions.setFilters({
             priceMin: minPrice,
             priceMax: maxPrice
@@ -185,7 +195,12 @@ export default function CatalogContent(): React.ReactElement {
     } else if (fetchedProducts && fetchedProducts.length === 0) {
       // Handle empty results - dispatch once
       dispatch(actions.setProducts([]));
-      dispatch(actions.setPriceRange({ min: 0, max: 0 }));
+      // Don't reset price range to 0,0 - keep existing range or use a default
+      // This prevents the price filter from breaking when temporarily no products match
+      if (priceRange.min === 0 && priceRange.max === 0) {
+        // Only set a default range if we don't have one yet
+        dispatch(actions.setPriceRange({ min: 0, max: 100000 }));
+      }
     }
   }, [fetchedProducts]);
 
@@ -253,11 +268,12 @@ export default function CatalogContent(): React.ReactElement {
 
       if (filters.size) params.append("size", filters.size);
 
-      if (filters.priceMin > priceRange.min) {
+      // Only add price filters if they're valid (not 0) and different from range
+      if (filters.priceMin > 0 && filters.priceMin > priceRange.min) {
         params.append("minPrice", Math.floor(filters.priceMin).toString());
       }
 
-      if (filters.priceMax < priceRange.max) {
+      if (filters.priceMax > 0 && filters.priceMax < priceRange.max) {
         params.append("maxPrice", Math.floor(filters.priceMax).toString());
       }
 
@@ -312,13 +328,12 @@ export default function CatalogContent(): React.ReactElement {
   };
 
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
-    const priceStep = 500; 
     dispatch(actions.setFilters({
       priceMin: thumb === "min"
-        ? Math.max(priceRange.min, Math.min(value, filters.priceMax - priceStep))
+        ? Math.max(priceRange.min, Math.min(value, filters.priceMax))
         : filters.priceMin,
       priceMax: thumb === "max"
-        ? Math.min(priceRange.max, Math.max(value, filters.priceMin + priceStep))
+        ? Math.min(priceRange.max, Math.max(value, filters.priceMin))
         : filters.priceMax,
     }));
   };

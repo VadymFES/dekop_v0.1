@@ -6,7 +6,6 @@ import { DebugLogger, safeDOMAccess, safeEventListener } from '../utils/debugLog
 
 // Constants for price range configuration
 const PRICE_STEP = 500;
-const MIN_PRICE_GAP = 500;
 
 // Safe DOM access utility function using centralized logger
 const safeGetBoundingRect = (element: HTMLElement | null): DOMRect | null => {
@@ -15,9 +14,9 @@ const safeGetBoundingRect = (element: HTMLElement | null): DOMRect | null => {
       if (!element) {
         throw new Error('DOM element not available');
       }
-      
+
       const rect = element.getBoundingClientRect();
-      
+
       // Validate rect has meaningful dimensions
       if (rect.width === 0 || rect.height === 0) {
         DebugLogger.domWarning('DOM element has invalid dimensions', {
@@ -27,14 +26,14 @@ const safeGetBoundingRect = (element: HTMLElement | null): DOMRect | null => {
         });
         return null;
       }
-      
+
       return rect;
     },
     'PriceRangeFilter',
     'getBoundingClientRect',
     null
   );
-  
+
   return result || null;
 };
 
@@ -59,12 +58,12 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   }
 
   // Validate price range values are finite numbers
-  if (!isFinite(priceRange.min) || !isFinite(priceRange.max) || 
+  if (!isFinite(priceRange.min) || !isFinite(priceRange.max) ||
       !isFinite(filterValues.priceMin) || !isFinite(filterValues.priceMax)) {
     DebugLogger.domWarning('Invalid price values detected', {
       component: 'PriceRangeFilter',
       action: 'validation',
-      data: { 
+      data: {
         priceRange: { min: priceRange.min, max: priceRange.max },
         filterValues: { priceMin: filterValues.priceMin, priceMax: filterValues.priceMax }
       }
@@ -72,18 +71,21 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
     return null;
   }
 
-  // Validate price range makes sense
-  if (priceRange.max <= priceRange.min) {
-    DebugLogger.domWarning('Invalid price range - max must be greater than min', {
-      component: 'PriceRangeFilter',
-      action: 'validation',
-      data: { min: priceRange.min, max: priceRange.max }
-    });
+  // Don't render if price range is 0,0 (no valid products)
+  if (priceRange.min === 0 && priceRange.max === 0) {
     return null;
   }
 
-  // Calculate percentage positions for slider thumbs with safe math
+  // Don't render if filter values are both 0 (not initialized)
+  if (filterValues.priceMin === 0 && filterValues.priceMax === 0) {
+    return null;
+  }
+
+  // Check if dragging should be disabled (when price range is too narrow)
   const priceRangeSpan = priceRange.max - priceRange.min;
+  const isDraggingDisabled = priceRangeSpan <= 0;
+
+  // Calculate percentage positions for slider thumbs with safe math and bounds
   const minPercentage = priceRangeSpan > 0 ?
     Math.max(0, Math.min(100, ((filterValues.priceMin - priceRange.min) / priceRangeSpan) * 100)) : 0;
 
@@ -94,6 +96,16 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   const handlePriceThumbDrag = (thumb: "min" | "max", e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Don't allow dragging if disabled
+    if (isDraggingDisabled) {
+      DebugLogger.domWarning('Dragging disabled - price range too narrow', {
+        component: 'PriceRangeFilter',
+        action: 'handlePriceThumbDrag',
+        data: { priceRange }
+      });
+      return;
+    }
 
     // Comprehensive null checks and safe DOM access
     const trackElement = rangeRef.current;
@@ -140,16 +152,6 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
     const startValue = thumb === "min" ? filterValues.priceMin : filterValues.priceMax;
     const valueRange = priceRange.max - priceRange.min;
 
-    // Validate price range data
-    if (valueRange <= 0) {
-      DebugLogger.domWarning('Invalid price range for calculations', {
-        component: 'PriceRangeFilter',
-        action: 'handlePriceThumbDrag',
-        data: { valueRange, priceRange }
-      });
-      return;
-    }
-
     // Handle mouse movement with error handling
     const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
       try {
@@ -184,15 +186,11 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
         // Round to nearest step
         newValue = Math.round(newValue / PRICE_STEP) * PRICE_STEP;
 
-        if (thumb === "min") {
-          // Constrain min value between price range min and current max value minus minimum gap
-          newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - MIN_PRICE_GAP));
-          onPriceChange("min", newValue);
-        } else {
-          // Constrain max value between current min value plus minimum gap and price range max
-          newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + MIN_PRICE_GAP));
-          onPriceChange("max", newValue);
-        }
+        // Constrain value within the overall price range
+        // Let the parent component handle the gap between min and max
+        newValue = Math.max(priceRange.min, Math.min(newValue, priceRange.max));
+
+        onPriceChange(thumb, newValue);
       } catch (error) {
         DebugLogger.domError('Error in mouse move handler', {
           component: 'PriceRangeFilter',
@@ -246,16 +244,22 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
           {/* Price indicator bubbles with error-safe event handlers */}
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMin}`}
-            style={{ left: `${minPercentage}%`, cursor: 'grab' }}
+            style={{
+              left: `${minPercentage}%`,
+              cursor: isDraggingDisabled ? 'not-allowed' : 'grab',
+              opacity: isDraggingDisabled ? 0.6 : 1
+            }}
             onMouseDown={(e) => {
-              try {
-                handlePriceThumbDrag("min", e);
-              } catch (error) {
-                DebugLogger.domError('Error in min bubble drag handler', {
-                  component: 'PriceRangeFilter',
-                  action: 'onMouseDown (min bubble)',
-                  error: error as Error
-                });
+              if (!isDraggingDisabled) {
+                try {
+                  handlePriceThumbDrag("min", e);
+                } catch (error) {
+                  DebugLogger.domError('Error in min bubble drag handler', {
+                    component: 'PriceRangeFilter',
+                    action: 'onMouseDown (min bubble)',
+                    error: error as Error
+                  });
+                }
               }
             }}
           >
@@ -263,16 +267,22 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
           </div>
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMax}`}
-            style={{ left: `${maxPercentage}%`, cursor: 'grab' }}
+            style={{
+              left: `${maxPercentage}%`,
+              cursor: isDraggingDisabled ? 'not-allowed' : 'grab',
+              opacity: isDraggingDisabled ? 0.6 : 1
+            }}
             onMouseDown={(e) => {
-              try {
-                handlePriceThumbDrag("max", e);
-              } catch (error) {
-                DebugLogger.domError('Error in max bubble drag handler', {
-                  component: 'PriceRangeFilter',
-                  action: 'onMouseDown (max bubble)',
-                  error: error as Error
-                });
+              if (!isDraggingDisabled) {
+                try {
+                  handlePriceThumbDrag("max", e);
+                } catch (error) {
+                  DebugLogger.domError('Error in max bubble drag handler', {
+                    component: 'PriceRangeFilter',
+                    action: 'onMouseDown (max bubble)',
+                    error: error as Error
+                  });
+                }
               }
             }}
           >
@@ -283,36 +293,49 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
             className={styles.priceFill}
             style={{
               left: `${minPercentage}%`,
-              width: `${maxPercentage - minPercentage}%`,
+              width: `${Math.max(0, maxPercentage - minPercentage)}%`,
+              opacity: isDraggingDisabled ? 0.6 : 1
             }}
           />
           <div
             className={styles.priceThumb}
-            style={{ left: `${minPercentage}%` }}
+            style={{
+              left: `${minPercentage}%`,
+              cursor: isDraggingDisabled ? 'not-allowed' : 'pointer',
+              opacity: isDraggingDisabled ? 0.6 : 1
+            }}
             onMouseDown={(e) => {
-              try {
-                handlePriceThumbDrag("min", e);
-              } catch (error) {
-                DebugLogger.domError('Error in min thumb drag handler', {
-                  component: 'PriceRangeFilter',
-                  action: 'onMouseDown (min thumb)',
-                  error: error as Error
-                });
+              if (!isDraggingDisabled) {
+                try {
+                  handlePriceThumbDrag("min", e);
+                } catch (error) {
+                  DebugLogger.domError('Error in min thumb drag handler', {
+                    component: 'PriceRangeFilter',
+                    action: 'onMouseDown (min thumb)',
+                    error: error as Error
+                  });
+                }
               }
             }}
           />
           <div
             className={styles.priceThumb}
-            style={{ left: `${maxPercentage}%` }}
+            style={{
+              left: `${maxPercentage}%`,
+              cursor: isDraggingDisabled ? 'not-allowed' : 'pointer',
+              opacity: isDraggingDisabled ? 0.6 : 1
+            }}
             onMouseDown={(e) => {
-              try {
-                handlePriceThumbDrag("max", e);
-              } catch (error) {
-                DebugLogger.domError('Error in max thumb drag handler', {
-                  component: 'PriceRangeFilter',
-                  action: 'onMouseDown (max thumb)',
-                  error: error as Error
-                });
+              if (!isDraggingDisabled) {
+                try {
+                  handlePriceThumbDrag("max", e);
+                } catch (error) {
+                  DebugLogger.domError('Error in max thumb drag handler', {
+                    component: 'PriceRangeFilter',
+                    action: 'onMouseDown (max thumb)',
+                    error: error as Error
+                  });
+                }
               }
             }}
           />
