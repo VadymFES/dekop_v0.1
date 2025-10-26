@@ -187,15 +187,11 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
         // Round to nearest step
         newValue = Math.round(newValue / PRICE_STEP) * PRICE_STEP;
 
-        if (thumb === "min") {
-          // Constrain min value between price range min and current max value minus minimum gap
-          newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - MIN_PRICE_GAP));
-          onPriceChange("min", newValue);
-        } else {
-          // Constrain max value between current min value plus minimum gap and price range max
-          newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + MIN_PRICE_GAP));
-          onPriceChange("max", newValue);
-        }
+        // Constrain value within the overall price range
+        // Let the parent component handle the gap between min and max
+        newValue = Math.max(priceRange.min, Math.min(newValue, priceRange.max));
+
+        onPriceChange(thumb, newValue);
       } catch (error) {
         DebugLogger.domError('Error in mouse move handler', {
           component: 'PriceRangeFilter',
