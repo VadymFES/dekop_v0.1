@@ -15,9 +15,9 @@ const safeGetBoundingRect = (element: HTMLElement | null): DOMRect | null => {
       if (!element) {
         throw new Error('DOM element not available');
       }
-      
+
       const rect = element.getBoundingClientRect();
-      
+
       // Validate rect has meaningful dimensions
       if (rect.width === 0 || rect.height === 0) {
         DebugLogger.domWarning('DOM element has invalid dimensions', {
@@ -27,14 +27,14 @@ const safeGetBoundingRect = (element: HTMLElement | null): DOMRect | null => {
         });
         return null;
       }
-      
+
       return rect;
     },
     'PriceRangeFilter',
     'getBoundingClientRect',
     null
   );
-  
+
   return result || null;
 };
 
@@ -59,16 +59,26 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   }
 
   // Validate price range values are finite numbers
-  if (!isFinite(priceRange.min) || !isFinite(priceRange.max) || 
+  if (!isFinite(priceRange.min) || !isFinite(priceRange.max) ||
       !isFinite(filterValues.priceMin) || !isFinite(filterValues.priceMax)) {
     DebugLogger.domWarning('Invalid price values detected', {
       component: 'PriceRangeFilter',
       action: 'validation',
-      data: { 
+      data: {
         priceRange: { min: priceRange.min, max: priceRange.max },
         filterValues: { priceMin: filterValues.priceMin, priceMax: filterValues.priceMax }
       }
     });
+    return null;
+  }
+
+  // Don't render if price range is 0,0 (no valid products)
+  if (priceRange.min === 0 && priceRange.max === 0) {
+    return null;
+  }
+
+  // Don't render if filter values are both 0 (not initialized)
+  if (filterValues.priceMin === 0 && filterValues.priceMax === 0) {
     return null;
   }
 
@@ -82,7 +92,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
     return null;
   }
 
-  // Calculate percentage positions for slider thumbs with safe math
+  // Calculate percentage positions for slider thumbs with safe math and bounds
   const priceRangeSpan = priceRange.max - priceRange.min;
   const minPercentage = priceRangeSpan > 0 ?
     Math.max(0, Math.min(100, ((filterValues.priceMin - priceRange.min) / priceRangeSpan) * 100)) : 0;
@@ -283,7 +293,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
             className={styles.priceFill}
             style={{
               left: `${minPercentage}%`,
-              width: `${maxPercentage - minPercentage}%`,
+              width: `${Math.max(0, maxPercentage - minPercentage)}%`,
             }}
           />
           <div
