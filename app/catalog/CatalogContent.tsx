@@ -180,10 +180,11 @@ export default function CatalogContent(): React.ReactElement {
       if (prices.length > 0) {
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
-        dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
 
-        // Set initial price filters ONLY ONCE (if not already initialized)
+        // Only update price range on initial load
+        // After that, keep the original range to prevent slider from jumping when filters are applied
         if (!priceFiltersInitialized.current) {
+          dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
           dispatch(actions.setFilters({
             priceMin: minPrice,
             priceMax: maxPrice
