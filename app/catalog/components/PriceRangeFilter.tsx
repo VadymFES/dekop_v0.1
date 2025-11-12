@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from '../catalog.module.css';
 import { PriceRangeFilterProps } from '../types';
 
@@ -11,22 +11,35 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
 
   const rangeRef = useRef<HTMLDivElement>(null);
 
+  // Track temporary drag values (only committed on mouse up)
+  const [isDragging, setIsDragging] = useState(false);
+  const [tempPriceMin, setTempPriceMin] = useState<number | null>(null);
+  const [tempPriceMax, setTempPriceMax] = useState<number | null>(null);
+
   if (!priceRange || priceRange.min === undefined || priceRange.max === undefined ||
     filterValues.priceMin === undefined || filterValues.priceMax === undefined) {
     return null;
   }
 
+  // Use temporary values during drag, otherwise use actual filter values
+  const currentMinPrice = isDragging && tempPriceMin !== null ? tempPriceMin : filterValues.priceMin;
+  const currentMaxPrice = isDragging && tempPriceMax !== null ? tempPriceMax : filterValues.priceMax;
+
   // Calculate percentage positions for slider thumbs
   const minPercentage = priceRange.max > priceRange.min ?
-    ((filterValues.priceMin - priceRange.min) / (priceRange.max - priceRange.min)) * 100 : 0;
+    ((currentMinPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100 : 0;
 
   const maxPercentage = priceRange.max > priceRange.min ?
-    ((filterValues.priceMax - priceRange.min) / (priceRange.max - priceRange.min)) * 100 : 100;
+    ((currentMaxPrice - priceRange.min) / (priceRange.max - priceRange.min)) * 100 : 100;
 
   // Enhanced price handle drag functionality
+  // Only applies filter on mouse up, not during dragging
   const handlePriceThumbDrag = (thumb: "min" | "max", e: React.MouseEvent): void => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Start dragging state
+    setIsDragging(true);
 
     // Get initial position
     const startX = e.clientX;
@@ -38,7 +51,14 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
     const valueRange = priceRange.max - priceRange.min;
     const priceStep = 500; // Step size for price adjustment
 
-    // Handle mouse movement
+    // Capture current min/max at start of drag for constraints
+    const dragStartMin = filterValues.priceMin;
+    const dragStartMax = filterValues.priceMax;
+
+    // Store the final value to commit on mouse up
+    let finalValue = startValue;
+
+    // Handle mouse movement - update temporary values only
     const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
       // Calculate delta movement as a percentage of track width
       const deltaX = moveEvent.clientX - startX;
@@ -51,18 +71,36 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
       newValue = Math.round(newValue / priceStep) * priceStep;
 
       if (thumb === "min") {
-        // Constrain min value between price range min and current max value
-        newValue = Math.max(priceRange.min, Math.min(newValue, filterValues.priceMax - priceStep));
-        onPriceChange("min", newValue);
+        // Constrain min value between price range min and max value at drag start
+        const constrainedValue = Math.max(priceRange.min, Math.min(newValue, dragStartMax - priceStep));
+        finalValue = constrainedValue;
+        // Update temporary state for visual feedback
+        setTempPriceMin(constrainedValue);
       } else {
-        // Constrain max value between current min value and price range max
-        newValue = Math.min(priceRange.max, Math.max(newValue, filterValues.priceMin + priceStep));
-        onPriceChange("max", newValue);
+        // Constrain max value between min value at drag start and price range max
+        const constrainedValue = Math.min(priceRange.max, Math.max(newValue, dragStartMin + priceStep));
+        finalValue = constrainedValue;
+        // Update temporary state for visual feedback
+        setTempPriceMax(constrainedValue);
       }
     };
 
-    // Handle mouse up - remove event listeners
+    // Handle mouse up - commit the final value and remove event listeners
     const handleMouseUp = () => {
+      // Stop dragging state
+      setIsDragging(false);
+
+      // Reset temporary values
+      setTempPriceMin(null);
+      setTempPriceMax(null);
+
+      // Only apply filter if value actually changed
+      if (thumb === "min" && finalValue !== filterValues.priceMin) {
+        onPriceChange("min", finalValue);
+      } else if (thumb === "max" && finalValue !== filterValues.priceMax) {
+        onPriceChange("max", finalValue);
+      }
+
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
@@ -80,17 +118,17 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
           {/* Price indicator bubbles*/}
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMin}`}
-            style={{ left: `${minPercentage}%`, cursor: 'grab' }}
+            style={{ left: `${minPercentage}%`, cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={(e) => handlePriceThumbDrag("min", e)}
           >
-            {Math.round(filterValues.priceMin)}
+            {Math.round(currentMinPrice)}
           </div>
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMax}`}
-            style={{ left: `${maxPercentage}%`, cursor: 'grab' }}
+            style={{ left: `${maxPercentage}%`, cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={(e) => handlePriceThumbDrag("max", e)}
           >
-            {Math.round(filterValues.priceMax)}
+            {Math.round(currentMaxPrice)}
           </div>
 
           <div
@@ -102,12 +140,12 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
           />
           <div
             className={styles.priceThumb}
-            style={{ left: `${minPercentage}%` }}
+            style={{ left: `${minPercentage}%`, cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={(e) => handlePriceThumbDrag("min", e)}
           />
           <div
             className={styles.priceThumb}
-            style={{ left: `${maxPercentage}%` }}
+            style={{ left: `${maxPercentage}%`, cursor: isDragging ? 'grabbing' : 'grab' }}
             onMouseDown={(e) => handlePriceThumbDrag("max", e)}
           />
         </div>
