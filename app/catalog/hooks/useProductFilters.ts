@@ -40,7 +40,8 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // State
-  const [products, setProducts] = useState<ProductWithImages[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductWithImages[]>([]); // All fetched products
+  const [products, setProducts] = useState<ProductWithImages[]>([]); // Filtered products
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [priceRange, setPriceRange] = useState<PriceRange>({ min: 0, max: 0 });
@@ -71,6 +72,28 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
   // Extract sort option from URL (memoized)
   const sortOption = useMemo(() => {
     return searchParams?.get('sort') || 'rating_desc';
+  }, [searchParams]);
+
+  // Memoized non-price filter params (for fetch dependency)
+  // Price changes should NOT trigger re-fetch since price is filtered client-side
+  const nonPriceParams = useMemo(() => {
+    if (!searchParams) return '';
+
+    const params = new URLSearchParams();
+    const category = searchParams.get('category');
+    if (category) params.set('category', category);
+
+    searchParams.getAll('status').forEach(v => params.append('status', v));
+    searchParams.getAll('type').forEach(v => params.append('type', v));
+    searchParams.getAll('material').forEach(v => params.append('material', v));
+    searchParams.getAll('feature').forEach(v => params.append('feature', v));
+
+    const size = searchParams.get('size');
+    if (size) params.set('size', size);
+
+    // Explicitly exclude minPrice and maxPrice
+
+    return params.toString();
   }, [searchParams]);
 
   // Stable URL update function
@@ -119,23 +142,20 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
         const params = new URLSearchParams();
         if (dbCategory) params.append("category", dbCategory);
 
-        // Extract filters from URL
+        // Extract filters from URL (excluding price - handled client-side)
         const statusFilters = searchParams?.getAll('status') || [];
         const typeFilters = searchParams?.getAll('type') || [];
         const materialFilters = searchParams?.getAll('material') || [];
         const featureFilters = searchParams?.getAll('feature') || [];
         const sizeFilter = searchParams?.get('size');
-        const minPrice = searchParams?.get('minPrice');
-        const maxPrice = searchParams?.get('maxPrice');
+        // Note: Price filters NOT sent to API - applied client-side for instant filtering
 
-        // Add filters to API params
+        // Add filters to API params (excluding price)
         statusFilters.forEach(status => params.append("status", status));
         typeFilters.forEach(type => params.append("type", type));
         materialFilters.forEach(material => params.append("material", material));
         featureFilters.forEach(feature => params.append("feature", feature));
         if (sizeFilter) params.append("size", sizeFilter);
-        if (minPrice) params.append("minPrice", minPrice);
-        if (maxPrice) params.append("maxPrice", maxPrice);
 
         // Fetch products from API
         const response = await fetch(`/api/products?${params.toString()}`, {
@@ -150,11 +170,10 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
 
         // Only update state if request wasn't aborted
         if (!abortController.signal.aborted) {
-          // Apply client-side sorting (since API doesn't handle it)
-          const sortedData = sortProducts(data, sortOption);
-          setProducts(sortedData);
+          // Store all products (price filtering happens in separate effect)
+          setAllProducts(data);
 
-          // Calculate price range from fetched products
+          // Calculate price range from ALL fetched products
           if (data.length > 0) {
             const prices = data
               .map((p: { price: number | string }) => parseFloat(p.price.toString()))
@@ -175,6 +194,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
           } else {
             // No products, reset price range
             setPriceRange({ min: 0, max: 0 });
+            setProducts([]);
           }
         }
       } catch (err) {
@@ -204,7 +224,33 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     return () => {
       abortController.abort();
     };
-  }, [dbCategory, searchParams, sortOption]);
+  }, [dbCategory, nonPriceParams]); // Only non-price params trigger re-fetch
+
+  // Client-side price filtering and sorting
+  // This runs instantly without API calls for smooth UX
+  useEffect(() => {
+    if (!allProducts.length) {
+      setProducts([]);
+      return;
+    }
+
+    // Apply price filter
+    let filtered = [...allProducts];
+
+    if (filters.priceMin > 0 || filters.priceMax > 0) {
+      const minPrice = filters.priceMin || priceRange.min;
+      const maxPrice = filters.priceMax || priceRange.max;
+
+      filtered = filtered.filter(p => {
+        const price = parseFloat(p.price.toString());
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
+
+    // Apply sorting
+    const sorted = sortProducts(filtered, sortOption);
+    setProducts(sorted);
+  }, [allProducts, filters.priceMin, filters.priceMax, priceRange.min, priceRange.max, sortOption]);
 
   // Update a specific filter (callback for user actions)
   const updateFilter = useCallback((
