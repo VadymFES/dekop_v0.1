@@ -113,16 +113,14 @@ export default function CatalogContent(): React.ReactElement {
   };
 
   // Event handler: Price range change
+  // Note: PriceRangeFilter component already handles constraints (min/max with step)
+  // so we just need to pass the value through for the correct thumb
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
-    const newMin = thumb === "min"
-      ? Math.max(priceRange.min, Math.min(value, filters.priceMax - 1200))
-      : filters.priceMin;
-
-    const newMax = thumb === "max"
-      ? Math.min(priceRange.max, Math.max(value, filters.priceMin + 1200))
-      : filters.priceMax;
-
-    updatePriceRange(newMin, newMax);
+    if (thumb === "min") {
+      updatePriceRange(value, filters.priceMax);
+    } else {
+      updatePriceRange(filters.priceMin, value);
+    }
   };
 
   // Event handler: Sort change
