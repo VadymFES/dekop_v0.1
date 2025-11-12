@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
 import { CartItem, ProductWithImages } from "@/app/lib/definitions";
-import { handleApiError } from "@/app/lib/error";
+import { handleApiError } from "@/app/lib/server-error";
 import { randomUUID } from "crypto";
 
 // Interface to represent the raw cart item data from the database
