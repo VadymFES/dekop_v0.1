@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "lib": [
       "dom",
       "dom.iterable",
@@ -14,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "allowImportingTsExtensions": true,
     "plugins": [
@@ -37,12 +38,13 @@
     ".next/types/**/*.ts",
     "app/lib/placeholder-data.ts",
     "scripts/seed.js",
-  "next.config.mjs",
-  "app/api/products/route.ts",
-  "app/api/products/[slug]/route.ts",
-  "app/api/products/product-colors/[productId]/route.ts",
-  "app/api/products/product-specs/[productId]/route.ts",
-],
+    "next.config.mjs",
+    "app/api/products/route.ts",
+    "app/api/products/[slug]/route.ts",
+    "app/api/products/product-colors/[productId]/route.ts",
+    "app/api/products/product-specs/[productId]/route.ts",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]
