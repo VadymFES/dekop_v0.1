@@ -46,7 +46,11 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
   const [priceRange, setPriceRange] = useState<PriceRange>({ min: 0, max: 0 });
 
   // Extract filters from URL (memoized to prevent reference changes)
+  // If no price filters in URL, use the full price range from fetched products
   const filters = useMemo((): FilterOptions => {
+    const urlPriceMin = searchParams?.get('minPrice');
+    const urlPriceMax = searchParams?.get('maxPrice');
+
     return {
       type: searchParams?.getAll('type') || [],
       material: searchParams?.getAll('material') || [],
@@ -57,11 +61,12 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
       size: searchParams?.get('size') || null,
       backrest: null,
       hardness: null,
-      priceMin: searchParams?.get('minPrice') ? Number(searchParams.get('minPrice')) : 0,
-      priceMax: searchParams?.get('maxPrice') ? Number(searchParams.get('maxPrice')) : 0,
+      // Use URL value if present, otherwise use full range (defaults to range after products load)
+      priceMin: urlPriceMin ? Number(urlPriceMin) : priceRange.min,
+      priceMax: urlPriceMax ? Number(urlPriceMax) : priceRange.max,
       status: searchParams?.getAll('status') || [],
     };
-  }, [searchParams]);
+  }, [searchParams, priceRange]);
 
   // Extract sort option from URL (memoized)
   const sortOption = useMemo(() => {
@@ -110,19 +115,27 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
       setError(null);
 
       try {
-        // Build API query params
+        // Build API query params from URL search params directly
         const params = new URLSearchParams();
         if (dbCategory) params.append("category", dbCategory);
 
-        // Add filters from URL
-        filters.status.forEach(status => params.append("status", status));
-        filters.type.forEach(type => params.append("type", type));
-        filters.material.forEach(material => params.append("material", material));
-        filters.complectation.forEach(feature => params.append("feature", feature));
+        // Extract filters from URL
+        const statusFilters = searchParams?.getAll('status') || [];
+        const typeFilters = searchParams?.getAll('type') || [];
+        const materialFilters = searchParams?.getAll('material') || [];
+        const featureFilters = searchParams?.getAll('feature') || [];
+        const sizeFilter = searchParams?.get('size');
+        const minPrice = searchParams?.get('minPrice');
+        const maxPrice = searchParams?.get('maxPrice');
 
-        if (filters.size) params.append("size", filters.size);
-        if (filters.priceMin > 0) params.append("minPrice", filters.priceMin.toString());
-        if (filters.priceMax > 0) params.append("maxPrice", filters.priceMax.toString());
+        // Add filters to API params
+        statusFilters.forEach(status => params.append("status", status));
+        typeFilters.forEach(type => params.append("type", type));
+        materialFilters.forEach(material => params.append("material", material));
+        featureFilters.forEach(feature => params.append("feature", feature));
+        if (sizeFilter) params.append("size", sizeFilter);
+        if (minPrice) params.append("minPrice", minPrice);
+        if (maxPrice) params.append("maxPrice", maxPrice);
 
         // Fetch products from API
         const response = await fetch(`/api/products?${params.toString()}`, {
@@ -191,8 +204,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     return () => {
       abortController.abort();
     };
-  }, [dbCategory, filters.status, filters.type, filters.material, filters.complectation,
-      filters.size, filters.priceMin, filters.priceMax, sortOption]);
+  }, [dbCategory, searchParams, sortOption]);
 
   // Update a specific filter (callback for user actions)
   const updateFilter = useCallback((
