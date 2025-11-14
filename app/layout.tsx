@@ -4,6 +4,7 @@ import QueryProvider from "@/app/providers/QueryProvider";
 import ClientLayout from "./ClientLayout";
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 
 
 export const metadata: Metadata = {
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <CartProvider>
-          <ClientLayout>{children}</ClientLayout>
+            <FavoritesProvider>
+              <ClientLayout>{children}</ClientLayout>
+            </FavoritesProvider>
           </CartProvider>
         </QueryProvider>
       </body>
