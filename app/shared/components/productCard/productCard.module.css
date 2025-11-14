@@ -151,7 +151,7 @@
     top: 8px;
     right: 8px;
     z-index: 4; /* Above labels */
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--background);
     border: none;
     border-radius: 50%;
     width: 40px;
@@ -169,11 +169,6 @@
     background: rgba(255, 255, 255, 1);
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  .favoriteButton:focus {
-    outline: 2px solid #ff3939;
-    outline-offset: 2px;
   }
 
   .favoriteButton:active {
