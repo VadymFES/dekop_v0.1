@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./header.module.css";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCart } from "@/app/context/CartContext"; 
+import { useCart } from "@/app/context/CartContext";
+import { useFavorites } from "@/app/context/FavoritesContext"; 
   
 
 interface HeaderProps {
@@ -18,6 +19,7 @@ interface CartItem {
 
 const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
   const { cart } = useCart();
+  const { favoritesCount } = useFavorites();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCatalogView, setIsCatalogView] = useState(false);
   const catalogRef = useRef<HTMLDivElement>(null);
@@ -254,13 +256,13 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
           </div>
 
           <div className={styles.iconContainer}>
-            <button className={styles.iconButton} aria-label="Liked">
+            <Link href={'/favorites'} className={styles.iconButton} aria-label="Favorites">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M10.2389 1.87075C10.4835 1.37713 10.6057 1.13031 10.7717 1.05146C10.9161 0.982848 11.0839 0.982848 11.2283 1.05146C11.3943 1.13031 11.5165 1.37713 11.7611 1.87075L14.081 6.55392C14.1531 6.69965 14.1892 6.77251 14.242 6.82908C14.2887 6.87918 14.3447 6.91976 14.4069 6.94859C14.4772 6.98115 14.5579 6.99291 14.7193 7.01641L19.9085 7.7722C20.455 7.85179 20.7282 7.89159 20.8546 8.02458C20.9646 8.14029 21.0164 8.29929 20.9954 8.45731C20.9714 8.63894 20.7736 8.83092 20.3779 9.21488L16.6244 12.8579C16.5074 12.9714 16.4489 13.0282 16.4111 13.0958C16.3777 13.1556 16.3563 13.2213 16.348 13.2893C16.3386 13.3661 16.3524 13.4463 16.3801 13.6067L17.2657 18.7522C17.3591 19.295 17.4058 19.5663 17.3181 19.7274C17.2417 19.8675 17.1059 19.9657 16.9486 19.9948C16.7678 20.0282 16.5232 19.9 16.0342 19.6437L11.395 17.2127C11.2505 17.137 11.1782 17.0991 11.1021 17.0842C11.0347 17.0711 10.9653 17.0711 10.8979 17.0842C10.8218 17.0991 10.7495 17.137 10.605 17.2127L5.96584 19.6437C5.47675 19.9 5.23221 20.0282 5.05138 19.9948C4.89406 19.9657 4.75831 19.8675 4.68194 19.7274C4.59416 19.5663 4.64087 19.295 4.73428 18.7522L5.61995 13.6067C5.64756 13.4463 5.66136 13.3661 5.65202 13.2893C5.64375 13.2213 5.62231 13.1556 5.58888 13.0958C5.55113 13.0282 5.49263 12.9714 5.37562 12.8579L1.62206 9.21488C1.22645 8.83092 1.02864 8.63894 1.00457 8.45731C0.983627 8.29929 1.03537 8.14029 1.14538 8.02458C1.27182 7.89159 1.54505 7.85179 2.0915 7.7722L7.28073 7.01641C7.44211 6.99291 7.5228 6.98115 7.59307 6.94859C7.65529 6.91976 7.71131 6.87918 7.75801 6.82908C7.81076 6.77251 7.84686 6.69965 7.91905 6.55392L10.2389 1.87075Z" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="#160101" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-
+              {favoritesCount > 0 && <span className={styles.badge}>{favoritesCount}</span>}
               <span className={styles.iconLabel}>Обране</span>
-            </button>
+            </Link>
           </div>
 
           <div className={styles.iconContainer}>

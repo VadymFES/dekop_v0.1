@@ -5,6 +5,7 @@ import Image from "next/image";
 import styles from "./productCard.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 import { useCart } from "@/app/context/CartContext";
+import { useFavorites } from "@/app/context/FavoritesContext";
 
 interface ProductCardProps {
   product: ProductWithImages;
@@ -12,6 +13,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { isLoading, addToCart } = useCart();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent triggering the parent link navigation
@@ -30,7 +32,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     });
   };
 
+  const handleToggleFavorite = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent triggering the parent link navigation
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Toggle favorite status (optimistic UI update)
+    toggleFavorite(product.id);
+  };
+
   const firstImage = product.images.length > 0 ? product.images[0] : null;
+  const isFavorited = isFavorite(product.id);
 
   return (
     <div className={styles.productCard}>
@@ -49,7 +61,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
               />
             )}
-            
+
+            {/* Favorite heart icon button */}
+            <button
+              className={`${styles.favoriteButton} ${isFavorited ? styles.favorited : ''}`}
+              onClick={handleToggleFavorite}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              title={isFavorited ? "Видалити з обраного" : "Додати до обраного"}
+            >
+              <svg
+                className={styles.heartIcon}
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill={isFavorited ? "#ff3939" : "none"}
+                stroke={isFavorited ? "#ff3939" : "#160101"}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
+
             {(product.is_bestseller || product.is_new || product.is_on_sale) && (
               <div className={styles.labelsContainer}>
                 {product.is_bestseller && (
