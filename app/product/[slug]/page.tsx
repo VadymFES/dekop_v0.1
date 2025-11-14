@@ -102,7 +102,7 @@ export async function generateMetadata(
 
   if (!data || !data.product) {
     return {
-      title: 'Product Not Found | Dekop Furniture Enterprise',
+      title: 'Товар не знайдений | Dekop Furniture Enterprise',
     };
   }
 
@@ -110,7 +110,7 @@ export async function generateMetadata(
   const previousImages = (await parent).openGraph?.images || [];
 
   return {
-    title: `${data.product.name} | Dekop Furniture Enterprise - меблі для вашого дому`,
+    title: `${data.product.name} | Dekop Furniture Enterprise`,
     openGraph: {
       title: data.product.name,
       images: [...(previousImages || [])],
