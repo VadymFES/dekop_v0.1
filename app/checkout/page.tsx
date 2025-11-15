@@ -9,10 +9,12 @@ import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModa
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
+import { useCart } from '@/app/context/CartContext';
 import styles from './checkout.module.css';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { clearCart } = useCart();
   const [currentStep, setCurrentStep] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState(0);
@@ -334,10 +336,10 @@ export default function CheckoutPage() {
       // Don't block the flow if email fails
     }
 
-    // Clear cart
+    // Clear cart using CartContext (which properly invalidates React Query cache)
     try {
-      await fetch('/cart/api/clear', { method: 'POST' });
-      // Refresh cart state to reflect cleared cart
+      clearCart();
+      // Also clear local state
       setCart([]);
       setCartTotal(0);
     } catch (error) {

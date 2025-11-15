@@ -12,6 +12,7 @@ import {
   formatDeliveryAddress
 } from '@/app/lib/order-utils';
 import OrderSummary from '@/app/components/order/OrderSummary';
+import { useCart } from '@/app/context/CartContext';
 import styles from './page.module.css';
 
 /**
@@ -21,10 +22,12 @@ function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams.get('orderId');
+  const { clearCart } = useCart();
 
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cartCleared, setCartCleared] = useState(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -47,11 +50,14 @@ function OrderSuccessContent() {
         if (data.success && data.order) {
           setOrder(data.order);
 
-          // Clear cart after successful order display
-          try {
-            await fetch('/cart/api/clear', { method: 'POST' });
-          } catch (e) {
-            console.error('Error clearing cart:', e);
+          // Clear cart after successful order display using CartContext
+          if (!cartCleared) {
+            try {
+              clearCart();
+              setCartCleared(true);
+            } catch (e) {
+              console.error('Error clearing cart:', e);
+            }
           }
         } else {
           throw new Error('Замовлення не знайдено');
@@ -65,7 +71,7 @@ function OrderSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId]);
+  }, [orderId, clearCart, cartCleared]);
 
   const handleContinueShopping = () => {
     router.push('/');

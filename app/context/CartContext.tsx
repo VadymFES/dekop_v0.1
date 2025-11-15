@@ -56,6 +56,15 @@ const removeFromCartAPI = async (id: string) => {
   return res.json();
 };
 
+// Clear entire cart
+const clearCartAPI = async () => {
+  const res = await fetch('/cart/api/clear', {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to clear cart');
+  return res.json();
+};
+
 // Define the context type
 interface CartContextType {
   cart: CartItem[];
@@ -64,6 +73,7 @@ interface CartContextType {
   addToCart: (payload: { productId: string; quantity: number; color?: string }) => void;
   updateCart: (id: string, quantity: number) => void;
   removeFromCart: (id: string) => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -195,20 +205,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     onMutate: async (id) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-      
+
       // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-      
+
       if (previousCart) {
         const updatedItems = previousCart.items.filter(item => item.id !== id);
-        
+
         // Set the updated cart
         queryClient.setQueryData(['cart'], {
           ...previousCart,
           items: updatedItems
         });
       }
-      
+
       return { previousCart };
     },
     onError: (error, _variables, context) => {
@@ -223,6 +233,35 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
+  // Mutation: Clear entire cart
+  const clearCartMutation = useMutation({
+    mutationFn: clearCartAPI,
+    onMutate: async () => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['cart'] });
+
+      // Get current data
+      const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
+
+      // Optimistically clear the cart
+      queryClient.setQueryData(['cart'], {
+        items: []
+      });
+
+      return { previousCart };
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousCart) {
+        queryClient.setQueryData(['cart'], context.previousCart);
+      }
+      console.error('Clear cart failed:', error);
+    },
+    onSettled: () => {
+      // Invalidate cart and refetch
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+
   const value: CartContextType = {
     cart: cartWithProducts,
     isLoading,
@@ -230,6 +269,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     addToCart: addToCartMutation.mutate,
     updateCart: (id: string, quantity: number) => updateCartMutation.mutate({ id, quantity }),
     removeFromCart: (id: string) => removeFromCartMutation.mutate(id),
+    clearCart: () => clearCartMutation.mutate(),
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
