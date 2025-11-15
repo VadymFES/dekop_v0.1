@@ -5,8 +5,7 @@ import ClientLayout from "./ClientLayout";
 import "./global.css";
 import { CartProvider } from "./context/CartContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
-import { SpeedInsights } from "@vercel/speed-insights/next"
-
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Dekop Furniture Enterprise - меблі для вашого дому",
@@ -34,15 +33,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SpeedInsights />
-          <QueryProvider>
-            <CartProvider>
-              <FavoritesProvider>
-                <ClientLayout>{children}</ClientLayout>
-              </FavoritesProvider>
-            </CartProvider>
-          </QueryProvider>
-          <SpeedInsights />
+        <QueryProvider>
+          <CartProvider>
+            <FavoritesProvider>
+              <ClientLayout>{children}</ClientLayout>
+              <SpeedInsights />
+            </FavoritesProvider>
+          </CartProvider>
+        </QueryProvider>
       </body>
     </html>
   );
