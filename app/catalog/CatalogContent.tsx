@@ -21,6 +21,9 @@ export default function CatalogContent(): React.ReactElement {
   const router = useRouter();
   const slug = searchParams?.get("category") || "";
 
+  // Mobile filter drawer state
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
   // Get category information
   const slugData = CATEGORY_SLUG_MAP[slug];
   const dbCategory = slugData?.dbValue || null;
@@ -95,6 +98,27 @@ export default function CatalogContent(): React.ReactElement {
     }
   }, [loading]);
 
+  // Handle mobile filter drawer - ESC key and body scroll lock
+  useEffect(() => {
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFilterDrawerOpen) {
+        setIsFilterDrawerOpen(false);
+      }
+    };
+
+    if (isFilterDrawerOpen) {
+      document.addEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'hidden'; // Prevent body scroll
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isFilterDrawerOpen]);
+
   // Event handler: Filter change (checkbox/radio)
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string): void => {
     const { value, checked, type } = e.target;
@@ -154,6 +178,7 @@ export default function CatalogContent(): React.ReactElement {
 
         <React.Suspense>
           <div className={styles.contentWrapper}>
+            {/* Desktop Sidebar - Hidden on mobile */}
             <FiltersSidebar
               loading={loading}
               isCategoryLoading={isCategoryLoading}
@@ -173,6 +198,55 @@ export default function CatalogContent(): React.ReactElement {
             />
           </div>
         </React.Suspense>
+      </div>
+
+      {/* Mobile Filter Button */}
+      <button
+        className={styles.mobileFilterButton}
+        onClick={() => setIsFilterDrawerOpen(true)}
+        aria-label="Відкрити фільтри"
+      >
+        ☰
+      </button>
+
+      {/* Mobile Filter Drawer Overlay */}
+      <div
+        className={`${styles.filterOverlay} ${isFilterDrawerOpen ? styles.open : ''}`}
+        onClick={() => setIsFilterDrawerOpen(false)}
+        aria-hidden={!isFilterDrawerOpen}
+      />
+
+      {/* Mobile Filter Drawer */}
+      <div
+        className={`${styles.mobileFilterDrawer} ${isFilterDrawerOpen ? styles.open : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-filter-title"
+      >
+        <div className={styles.mobileFilterHeader}>
+          <h2 id="mobile-filter-title" className={styles.mobileFilterTitle}>Фільтри</h2>
+          <button
+            className={styles.mobileFilterClose}
+            onClick={() => setIsFilterDrawerOpen(false)}
+            aria-label="Закрити фільтри"
+          >
+            ×
+          </button>
+        </div>
+        <div className={styles.mobileFilterContent}>
+          {/* Render filters in mobile drawer */}
+          <FiltersSidebar
+            loading={loading}
+            isCategoryLoading={isCategoryLoading}
+            slug={slug}
+            filters={filters}
+            priceRange={priceRange}
+            finalFilterGroups={finalFilterGroups}
+            handleCategoryChange={handleCategoryChange}
+            handleFilterChange={handleFilterChange}
+            handlePriceChange={handlePriceChange}
+          />
+        </div>
       </div>
     </div>
   );

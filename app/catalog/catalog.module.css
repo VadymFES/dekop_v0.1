@@ -11,6 +11,13 @@
   margin: 1rem 4rem;
 }
 
+/* Mobile margin consistency */
+@media (max-width: 600px) {
+  .contentContainer {
+    margin: 1rem 1rem;
+  }
+}
+
 /* Breadcrumbs */
 .breadcrumbs {
   display: flex;
@@ -74,10 +81,11 @@
 .sortSelect {
   font-size: 14px;
   color: #333;
-  padding: 8px 36px 8px 12px;
+  padding: 12px 36px 12px 12px; /* Increased vertical padding for 44px min height */
   border-radius: 20px;
   max-width: 220px;
   width: 100%;
+  min-height: 44px; /* Touch target minimum */
   cursor: pointer;
   background-color: var(--background);
   appearance: none;
@@ -105,7 +113,8 @@
   justify-content: space-between;
   border-radius: 20px;
   border: 1px solid #1601018A;
-  padding: 6px 12px;
+  padding: 10px 14px; /* Increased for better touch target */
+  min-height: 44px; /* Touch target minimum */
   font-size: 12px;
   font-weight: 300;
   cursor: pointer;
@@ -118,7 +127,8 @@
 .clearAllFilters {
   border-radius: 20px;
   background-color: var(--primary-color);
-  padding: 6px 12px;
+  padding: 10px 14px; /* Increased for touch target */
+  min-height: 44px; /* Touch target minimum */
   border: 1px solid #1601018A;
   font-size: 14px;
   color: black;
@@ -138,12 +148,10 @@
 /* Main Content Layout */
 .contentWrapper {
   display: flex;
-  gap: 30px;
+  gap: 60px;
   min-height: 500px;
   width: 100%;
-  gap: 60px;
-  /* justify-content: space-between; */
-  margin: 1rem 4rem;
+  /* Removed duplicate margin - handled by contentContainer */
 }
 
 /* Sidebar Filters */
@@ -158,6 +166,136 @@
 .sidebar.loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* Mobile Filter Button */
+.mobileFilterButton {
+  display: none; /* Hidden by default on desktop */
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: var(--btn-color, #F45145);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobileFilterButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.mobileFilterButton:active {
+  transform: scale(0.95);
+}
+
+/* Mobile Filter Drawer Overlay */
+.filterOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.filterOverlay.open {
+  opacity: 1;
+}
+
+/* Mobile Filter Drawer */
+.mobileFilterDrawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 85%;
+  max-width: 320px;
+  background-color: var(--background, #FEFDFC);
+  z-index: 1002;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.mobileFilterDrawer.open {
+  transform: translateX(0);
+}
+
+/* Mobile Filter Drawer Header */
+.mobileFilterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background-color: var(--background, #FEFDFC);
+  z-index: 10;
+}
+
+.mobileFilterTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  margin: 0;
+}
+
+.mobileFilterClose {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.mobileFilterClose:hover {
+  background-color: #f0f0f0;
+}
+
+/* Mobile Filter Content */
+.mobileFilterContent {
+  padding: 20px;
+}
+
+/* Show mobile filter UI on small screens */
+@media (max-width: 768px) {
+  .mobileFilterButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .filterOverlay,
+  .mobileFilterDrawer {
+    display: block;
+  }
+
+  /* Hide desktop sidebar on mobile, show via drawer instead */
+  .sidebar {
+    display: none;
+  }
 }
 
 .filterSection {
@@ -178,10 +316,11 @@
   font-size: 14px;
   color: black;
   margin-left: 5px;
-  padding: 6px 12px;
+  padding: 12px 36px 12px 12px; /* Increased for touch target */
   border-radius: 20px;
   width: 100%;
   max-width: 140px;
+  min-height: 44px; /* Touch target minimum */
   cursor: pointer;
   background-color: var(--background);
   appearance: none;
@@ -210,7 +349,7 @@
 }
 
 .filterItem {
-  margin-bottom: 10px;
+  margin-bottom: 12px; /* Increased spacing between items */
 }
 
 .checkboxLabel {
@@ -218,6 +357,8 @@
   align-items: center;
   cursor: pointer;
   font-size: 14px;
+  min-height: 44px; /* Touch target minimum */
+  padding: 4px 0; /* Add vertical padding for better touch area */
 }
 
 .checkbox {
@@ -355,28 +496,47 @@
 /* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, minmax(280px, 1fr));
+  gap: 24px;
   grid-template-rows: max-content;
   min-height: 400px;
 }
 
 /* Responsive design */
 
-@media (max-width: 1024px) {
+/* Desktop - 4 columns (default above) */
+
+/* Large tablet/small desktop - 3 columns */
+@media (max-width: 1400px) {
   .productGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
 }
 
-@media (max-width: 768px) {
+/* Tablet - 3 columns */
+@media (max-width: 1024px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
 
+  .contentWrapper {
+    gap: 40px;
+  }
+}
+
+/* Mobile - 2 columns */
+@media (max-width: 768px) {
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .contentWrapper {
     flex-direction: column;
     width: 100%;
+    gap: 20px;
   }
 
   .sidebar {
@@ -393,5 +553,16 @@
   .sortAndCount {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+/* Small mobile - maintain 2 columns but reduce gap */
+@media (max-width: 480px) {
+  .productGrid {
+    gap: 8px;
+  }
+
+  .contentWrapper {
+    gap: 16px;
   }
 }
