@@ -314,7 +314,7 @@ export interface CategoryFilters {
 export type DeliveryMethod = 'nova_poshta' | 'store_delivery' | 'pickup';
 
 // Order payment methods
-export type PaymentMethod = 'stripe' | 'monobank' | 'cash_on_delivery';
+export type PaymentMethod = 'liqpay' | 'monobank' | 'cash_on_delivery';
 
 // Order payment status
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';

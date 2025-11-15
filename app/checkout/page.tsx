@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
 import CustomerInfoStep from './components/CustomerInfoStep';
 import DeliveryInfoStep from './components/DeliveryInfoStep';
 import PaymentInfoStep from './components/PaymentInfoStep';
@@ -11,12 +9,8 @@ import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModa
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
+import { createLiqPayPayment } from '@/app/lib/services/liqpay-service';
 import styles from './checkout.module.css';
-
-// Initialize Stripe
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || ''
-);
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -197,13 +191,45 @@ export default function CheckoutPage() {
       const { order } = await orderResponse.json();
 
       // Handle different payment methods
-      if (formData.paymentInfo.method === 'stripe') {
-        // For Stripe: show payment form (simplified for now)
-        alert('Stripe payment integration - will be redirected to payment');
-        // In production: integrate Stripe Elements here
+      if (formData.paymentInfo.method === 'liqpay') {
+        // For LiqPay: create payment and redirect to checkout
+        try {
+          const liqpayPayment = await createLiqPayPayment({
+            amount: cartTotal,
+            orderId: order.id,
+            orderNumber: order.order_number,
+            description: `Оплата замовлення ${order.order_number}`,
+            customerEmail: formData.customerInfo.email,
+            resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+            serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
+          });
 
-        // For demo: simulate successful payment
-        await handlePaymentSuccess(order);
+          if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
+            // Create a form and submit it to redirect to LiqPay
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = liqpayPayment.checkoutUrl;
+            form.style.display = 'none';
+
+            const dataInput = document.createElement('input');
+            dataInput.name = 'data';
+            dataInput.value = liqpayPayment.data;
+            form.appendChild(dataInput);
+
+            const signatureInput = document.createElement('input');
+            signatureInput.name = 'signature';
+            signatureInput.value = liqpayPayment.signature;
+            form.appendChild(signatureInput);
+
+            document.body.appendChild(form);
+            form.submit();
+          } else {
+            throw new Error('Failed to create LiqPay payment');
+          }
+        } catch (liqpayError) {
+          console.error('LiqPay payment error:', liqpayError);
+          throw new Error('Помилка при створенні платежу LiqPay');
+        }
       } else if (formData.paymentInfo.method === 'monobank') {
         // For Monobank: create invoice and redirect
         alert('Monobank payment - will redirect to Monobank');

@@ -34,9 +34,9 @@ CREATE TABLE IF NOT EXISTS orders (
   prepayment_amount NUMERIC(10, 2) DEFAULT 0, -- Передплата
 
   -- Payment Information
-  payment_method VARCHAR(50) NOT NULL CHECK (payment_method IN ('stripe', 'monobank', 'cash_on_delivery')),
+  payment_method VARCHAR(50) NOT NULL CHECK (payment_method IN ('liqpay', 'monobank', 'cash_on_delivery')),
   payment_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
-  payment_intent_id VARCHAR(255), -- Stripe/Monobank transaction ID
+  payment_intent_id VARCHAR(255), -- LiqPay/Monobank transaction ID
 
   -- Order Status
   order_status VARCHAR(20) NOT NULL DEFAULT 'processing' CHECK (order_status IN ('processing', 'confirmed', 'shipped', 'delivered', 'cancelled')),
@@ -141,7 +141,7 @@ COMMENT ON TABLE order_items IS 'Stores individual items within orders (product 
 
 COMMENT ON COLUMN orders.order_number IS 'Unique order number in format #1234567890';
 COMMENT ON COLUMN orders.delivery_method IS 'nova_poshta: Nova Poshta delivery, store_delivery: Courier delivery, pickup: Store pickup';
-COMMENT ON COLUMN orders.payment_method IS 'stripe: International card payment, monobank: Ukrainian bank payment, cash_on_delivery: Pay on delivery';
+COMMENT ON COLUMN orders.payment_method IS 'liqpay: Card payment via LiqPay, monobank: Ukrainian bank payment, cash_on_delivery: Pay on delivery';
 COMMENT ON COLUMN orders.payment_status IS 'pending: Awaiting payment, paid: Payment completed, failed: Payment failed, refunded: Payment refunded';
 COMMENT ON COLUMN orders.order_status IS 'processing: Order received, confirmed: Order confirmed, shipped: Order shipped, delivered: Order delivered, cancelled: Order cancelled';
 COMMENT ON COLUMN orders.prepayment_amount IS 'Amount to be paid upfront (передплата)';

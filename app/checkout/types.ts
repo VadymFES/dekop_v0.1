@@ -92,9 +92,9 @@ export interface PaymentOption {
 
 export const PAYMENT_OPTIONS: PaymentOption[] = [
   {
-    value: 'stripe',
-    label: 'Картка (Stripe)',
-    description: 'Оплата банківською карткою онлайн',
+    value: 'liqpay',
+    label: 'LiqPay',
+    description: 'Оплата банківською карткою через LiqPay',
     icon: '💳'
   },
   {

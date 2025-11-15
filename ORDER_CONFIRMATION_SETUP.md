@@ -22,7 +22,7 @@ Complete implementation of order confirmation flow for Dekop furniture e-commerc
 This implementation provides a complete order confirmation system with:
 
 - ✅ Order creation from cart data
-- ✅ Stripe payment integration (international cards)
+- ✅ LiqPay payment integration (Ukrainian market)
 - ✅ Monobank payment integration (Ukrainian market)
 - ✅ Automated email confirmations (Mailchimp Transactional)
 - ✅ Order confirmation modal (Ukrainian language)
@@ -104,25 +104,25 @@ POSTGRES_URL=
 POSTGRES_PRISMA_URL=
 ```
 
-#### Stripe Configuration
+#### LiqPay Configuration
 ```env
-# Get from https://dashboard.stripe.com/apikeys
-STRIPE_PUBLIC_KEY=pk_test_your_key_here
-STRIPE_SECRET_KEY=sk_test_your_key_here
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+# Get from https://www.liqpay.ua/
+LIQPAY_PUBLIC_KEY=your_liqpay_public_key_here
+LIQPAY_PRIVATE_KEY=your_liqpay_private_key_here
 ```
 
-**How to get Stripe keys:**
-1. Go to https://dashboard.stripe.com/
-2. Navigate to **Developers** → **API keys**
-3. Copy the **Publishable key** (starts with `pk_test_`)
-4. Copy the **Secret key** (starts with `sk_test_`)
-5. For webhook secret:
-   - Go to **Developers** → **Webhooks**
-   - Click **Add endpoint**
-   - URL: `https://yourdomain.com/api/webhooks/stripe`
-   - Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`
-   - Copy the **Signing secret** (starts with `whsec_`)
+**How to get LiqPay keys:**
+1. Go to https://www.liqpay.ua/
+2. Register or log in to your merchant account
+3. Navigate to **Settings** → **API**
+4. Copy your **Public Key**
+5. Copy your **Private Key** (keep this secure!)
+6. Configure webhook URL in LiqPay settings:
+   - Go to **Settings** → **Server URL**
+   - Set URL: `https://yourdomain.com/api/webhooks/liqpay`
+   - This URL will receive payment status callbacks
+
+**Documentation:** https://www.liqpay.ua/documentation/api/aquiring/checkout/doc
 
 #### Monobank Configuration
 ```env
@@ -163,55 +163,52 @@ ORDER_PAYMENT_DEADLINE_HOURS=48    # 48 hours to pay
 
 ## 💳 Payment Integration
 
-### Stripe Setup
+### LiqPay Setup
 
 #### Client-Side Integration Example
 
 ```tsx
 'use client';
 
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { createLiqPayPayment } from '@/app/lib/services/liqpay-service';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
-
-function CheckoutForm({ orderId, clientSecret }) {
-  const stripe = useStripe();
-  const elements = useElements();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) return;
-
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/order-success`,
-      },
+async function handleLiqPayPayment(order, cartTotal, customerEmail) {
+  try {
+    // Create LiqPay payment
+    const liqpayPayment = await createLiqPayPayment({
+      amount: cartTotal,
+      orderId: order.id,
+      orderNumber: order.order_number,
+      description: `Оплата замовлення ${order.order_number}`,
+      customerEmail: customerEmail,
+      resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+      serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
     });
 
-    if (error) {
-      console.error(error);
-    } else if (paymentIntent.status === 'succeeded') {
-      // Show order confirmation modal
+    if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
+      // Create a form and submit it to redirect to LiqPay
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = liqpayPayment.checkoutUrl;
+      form.style.display = 'none';
+
+      const dataInput = document.createElement('input');
+      dataInput.name = 'data';
+      dataInput.value = liqpayPayment.data;
+      form.appendChild(dataInput);
+
+      const signatureInput = document.createElement('input');
+      signatureInput.name = 'signature';
+      signatureInput.value = liqpayPayment.signature;
+      form.appendChild(signatureInput);
+
+      document.body.appendChild(form);
+      form.submit();
     }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement />
-      <button type="submit" disabled={!stripe}>Оплатити</button>
-    </form>
-  );
-}
-
-export default function CheckoutPage() {
-  return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <CheckoutForm />
-    </Elements>
-  );
+  } catch (error) {
+    console.error('LiqPay payment error:', error);
+    throw new Error('Помилка при створенні платежу LiqPay');
+  }
 }
 ```
 
@@ -290,7 +287,7 @@ Creates a new order from cart data.
   "delivery_building": "1",
   "delivery_apartment": "10",
   "delivery_postal_code": "01001",
-  "payment_method": "stripe",
+  "payment_method": "liqpay",
   "discount_percent": 10,
   "delivery_cost": 100,
   "customer_notes": "Дзвоніть за годину"
@@ -348,7 +345,7 @@ Updates order status.
 
 ### Webhooks
 
-**POST** `/api/webhooks/stripe` - Stripe payment webhooks
+**POST** `/api/webhooks/liqpay` - LiqPay payment webhooks
 
 **POST** `/api/webhooks/monobank` - Monobank payment webhooks
 
@@ -430,12 +427,21 @@ export default function CheckoutPage() {
       const { order } = await orderResponse.json();
 
       // Step 2: Process payment
-      if (formData.payment_method === 'stripe') {
-        // Handle Stripe payment
-        const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
-        await stripe.confirmPayment({
-          // ... Stripe config
+      if (formData.payment_method === 'liqpay') {
+        // Handle LiqPay payment
+        const liqpayPayment = await createLiqPayPayment({
+          amount: cartTotal,
+          orderId: order.id,
+          orderNumber: order.order_number,
+          description: `Оплата замовлення ${order.order_number}`,
+          customerEmail: formData.user_email
         });
+
+        // Create and submit form to redirect to LiqPay
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = liqpayPayment.checkoutUrl;
+        // ... submit form
       } else if (formData.payment_method === 'monobank') {
         // Handle Monobank payment
         // Redirect to Monobank
@@ -486,16 +492,34 @@ curl -X POST http://localhost:3000/api/orders/create \
     "user_email": "test@example.com",
     "delivery_method": "nova_poshta",
     "delivery_city": "Київ",
-    "payment_method": "stripe"
+    "payment_method": "liqpay"
   }'
 ```
 
-### Test Stripe Webhooks Locally
+### Test LiqPay Payments
 
-1. Install Stripe CLI: https://stripe.com/docs/stripe-cli
-2. Login: `stripe login`
-3. Forward webhooks: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
-4. Trigger test payment: `stripe trigger payment_intent.succeeded`
+**Using LiqPay Sandbox:**
+
+1. Set up sandbox credentials in `.env.local`:
+   ```env
+   LIQPAY_PUBLIC_KEY=sandbox_public_key
+   LIQPAY_PRIVATE_KEY=sandbox_private_key
+   ```
+
+2. Use test card numbers provided by LiqPay:
+   - Successful payment: `4242424242424242`
+   - Failed payment: `4000000000000002`
+
+3. LiqPay automatically detects sandbox mode and processes test payments
+
+**Testing Webhooks Locally:**
+
+Use ngrok or similar tool to expose your local server:
+```bash
+ngrok http 3000
+# Copy the HTTPS URL and set it as webhook URL in LiqPay settings
+# Example: https://abc123.ngrok.io/api/webhooks/liqpay
+```
 
 ### Test Email Sending
 
@@ -534,14 +558,15 @@ SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
 -- If not, manually run the migration SQL file
 ```
 
-### Stripe Webhook Errors
+### LiqPay Webhook Errors
 
-**Problem:** `Webhook signature verification failed`
+**Problem:** `LiqPay webhook signature verification failed`
 
 **Solution:**
-1. Verify `STRIPE_WEBHOOK_SECRET` is correct
-2. Make sure webhook endpoint is publicly accessible
-3. Check webhook is sending to correct URL
+1. Verify `LIQPAY_PRIVATE_KEY` is correct
+2. Make sure webhook endpoint is publicly accessible (HTTPS required)
+3. Check that the server URL is correctly configured in LiqPay settings
+4. Ensure the signature verification logic matches LiqPay documentation
 
 ### Email Not Sending
 
@@ -559,10 +584,12 @@ SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
 **Problem:** Payment fails
 
 **Solution:**
-1. Test with Stripe test cards: `4242 4242 4242 4242`
-2. Check Stripe/Monobank API keys are correct
-3. Verify webhook URLs are correct
+1. Test with LiqPay test cards in sandbox mode: `4242424242424242`
+2. Check LiqPay/Monobank API keys are correct
+3. Verify webhook URLs are correct and use HTTPS
 4. Check order was created in database first
+5. Ensure `LIQPAY_PUBLIC_KEY` and `LIQPAY_PRIVATE_KEY` are properly set
+6. Review LiqPay transaction logs in your merchant dashboard
 
 ---
 
