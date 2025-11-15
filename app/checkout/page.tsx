@@ -127,32 +127,6 @@ export default function CheckoutPage() {
     }
   }, [formData, currentStep, isFormLoaded]);
 
-  // Clear checkout data when navigating away or closing the page
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Clear checkout form data when user closes tab/browser
-      clearFormData();
-    };
-
-    const handleRouteChange = () => {
-      // Clear checkout form data when navigating away
-      clearFormData();
-    };
-
-    // Add event listener for page unload
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Cleanup when component unmounts (navigation away)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Clear data when navigating away from checkout
-      const currentPath = window.location.pathname;
-      if (currentPath === '/checkout') {
-        handleRouteChange();
-      }
-    };
-  }, []);
-
   const handleFieldChange = (section: keyof CheckoutFormData, field: string, value: string) => {
     if (section === 'customerInfo' || section === 'deliveryInfo' || section === 'paymentInfo') {
       setFormData({
