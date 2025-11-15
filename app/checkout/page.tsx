@@ -242,6 +242,49 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleCancel = () => {
+    const confirmed = window.confirm(
+      'Ви впевнені, що хочете скасувати оформлення замовлення? Всі введені дані буде очищено, але товари залишаться в кошику.'
+    );
+
+    if (confirmed) {
+      // Clear form data to initial state
+      setFormData({
+        customerInfo: {
+          firstName: '',
+          lastName: '',
+          phone: '',
+          email: ''
+        },
+        deliveryInfo: {
+          method: 'nova_poshta',
+          city: '',
+          street: '',
+          building: '',
+          apartment: '',
+          postalCode: ''
+        },
+        paymentInfo: {
+          method: 'cash_on_delivery',
+          depositPaymentMethod: 'liqpay'
+        },
+        customerNotes: ''
+      });
+
+      // Clear localStorage checkout data
+      clearFormData();
+
+      // Reset to step 1
+      setCurrentStep(1);
+
+      // Clear any errors
+      setErrors({});
+
+      // Redirect to cart page
+      router.push('/cart');
+    }
+  };
+
   const handleSubmitOrder = async () => {
     setIsLoading(true);
 
@@ -520,30 +563,40 @@ export default function CheckoutPage() {
 
             {/* Navigation Buttons */}
             <div className={styles.buttonGroup}>
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={handleBack}
-                  disabled={isLoading}
-                >
-                  Назад
-                </button>
-              )}
               <button
                 type="button"
-                className={styles.primaryButton}
-                onClick={handleNext}
+                className={styles.cancelButton}
+                onClick={handleCancel}
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  'Обробка...'
-                ) : currentStep === 4 ? (
-                  'Підтвердити та оплатити'
-                ) : (
-                  'Далі'
-                )}
+                Скасувати замовлення
               </button>
+              <div className={styles.navButtons}>
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={handleBack}
+                    disabled={isLoading}
+                  >
+                    Назад
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  onClick={handleNext}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    'Обробка...'
+                  ) : currentStep === 4 ? (
+                    'Підтвердити та оплатити'
+                  ) : (
+                    'Далі'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
