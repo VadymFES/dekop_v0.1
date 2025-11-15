@@ -13,6 +13,7 @@ export interface CreateMonobankInvoiceParams {
   orderNumber: string;
   customerEmail?: string;
   redirectUrl: string;
+  cancelUrl?: string; // URL to redirect if payment is cancelled
   webhookUrl: string;
 }
 
@@ -40,6 +41,7 @@ export async function createMonobankInvoice(
       orderNumber,
       customerEmail,
       redirectUrl,
+      cancelUrl,
       webhookUrl
     } = params;
 
@@ -56,6 +58,7 @@ export async function createMonobankInvoice(
         customerEmails: customerEmail ? [customerEmail] : undefined,
       },
       redirectUrl,
+      ...(cancelUrl && { cancelUrl }), // Optional cancel URL
       webHookUrl: webhookUrl,
       validity: 3600, // Invoice validity in seconds (1 hour)
     };

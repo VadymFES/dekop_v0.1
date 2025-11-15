@@ -369,6 +369,7 @@ export default function CheckoutPage() {
           description: description,
           customerEmail: formData.customerInfo.email,
           resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
           serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
         })
       });
@@ -420,6 +421,7 @@ export default function CheckoutPage() {
           orderNumber: order.order_number,
           customerEmail: formData.customerInfo.email,
           resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
           serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/monobank`
         })
       });
