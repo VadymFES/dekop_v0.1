@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CustomerInfoStep from './components/CustomerInfoStep';
 import DeliveryInfoStep from './components/DeliveryInfoStep';
 import PaymentInfoStep from './components/PaymentInfoStep';
+import ReviewStep from './components/ReviewStep';
 import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModal';
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
@@ -223,12 +224,16 @@ export default function CheckoutPage() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      if (currentStep < 3) {
+      if (currentStep < 4) {
         setCurrentStep(currentStep + 1);
       } else {
         handleSubmitOrder();
       }
     }
+  };
+
+  const handleEdit = (step: number) => {
+    setCurrentStep(step);
   };
 
   const handleBack = () => {
@@ -504,6 +509,15 @@ export default function CheckoutPage() {
               />
             )}
 
+            {currentStep === 4 && (
+              <ReviewStep
+                formData={formData}
+                cart={cart}
+                cartTotal={cartTotal}
+                onEdit={handleEdit}
+              />
+            )}
+
             {/* Navigation Buttons */}
             <div className={styles.buttonGroup}>
               {currentStep > 1 && (
@@ -524,8 +538,8 @@ export default function CheckoutPage() {
               >
                 {isLoading ? (
                   'Обробка...'
-                ) : currentStep === 3 ? (
-                  'Оформити замовлення'
+                ) : currentStep === 4 ? (
+                  'Підтвердити та оплатити'
                 ) : (
                   'Далі'
                 )}

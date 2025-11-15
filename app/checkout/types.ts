@@ -55,6 +55,11 @@ export const CHECKOUT_STEPS: CheckoutStep[] = [
     id: 3,
     title: 'Оплата',
     description: 'Оберіть спосіб оплати'
+  },
+  {
+    id: 4,
+    title: 'Перевірка',
+    description: 'Перевірте ваше замовлення'
   }
 ];
 
