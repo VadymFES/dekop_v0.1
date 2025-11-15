@@ -88,7 +88,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes (formerly cacheTime)
     refetchOnWindowFocus: false, // Prevent refetch on focus
-    refetchOnMount: false, // Prevent refetch on mount unless stale
+    refetchOnMount: true, // Enable refetch on mount to ensure fresh data on checkout reload
     refetchOnReconnect: false, // Prevent refetch on reconnect
   });
 

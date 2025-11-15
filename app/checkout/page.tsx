@@ -67,15 +67,16 @@ const clearFormData = () => {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { clearCart } = useCart();
+  const { cart, isLoading: isCartLoading, clearCart } = useCart();
   const [currentStep, setCurrentStep] = useState(1);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+
+  // Calculate cart total from CartContext data
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     customerInfo: {
@@ -111,11 +112,6 @@ export default function CheckoutPage() {
     setIsFormLoaded(true);
   }, []);
 
-  // Fetch cart data on mount
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     // Only save after initial load to avoid overwriting with empty data
@@ -123,24 +119,6 @@ export default function CheckoutPage() {
       saveFormData(formData, currentStep);
     }
   }, [formData, currentStep, isFormLoaded]);
-
-  const fetchCart = async () => {
-    try {
-      const response = await fetch('/cart/api');
-      if (response.ok) {
-        const data = await response.json();
-        setCart(data.items || []);
-
-        // Calculate total
-        const total = (data.items || []).reduce((sum: number, item: CartItem) => {
-          return sum + (item.price * item.quantity);
-        }, 0);
-        setCartTotal(total);
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    }
-  };
 
   const handleFieldChange = (section: keyof CheckoutFormData, field: string, value: string) => {
     if (section === 'customerInfo' || section === 'deliveryInfo' || section === 'paymentInfo') {
@@ -286,7 +264,7 @@ export default function CheckoutPage() {
   };
 
   const handleSubmitOrder = async () => {
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       // Calculate prepayment amount for cash on delivery (20% deposit)
@@ -352,7 +330,7 @@ export default function CheckoutPage() {
       console.error('Order submission error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
       alert(errorMessage);
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -462,9 +440,6 @@ export default function CheckoutPage() {
     // Clear cart using CartContext (which properly invalidates React Query cache)
     try {
       clearCart();
-      // Also clear local state
-      setCart([]);
-      setCartTotal(0);
     } catch (error) {
       console.error('Error clearing cart:', error);
     }
@@ -475,7 +450,7 @@ export default function CheckoutPage() {
     // Show confirmation modal
     setCompletedOrder(order);
     setShowConfirmation(true);
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
 
   const handleContinueShopping = () => {
@@ -486,7 +461,17 @@ export default function CheckoutPage() {
     }, 100);
   };
 
-  if (cart.length === 0 && !isLoading) {
+  // Show loading state while cart is being fetched
+  if (isCartLoading) {
+    return (
+      <div className={styles.emptyCart}>
+        <p>Завантаження кошика...</p>
+      </div>
+    );
+  }
+
+  // Show empty cart message only after cart has loaded and is actually empty
+  if (cart.length === 0) {
     return (
       <div className={styles.emptyCart}>
         <h1>Ваш кошик порожній</h1>
@@ -569,7 +554,7 @@ export default function CheckoutPage() {
                 type="button"
                 className={styles.cancelButton}
                 onClick={handleCancel}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 Скасувати замовлення
               </button>
@@ -579,7 +564,7 @@ export default function CheckoutPage() {
                     type="button"
                     className={styles.secondaryButton}
                     onClick={handleBack}
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                   >
                     Назад
                   </button>
@@ -588,9 +573,9 @@ export default function CheckoutPage() {
                   type="button"
                   className={styles.primaryButton}
                   onClick={handleNext}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? (
+                  {isSubmitting ? (
                     'Обробка...'
                   ) : currentStep === 4 ? (
                     'Підтвердити та оплатити'
