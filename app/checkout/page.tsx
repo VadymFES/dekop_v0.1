@@ -7,6 +7,8 @@ import DeliveryInfoStep from './components/DeliveryInfoStep';
 import PaymentInfoStep from './components/PaymentInfoStep';
 import ReviewStep from './components/ReviewStep';
 import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModal';
+import ConfirmCancelModal from './components/ConfirmCancelModal';
+import ErrorModal from './components/ErrorModal';
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
@@ -75,6 +77,11 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFormLoaded, setIsFormLoaded] = useState(false);
 
+  // Modal states
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
   // Calculate cart total from CartContext data
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -119,6 +126,32 @@ export default function CheckoutPage() {
       saveFormData(formData, currentStep);
     }
   }, [formData, currentStep, isFormLoaded]);
+
+  // Clear checkout data when navigating away or closing the page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Clear checkout form data when user closes tab/browser
+      clearFormData();
+    };
+
+    const handleRouteChange = () => {
+      // Clear checkout form data when navigating away
+      clearFormData();
+    };
+
+    // Add event listener for page unload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup when component unmounts (navigation away)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Clear data when navigating away from checkout
+      const currentPath = window.location.pathname;
+      if (currentPath === '/checkout') {
+        handleRouteChange();
+      }
+    };
+  }, []);
 
   const handleFieldChange = (section: keyof CheckoutFormData, field: string, value: string) => {
     if (section === 'customerInfo' || section === 'deliveryInfo' || section === 'paymentInfo') {
@@ -221,46 +254,47 @@ export default function CheckoutPage() {
   };
 
   const handleCancel = () => {
-    const confirmed = window.confirm(
-      'Ви впевнені, що хочете скасувати оформлення замовлення? Всі введені дані буде очищено, але товари залишаться в кошику.'
-    );
+    setShowCancelConfirm(true);
+  };
 
-    if (confirmed) {
-      // Clear form data to initial state
-      setFormData({
-        customerInfo: {
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: ''
-        },
-        deliveryInfo: {
-          method: 'nova_poshta',
-          city: '',
-          street: '',
-          building: '',
-          apartment: '',
-          postalCode: ''
-        },
-        paymentInfo: {
-          method: 'cash_on_delivery',
-          depositPaymentMethod: 'liqpay'
-        },
-        customerNotes: ''
-      });
+  const handleConfirmCancel = () => {
+    // Clear form data to initial state
+    setFormData({
+      customerInfo: {
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: ''
+      },
+      deliveryInfo: {
+        method: 'nova_poshta',
+        city: '',
+        street: '',
+        building: '',
+        apartment: '',
+        postalCode: ''
+      },
+      paymentInfo: {
+        method: 'cash_on_delivery',
+        depositPaymentMethod: 'liqpay'
+      },
+      customerNotes: ''
+    });
 
-      // Clear localStorage checkout data
-      clearFormData();
+    // Clear localStorage checkout data
+    clearFormData();
 
-      // Reset to step 1
-      setCurrentStep(1);
+    // Reset to step 1
+    setCurrentStep(1);
 
-      // Clear any errors
-      setErrors({});
+    // Clear any errors
+    setErrors({});
 
-      // Redirect to cart page
-      router.push('/cart');
-    }
+    // Close modal
+    setShowCancelConfirm(false);
+
+    // Redirect to cart page
+    router.push('/cart');
   };
 
   const handleSubmitOrder = async () => {
@@ -328,8 +362,9 @@ export default function CheckoutPage() {
 
     } catch (error) {
       console.error('Order submission error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
-      alert(errorMessage);
+      const errMsg = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
+      setErrorMessage(errMsg);
+      setShowError(true);
       setIsSubmitting(false);
     }
   };
@@ -639,6 +674,20 @@ export default function CheckoutPage() {
           onContinueShopping={handleContinueShopping}
         />
       )}
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmCancelModal
+        isOpen={showCancelConfirm}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setShowCancelConfirm(false)}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={showError}
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }
