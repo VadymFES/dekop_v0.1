@@ -119,6 +119,13 @@ export default function CheckoutPage() {
     setIsFormLoaded(true);
   }, []);
 
+  // Redirect to cart page if cart becomes empty
+  useEffect(() => {
+    if (!isCartLoading && cart.length === 0) {
+      router.push('/cart');
+    }
+  }, [cart.length, isCartLoading, router]);
+
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     // Only save after initial load to avoid overwriting with empty data
