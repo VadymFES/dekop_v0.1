@@ -59,10 +59,10 @@ export default function CheckoutPage() {
       const response = await fetch('/cart/api');
       if (response.ok) {
         const data = await response.json();
-        setCart(data.cart || []);
+        setCart(data.items || []);
 
         // Calculate total
-        const total = (data.cart || []).reduce((sum: number, item: CartItem) => {
+        const total = (data.items || []).reduce((sum: number, item: CartItem) => {
           return sum + (item.price * item.quantity);
         }, 0);
         setCartTotal(total);
