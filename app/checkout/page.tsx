@@ -119,6 +119,13 @@ export default function CheckoutPage() {
     setIsFormLoaded(true);
   }, []);
 
+  // Redirect to cart page if cart becomes empty
+  useEffect(() => {
+    if (!isCartLoading && cart.length === 0) {
+      router.push('/cart');
+    }
+  }, [cart.length, isCartLoading, router]);
+
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     // Only save after initial load to avoid overwriting with empty data
@@ -479,18 +486,11 @@ export default function CheckoutPage() {
     );
   }
 
-  // Show empty cart message only after cart has loaded and is actually empty
+  // Redirect to cart page if cart is empty (redirecting happens in useEffect)
   if (cart.length === 0) {
     return (
       <div className={styles.emptyCart}>
-        <h1>Ваш кошик порожній</h1>
-        <p>Додайте товари до кошика, щоб оформити замовлення</p>
-        <button
-          className={styles.primaryButton}
-          onClick={() => router.push('/catalog')}
-        >
-          Перейти до каталогу
-        </button>
+        <p>Переадресація...</p>
       </div>
     );
   }
