@@ -7,6 +7,8 @@ import DeliveryInfoStep from './components/DeliveryInfoStep';
 import PaymentInfoStep from './components/PaymentInfoStep';
 import ReviewStep from './components/ReviewStep';
 import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModal';
+import ConfirmCancelModal from './components/ConfirmCancelModal';
+import ErrorModal from './components/ErrorModal';
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
@@ -16,7 +18,7 @@ import styles from './checkout.module.css';
 // LocalStorage key for checkout form data
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const CHECKOUT_STEP_KEY = 'dekop_checkout_step';
-const STORAGE_EXPIRATION_HOURS = 24; // Data expires after 24 hours
+const STORAGE_EXPIRATION_MINUTES = 20; // Data expires after 20 minutes
 
 // Helper to save form data to localStorage
 const saveFormData = (data: CheckoutFormData, step: number) => {
@@ -41,9 +43,9 @@ const loadFormData = (): { formData: CheckoutFormData | null; currentStep: numbe
     const storageData = JSON.parse(saved);
     const { formData, currentStep, timestamp } = storageData;
 
-    // Check if data is expired (older than 24 hours)
-    const hoursElapsed = (Date.now() - timestamp) / (1000 * 60 * 60);
-    if (hoursElapsed > STORAGE_EXPIRATION_HOURS) {
+    // Check if data is expired (older than 20 minutes)
+    const minutesElapsed = (Date.now() - timestamp) / (1000 * 60);
+    if (minutesElapsed > STORAGE_EXPIRATION_MINUTES) {
       // Data expired, clear it
       localStorage.removeItem(CHECKOUT_STORAGE_KEY);
       return { formData: null, currentStep: 1 };
@@ -67,15 +69,21 @@ const clearFormData = () => {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { clearCart } = useCart();
+  const { cart, isLoading: isCartLoading, clearCart } = useCart();
   const [currentStep, setCurrentStep] = useState(1);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+
+  // Modal states
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Calculate cart total from CartContext data
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     customerInfo: {
@@ -111,11 +119,6 @@ export default function CheckoutPage() {
     setIsFormLoaded(true);
   }, []);
 
-  // Fetch cart data on mount
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     // Only save after initial load to avoid overwriting with empty data
@@ -123,24 +126,6 @@ export default function CheckoutPage() {
       saveFormData(formData, currentStep);
     }
   }, [formData, currentStep, isFormLoaded]);
-
-  const fetchCart = async () => {
-    try {
-      const response = await fetch('/cart/api');
-      if (response.ok) {
-        const data = await response.json();
-        setCart(data.items || []);
-
-        // Calculate total
-        const total = (data.items || []).reduce((sum: number, item: CartItem) => {
-          return sum + (item.price * item.quantity);
-        }, 0);
-        setCartTotal(total);
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    }
-  };
 
   const handleFieldChange = (section: keyof CheckoutFormData, field: string, value: string) => {
     if (section === 'customerInfo' || section === 'deliveryInfo' || section === 'paymentInfo') {
@@ -243,50 +228,51 @@ export default function CheckoutPage() {
   };
 
   const handleCancel = () => {
-    const confirmed = window.confirm(
-      'Ви впевнені, що хочете скасувати оформлення замовлення? Всі введені дані буде очищено, але товари залишаться в кошику.'
-    );
+    setShowCancelConfirm(true);
+  };
 
-    if (confirmed) {
-      // Clear form data to initial state
-      setFormData({
-        customerInfo: {
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: ''
-        },
-        deliveryInfo: {
-          method: 'nova_poshta',
-          city: '',
-          street: '',
-          building: '',
-          apartment: '',
-          postalCode: ''
-        },
-        paymentInfo: {
-          method: 'cash_on_delivery',
-          depositPaymentMethod: 'liqpay'
-        },
-        customerNotes: ''
-      });
+  const handleConfirmCancel = () => {
+    // Clear form data to initial state
+    setFormData({
+      customerInfo: {
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: ''
+      },
+      deliveryInfo: {
+        method: 'nova_poshta',
+        city: '',
+        street: '',
+        building: '',
+        apartment: '',
+        postalCode: ''
+      },
+      paymentInfo: {
+        method: 'cash_on_delivery',
+        depositPaymentMethod: 'liqpay'
+      },
+      customerNotes: ''
+    });
 
-      // Clear localStorage checkout data
-      clearFormData();
+    // Clear localStorage checkout data
+    clearFormData();
 
-      // Reset to step 1
-      setCurrentStep(1);
+    // Reset to step 1
+    setCurrentStep(1);
 
-      // Clear any errors
-      setErrors({});
+    // Clear any errors
+    setErrors({});
 
-      // Redirect to cart page
-      router.push('/cart');
-    }
+    // Close modal
+    setShowCancelConfirm(false);
+
+    // Redirect to cart page
+    router.push('/cart');
   };
 
   const handleSubmitOrder = async () => {
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       // Calculate prepayment amount for cash on delivery (20% deposit)
@@ -350,9 +336,10 @@ export default function CheckoutPage() {
 
     } catch (error) {
       console.error('Order submission error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
-      alert(errorMessage);
-      setIsLoading(false);
+      const errMsg = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
+      setErrorMessage(errMsg);
+      setShowError(true);
+      setIsSubmitting(false);
     }
   };
 
@@ -462,9 +449,6 @@ export default function CheckoutPage() {
     // Clear cart using CartContext (which properly invalidates React Query cache)
     try {
       clearCart();
-      // Also clear local state
-      setCart([]);
-      setCartTotal(0);
     } catch (error) {
       console.error('Error clearing cart:', error);
     }
@@ -475,7 +459,7 @@ export default function CheckoutPage() {
     // Show confirmation modal
     setCompletedOrder(order);
     setShowConfirmation(true);
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
 
   const handleContinueShopping = () => {
@@ -486,7 +470,17 @@ export default function CheckoutPage() {
     }, 100);
   };
 
-  if (cart.length === 0 && !isLoading) {
+  // Show loading state while cart is being fetched
+  if (isCartLoading) {
+    return (
+      <div className={styles.emptyCart}>
+        <p>Завантаження кошика...</p>
+      </div>
+    );
+  }
+
+  // Show empty cart message only after cart has loaded and is actually empty
+  if (cart.length === 0) {
     return (
       <div className={styles.emptyCart}>
         <h1>Ваш кошик порожній</h1>
@@ -569,7 +563,7 @@ export default function CheckoutPage() {
                 type="button"
                 className={styles.cancelButton}
                 onClick={handleCancel}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 Скасувати замовлення
               </button>
@@ -579,7 +573,7 @@ export default function CheckoutPage() {
                     type="button"
                     className={styles.secondaryButton}
                     onClick={handleBack}
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                   >
                     Назад
                   </button>
@@ -588,9 +582,9 @@ export default function CheckoutPage() {
                   type="button"
                   className={styles.primaryButton}
                   onClick={handleNext}
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? (
+                  {isSubmitting ? (
                     'Обробка...'
                   ) : currentStep === 4 ? (
                     'Підтвердити та оплатити'
@@ -654,6 +648,20 @@ export default function CheckoutPage() {
           onContinueShopping={handleContinueShopping}
         />
       )}
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmCancelModal
+        isOpen={showCancelConfirm}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setShowCancelConfirm(false)}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={showError}
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }
