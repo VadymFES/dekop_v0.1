@@ -332,7 +332,7 @@ export default function Cart() {
               >
                 Оформити замовлення
               </button>
-              <Link href="/" className={styles.continueShopping}>
+              <Link href="/catalog" className={styles.continueShopping}>
                 Продовжити покупки
               </Link>
             </div>
