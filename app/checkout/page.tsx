@@ -225,6 +225,19 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSuccess = async (order: OrderWithItems) => {
+    // Send confirmation email
+    try {
+      await fetch('/api/orders/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id })
+      });
+      console.log('Confirmation email sent');
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Don't block the flow if email fails
+    }
+
     // Clear cart
     try {
       await fetch('/cart/api/clear', { method: 'POST' });

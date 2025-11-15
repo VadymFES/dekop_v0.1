@@ -30,6 +30,17 @@ export async function sendOrderConfirmationEmail(
   try {
     const { order, to, customerName } = params;
 
+    // Check if Mailchimp API key is configured
+    if (!process.env.MAILCHIMP_TRANSACTIONAL_API_KEY) {
+      console.warn('Mailchimp Transactional API key is not configured. Skipping email send.');
+      console.log('Email would have been sent to:', to);
+      console.log('Order:', order.order_number);
+      return {
+        success: false,
+        error: 'Email service not configured'
+      };
+    }
+
     // Build email HTML content
     const htmlContent = buildOrderConfirmationHTML(order);
 
