@@ -174,31 +174,41 @@ export async function cancelMonobankInvoice(invoiceId: string) {
 }
 
 /**
- * Verifies Monobank webhook signature
+ * Verifies Monobank webhook signature using X.509 public key
  * Monobank sends X-Sign header with webhook requests
+ * Documentation: https://api.monobank.ua/docs/acquiring.html#webhook
  */
 export function verifyMonobankWebhook(
-  publicKey: string,
+  publicKeyPem: string,
   xSignBase64: string,
   bodyString: string
 ): boolean {
   try {
-    // Note: This is a simplified version. In production, you need to:
-    // 1. Load Monobank's public key
-    // 2. Verify the signature using crypto.verify
-    // For now, we'll just do basic validation
-
-    if (!xSignBase64 || !bodyString) {
+    if (!xSignBase64 || !bodyString || !publicKeyPem) {
+      console.error('Missing parameters for Monobank webhook verification');
       return false;
     }
 
-    // TODO: Implement proper signature verification
-    // const crypto = require('crypto');
-    // const verify = crypto.createVerify('SHA256');
-    // verify.update(bodyString);
-    // return verify.verify(publicKey, xSignBase64, 'base64');
+    // Import crypto module
+    const crypto = require('crypto');
 
-    return true; // Placeholder - implement proper verification
+    // Create verifier with SHA-256
+    const verifier = crypto.createVerify('SHA256');
+    verifier.update(bodyString);
+
+    // Verify signature using Monobank's public key
+    const isValid = verifier.verify(
+      publicKeyPem,
+      xSignBase64,
+      'base64'
+    );
+
+    if (!isValid) {
+      console.error('Monobank webhook signature verification failed');
+      console.error('Body length:', bodyString.length);
+    }
+
+    return isValid;
   } catch (error) {
     console.error('Monobank webhook verification error:', error);
     return false;

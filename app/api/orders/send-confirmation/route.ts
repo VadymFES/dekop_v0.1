@@ -2,19 +2,29 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
+import { verifyOrderAccessToken } from '@/app/lib/auth-utils';
 
 /**
  * POST /api/orders/send-confirmation
  * Sends order confirmation email for a given order ID
+ * Requires valid access token for authorization
  */
 export async function POST(request: Request) {
   try {
-    const { orderId } = await request.json();
+    const { orderId, token } = await request.json();
 
-    if (!orderId) {
+    if (!orderId || !token) {
       return NextResponse.json(
-        { error: 'Order ID is required' },
+        { error: 'Order ID and access token are required' },
         { status: 400 }
+      );
+    }
+
+    // Verify access token
+    if (!verifyOrderAccessToken(orderId, token)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 403 }
       );
     }
 

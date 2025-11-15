@@ -9,6 +9,7 @@ import {
   calculatePaymentDeadline,
   generateProductArticle
 } from '@/app/lib/order-utils';
+import { generateOrderAccessToken } from '@/app/lib/auth-utils';
 
 /**
  * POST /api/orders/create
@@ -206,9 +207,13 @@ export async function POST(request: Request) {
       items: completeOrderResult.rows[0].items || []
     };
 
+    // Generate access token for order viewing
+    const accessToken = generateOrderAccessToken(orderId);
+
     return NextResponse.json({
       success: true,
       order,
+      accessToken,
       message: 'Замовлення успішно створено'
     }, { status: 201 });
 

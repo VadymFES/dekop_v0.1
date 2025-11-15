@@ -2,10 +2,12 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import type { OrderWithItems } from '@/app/lib/definitions';
+import { verifyOrderAccessToken } from '@/app/lib/auth-utils';
 
 /**
  * GET /api/orders/[orderId]
  * Fetches a specific order with all its items
+ * Requires valid access token for authorization
  */
 export async function GET(
   request: Request,
@@ -13,11 +15,21 @@ export async function GET(
 ) {
   try {
     const { orderId } = await params;
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
 
     if (!orderId) {
       return NextResponse.json(
         { error: 'Order ID is required' },
         { status: 400 }
+      );
+    }
+
+    // Verify access token
+    if (!token || !verifyOrderAccessToken(orderId, token)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access to order' },
+        { status: 403 }
       );
     }
 
@@ -81,12 +93,32 @@ export async function GET(
 /**
  * PATCH /api/orders/[orderId]
  * Updates order status, payment status, or other fields
+ * Requires admin authentication
  */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    // Verify admin authentication
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin access required' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const adminToken = process.env.ADMIN_API_TOKEN;
+
+    if (!adminToken || token !== adminToken) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid admin token' },
+        { status: 401 }
+      );
+    }
+
     const { orderId } = await params;
     const body = await request.json();
 
