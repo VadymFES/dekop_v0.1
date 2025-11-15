@@ -15,6 +15,9 @@ import OrderSummary from '@/app/components/order/OrderSummary';
 import { useCart } from '@/app/context/CartContext';
 import styles from './page.module.css';
 
+// LocalStorage key for checkout form data (same as in checkout page)
+const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
+
 /**
  * Order Success Page Content Component
  */
@@ -55,6 +58,13 @@ function OrderSuccessContent() {
             try {
               clearCart();
               setCartCleared(true);
+
+              // Also clear saved checkout form data from localStorage
+              try {
+                localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+              } catch (storageError) {
+                console.error('Error clearing checkout form data:', storageError);
+              }
             } catch (e) {
               console.error('Error clearing cart:', e);
             }

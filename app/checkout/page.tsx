@@ -12,6 +12,58 @@ import { formatUkrainianPrice } from '@/app/lib/order-utils';
 import { useCart } from '@/app/context/CartContext';
 import styles from './checkout.module.css';
 
+// LocalStorage key for checkout form data
+const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
+const CHECKOUT_STEP_KEY = 'dekop_checkout_step';
+const STORAGE_EXPIRATION_HOURS = 24; // Data expires after 24 hours
+
+// Helper to save form data to localStorage
+const saveFormData = (data: CheckoutFormData, step: number) => {
+  try {
+    const storageData = {
+      formData: data,
+      currentStep: step,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(storageData));
+  } catch (error) {
+    console.error('Error saving checkout data to localStorage:', error);
+  }
+};
+
+// Helper to load form data from localStorage
+const loadFormData = (): { formData: CheckoutFormData | null; currentStep: number } => {
+  try {
+    const saved = localStorage.getItem(CHECKOUT_STORAGE_KEY);
+    if (!saved) return { formData: null, currentStep: 1 };
+
+    const storageData = JSON.parse(saved);
+    const { formData, currentStep, timestamp } = storageData;
+
+    // Check if data is expired (older than 24 hours)
+    const hoursElapsed = (Date.now() - timestamp) / (1000 * 60 * 60);
+    if (hoursElapsed > STORAGE_EXPIRATION_HOURS) {
+      // Data expired, clear it
+      localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+      return { formData: null, currentStep: 1 };
+    }
+
+    return { formData, currentStep: currentStep || 1 };
+  } catch (error) {
+    console.error('Error loading checkout data from localStorage:', error);
+    return { formData: null, currentStep: 1 };
+  }
+};
+
+// Helper to clear saved form data
+const clearFormData = () => {
+  try {
+    localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error clearing checkout data from localStorage:', error);
+  }
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { clearCart } = useCart();
@@ -22,6 +74,7 @@ export default function CheckoutPage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isFormLoaded, setIsFormLoaded] = useState(false);
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     customerInfo: {
@@ -45,10 +98,30 @@ export default function CheckoutPage() {
     customerNotes: ''
   });
 
+  // Load saved form data on mount
+  useEffect(() => {
+    const { formData: savedFormData, currentStep: savedStep } = loadFormData();
+
+    if (savedFormData) {
+      setFormData(savedFormData);
+      setCurrentStep(savedStep);
+    }
+
+    setIsFormLoaded(true);
+  }, []);
+
   // Fetch cart data on mount
   useEffect(() => {
     fetchCart();
   }, []);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    // Only save after initial load to avoid overwriting with empty data
+    if (isFormLoaded) {
+      saveFormData(formData, currentStep);
+    }
+  }, [formData, currentStep, isFormLoaded]);
 
   const fetchCart = async () => {
     try {
@@ -345,6 +418,9 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error('Error clearing cart:', error);
     }
+
+    // Clear saved checkout form data from localStorage
+    clearFormData();
 
     // Show confirmation modal
     setCompletedOrder(order);
