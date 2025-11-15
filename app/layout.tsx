@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 import QueryProvider from "@/app/providers/QueryProvider";
 import ClientLayout from "./ClientLayout";
-import "./globalscss";
+import "./global.css";
 import { CartProvider } from "./context/CartContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { SpeedInsights } from "@vercel/speed-insights/next"
