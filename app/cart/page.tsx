@@ -326,12 +326,11 @@ export default function Cart() {
                 <br />
                 під час оформлення замовлення
               </p>
-              <button 
+              <Link href={selectedTotalItems === 0 ? "#" : "/checkout"}
                 className={styles.checkoutButton} 
-                disabled={selectedTotalItems === 0}
               >
                 Оформити замовлення
-              </button>
+              </Link>
               <Link href="/catalog" className={styles.continueShopping}>
                 Продовжити покупки
               </Link>

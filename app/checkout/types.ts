@@ -2,6 +2,8 @@
 
 import type { DeliveryMethod, PaymentMethod } from '@/app/lib/definitions';
 
+export type { DeliveryMethod, PaymentMethod };
+
 export interface CheckoutFormData {
   // Step 1: Customer Information
   customerInfo: {
@@ -25,6 +27,7 @@ export interface CheckoutFormData {
   // Step 3: Payment Information
   paymentInfo: {
     method: PaymentMethod;
+    depositPaymentMethod?: 'liqpay' | 'monobank'; // For cash_on_delivery deposit
   };
 
   // Additional
@@ -94,19 +97,38 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
   {
     value: 'liqpay',
     label: 'LiqPay',
-    description: 'Оплата банківською карткою через LiqPay',
+    description: 'Повна оплата банківською карткою через LiqPay',
     icon: '💳'
   },
   {
     value: 'monobank',
     label: 'Monobank',
-    description: 'Оплата через Monobank',
+    description: 'Повна оплата через Monobank',
     icon: '🏦'
   },
   {
     value: 'cash_on_delivery',
     label: 'Готівкою при отриманні',
-    description: 'Оплата при отриманні товару',
+    description: 'Передплата 20% онлайн + решта при отриманні',
     icon: '💵'
+  }
+];
+
+export interface DepositPaymentOption {
+  value: 'liqpay' | 'monobank';
+  label: string;
+  icon: string;
+}
+
+export const DEPOSIT_PAYMENT_OPTIONS: DepositPaymentOption[] = [
+  {
+    value: 'liqpay',
+    label: 'LiqPay',
+    icon: '💳'
+  },
+  {
+    value: 'monobank',
+    label: 'Monobank',
+    icon: '🏦'
   }
 ];

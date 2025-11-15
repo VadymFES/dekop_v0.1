@@ -130,10 +130,11 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
       `;
 
       if (orderResult.rows.length > 0) {
+        const orderRow = orderResult.rows[0];
         const order = {
-          ...orderResult.rows[0],
-          items: orderResult.rows[0].items || []
-        };
+          ...orderRow,
+          items: orderRow.items || []
+        } as any;
 
         // Send confirmation email
         const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
