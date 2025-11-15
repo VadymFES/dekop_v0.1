@@ -25,19 +25,28 @@ export async function POST() {
       WHERE cart_id = ${cartId}
     `;
 
-    // Optionally delete the cart itself
+    // Delete the cart itself
     await sql`
       DELETE FROM carts
       WHERE id = ${cartId}
     `;
 
-    // Clear the cookie
-    cookieStore.delete('cartId');
-
-    return NextResponse.json({
+    // Create response
+    const response = NextResponse.json({
       success: true,
       message: 'Кошик успішно очищено'
     });
+
+    // Clear the cookie by setting it with expired date
+    response.cookies.set('cartId', '', {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0, // Expire immediately
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Error clearing cart:', error);

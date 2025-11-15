@@ -228,6 +228,9 @@ export default function CheckoutPage() {
     // Clear cart
     try {
       await fetch('/cart/api/clear', { method: 'POST' });
+      // Refresh cart state to reflect cleared cart
+      setCart([]);
+      setCartTotal(0);
     } catch (error) {
       console.error('Error clearing cart:', error);
     }
@@ -240,7 +243,10 @@ export default function CheckoutPage() {
 
   const handleContinueShopping = () => {
     setShowConfirmation(false);
-    router.push('/');
+    // Small delay to allow modal to close before navigation
+    setTimeout(() => {
+      router.push('/');
+    }, 100);
   };
 
   if (cart.length === 0 && !isLoading) {

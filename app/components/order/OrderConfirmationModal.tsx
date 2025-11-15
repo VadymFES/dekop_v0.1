@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import {
   formatUkrainianDate,
@@ -30,6 +30,20 @@ export default function OrderConfirmationModal({
   onClose,
   onContinueShopping
 }: OrderConfirmationModalProps) {
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const orderDate = formatUkrainianDate(order.created_at);
