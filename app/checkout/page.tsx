@@ -161,6 +161,11 @@ export default function CheckoutPage() {
     setIsLoading(true);
 
     try {
+      // Calculate prepayment amount for cash on delivery (20% deposit)
+      const prepaymentAmount = formData.paymentInfo.method === 'cash_on_delivery'
+        ? Math.round(cartTotal * 0.2)
+        : 0;
+
       // Create order (cart ID will be read from cookies on server-side)
       const orderResponse = await fetch('/api/orders/create', {
         method: 'POST',
@@ -178,7 +183,8 @@ export default function CheckoutPage() {
           delivery_postal_code: formData.deliveryInfo.postalCode,
           store_location: formData.deliveryInfo.storeLocation,
           payment_method: formData.paymentInfo.method,
-          customer_notes: formData.customerNotes
+          customer_notes: formData.customerNotes,
+          prepayment_amount: prepaymentAmount
         })
       });
 
@@ -192,55 +198,7 @@ export default function CheckoutPage() {
       // Handle different payment methods
       if (formData.paymentInfo.method === 'liqpay') {
         // For LiqPay: create payment and redirect to checkout
-        try {
-          // Call server-side API to create payment (keeps private key secure)
-          const paymentResponse = await fetch('/api/payments/liqpay/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              amount: cartTotal,
-              orderId: order.id,
-              orderNumber: order.order_number,
-              description: `Оплата замовлення ${order.order_number}`,
-              customerEmail: formData.customerInfo.email,
-              resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
-              serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
-            })
-          });
-
-          if (!paymentResponse.ok) {
-            const errorData = await paymentResponse.json();
-            throw new Error(errorData.error || 'Помилка при створенні платежу');
-          }
-
-          const liqpayPayment = await paymentResponse.json();
-
-          if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
-            // Create a form and submit it to redirect to LiqPay
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = liqpayPayment.checkoutUrl;
-            form.style.display = 'none';
-
-            const dataInput = document.createElement('input');
-            dataInput.name = 'data';
-            dataInput.value = liqpayPayment.data;
-            form.appendChild(dataInput);
-
-            const signatureInput = document.createElement('input');
-            signatureInput.name = 'signature';
-            signatureInput.value = liqpayPayment.signature;
-            form.appendChild(signatureInput);
-
-            document.body.appendChild(form);
-            form.submit();
-          } else {
-            throw new Error('Failed to create LiqPay payment');
-          }
-        } catch (liqpayError) {
-          console.error('LiqPay payment error:', liqpayError);
-          throw new Error('Помилка при створенні платежу LiqPay');
-        }
+        await createLiqPayPayment(order, cartTotal, `Оплата замовлення ${order.order_number}`);
       } else if (formData.paymentInfo.method === 'monobank') {
         // For Monobank: create invoice and redirect
         alert('Monobank payment - will redirect to Monobank');
@@ -248,9 +206,13 @@ export default function CheckoutPage() {
 
         // For demo: simulate successful payment
         await handlePaymentSuccess(order);
-      } else {
-        // Cash on delivery: order is complete
-        await handlePaymentSuccess(order);
+      } else if (formData.paymentInfo.method === 'cash_on_delivery') {
+        // Cash on delivery: require 20% deposit payment via LiqPay
+        await createLiqPayPayment(
+          order,
+          prepaymentAmount,
+          `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
+        );
       }
 
     } catch (error) {
@@ -258,6 +220,58 @@ export default function CheckoutPage() {
       const errorMessage = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
       alert(errorMessage);
       setIsLoading(false);
+    }
+  };
+
+  const createLiqPayPayment = async (order: OrderWithItems, amount: number, description: string) => {
+    try {
+      // Call server-side API to create payment (keeps private key secure)
+      const paymentResponse = await fetch('/api/payments/liqpay/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amount,
+          orderId: order.id,
+          orderNumber: order.order_number,
+          description: description,
+          customerEmail: formData.customerInfo.email,
+          resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+          serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
+        })
+      });
+
+      if (!paymentResponse.ok) {
+        const errorData = await paymentResponse.json();
+        throw new Error(errorData.error || 'Помилка при створенні платежу');
+      }
+
+      const liqpayPayment = await paymentResponse.json();
+
+      if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
+        // Create a form and submit it to redirect to LiqPay
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = liqpayPayment.checkoutUrl;
+        form.style.display = 'none';
+
+        const dataInput = document.createElement('input');
+        dataInput.name = 'data';
+        dataInput.value = liqpayPayment.data;
+        form.appendChild(dataInput);
+
+        const signatureInput = document.createElement('input');
+        signatureInput.name = 'signature';
+        signatureInput.value = liqpayPayment.signature;
+        form.appendChild(signatureInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        throw new Error('Failed to create LiqPay payment');
+      }
+    } catch (liqpayError) {
+      console.error('LiqPay payment error:', liqpayError);
+      throw new Error('Помилка при створенні платежу LiqPay');
     }
   };
 

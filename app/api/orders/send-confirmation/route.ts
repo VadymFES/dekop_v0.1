@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
+import type { OrderWithItems } from '@/app/lib/definitions';
 
 /**
  * POST /api/orders/send-confirmation
@@ -51,10 +52,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const orderRow = orderResult.rows[0];
     const order = {
-      ...orderResult.rows[0],
-      items: orderResult.rows[0].items || []
-    };
+      ...orderRow,
+      items: orderRow.items || []
+    } as OrderWithItems;
 
     // Send confirmation email
     try {

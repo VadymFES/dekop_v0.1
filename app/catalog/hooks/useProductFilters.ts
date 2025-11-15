@@ -117,9 +117,9 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
       }
     });
 
-    // Update URL without page reload (shallow routing)
+    // Update URL without page reload
     const newURL = params.toString() ? `/catalog?${params.toString()}` : '/catalog';
-    router.push(newURL, { shallow: true });
+    router.push(newURL);
   }, [router, searchParams]);
 
   // Fetch products when URL parameters change
@@ -329,7 +329,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
   const resetFilters = useCallback(() => {
     const category = searchParams?.get('category');
     const newURL = category ? `/catalog?category=${category}` : '/catalog';
-    router.push(newURL, { shallow: true });
+    router.push(newURL);
   }, [router, searchParams]);
 
   // Clear a specific filter value

@@ -58,10 +58,10 @@ export default function PaymentInfoStep({
       )}
 
       {/* Payment Info Notice */}
-      {formData.method === 'stripe' && (
+      {formData.method === 'liqpay' && (
         <div className={styles.infoBox}>
           <p className={styles.infoText}>
-            💳 Безпечна оплата через Stripe. Ваші дані карти захищені.
+            💳 Безпечна оплата через LiqPay. Ваші дані карти захищені.
           </p>
         </div>
       )}
@@ -77,7 +77,7 @@ export default function PaymentInfoStep({
       {formData.method === 'cash_on_delivery' && (
         <div className={styles.infoBox}>
           <p className={styles.infoText}>
-            💵 Оплата готівкою при отриманні товару. Можлива передоплата 20%.
+            💵 Оплата готівкою при отриманні товару. Необхідна передплата 20% через LiqPay.
           </p>
         </div>
       )}

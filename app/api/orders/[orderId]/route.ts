@@ -56,10 +56,11 @@ export async function GET(
       );
     }
 
+    const orderRow = result.rows[0];
     const order: OrderWithItems = {
-      ...result.rows[0],
-      items: result.rows[0].items || []
-    };
+      ...orderRow,
+      items: orderRow.items || []
+    } as OrderWithItems;
 
     return NextResponse.json({
       success: true,

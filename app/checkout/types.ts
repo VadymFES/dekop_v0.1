@@ -2,6 +2,8 @@
 
 import type { DeliveryMethod, PaymentMethod } from '@/app/lib/definitions';
 
+export type { DeliveryMethod, PaymentMethod };
+
 export interface CheckoutFormData {
   // Step 1: Customer Information
   customerInfo: {
@@ -106,7 +108,7 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
   {
     value: 'cash_on_delivery',
     label: 'Готівкою при отриманні',
-    description: 'Оплата при отриманні товару',
+    description: 'Оплата при отриманні товару + передплата 20%',
     icon: '💵'
   }
 ];

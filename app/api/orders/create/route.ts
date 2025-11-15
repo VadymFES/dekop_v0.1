@@ -201,10 +201,11 @@ export async function POST(request: Request) {
       GROUP BY o.id
     `;
 
+    const orderRow = completeOrderResult.rows[0];
     const order: OrderWithItems = {
-      ...completeOrderResult.rows[0],
-      items: completeOrderResult.rows[0].items || []
-    };
+      ...orderRow,
+      items: orderRow.items || []
+    } as OrderWithItems;
 
     return NextResponse.json({
       success: true,
