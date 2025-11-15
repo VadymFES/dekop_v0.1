@@ -9,7 +9,6 @@ import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModa
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
-import { createLiqPayPayment } from '@/app/lib/services/liqpay-service';
 import styles from './checkout.module.css';
 
 export default function CheckoutPage() {
@@ -194,15 +193,27 @@ export default function CheckoutPage() {
       if (formData.paymentInfo.method === 'liqpay') {
         // For LiqPay: create payment and redirect to checkout
         try {
-          const liqpayPayment = await createLiqPayPayment({
-            amount: cartTotal,
-            orderId: order.id,
-            orderNumber: order.order_number,
-            description: `Оплата замовлення ${order.order_number}`,
-            customerEmail: formData.customerInfo.email,
-            resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
-            serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
+          // Call server-side API to create payment (keeps private key secure)
+          const paymentResponse = await fetch('/api/payments/liqpay/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: cartTotal,
+              orderId: order.id,
+              orderNumber: order.order_number,
+              description: `Оплата замовлення ${order.order_number}`,
+              customerEmail: formData.customerInfo.email,
+              resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+              serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
+            })
           });
+
+          if (!paymentResponse.ok) {
+            const errorData = await paymentResponse.json();
+            throw new Error(errorData.error || 'Помилка при створенні платежу');
+          }
+
+          const liqpayPayment = await paymentResponse.json();
 
           if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
             // Create a form and submit it to redirect to LiqPay
