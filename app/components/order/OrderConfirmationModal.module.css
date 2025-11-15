@@ -1,0 +1,307 @@
+/* Order Confirmation Modal Styles */
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal {
+  background-color: #FEFDFC;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.header {
+  position: relative;
+  padding: 30px 40px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #160101;
+  line-height: 1.3;
+}
+
+.closeButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #666;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #f5f5f5;
+  color: #160101;
+}
+
+/* Content */
+.content {
+  padding: 30px 40px;
+}
+
+.section {
+  margin-bottom: 30px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 15px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.infoBlock {
+  padding-left: 0;
+}
+
+.customerName {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.infoText {
+  margin: 5px 0;
+  font-size: 15px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Order Details */
+.orderDetails {
+  padding-left: 0;
+}
+
+.orderNumber {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.orderNumber > span:first-child {
+  font-size: 16px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 6px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Delivery & Payment */
+.deliveryMethod,
+.paymentMethod {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.prepaymentAmount {
+  margin: 12px 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #E94444;
+}
+
+/* Order Total Section */
+.totalSection {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.totalLabel {
+  font-size: 15px;
+  color: #666;
+}
+
+.totalValue {
+  font-size: 15px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.totalRow.discount .totalValue {
+  color: #4CAF50;
+}
+
+.totalRow.grandTotal {
+  padding-top: 15px;
+  border-top: 2px solid #ddd;
+  margin-top: 10px;
+}
+
+.totalRow.grandTotal .totalLabel {
+  font-size: 18px;
+  font-weight: 700;
+  color: #160101;
+}
+
+.totalRow.grandTotal .totalValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #E94444;
+}
+
+/* Footer */
+.footer {
+  padding: 20px 40px 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+  border-top: 1px solid #eee;
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.primaryButton {
+  background-color: #E94444;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #d63939;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(233, 68, 68, 0.3);
+}
+
+.secondaryButton {
+  background-color: transparent;
+  color: #160101;
+  border: 2px solid #160101;
+}
+
+.secondaryButton:hover {
+  background-color: #160101;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .header,
+  .content,
+  .footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .title {
+    font-size: 22px;
+    padding-right: 30px;
+  }
+
+  .footer {
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+  }
+
+  .orderNumber {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 20px;
+  }
+
+  .sectionTitle {
+    font-size: 16px;
+  }
+
+  .totalRow.grandTotal .totalLabel {
+    font-size: 16px;
+  }
+
+  .totalRow.grandTotal .totalValue {
+    font-size: 18px;
+  }
+}

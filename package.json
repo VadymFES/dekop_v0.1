@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mailchimp/mailchimp_transactional": "^1.0.59",
     "@tanstack/react-query": "^5.66.0",
     "@vercel/postgres": "^0.10.0",
     "leaflet": "^1.9.4",
