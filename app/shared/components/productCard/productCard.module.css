@@ -211,16 +211,6 @@
     filter: grayscale(100%);
   }
 
-  .outOfStockLabel {
-    background-color: #6B7280;
-    color: #FFFFFF;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 6px 0 6px 0;
-    transition: transform 0.3s ease;
-  }
-
   /* Disable add to cart button for out of stock */
   .addToCartButton:disabled {
     cursor: not-allowed;

@@ -85,11 +85,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </svg>
             </button>
 
-            {(product.is_bestseller || product.is_new || product.is_on_sale || isOutOfStock) && (
+            {(product.is_bestseller || product.is_new || product.is_on_sale) && (
               <div className={styles.labelsContainer}>
-                {isOutOfStock && (
-                  <div className={styles.outOfStockLabel}>Немає в наявності</div>
-                )}
                 {product.is_bestseller && (
                   <div className={styles.salesLeaderLabel}>Лідер продажів</div>
                 )}
