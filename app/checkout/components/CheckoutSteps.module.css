@@ -199,3 +199,96 @@
     margin-top: 8px;
   }
 }
+
+/* Deposit Payment Section */
+.depositSection {
+  margin-top: 30px;
+  padding: 24px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  border: 2px solid #e5e5e5;
+}
+
+.depositTitle {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #160101;
+}
+
+.depositDescription {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.depositOptions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.depositCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.depositCard:hover {
+  border-color: #E94444;
+  background-color: #fef9f9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.depositCardSelected {
+  border-color: #E94444;
+  background-color: #fef9f9;
+  box-shadow: 0 0 0 3px rgba(233, 68, 68, 0.1);
+}
+
+.depositIcon {
+  font-size: 40px;
+}
+
+.depositLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #160101;
+  text-align: center;
+}
+
+.depositCard .radioInput {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+/* Responsive for deposit section */
+@media (max-width: 480px) {
+  .depositOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .depositSection {
+    padding: 20px;
+  }
+
+  .depositTitle {
+    font-size: 16px;
+  }
+
+  .depositDescription {
+    font-size: 13px;
+  }
+}
