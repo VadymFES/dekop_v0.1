@@ -11,6 +11,7 @@ export async function POST(request: Request) {
       description,
       customerEmail,
       resultUrl,
+      cancelUrl,
       serverUrl
     } = body;
 
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
       description,
       customerEmail,
       resultUrl,
+      cancelUrl,
       serverUrl
     });
 

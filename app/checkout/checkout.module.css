@@ -111,10 +111,19 @@
 /* Button Group */
 .buttonGroup {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 16px;
   margin-top: 40px;
   padding-top: 30px;
   border-top: 1px solid #e5e5e5;
+}
+
+.navButtons {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .primaryButton {
@@ -164,6 +173,29 @@
 .secondaryButton:disabled {
   border-color: #ccc;
   color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: 16px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  background-color: transparent;
+  color: #999;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: #fff3f3;
+  color: #E94444;
+  border-color: #E94444;
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -352,11 +384,18 @@
   }
 
   .buttonGroup {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .navButtons {
     flex-direction: column-reverse;
+    width: 100%;
   }
 
   .primaryButton,
-  .secondaryButton {
+  .secondaryButton,
+  .cancelButton {
     width: 100%;
   }
 

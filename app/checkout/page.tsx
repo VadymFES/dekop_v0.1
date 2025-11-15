@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CustomerInfoStep from './components/CustomerInfoStep';
 import DeliveryInfoStep from './components/DeliveryInfoStep';
 import PaymentInfoStep from './components/PaymentInfoStep';
+import ReviewStep from './components/ReviewStep';
 import OrderConfirmationModal from '@/app/components/order/OrderConfirmationModal';
 import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
@@ -223,7 +224,7 @@ export default function CheckoutPage() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      if (currentStep < 3) {
+      if (currentStep < 4) {
         setCurrentStep(currentStep + 1);
       } else {
         handleSubmitOrder();
@@ -231,9 +232,56 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleEdit = (step: number) => {
+    setCurrentStep(step);
+  };
+
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleCancel = () => {
+    const confirmed = window.confirm(
+      'Ви впевнені, що хочете скасувати оформлення замовлення? Всі введені дані буде очищено, але товари залишаться в кошику.'
+    );
+
+    if (confirmed) {
+      // Clear form data to initial state
+      setFormData({
+        customerInfo: {
+          firstName: '',
+          lastName: '',
+          phone: '',
+          email: ''
+        },
+        deliveryInfo: {
+          method: 'nova_poshta',
+          city: '',
+          street: '',
+          building: '',
+          apartment: '',
+          postalCode: ''
+        },
+        paymentInfo: {
+          method: 'cash_on_delivery',
+          depositPaymentMethod: 'liqpay'
+        },
+        customerNotes: ''
+      });
+
+      // Clear localStorage checkout data
+      clearFormData();
+
+      // Reset to step 1
+      setCurrentStep(1);
+
+      // Clear any errors
+      setErrors({});
+
+      // Redirect to cart page
+      router.push('/cart');
     }
   };
 
@@ -321,6 +369,7 @@ export default function CheckoutPage() {
           description: description,
           customerEmail: formData.customerInfo.email,
           resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
           serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
         })
       });
@@ -372,6 +421,7 @@ export default function CheckoutPage() {
           orderNumber: order.order_number,
           customerEmail: formData.customerInfo.email,
           resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
+          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
           serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/monobank`
         })
       });
@@ -504,32 +554,51 @@ export default function CheckoutPage() {
               />
             )}
 
+            {currentStep === 4 && (
+              <ReviewStep
+                formData={formData}
+                cart={cart}
+                cartTotal={cartTotal}
+                onEdit={handleEdit}
+              />
+            )}
+
             {/* Navigation Buttons */}
             <div className={styles.buttonGroup}>
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={handleBack}
-                  disabled={isLoading}
-                >
-                  Назад
-                </button>
-              )}
               <button
                 type="button"
-                className={styles.primaryButton}
-                onClick={handleNext}
+                className={styles.cancelButton}
+                onClick={handleCancel}
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  'Обробка...'
-                ) : currentStep === 3 ? (
-                  'Оформити замовлення'
-                ) : (
-                  'Далі'
-                )}
+                Скасувати замовлення
               </button>
+              <div className={styles.navButtons}>
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={handleBack}
+                    disabled={isLoading}
+                  >
+                    Назад
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  onClick={handleNext}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    'Обробка...'
+                  ) : currentStep === 4 ? (
+                    'Підтвердити та оплатити'
+                  ) : (
+                    'Далі'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

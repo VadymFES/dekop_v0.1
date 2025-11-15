@@ -16,6 +16,7 @@ export interface CreateLiqPayPaymentParams {
   description: string;
   customerEmail?: string;
   resultUrl?: string; // URL to redirect after payment
+  cancelUrl?: string; // URL to redirect if payment is cancelled
   serverUrl?: string; // Webhook URL for server callback
 }
 
@@ -72,10 +73,13 @@ export async function createLiqPayPayment(
       description,
       customerEmail,
       resultUrl,
+      cancelUrl,
       serverUrl
     } = params;
 
     // Prepare payment data
+    // Note: LiqPay doesn't have a separate cancel_url parameter
+    // Cancelled payments will redirect to result_url with status='failure' or 'error'
     const paymentData = {
       public_key: publicKey,
       version: '3',

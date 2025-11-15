@@ -292,3 +292,270 @@
     font-size: 13px;
   }
 }
+
+/* Review Step Styles */
+.reviewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reviewSection {
+  padding: 24px;
+  background-color: #fff;
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.reviewSectionTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #160101;
+}
+
+.editButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #E94444;
+  background-color: transparent;
+  border: 2px solid #E94444;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.editButton:hover {
+  background-color: #E94444;
+  color: #fff;
+}
+
+.reviewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reviewRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.reviewRow:last-child {
+  border-bottom: none;
+}
+
+.reviewLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  min-width: 140px;
+}
+
+.reviewValue {
+  font-size: 15px;
+  color: #160101;
+  text-align: right;
+  flex: 1;
+}
+
+.reviewItemCount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  padding: 4px 12px;
+  background-color: #f5f5f5;
+  border-radius: 12px;
+}
+
+.reviewItemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.reviewItemRow:last-child {
+  margin-bottom: 0;
+}
+
+.reviewItemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.reviewItemName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.reviewItemColor {
+  font-size: 13px;
+  color: #666;
+}
+
+.reviewItemPricing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reviewItemQuantity {
+  font-size: 14px;
+  color: #666;
+  font-weight: 600;
+}
+
+.reviewItemPrice {
+  font-size: 16px;
+  font-weight: 700;
+  color: #160101;
+  min-width: 100px;
+  text-align: right;
+}
+
+.reviewTotals {
+  padding-top: 16px;
+}
+
+.reviewTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.reviewTotalRow:last-child {
+  border-bottom: none;
+}
+
+.reviewTotalLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+}
+
+.reviewTotalValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #160101;
+}
+
+.reviewGrandTotal {
+  margin-top: 12px;
+  padding-top: 20px;
+  border-top: 2px solid #e5e5e5;
+}
+
+.reviewGrandTotal .reviewTotalLabel,
+.reviewGrandTotal .reviewTotalValue {
+  font-size: 18px;
+  color: #E94444;
+}
+
+.reviewPaymentNote {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #fff3f3;
+  border-radius: 8px;
+  border: 1px solid #ffd4d4;
+}
+
+.reviewNoteText {
+  margin: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #160101;
+}
+
+.reviewNoteText:first-child {
+  margin-top: 0;
+}
+
+.reviewNoteText:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive for review step */
+@media (max-width: 768px) {
+  .reviewSection {
+    padding: 20px;
+  }
+
+  .reviewHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .reviewRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .reviewLabel {
+    min-width: auto;
+  }
+
+  .reviewValue {
+    text-align: left;
+  }
+
+  .reviewItemRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .reviewItemPricing {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .reviewContainer {
+    gap: 16px;
+  }
+
+  .reviewSection {
+    padding: 16px;
+  }
+
+  .reviewSectionTitle {
+    font-size: 16px;
+  }
+
+  .editButton {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .reviewItemPrice {
+    min-width: 80px;
+    font-size: 15px;
+  }
+}

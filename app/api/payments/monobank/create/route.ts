@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       orderNumber,
       customerEmail,
       resultUrl,
+      cancelUrl,
       serverUrl
     } = body;
 
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
       orderNumber,
       customerEmail,
       redirectUrl: resultUrl,
+      cancelUrl: cancelUrl,
       webhookUrl: serverUrl
     });
 
