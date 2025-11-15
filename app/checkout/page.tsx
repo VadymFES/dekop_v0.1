@@ -18,7 +18,7 @@ import styles from './checkout.module.css';
 // LocalStorage key for checkout form data
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const CHECKOUT_STEP_KEY = 'dekop_checkout_step';
-const STORAGE_EXPIRATION_HOURS = 24; // Data expires after 24 hours
+const STORAGE_EXPIRATION_MINUTES = 20; // Data expires after 20 minutes
 
 // Helper to save form data to localStorage
 const saveFormData = (data: CheckoutFormData, step: number) => {
@@ -43,9 +43,9 @@ const loadFormData = (): { formData: CheckoutFormData | null; currentStep: numbe
     const storageData = JSON.parse(saved);
     const { formData, currentStep, timestamp } = storageData;
 
-    // Check if data is expired (older than 24 hours)
-    const hoursElapsed = (Date.now() - timestamp) / (1000 * 60 * 60);
-    if (hoursElapsed > STORAGE_EXPIRATION_HOURS) {
+    // Check if data is expired (older than 20 minutes)
+    const minutesElapsed = (Date.now() - timestamp) / (1000 * 60);
+    if (minutesElapsed > STORAGE_EXPIRATION_MINUTES) {
       // Data expired, clear it
       localStorage.removeItem(CHECKOUT_STORAGE_KEY);
       return { formData: null, currentStep: 1 };
