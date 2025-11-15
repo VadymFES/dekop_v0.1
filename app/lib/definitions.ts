@@ -397,7 +397,7 @@ export interface OrderWithItems extends Order {
 
 // Interface for creating a new order (request payload)
 export interface CreateOrderRequest {
-  cart_id: string;
+  cart_id?: string; // Optional: read from cookies on server-side if not provided
 
   // Customer Information
   user_name: string;

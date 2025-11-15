@@ -168,23 +168,11 @@ export default function CheckoutPage() {
     setIsLoading(true);
 
     try {
-      // Get cart ID from cookie
-      const cookies = document.cookie.split(';');
-      const cartIdCookie = cookies.find(c => c.trim().startsWith('cartId='));
-      const cartId = cartIdCookie?.split('=')[1];
-
-      if (!cartId) {
-        alert('Кошик не знайдено');
-        setIsLoading(false);
-        return;
-      }
-
-      // Create order
+      // Create order (cart ID will be read from cookies on server-side)
       const orderResponse = await fetch('/api/orders/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cart_id: cartId,
           user_name: formData.customerInfo.firstName,
           user_surname: formData.customerInfo.lastName,
           user_phone: formData.customerInfo.phone,
@@ -202,7 +190,8 @@ export default function CheckoutPage() {
       });
 
       if (!orderResponse.ok) {
-        throw new Error('Failed to create order');
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.error || 'Failed to create order');
       }
 
       const { order } = await orderResponse.json();
@@ -229,7 +218,8 @@ export default function CheckoutPage() {
 
     } catch (error) {
       console.error('Order submission error:', error);
-      alert('Помилка при створенні замовлення. Спробуйте ще раз.');
+      const errorMessage = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
+      alert(errorMessage);
       setIsLoading(false);
     }
   };

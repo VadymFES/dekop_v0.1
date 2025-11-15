@@ -1,5 +1,6 @@
 // app/api/orders/create/route.ts
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { sql } from '@vercel/postgres';
 import type { CreateOrderRequest, OrderWithItems, CartItem } from '@/app/lib/definitions';
 import {
@@ -15,10 +16,21 @@ import {
  */
 export async function POST(request: Request) {
   try {
-    const body: CreateOrderRequest = await request.json();
+    const body = await request.json();
+
+    // Get cart ID from cookies (server-side) or from request body
+    const cookieStore = await cookies();
+    const cartId = cookieStore.get('cartId')?.value || body.cart_id;
 
     // Validate required fields
-    if (!body.cart_id || !body.user_name || !body.user_surname || !body.user_phone || !body.user_email) {
+    if (!cartId) {
+      return NextResponse.json(
+        { error: 'Кошик не знайдено' },
+        { status: 404 }
+      );
+    }
+
+    if (!body.user_name || !body.user_surname || !body.user_phone || !body.user_email) {
       return NextResponse.json(
         { error: 'Відсутні обов\'язкові поля' },
         { status: 400 }
@@ -40,7 +52,7 @@ export async function POST(request: Request) {
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = true
-      WHERE ci.cart_id = ${body.cart_id}
+      WHERE ci.cart_id = ${cartId}
     `;
 
     if (cartResult.rows.length === 0) {
