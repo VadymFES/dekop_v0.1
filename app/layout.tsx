@@ -2,9 +2,10 @@
 import type { Metadata } from "next";
 import QueryProvider from "@/app/providers/QueryProvider";
 import ClientLayout from "./ClientLayout";
-import "./globals.css";
+import "./globalscss";
 import { CartProvider } from "./context/CartContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 
 export const metadata: Metadata = {
@@ -33,13 +34,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <QueryProvider>
-          <CartProvider>
-            <FavoritesProvider>
-              <ClientLayout>{children}</ClientLayout>
-            </FavoritesProvider>
-          </CartProvider>
-        </QueryProvider>
+        <SpeedInsights />
+          <QueryProvider>
+            <CartProvider>
+              <FavoritesProvider>
+                <ClientLayout>{children}</ClientLayout>
+              </FavoritesProvider>
+            </CartProvider>
+          </QueryProvider>
+          <SpeedInsights />
       </body>
     </html>
   );
