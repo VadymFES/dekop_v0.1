@@ -366,33 +366,45 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
 }
 
 // Helper function to sort products
+// Stock-aware sorting: in-stock products appear first, out-of-stock products last
+// Maintains existing sort order within each group
 function sortProducts(products: ProductWithImages[], sortOption: string): ProductWithImages[] {
-  const sorted = [...products];
+  // Separate products by stock status
+  const inStock = products.filter(p => (p.stock ?? 0) >= 1);
+  const outOfStock = products.filter(p => (p.stock ?? 0) < 1);
 
-  switch (sortOption) {
-    case "price_asc":
-      sorted.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
-      break;
+  // Apply the selected sort to each group independently
+  const sortByOption = (arr: ProductWithImages[]) => {
+    const sorted = [...arr];
 
-    case "price_desc":
-      sorted.sort((a, b) => parseFloat(b.price.toString()) - parseFloat(a.price.toString()));
-      break;
+    switch (sortOption) {
+      case "price_asc":
+        sorted.sort((a, b) => parseFloat(a.price.toString()) - parseFloat(b.price.toString()));
+        break;
 
-    case "reviews_desc":
-      sorted.sort((a, b) => {
-        const reviewsA = typeof a.reviews === 'number' ? a.reviews : parseInt(a.reviews || '0');
-        const reviewsB = typeof b.reviews === 'number' ? b.reviews : parseInt(b.reviews || '0');
-        return reviewsB - reviewsA;
-      });
-      break;
+      case "price_desc":
+        sorted.sort((a, b) => parseFloat(b.price.toString()) - parseFloat(a.price.toString()));
+        break;
 
-    default: // rating_desc
-      sorted.sort((a, b) => {
-        const ratingA = typeof a.rating === 'number' ? a.rating : parseFloat(a.rating || '0');
-        const ratingB = typeof b.rating === 'number' ? b.rating : parseFloat(b.rating || '0');
-        return ratingB - ratingA;
-      });
-  }
+      case "reviews_desc":
+        sorted.sort((a, b) => {
+          const reviewsA = typeof a.reviews === 'number' ? a.reviews : parseInt(a.reviews || '0');
+          const reviewsB = typeof b.reviews === 'number' ? b.reviews : parseInt(b.reviews || '0');
+          return reviewsB - reviewsA;
+        });
+        break;
 
-  return sorted;
+      default: // rating_desc
+        sorted.sort((a, b) => {
+          const ratingA = typeof a.rating === 'number' ? a.rating : parseFloat(a.rating || '0');
+          const ratingB = typeof b.rating === 'number' ? b.rating : parseFloat(b.rating || '0');
+          return ratingB - ratingA;
+        });
+    }
+
+    return sorted;
+  };
+
+  // Sort each group and combine: in-stock first, then out-of-stock
+  return [...sortByOption(inStock), ...sortByOption(outOfStock)];
 }
