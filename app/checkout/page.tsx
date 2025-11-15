@@ -486,18 +486,11 @@ export default function CheckoutPage() {
     );
   }
 
-  // Show empty cart message only after cart has loaded and is actually empty
+  // Redirect to cart page if cart is empty (redirecting happens in useEffect)
   if (cart.length === 0) {
     return (
       <div className={styles.emptyCart}>
-        <h1>Ваш кошик порожній</h1>
-        <p>Додайте товари до кошика, щоб оформити замовлення</p>
-        <button
-          className={styles.primaryButton}
-          onClick={() => router.push('/catalog')}
-        >
-          Перейти до каталогу
-        </button>
+        <p>Переадресація...</p>
       </div>
     );
   }
