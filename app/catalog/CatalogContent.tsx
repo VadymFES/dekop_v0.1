@@ -14,6 +14,7 @@ import { Breadcrumbs } from "./components/Breadcrumbs";
 import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
+import { FilterModal } from "./components/FilterModal";
 import { ProductsDisplay } from "./components/ProductsDisplay";
 
 export default function CatalogContent(): React.ReactElement {
@@ -81,6 +82,9 @@ export default function CatalogContent(): React.ReactElement {
   // Local state for category loading
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
 
+  // Local state for filter modal
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
   // Event handler: Category change
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const chosenSlug = e.target.value;
@@ -128,6 +132,28 @@ export default function CatalogContent(): React.ReactElement {
     updateSort(e.target.value);
   };
 
+  // Event handler: Open filter modal
+  const handleOpenFilterModal = (): void => {
+    setIsFilterModalOpen(true);
+  };
+
+  // Event handler: Close filter modal
+  const handleCloseFilterModal = (): void => {
+    setIsFilterModalOpen(false);
+  };
+
+  // Event handler: Apply filters (modal)
+  const handleApplyFilters = (): void => {
+    // Filters are already applied in real-time via URL params
+    // This just closes the modal
+    setIsFilterModalOpen(false);
+  };
+
+  // Event handler: Reset filters (modal)
+  const handleResetFilters = (): void => {
+    resetFilters();
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.contentContainer}>
@@ -145,11 +171,23 @@ export default function CatalogContent(): React.ReactElement {
               clearAllFilters={resetFilters}
             />
           </div>
-          <SortControl
-            sortOption={sortOption}
-            onChange={handleSortChange}
-            disabled={loading}
-          />
+          <div className={styles.controlButtons}>
+            <button
+              className={styles.filtersButton}
+              onClick={handleOpenFilterModal}
+              aria-label="Відкрити фільтри"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              Фільтри
+            </button>
+            <SortControl
+              sortOption={sortOption}
+              onChange={handleSortChange}
+              disabled={loading}
+            />
+          </div>
         </div>
 
         <React.Suspense>
@@ -173,6 +211,23 @@ export default function CatalogContent(): React.ReactElement {
             />
           </div>
         </React.Suspense>
+
+        {/* Filter Modal for mobile/tablet */}
+        <FilterModal
+          isOpen={isFilterModalOpen}
+          onClose={handleCloseFilterModal}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+          loading={loading}
+          isCategoryLoading={isCategoryLoading}
+          slug={slug}
+          filters={filters}
+          priceRange={priceRange}
+          finalFilterGroups={finalFilterGroups}
+          handleCategoryChange={handleCategoryChange}
+          handleFilterChange={handleFilterChange}
+          handlePriceChange={handlePriceChange}
+        />
       </div>
     </div>
   );
