@@ -21,6 +21,7 @@ body {
     font-family: 'Inter', Arial, Helvetica, sans-serif; /* Use Inter font */
     -webkit-font-smoothing: antialiased; /* Improve font rendering */
     -webkit-text-size-adjust: 100%;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Resetting all elements */
