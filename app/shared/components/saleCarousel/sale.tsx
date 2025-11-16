@@ -37,10 +37,12 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
   // Ref for the scroll container
   const saleRef = useRef<HTMLDivElement>(null);
 
-  // Current “page” index
+  // Current "page" index
   const [saleIndex, setSaleIndex] = useState(0);
-  // Total number of “pages” or slides
+  // Total number of "pages" or slides
   const [saleSlides, setSaleSlides] = useState(1);
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
 
   // Scroll left by one “page” (clientWidth)
   const saleScrollLeft = () => {
@@ -76,6 +78,14 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
     setSaleSlides(Math.ceil(container.scrollWidth / container.clientWidth));
     saleHandleScroll();
   };
+
+  // Mobile detection and resize handler
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1088);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Set up listeners on mount
   useEffect(() => {
@@ -122,7 +132,8 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
           ))}
       </div>
 
-      {/* Arrows & Dots */}
+      {/* Arrows & Dots - only show on mobile/tablet */}
+      {isMobile && (
       <div className={styles.scrollButtons}>
         <button className={styles.arrowScrollButton} onClick={saleScrollLeft}>
           <svg
@@ -171,6 +182,7 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
           </svg>
         </button>
       </div>
+      )}
     </div>
   );
 };

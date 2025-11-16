@@ -1,0 +1,298 @@
+/* FilterModal.module.css */
+
+/* Backdrop */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal container */
+.modal {
+  background: var(--background);
+  width: 100%;
+  max-height: 85vh;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #000;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  min-width: 44px;
+  min-height: 44px;
+  color: #000;
+}
+
+.closeButton:hover {
+  background-color: #f0f0f0;
+}
+
+.closeButton:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+}
+
+/* Content area with scroll */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Category selector */
+.categoryContainer {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.categorySelectLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #000;
+}
+
+.categorySelect {
+  font-size: 14px;
+  color: black;
+  padding: 12px 40px 12px 16px;
+  border-radius: 20px;
+  width: 100%;
+  cursor: pointer;
+  background-color: var(--background);
+  border: 1px solid #ddd;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  min-height: 44px;
+}
+
+.categorySelect:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+  border-color: var(--hover-color);
+}
+
+/* Filter sections */
+.filterSection {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.filterSection:last-child {
+  border-bottom: none;
+}
+
+.filterTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #000;
+}
+
+.filterList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filterItem {
+  margin-bottom: 12px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 0;
+  min-height: 44px;
+}
+
+.checkbox {
+  margin-right: 12px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 4px;
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0px 0px 3px 0px #1601018A;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.checkbox:checked::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: transparent;
+  border: 1px solid #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.checkbox:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+}
+
+/* Footer with action buttons */
+.footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+  background: var(--background);
+  flex-shrink: 0;
+}
+
+.resetButton,
+.applyButton {
+  flex: 1;
+  padding: 14px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  min-height: 48px;
+  min-width: 44px;
+}
+
+.resetButton {
+  background-color: transparent;
+  border: 1px solid #1601018A;
+  color: #000;
+}
+
+.resetButton:hover {
+  background-color: #f0f0f0;
+}
+
+.resetButton:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+}
+
+.applyButton {
+  background-color: var(--btn-color);
+  color: white;
+}
+
+.applyButton:hover {
+  background-color: #E2281B;
+}
+
+.applyButton:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+}
+
+.applyButton:active {
+  transform: scale(0.98);
+}
+
+.resetButton:active {
+  transform: scale(0.98);
+}
+
+/* Tablet and larger - center modal instead of bottom sheet */
+@media (min-width: 768px) {
+  .backdrop {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal {
+    max-width: 600px;
+    max-height: 90vh;
+    border-radius: 20px;
+    margin: 0 20px;
+  }
+}
