@@ -27,71 +27,88 @@
 
 /* Skeleton card matching ProductCard structure */
 .skeletonCard {
-  border: 1px solid #eee;
+  background-color: #f8f8f8;
   border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  background: white;
   animation: pulse 1.5s infinite ease-in-out;
-  min-height: 400px;
-  width: 320px;
+  height: 350px;
+  width: 300px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  margin-right: 0;
+  margin: 0.5rem;
+  flex: 1 1 auto;
 }
 
 .skeletonImage {
-  width: 100%;
+  width: 300px;
   height: 260px;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   flex-shrink: 0;
+  border-radius: 8px;
 }
 
-.skeletonInfo {
-  padding: 16px;
-  flex-grow: 1;
+.skeletonDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px 0;
+}
+
+.skeletonInfo,
+.skeletonMeta {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  width: auto;
+}
+
+.skeletonMeta {
+  text-align: right;
 }
 
 .skeletonTitle {
-  width: 70%;
+  width: 120px;
+  height: 18px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin: 6px 0 0;
+}
+
+.skeletonRating {
+  width: 80px;
+  height: 14px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin: 6px 0 0;
+}
+
+.skeletonRatingRight {
+  width: 40px;
+  height: 14px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin: 6px 0 0;
+  margin-left: auto;
+}
+
+.skeletonPrice {
+  width: 80px;
   height: 20px;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
-}
-
-.skeletonPrice {
-  width: 40%;
-  height: 24px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
-}
-
-.skeletonRating {
-  width: 50%;
-  height: 16px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
-}
-
-.skeletonButton {
-  width: 100%;
-  height: 40px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 8px;
-  margin-top: auto;
+  margin: 6px 0 0;
+  margin-left: auto;
 }
 
 /* Scroll buttons container */
@@ -165,6 +182,11 @@
   }
 
   .skeletonCard {
-    width: 280px;
+    width: 300px;
+    margin: 0.25rem;
+  }
+
+  .skeletonImage {
+    width: 300px;
   }
 }

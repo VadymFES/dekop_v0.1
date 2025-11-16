@@ -14,11 +14,15 @@ const CarouselSkeleton: React.FC<CarouselSkeletonProps> = ({ count = 6 }) => {
           <div className={styles.productCardSlide} key={index}>
             <div className={styles.skeletonCard}>
               <div className={styles.skeletonImage}></div>
-              <div className={styles.skeletonInfo}>
-                <div className={styles.skeletonTitle}></div>
-                <div className={styles.skeletonPrice}></div>
-                <div className={styles.skeletonRating}></div>
-                <div className={styles.skeletonButton}></div>
+              <div className={styles.skeletonDetails}>
+                <div className={styles.skeletonInfo}>
+                  <div className={styles.skeletonTitle}></div>
+                  <div className={styles.skeletonRating}></div>
+                </div>
+                <div className={styles.skeletonMeta}>
+                  <div className={styles.skeletonRatingRight}></div>
+                  <div className={styles.skeletonPrice}></div>
+                </div>
               </div>
             </div>
           </div>

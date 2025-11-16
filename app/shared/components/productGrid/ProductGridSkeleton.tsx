@@ -12,11 +12,15 @@ const ProductGridSkeleton: React.FC = () => {
             <div className={styles.productCardSlide} key={index}>
               <div className={skeletonStyles.skeletonCard}>
                 <div className={skeletonStyles.skeletonImage}></div>
-                <div className={skeletonStyles.skeletonInfo}>
-                  <div className={skeletonStyles.skeletonTitle}></div>
-                  <div className={skeletonStyles.skeletonPrice}></div>
-                  <div className={skeletonStyles.skeletonRating}></div>
-                  <div className={skeletonStyles.skeletonButton}></div>
+                <div className={skeletonStyles.skeletonDetails}>
+                  <div className={skeletonStyles.skeletonInfo}>
+                    <div className={skeletonStyles.skeletonTitle}></div>
+                    <div className={skeletonStyles.skeletonRating}></div>
+                  </div>
+                  <div className={skeletonStyles.skeletonMeta}>
+                    <div className={skeletonStyles.skeletonRatingRight}></div>
+                    <div className={skeletonStyles.skeletonPrice}></div>
+                  </div>
                 </div>
               </div>
             </div>
