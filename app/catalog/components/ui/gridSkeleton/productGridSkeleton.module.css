@@ -4,8 +4,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(280px, 1fr));
     min-height: 400px;
-    /* padding-left: 140px; */
-    gap: 40px;
+    gap: 24px;
   } 
   
   .skeletonCard {
@@ -75,27 +74,31 @@
 .loadingMoreGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(280px, 1fr));
-  gap: 40px;
+  gap: 24px;
 }
 
 /* Responsive design */
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .productGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
   }
 
   .loadingMoreGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .loadingMoreGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 
@@ -106,5 +109,16 @@
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
+  }
+}
+
+/* Small mobile adjustments */
+@media (max-width: 480px) {
+  .productGrid {
+    gap: 8px;
+  }
+
+  .loadingMoreGrid {
+    gap: 8px;
   }
 }

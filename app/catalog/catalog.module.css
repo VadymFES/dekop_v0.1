@@ -428,6 +428,7 @@
   grid-template-columns: repeat(3, minmax(280px, 1fr));
   grid-template-rows: max-content;
   min-height: 400px;
+  gap: 24px;
 }
 
 /* Responsive design */
@@ -447,6 +448,7 @@
   /* Product grid - 3 columns for tablet */
   .productGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
   }
 
   /* Content wrapper adjustments */
