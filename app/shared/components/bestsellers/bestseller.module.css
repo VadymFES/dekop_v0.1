@@ -4,6 +4,7 @@
 /* Container that holds the product cards */
 .bestsellersContainer {
     display: flex;
+    gap: 16px;
     overflow-x: auto;
     scroll-behavior: smooth;
     scrollbar-width: none; /* Firefox */
@@ -74,10 +75,17 @@
     background-color: #E2281B;
   }
   
+  /* iPad Air 5 and similar tablet screens */
+  @media screen and (max-width: 834px) {
+    .bestsellersContainer {
+      gap: 12px;
+    }
+  }
+
   /* Hide arrows on smaller screens (optional) */
   @media screen and (max-width: 768px) {
     .arrowScrollButton {
-      display: none; 
+      display: none;
     }
   }
   

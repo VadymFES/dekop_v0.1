@@ -179,13 +179,20 @@
   }
   }
 
+/* iPad Air 5 and similar tablet screens */
+@media screen and (max-width: 834px) {
+  .productGrid {
+    gap: 12px;
+  }
+}
+
 @media screen and (max-width: 768px) {
 
   .arrowScrollButton {
     display: none;
   }
 
-    
+
 }
 
 @media screen and (max-width: 480px) {
