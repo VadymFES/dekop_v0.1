@@ -9,14 +9,12 @@
     overflow: hidden;
     height: 350px; /* Set a default height for the card */
     width: 100%; /* Responsive width - fills grid cell */
-    max-width: 300px; /* Maximum width on larger screens */
     transition: transform 0.3s ease; /* Smooth transition for scale */
-    margin: 0 auto; /* Center card in grid cell */
+    margin: 0; /* No margin on desktop - fill grid cell */
   }
 
   .productImage {
     width: 100%;
-    max-width: 300px;
     height: 260px;
     border-radius: 8px;
     object-fit: cover;
@@ -227,6 +225,7 @@
     .productCard {
       height: auto;
       max-width: 100%;
+      margin: 0 auto; /* Center on mobile/tablet */
     }
 
     .productImage {
@@ -263,5 +262,9 @@
     .productImage {
       height: auto;
       aspect-ratio: 1 / 1;
+    }
+
+    .productCard {
+      max-width: 100%; /* Fill grid cell on small screens */
     }
   }
