@@ -77,8 +77,27 @@
   gap: 40px;
 }
 
+/* Responsive design */
+@media (max-width: 1024px) {
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .loadingMoreGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .loadingMoreGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .skeletonCard {
+    min-width: unset;
   }
 }
