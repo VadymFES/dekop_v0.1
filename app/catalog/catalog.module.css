@@ -426,7 +426,7 @@
 .productGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
   width: 100%;
