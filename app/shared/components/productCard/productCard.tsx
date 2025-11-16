@@ -43,9 +43,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const firstImage = product.images.length > 0 ? product.images[0] : null;
   const isFavorited = isFavorite(product.id);
+  const isOutOfStock = product.stock < 1;
 
   return (
-    <div className={styles.productCard}>
+    <div className={`${styles.productCard} ${isOutOfStock ? styles.outOfStock : ''}`}>
       <Link href={`/product/${encodeURIComponent(product.slug)}`} prefetch={false}>
         <div>
           <div className={styles.imageWrapper}>
@@ -115,9 +116,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <button
         className={styles.addToCartButton}
         onClick={handleAddToCart}
-        disabled={product.stock < 1 || isLoading}
+        disabled={isOutOfStock || isLoading}
       >
-        {isLoading ? "Завантаження..." : "Додати в кошик"}
+        {isLoading ? "Завантаження..." : isOutOfStock ? "Немає в наявності" : "Додати в кошик"}
       </button>
     </div>
   );
