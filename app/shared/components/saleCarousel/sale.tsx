@@ -53,7 +53,7 @@ const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
     });
   };
 
-  // Scroll right by one “page”
+  // Scroll right by one "page"
   const saleScrollRight = () => {
     if (!saleRef.current) return;
     saleRef.current.scrollBy({
@@ -62,7 +62,17 @@ const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
     });
   };
 
-  // On scroll, figure out which page we’re on
+  // Scroll to a specific page index (for dot clicks)
+  const saleScrollToIndex = (index: number) => {
+    if (!saleRef.current) return;
+    const container = saleRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  // On scroll, figure out which page we're on
   const saleHandleScroll = () => {
     if (!saleRef.current) return;
     const container = saleRef.current;
@@ -157,6 +167,8 @@ const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
+              onClick={() => saleScrollToIndex(dotIndex)}
+              style={{ cursor: 'pointer' }}
             />
           ))}
         </div>

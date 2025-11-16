@@ -59,6 +59,16 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
     });
   };
 
+  // Scroll to a specific page index (for dot clicks)
+  const bestsellersScrollToIndex = (index: number) => {
+    if (!bestsellersRef.current) return;
+    const container = bestsellersRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
   // Update current slide index on scroll
   const bestsellersHandleScroll = () => {
     if (!bestsellersRef.current) return;
@@ -146,6 +156,8 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
+              onClick={() => bestsellersScrollToIndex(dotIndex)}
+              style={{ cursor: 'pointer' }}
             />
           ))}
         </div>
