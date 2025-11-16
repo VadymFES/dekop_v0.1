@@ -294,6 +294,7 @@ export default function CatalogContent(): React.ReactElement {
   // Event handlers
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
 
+  // Event handler: Category change
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const chosenSlug = e.target.value;
     setIsCategoryLoading(true);
@@ -305,28 +306,33 @@ export default function CatalogContent(): React.ReactElement {
     router.push(chosenSlug ? `/catalog?category=${chosenSlug}` : "/catalog");
   };
 
+  // Reset category loading state when loading completes
   useEffect(() => {
     if (!loading) {
       setIsCategoryLoading(false);
     }
   }, [loading]);
 
+  // Event handler: Filter change (checkbox/radio)
   const handleFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string): void => {
     const { value, checked, type } = e.target;
     const key = groupName.toLowerCase() as keyof typeof filters;
 
     if (type === "checkbox" && Array.isArray(filters[key])) {
-      const currentValues = Array.isArray(filters[key]) ? [...(filters[key] as string[])] : [];
+      const currentValues = [...(filters[key] as string[])];
       const newValues = checked
         ? [...currentValues, value]
         : currentValues.filter(v => v !== value);
 
       dispatch(actions.setFilters({ [key]: newValues }));
     } else if (type === "radio") {
-      dispatch(actions.setFilters({ [key]: checked ? value : null }));
+      updateFilter(key, checked ? value : null);
     }
   };
 
+  // Event handler: Price range change
+  // Note: PriceRangeFilter component already handles constraints (min/max with step)
+  // so we just need to pass the value through for the correct thumb
   const handlePriceChange = (thumb: "min" | "max", value: number): void => {
     dispatch(actions.setFilters({
       priceMin: thumb === "min"

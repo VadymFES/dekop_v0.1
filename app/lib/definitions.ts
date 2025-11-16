@@ -355,6 +355,127 @@ export interface CategoryFilters {
   [category: string]: FilterGroup[];
 }
 
+// =====================================================
+// ORDER INTERFACES
+// =====================================================
+
+// Order delivery methods
+export type DeliveryMethod = 'nova_poshta' | 'store_delivery' | 'pickup';
+
+// Order payment methods
+export type PaymentMethod = 'liqpay' | 'monobank' | 'cash_on_delivery';
+
+// Order payment status
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
+
+// Order status
+export type OrderStatus = 'processing' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+
+// Interface for order items
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: number;
+  product_name: string;
+  product_slug?: string;
+  product_article?: string;
+  quantity: number;
+  color?: string;
+  unit_price: number;
+  total_price: number;
+  product_image_url?: string;
+  product_category?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface for orders
+export interface Order {
+  id: string;
+  order_number: string;
+
+  // Customer Information
+  user_name: string;
+  user_surname: string;
+  user_phone: string;
+  user_email: string;
+
+  // Delivery Information
+  delivery_method: DeliveryMethod;
+  delivery_address?: string;
+  delivery_city?: string;
+  delivery_street?: string;
+  delivery_building?: string;
+  delivery_apartment?: string;
+  delivery_postal_code?: string;
+  store_location?: string;
+
+  // Pricing
+  subtotal: number;
+  discount_percent: number;
+  discount_amount: number;
+  delivery_cost: number;
+  total_amount: number;
+  prepayment_amount: number;
+
+  // Payment Information
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
+  payment_intent_id?: string;
+
+  // Order Status
+  order_status: OrderStatus;
+
+  // Additional Information
+  customer_notes?: string;
+  admin_notes?: string;
+
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+  payment_deadline?: string;
+  shipped_at?: string;
+  delivered_at?: string;
+  cancelled_at?: string;
+}
+
+// Extended Order interface with items
+export interface OrderWithItems extends Order {
+  items: OrderItem[];
+}
+
+// Interface for creating a new order (request payload)
+export interface CreateOrderRequest {
+  cart_id?: string; // Optional: read from cookies on server-side if not provided
+
+  // Customer Information
+  user_name: string;
+  user_surname: string;
+  user_phone: string;
+  user_email: string;
+
+  // Delivery Information
+  delivery_method: DeliveryMethod;
+  delivery_address?: string;
+  delivery_city?: string;
+  delivery_street?: string;
+  delivery_building?: string;
+  delivery_apartment?: string;
+  delivery_postal_code?: string;
+  store_location?: string;
+
+  // Payment Information
+  payment_method: PaymentMethod;
+  prepayment_amount?: number;
+
+  // Pricing
+  discount_percent?: number;
+  delivery_cost?: number;
+
+  // Additional Information
+  customer_notes?: string;
+}
+
 // Example filter configurations for furniture categories
 export const FURNITURE_FILTERS: CategoryFilters = {
   sofas: [

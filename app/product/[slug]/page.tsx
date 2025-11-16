@@ -102,7 +102,7 @@ export async function generateMetadata(
 
   if (!data || !data.product) {
     return {
-      title: 'Product Not Found | Dekop Furniture Enterprise',
+      title: 'Товар не знайдений | Dekop Furniture Enterprise',
     };
   }
 

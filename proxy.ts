@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { sql } from "@vercel/postgres";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   let storedCookie = await cookies();
   let cartCookie = storedCookie.get("cartId");
   

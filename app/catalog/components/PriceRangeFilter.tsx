@@ -263,7 +263,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
               }
             }}
           >
-            {Math.round(filterValues.priceMin)}
+            {Math.round(currentMinPrice)}
           </div>
           <div
             className={`${styles.priceBubble} ${styles.priceBubbleMax}`}
@@ -286,7 +286,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
               }
             }}
           >
-            {Math.round(filterValues.priceMax)}
+            {Math.round(currentMaxPrice)}
           </div>
 
           <div
