@@ -40,6 +40,8 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
   const bestsellersRef = useRef<HTMLDivElement>(null);
   const [bestsellersIndex, setBestsellersIndex] = useState(0);
   const [bestsellersSlides, setBestsellersSlides] = useState(1);
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
 
   const bestsellersScrollLeft = () => {
     if (!bestsellersRef.current) return;
@@ -72,6 +74,14 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
     const container = bestsellersRef.current;
     setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
     bestsellersHandleScroll();
+  }, []);
+
+  // Mobile detection and resize handler
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1088);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Add event listeners
@@ -111,7 +121,8 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
         ))}
       </div>
 
-      {/* Scroll buttons and dots */}
+      {/* Scroll buttons and dots - only show on mobile/tablet */}
+      {isMobile && (
       <div className={styles.scrollButtons}>
         <button className={styles.arrowScrollButton} onClick={bestsellersScrollLeft}>
           <svg
@@ -160,6 +171,7 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
           </svg>
         </button>
       </div>
+      )}
     </div>
   );
 };
