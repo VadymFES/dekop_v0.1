@@ -8,15 +8,14 @@
     position: relative; /* For proper positioning of elements */
     overflow: hidden;
     height: 350px; /* Set a default height for the card */
-    width: 100%; /* Responsive width - fills grid cell */
-    max-width: 300px; /* Maximum width on desktop */
+    width: 300px; /* Set a fixed width to maintain consistency */
     transition: transform 0.3s ease; /* Smooth transition for scale */
-    margin: 0 auto; /* Center card in grid cell on desktop */
+    flex: 1 1 auto; /* Картки можуть рости і зменшуватись */
+    margin: 0.5rem; /* Відстань між картками */
   }
 
   .productImage {
-    width: 100%;
-    max-width: 300px;
+    width: 300px;
     height: 260px;
     border-radius: 8px;
     object-fit: cover;
@@ -226,10 +225,13 @@
   @media (max-width: 1023px) {
     .productCard {
       height: auto;
+      width: 100%;
       max-width: 100%;
+      margin: 0 auto;
     }
 
     .productImage {
+      width: 100%;
       max-width: 100%;
     }
 
