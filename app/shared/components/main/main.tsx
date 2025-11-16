@@ -18,7 +18,9 @@ const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
 const Main = () => {
 
 
-  const { data: products = [], error } = useSWR<ProductWithImages[]>('/api/products', fetcher);
+  const { data, error } = useSWR<ProductWithImages[]>('/api/products', fetcher);
+  const products = data || [];
+  const isLoading = !data && !error;
 
   if (error) return <div className={styles.container}>Failed to load products</div>;
 
@@ -393,7 +395,7 @@ const Main = () => {
               </svg>
             </Link>
           </div>
-          <Sale products={products} />
+          <Sale products={products} loading={isLoading} />
         </section>
 
 
@@ -420,7 +422,7 @@ const Main = () => {
               </svg>
             </Link>
           </div>
-          <Bestseller products={products} />
+          <Bestseller products={products} loading={isLoading} />
         </section>
 
         <section className={styles.bodyPartners}>

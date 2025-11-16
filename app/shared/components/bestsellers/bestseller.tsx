@@ -1,11 +1,13 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import ProductCard from "../productCard/productCard";
+import CarouselSkeleton from "../carouselSkeleton/CarouselSkeleton";
 import styles from "./bestseller.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 
 interface BestsellerProps {
   products: ProductWithImages[];
+  loading?: boolean;
 }
 
 // Helper for limiting visible dots in the carousel
@@ -32,7 +34,7 @@ function getDotRange(
   return [start, end];
 }
 
-const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
+const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) => {
   // Filter only bestsellers
   const bestsellerProducts = products.filter((p) => p.is_bestseller);
 
@@ -55,6 +57,16 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
     if (!bestsellersRef.current) return;
     bestsellersRef.current.scrollBy({
       left: bestsellersRef.current.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  // Scroll to a specific page index (for dot clicks)
+  const bestsellersScrollToIndex = (index: number) => {
+    if (!bestsellersRef.current) return;
+    const container = bestsellersRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
       behavior: "smooth",
     });
   };
@@ -110,6 +122,11 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
     endDot + 1
   );
 
+  // Show skeleton while loading
+  if (loading || products.length === 0) {
+    return <CarouselSkeleton count={6} />;
+  }
+
   return (
     <div className={styles.wrapper}>
       {/* Carousel container */}
@@ -150,6 +167,8 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
+              onClick={() => bestsellersScrollToIndex(dotIndex)}
+              style={{ cursor: 'pointer' }}
             />
           ))}
         </div>
