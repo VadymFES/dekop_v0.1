@@ -425,9 +425,11 @@
 /* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
+  width: 100%;
 }
 
 /* Responsive design */
@@ -460,6 +462,7 @@
   /* Product grid - 2 columns for mobile */
   .productGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .topControls {
@@ -509,7 +512,7 @@
   }
 
   .productGrid {
-    gap: 12px;
+    gap: 8px;
   }
 
   .controlButtons {

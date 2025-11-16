@@ -1,7 +1,7 @@
 // /app/catalog/components/FilterModal.tsx
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
 import styles from './FilterModal.module.css';
 import { FiltersSidebarProps } from '../types';
 import { CATEGORY_SLUG_MAP } from '../types';
@@ -32,6 +32,20 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Local state for temporary filter changes (only applied when "Apply" is clicked)
+  const [tempFilters, setTempFilters] = useState(filters);
+  const [tempPriceMin, setTempPriceMin] = useState(filters.priceMin);
+  const [tempPriceMax, setTempPriceMax] = useState(filters.priceMax);
+
+  // Sync temp filters with actual filters when modal opens or filters change externally
+  useEffect(() => {
+    if (isOpen) {
+      setTempFilters(filters);
+      setTempPriceMin(filters.priceMin);
+      setTempPriceMax(filters.priceMax);
+    }
+  }, [isOpen, filters]);
 
   // Handle ESC key
   useEffect(() => {
@@ -89,29 +103,101 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     return () => modal.removeEventListener('keydown', handleTab as any);
   }, [isOpen]);
 
-  // Handle backdrop click
+  // Handle backdrop click - close without applying
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
+  // Handle local filter changes (not applied to URL yet)
+  const handleLocalFilterChange = (e: ChangeEvent<HTMLInputElement>, groupName: string): void => {
+    const { value, checked, type } = e.target;
+    const key = groupName.toLowerCase() as keyof typeof tempFilters;
+
+    if (type === "checkbox" && Array.isArray(tempFilters[key])) {
+      const currentValues = [...(tempFilters[key] as string[])];
+      const newValues = checked
+        ? [...currentValues, value]
+        : currentValues.filter(v => v !== value);
+
+      setTempFilters(prev => ({ ...prev, [key]: newValues }));
+    } else if (type === "radio") {
+      setTempFilters(prev => ({ ...prev, [key]: checked ? value : null }));
+    }
+  };
+
+  // Handle local price changes (not applied to URL yet)
+  const handleLocalPriceChange = (thumb: "min" | "max", value: number): void => {
+    if (thumb === "min") {
+      setTempPriceMin(value);
+    } else {
+      setTempPriceMax(value);
+    }
+  };
+
+  // Apply all temporary filters to the actual URL
   const handleApplyClick = () => {
+    // Apply all filter changes
+    Object.keys(tempFilters).forEach(key => {
+      const filterKey = key as keyof typeof tempFilters;
+      if (filterKey !== 'priceMin' && filterKey !== 'priceMax' && tempFilters[filterKey] !== filters[filterKey]) {
+        handleFilterChange({
+          target: {
+            value: Array.isArray(tempFilters[filterKey]) ? tempFilters[filterKey] : tempFilters[filterKey],
+            checked: true,
+            type: Array.isArray(tempFilters[filterKey]) ? 'checkbox' : 'radio'
+          }
+        } as any, key.charAt(0).toUpperCase() + key.slice(1));
+      }
+    });
+
+    // Apply price changes
+    if (tempPriceMin !== filters.priceMin || tempPriceMax !== filters.priceMax) {
+      handlePriceChange('min', tempPriceMin);
+      handlePriceChange('max', tempPriceMax);
+    }
+
     onApply();
     onClose();
   };
 
-  // Render filter components based on filter groups
+  // Reset temporary filters
+  const handleResetClick = () => {
+    setTempFilters({
+      status: [],
+      type: [],
+      material: [],
+      complectation: [],
+      facadeMaterial: [],
+      tabletopShape: [],
+      size: null,
+      backrest: null,
+      hardness: null,
+      specifics: null,
+      priceMin: priceRange.min,
+      priceMax: priceRange.max
+    });
+    setTempPriceMin(priceRange.min);
+    setTempPriceMax(priceRange.max);
+    onReset();
+  };
+
+  // Render filter components based on filter groups (using temp state)
   const renderFilters = () => {
     return finalFilterGroups.map(group => {
       if (group.type === "range" && group.range) {
+        // Use temporary price values
+        const tempPriceRange = { min: priceRange.min, max: priceRange.max };
+        const tempFilterValues = { ...tempFilters, priceMin: tempPriceMin, priceMax: tempPriceMax };
+
         return (
           <PriceRangeFilter
             key={group.name}
             title="Ціна (грн)"
-            priceRange={priceRange}
-            filterValues={filters}
-            onPriceChange={handlePriceChange}
+            priceRange={tempPriceRange}
+            filterValues={tempFilterValues}
+            onPriceChange={handleLocalPriceChange}
           />
         );
       } else if ((group.type === "checkbox" || group.type === "radio") && group.options) {
@@ -135,10 +221,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                       value={opt.value}
                       checked={
                         group.type === "checkbox"
-                          ? (filters[group.name.toLowerCase() as keyof typeof filters] as string[])?.includes(opt.value)
-                          : filters[group.name.toLowerCase() as keyof typeof filters] === opt.value
+                          ? (tempFilters[group.name.toLowerCase() as keyof typeof tempFilters] as string[])?.includes(opt.value)
+                          : tempFilters[group.name.toLowerCase() as keyof typeof tempFilters] === opt.value
                       }
-                      onChange={e => handleFilterChange(e, group.name)}
+                      onChange={e => handleLocalFilterChange(e, group.name)}
                       className={styles.checkbox}
                     />
                     {opt.name}
@@ -205,7 +291,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         <div className={styles.footer}>
           <button
             className={styles.resetButton}
-            onClick={onReset}
+            onClick={handleResetClick}
             type="button"
           >
             Скинути фільтри
