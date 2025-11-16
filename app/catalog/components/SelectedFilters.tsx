@@ -16,7 +16,7 @@ export const SelectedFilters: React.FC<SelectedFiltersProps> = ({
   const filterChips: ReactNode[] = [];
   
   // Status filters
-  filters.status.forEach(status => {
+  filters.status?.forEach(status => {
     const statusNames: Record<string, string> = {
       'new': 'Новинки',
       'on_sale': 'Акційні',
@@ -48,7 +48,7 @@ export const SelectedFilters: React.FC<SelectedFiltersProps> = ({
   }
 
   // Type filters
-  filters.type.forEach(type => {
+  filters.type?.forEach(type => {
     const typeFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "type");
     const typeName = typeFilter?.options?.find(o => o.value === type)?.name || type;
     
@@ -63,7 +63,7 @@ export const SelectedFilters: React.FC<SelectedFiltersProps> = ({
   });
 
   // Material filters
-  filters.material.forEach(material => {
+  filters.material?.forEach(material => {
     const materialFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "material");
     const materialName = materialFilter?.options?.find(o => o.value === material)?.name || material;
     
@@ -78,7 +78,7 @@ export const SelectedFilters: React.FC<SelectedFiltersProps> = ({
   });
 
   // Complectation filters
-  filters.complectation.forEach(feature => {
+  filters.complectation?.forEach(feature => {
     const complectationFilter = FURNITURE_FILTERS[slug]?.find(g => g.name.toLowerCase() === "complectation");
     const featureName = complectationFilter?.options?.find(o => o.value === feature)?.name || feature;
     

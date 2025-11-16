@@ -107,7 +107,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
             <div className={styles.productMeta}>
               <p className={styles.productRating}>{product.rating}</p>
-              <p className={styles.productPrice}>{product.price} грн</p>
+                <p className={styles.productPrice}>{Math.round(product.price)} грн</p>
             </div>
           </div>
         </div>

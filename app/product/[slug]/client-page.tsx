@@ -26,8 +26,43 @@ export default function ClientProductPage({
   similarProducts,
   categorySlugMap 
 }: ClientProductPageProps) {
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.images?.map(img => img.url) || [],
+    "description": product.description || `${product.name} - ${product.category}`,
+    "brand": {
+      "@type": "Brand",
+      "name": "Dekop Furniture Enterprise"
+    },
+    "category": product.category,
+    "offers": {
+      "@type": "Offer",
+      "url": typeof window !== 'undefined' ? window.location.href : '',
+      "priceCurrency": "UAH",
+      "price": product.price,
+      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Dekop Furniture Enterprise"
+      }
+    },
+    "aggregateRating": reviews.length > 0 ? {
+      "@type": "AggregateRating",
+      "ratingValue": reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length,
+      "reviewCount": reviews.length
+    } : undefined
+  };
+
   return (
     <div className={styles.topContainer}>
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <div className={styles.secondaryContainer}>
       <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
         <ol className={styles.breadcrumb}>
