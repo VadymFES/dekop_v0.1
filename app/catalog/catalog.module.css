@@ -431,6 +431,19 @@
   gap: 24px;
 }
 
+/* Product card wrapper - makes cards fill grid cells in catalog */
+.productCardWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.productCardWrapper > * {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
 /* Responsive design */
 
 /* Tablet and below - hide sidebar, show modal with filters button */

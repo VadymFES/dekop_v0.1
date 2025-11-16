@@ -10,7 +10,8 @@
   position: relative;
   overflow: hidden;
   height: 350px;
-  width: 100%;
+  width: 100%; /* Fills grid cell (direct grid child) */
+  margin: 0; /* No margins needed in grid */
   box-sizing: border-box;
 }
 
@@ -22,7 +23,7 @@
 
 /* Image placeholder - matches .productImage (260px height) */
 .skeletonImage {
-  width: 100%;
+  width: 100%; /* Fill the card width */
   height: 260px;
   background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
   background-size: 200% 100%;
