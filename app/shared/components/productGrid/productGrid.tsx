@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from "react";
 import ProductCard from "../productCard/productCard";
+import ProductGridSkeleton from "./ProductGridSkeleton";
 import styles from "./productGrid.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 import useSWR from "swr";
@@ -101,6 +102,9 @@ export default function ProductGrid() {
   const [dotStart, dotEnd] = getDotRange(currentIndex, totalSlides, maxDots);
   const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i)
     .slice(dotStart, dotEnd + 1);
+
+  // Show skeleton while loading
+  if (!data) return <ProductGridSkeleton />;
 
   if (error) return <div className={styles.error}>Failed to load products</div>;
 

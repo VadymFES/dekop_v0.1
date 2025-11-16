@@ -2,11 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import ProductCard from "../productCard/productCard";
+import CarouselSkeleton from "../carouselSkeleton/CarouselSkeleton";
 import styles from "./sale.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 
 interface SaleProps {
   products: ProductWithImages[];
+  loading?: boolean;
 }
 
 // Helper for limiting visible dots in the carousel
@@ -33,7 +35,7 @@ function getDotRange(
   return [start, end];
 }
 
-const Sale: React.FC<SaleProps> = ({ products }) => {
+const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
   // Ref for the scroll container
   const saleRef = useRef<HTMLDivElement>(null);
 
@@ -110,6 +112,11 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
 
   // Filter sale products
   const saleProducts = products.filter((p) => p.is_on_sale);
+
+  // Show skeleton while loading
+  if (loading || products.length === 0) {
+    return <CarouselSkeleton count={6} />;
+  }
 
   return (
     <div className={styles.wrapper}>

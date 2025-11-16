@@ -1,0 +1,170 @@
+/* carouselSkeleton.module.css */
+
+.wrapper {
+  width: 100%;
+}
+
+.carouselContainer {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  width: 100%;
+  margin-bottom: 10px;
+  gap: 0;
+}
+
+.carouselContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.productCardSlide {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* Skeleton card matching ProductCard structure */
+.skeletonCard {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  animation: pulse 1.5s infinite ease-in-out;
+  min-height: 400px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin-right: 0;
+}
+
+.skeletonImage {
+  width: 100%;
+  height: 260px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeletonInfo {
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonTitle {
+  width: 70%;
+  height: 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonPrice {
+  width: 40%;
+  height: 24px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonRating {
+  width: 50%;
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeletonButton {
+  width: 100%;
+  height: 40px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+  margin-top: auto;
+}
+
+/* Scroll buttons container */
+.scrollButtons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Arrow buttons */
+.arrowScrollButton {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Dots container */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  max-width: 150px;
+}
+
+/* Individual dot */
+.dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 0.25rem;
+  transition: background-color 0.3s ease;
+}
+
+.activeDot {
+  background-color: #ddd;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Hide arrows on smaller screens (optional) */
+@media screen and (max-width: 768px) {
+  .arrowScrollButton {
+    display: none;
+  }
+
+  .skeletonCard {
+    width: 280px;
+  }
+}
