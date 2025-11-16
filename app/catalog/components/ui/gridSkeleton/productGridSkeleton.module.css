@@ -1,74 +1,177 @@
-  /* Skeleton Loading Styles */
+/* Skeleton Loading Styles - Match ProductCard exactly */
 
-  .skeletonCard {
-    border: 1px solid #eee;
-    border-radius: 8px;
-    overflow: hidden;
-    background: white;
-    animation: pulse 1.5s infinite ease-in-out;
-    height: 350px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  height: 350px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Image wrapper - matches .imageWrapper */
+.skeletonImageWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Image placeholder - matches .productImage (260px height) */
+.skeletonImage {
+  width: 100%;
+  height: 260px;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* Favorite button placeholder - matches .favoriteButton */
+.skeletonFavoriteButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  background: #e0e0e0;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Labels container - matches .labelsContainer */
+.skeletonLabels {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 4px;
+}
+
+/* Label placeholder - matches .discountLabel etc */
+.skeletonLabel {
+  width: 60px;
+  height: 22px;
+  background: #e0e0e0;
+  border-radius: 6px 0 6px 0;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Product details - matches .productDetails */
+.skeletonDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px 0;
+  width: 100%;
+}
+
+/* Product info - left column */
+.skeletonInfo {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  gap: 6px;
+}
+
+/* Product name - matches .productName */
+.skeletonName {
+  width: 120px;
+  height: 18px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Product category - matches .productType */
+.skeletonCategory {
+  width: 80px;
+  height: 14px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Product meta - right column */
+.skeletonMeta {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  gap: 6px;
+}
+
+/* Rating - matches .productRating */
+.skeletonRating {
+  width: 30px;
+  height: 14px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-left: auto;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Price - matches .productPrice */
+.skeletonPrice {
+  width: 70px;
+  height: 20px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-left: auto;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Add to cart button - matches .addToCartButton */
+.skeletonButton {
+  width: 95%;
+  height: 44px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-top: auto;
+  margin-bottom: 1px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
   }
-  
-  .skeletonImage {
-    width: 100%;
-    height: 200px;
-    background: #eee;
-    flex-shrink: 0;
+  100% {
+    background-position: 200% 0;
   }
-  
-  .skeletonInfo {
-    padding: 16px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
   }
-  
-  .skeletonTitle {
-    width: 70%;
-    height: 16px;
-    background: #eee;
-    border-radius: 4px;
+  50% {
+    opacity: 0.6;
   }
-  
-  .skeletonPrice {
-    width: 40%;
-    height: 18px;
-    background: #eee;
-    border-radius: 4px;
+  100% {
+    opacity: 1;
   }
-  
-  .skeletonRating {
-    width: 50%;
-    height: 14px;
-    background: #eee;
-    border-radius: 4px;
-  }
-  
-  @keyframes pulse {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.6;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
+}
 
 /* Responsive design - match productCard */
 @media (max-width: 1023px) {
   .skeletonCard {
     height: auto;
   }
+
+  .skeletonButton {
+    position: relative;
+    margin-top: 0;
+    width: 100%;
+    border-radius: 0 0 8px 8px;
+  }
 }
 
-/* Very small screens - reduce image height */
+/* Very small screens - match productCard */
 @media (max-width: 480px) {
   .skeletonImage {
     height: auto;
