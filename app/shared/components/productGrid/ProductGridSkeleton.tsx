@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./productGrid.module.css";
-import skeletonStyles from "../../carouselSkeleton/carouselSkeleton.module.css";
+import skeletonStyles from "../carouselSkeleton/carouselSkeleton.module.css";
 
 const ProductGridSkeleton: React.FC = () => {
   return (
