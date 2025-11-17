@@ -9,6 +9,8 @@
     overflow: hidden;
     height: auto; /* Flexible height that adapts to content */
     width: 100%; /* Full width of grid cell */
+    max-width: 420px; /* Prevent cards from stretching too wide */
+    margin: 0 auto; /* Center cards in grid cell */
     transition: transform 0.3s ease; /* Smooth transition for scale */
     flex: 1 1 auto; /* Cards can grow and shrink */
   }

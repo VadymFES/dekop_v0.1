@@ -202,6 +202,7 @@
 .sidebar {
   width: 290px;
   min-width: 260px;
+  max-width: 320px;
   /* Prevent shrinking */
   flex-shrink: 0;
   box-sizing: border-box;
@@ -210,6 +211,28 @@
 .sidebar.loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* Sidebar responsive adjustments */
+@media (min-width: 1200px) {
+  .sidebar {
+    width: 300px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .sidebar {
+    width: 260px;
+    min-width: 240px;
+  }
+
+  .filterTitle {
+    font-size: 15px;
+  }
+
+  .checkboxLabel {
+    font-size: 13px;
+  }
 }
 
 .filterSection {
@@ -425,11 +448,12 @@
 /* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
   width: 100%;
+  max-width: 100%;
 }
 
 /* Responsive design */
@@ -438,6 +462,15 @@
 @media (min-width: 1440px) {
   .productGrid {
     gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+/* Large desktop - prevent cards from getting too wide */
+@media (min-width: 1200px) {
+  .productGrid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
+    justify-content: center;
   }
 }
 
@@ -453,9 +486,9 @@
     display: flex;
   }
 
-  /* Product grid - 2 columns for tablet */
+  /* Product grid - auto-fit for optimal columns */
   .productGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 16px;
   }
 
@@ -470,11 +503,19 @@
   }
 }
 
+/* Medium tablet - optimize for 3 columns */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .productGrid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+  }
+}
+
 /* Mobile */
 @media (max-width: 767px) {
-  /* Product grid - 2 columns for mobile */
+  /* Product grid - 2 columns for mobile with max width */
   .productGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
   }
 
