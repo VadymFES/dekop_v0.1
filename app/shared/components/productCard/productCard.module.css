@@ -7,22 +7,23 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: relative; /* For proper positioning of elements */
     overflow: hidden;
-    height: 350px; /* Set a default height for the card */
-    width: 300px; /* Set a fixed width to maintain consistency */
+    height: auto; /* Flexible height that adapts to content */
+    width: 100%; /* Full width of grid cell */
     transition: transform 0.3s ease; /* Smooth transition for scale */
-    flex: 1 1 auto; /* Картки можуть рости і зменшуватись */
-    margin: 0.5rem; /* Відстань між картками */
+    flex: 1 1 auto; /* Cards can grow and shrink */
   }
 
   .productImage {
-    width: 300px;
-    height: 260px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1; /* Maintain square aspect ratio */
     border-radius: 8px;
     object-fit: cover;
   }
-  
+
   .imageWrapper {
     position: relative;
+    width: 100%;
     transition: transform 0.3s ease; /* Smooth scaling */
   }
 
@@ -66,7 +67,9 @@
     display: flex;
     justify-content: space-between; /* Create two columns */
     align-items: flex-start; /* Align items at the start */
-    padding: 12px 16px 0;
+    padding: 12px 16px;
+    width: 100%;
+    box-sizing: border-box;
     transition: transform 0.3s ease, top 0.3s ease; /* Smooth movement */
   }
   
@@ -88,20 +91,20 @@
   .productName,
   .productPrice
    {
-    font-size: 1.1rem;
+    font-size: clamp(14px, 2vw, 18px); /* Responsive font size */
     font-weight: 700;
     color: #160101;
   }
-  
+
   .productPrice {
-    font-size: 1.3rem;
+    font-size: clamp(16px, 2.5vw, 20px); /* Responsive price */
     font-weight: 700;
     color: #2e1a18;
   }
-  
-  .productType, 
+
+  .productType,
   .productRating {
-    font-size: 0.9rem;
+    font-size: clamp(12px, 1.5vw, 14px); /* Responsive secondary text */
     font-weight: 300;
     color: #160101;
   }
@@ -121,11 +124,11 @@
     bottom: -40px; /* Start hidden below the card */
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Adjust for centering */
-    /* min-height: 44px; */
+    min-height: 44px; /* Minimum touch target size */
     height: auto;
     width: 95%;
-    padding: 8px 16px;
-    font-size: 1rem;
+    padding: 10px 16px;
+    font-size: clamp(14px, 1.8vw, 16px); /* Responsive button text */
     font-weight: 700;
     background-color: transparent;
     color: #ff3939;
@@ -225,6 +228,7 @@
   @media (max-width: 1023px) {
     .productCard {
       height: auto;
+      min-height: 300px; /* Ensure minimum usable height */
     }
 
     .addToCartButton {
@@ -236,6 +240,7 @@
       margin-top: auto;
       border-top: 1px solid #900000;
       border-radius: 0 0 8px 8px;
+      font-size: 14px; /* Fixed size for mobile readability */
     }
 
     .productCard:hover .addToCartButton {
@@ -252,10 +257,52 @@
     }
   }
 
-  /* Very small screens - reduce card height */
+  /* Tablet specific adjustments */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .productDetails {
+      padding: 14px 16px;
+    }
+  }
+
+  /* Small mobile - optimize spacing */
   @media (max-width: 480px) {
-    .productImage {
-      height: auto;
-      aspect-ratio: 1 / 1;
+    .productCard {
+      min-height: 280px;
+    }
+
+    .productDetails {
+      padding: 10px 12px;
+    }
+
+    .favoriteButton {
+      min-width: 40px;
+      min-height: 40px;
+      width: 40px;
+      height: 40px;
+      top: 6px;
+      right: 6px;
+    }
+
+    .heartIcon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  /* Very small screens - ensure usability */
+  @media (max-width: 375px) {
+    .productCard {
+      min-height: 260px;
+    }
+
+    .productDetails {
+      padding: 8px 10px;
+    }
+
+    .productName,
+    .productPrice,
+    .productType,
+    .productRating {
+      margin: 4px 0 0;
     }
   }
