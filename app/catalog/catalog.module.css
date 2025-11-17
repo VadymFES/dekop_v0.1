@@ -448,12 +448,11 @@
 /* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
   width: 100%;
-  max-width: 100%;
 }
 
 /* Responsive design */
@@ -462,15 +461,6 @@
 @media (min-width: 1440px) {
   .productGrid {
     gap: 24px;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  }
-}
-
-/* Large desktop - prevent cards from getting too wide */
-@media (min-width: 1200px) {
-  .productGrid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 380px));
-    justify-content: center;
   }
 }
 
@@ -486,9 +476,9 @@
     display: flex;
   }
 
-  /* Product grid - auto-fit for optimal columns */
+  /* Product grid - 3 columns for tablet */
   .productGrid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }
 
@@ -503,19 +493,11 @@
   }
 }
 
-/* Medium tablet - optimize for 3 columns */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .productGrid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 18px;
-  }
-}
-
 /* Mobile */
 @media (max-width: 767px) {
-  /* Product grid - 2 columns for mobile with max width */
+  /* Product grid - 2 columns for mobile */
   .productGrid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
