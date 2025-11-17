@@ -459,9 +459,9 @@
 
 /* Desktop large screens - optimize spacing */
 @media (min-width: 1440px) {
-  .productGrid {
+  /* .productGrid {
     gap: 24px;
-  }
+  } */
 }
 
 /* Tablet and below - hide sidebar, show modal with filters button */
