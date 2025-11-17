@@ -66,7 +66,7 @@
     display: flex;
     justify-content: space-between; /* Create two columns */
     align-items: flex-start; /* Align items at the start */
-    padding: 14px 16px 0;
+    padding: 12px 16px 0;
     transition: transform 0.3s ease, top 0.3s ease; /* Smooth movement */
   }
   
@@ -121,10 +121,10 @@
     bottom: -40px; /* Start hidden below the card */
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Adjust for centering */
-    min-height: 44px;
+    /* min-height: 44px; */
     height: auto;
     width: 95%;
-    padding: 10px 16px;
+    padding: 8px 16px;
     font-size: 1rem;
     font-weight: 700;
     background-color: transparent;
@@ -225,14 +225,6 @@
   @media (max-width: 1023px) {
     .productCard {
       height: auto;
-      width: 100%;
-      max-width: 100%;
-      margin: 0 auto;
-    }
-
-    .productImage {
-      width: 100%;
-      max-width: 100%;
     }
 
     .addToCartButton {
