@@ -1,14 +1,15 @@
 /* catalog.module.css */
 .container {
   display: flex;
-  max-width: 1920px;
+  max-width: 1400px;
   flex-direction: column;
   margin: 0 auto;
   height: auto;
+  padding: 0 1rem;
 }
 
 .contentContainer {
-  margin: 1rem 4rem;
+  margin: 1rem 2rem;
 }
 
 /* Breadcrumbs */
@@ -190,18 +191,18 @@
 /* Main Content Layout */
 .contentWrapper {
   display: flex;
-  gap: 30px;
+  gap: 40px;
   min-height: 500px;
   width: 100%;
-  gap: 60px;
   /* justify-content: space-between; */
-  margin: 1rem 4rem;
+  margin: 0;
 }
 
 /* Sidebar Filters */
 .sidebar {
   width: 290px;
   min-width: 260px;
+  max-width: 320px;
   /* Prevent shrinking */
   flex-shrink: 0;
   box-sizing: border-box;
@@ -210,6 +211,28 @@
 .sidebar.loading {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* Sidebar responsive adjustments */
+@media (min-width: 1200px) {
+  .sidebar {
+    width: 300px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .sidebar {
+    width: 260px;
+    min-width: 240px;
+  }
+
+  .filterTitle {
+    font-size: 15px;
+  }
+
+  .checkboxLabel {
+    font-size: 13px;
+  }
 }
 
 .filterSection {
@@ -425,12 +448,21 @@
 /* Product Grid */
 .productGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
+  width: 100%;
 }
 
 /* Responsive design */
+
+/* Desktop large screens - optimize spacing */
+@media (min-width: 1440px) {
+  /* .productGrid {
+    gap: 24px;
+  } */
+}
 
 /* Tablet and below - hide sidebar, show modal with filters button */
 @media (max-width: 1023px) {
@@ -447,11 +479,17 @@
   /* Product grid - 3 columns for tablet */
   .productGrid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
   }
 
   /* Content wrapper adjustments */
   .contentWrapper {
-    margin: 1rem 0;
+    margin: 0;
+    gap: 20px;
+  }
+
+  .contentContainer {
+    margin: 1rem;
   }
 }
 
@@ -493,13 +531,17 @@
 }
 
 /* Match homepage margin pattern - reduce horizontal margins on mobile */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
   .contentContainer {
-    margin: 1rem 1rem;
+    margin: 0.75rem 0.5rem;
   }
 
   .contentWrapper {
-    margin: 1rem 0;
+    margin: 0;
   }
 }
 
@@ -510,7 +552,7 @@
   }
 
   .productGrid {
-    gap: 8px;
+    gap: 12px;
   }
 
   .controlButtons {
@@ -525,5 +567,20 @@
 
   .sortSelect {
     width: 100%;
+  }
+}
+
+/* Very small screens - ensure minimum usable layout */
+@media (max-width: 375px) {
+  .container {
+    padding: 0 0.25rem;
+  }
+
+  .contentContainer {
+    margin: 0.5rem 0.25rem;
+  }
+
+  .productGrid {
+    gap: 8px;
   }
 }
