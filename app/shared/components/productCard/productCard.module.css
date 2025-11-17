@@ -11,7 +11,8 @@
     width: 100%; /* Full width of grid cell */
     max-width: 300px; /* Prevent cards from stretching too wide */
     margin: 0 auto; /* Center cards in grid cell */
-    transition: transform 0.3s ease; /* Smooth transition for scale */
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transitions */
     flex: 1 1 auto; /* Cards can grow and shrink */
   }
 
@@ -26,7 +27,7 @@
   .imageWrapper {
     position: relative;
     width: 100%;
-    transition: transform 0.3s ease; /* Smooth scaling */
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth scaling matching other animations */
   }
 
   .labelsContainer {
@@ -37,7 +38,7 @@
     flex-direction: row-reverse;
     gap: 4px;
     z-index: 3;
-    transition: transform 0.3s ease;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .salesLeaderLabel {
@@ -62,7 +63,7 @@
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 6px 0 6px 0;
-    transition: transform 0.3s ease; /* Smooth transition */
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .productDetails {
@@ -72,11 +73,11 @@
     padding: 8px 16px;
     width: 100%;
     box-sizing: border-box;
-    transition: transform 0.3s ease, top 0.3s ease; /* Smooth movement */
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth movement matching button */
   }
-  
+
   .productCard:hover .productDetails {
-    transform: translateY(-20px); /* Move the details up by 10px */
+    transform: translateY(-20px); /* Move the details up */
   }
   
   .productInfo,
@@ -115,7 +116,11 @@
     margin: 6px 0 0;
   }
   
-  /* Scale inner content on hover */
+  /* Enhance card on hover */
+.productCard:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Elevate card */
+}
+
 .productCard:hover .imageWrapper {
   transform: scale(0.95); /* Scale down both the image and label */
 }
@@ -123,7 +128,7 @@
   /* Add to Cart Button */
   .addToCartButton {
     position: absolute; /* Position button absolutely within the card */
-    bottom: -40px; /* Start hidden below the card */
+    bottom: -50px; /* Start hidden below the card */
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Adjust for centering */
     min-height: 44px; /* Minimum touch target size */
@@ -137,18 +142,23 @@
     border: none;
     cursor: pointer;
     border-top: 1px solid #900000;
-    transition: bottom 0.3s ease, transform 0.3s ease; /* Transition effect for sliding up */
+    opacity: 0; /* Start invisible */
+    transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.2s ease; /* Smooth transitions */
+    z-index: 5; /* Ensure button is on top */
   }
-  
+
   /* Show button on hover */
   .productCard:hover .addToCartButton {
-    bottom: 1px; 
-    transform: translateX(-50%); 
+    bottom: 0;
+    opacity: 1; /* Fade in */
+    transform: translateX(-50%);
   }
-  
+
   .addToCartButton:hover {
     color: #E2281B;
-    transition: 0.3s;
   }
 
   /* Favorite heart button - positioned at top-right corner */
@@ -243,11 +253,13 @@
       border-top: 1px solid #900000;
       border-radius: 0 0 8px 8px;
       font-size: 14px; /* Fixed size for mobile readability */
+      opacity: 1; /* Always visible on mobile */
     }
 
     .productCard:hover .addToCartButton {
       bottom: 0;
       transform: none;
+      opacity: 1;
     }
 
     .productCard:hover .productDetails {
