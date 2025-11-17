@@ -458,9 +458,9 @@
     display: flex;
   }
 
-  /* Product grid - 3 columns for tablet */
+  /* Product grid - 2 columns for tablet */
   .productGrid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
 
