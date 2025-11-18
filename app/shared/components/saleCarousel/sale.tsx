@@ -36,93 +36,68 @@ function getDotRange(
 }
 
 const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
+  // Filter sale products
+  const saleProducts = products.filter((p) => p.is_on_sale);
+
   // Ref for the scroll container
   const saleRef = useRef<HTMLDivElement>(null);
 
-  // Current "page" index
+  // Current product index
   const [saleIndex, setSaleIndex] = useState(0);
-  // Total number of "pages" or slides
-  const [saleSlides, setSaleSlides] = useState(1);
+  const totalSlides = saleProducts.length;
 
-  // Scroll left by one “page” (clientWidth)
-  const saleScrollLeft = () => {
-    if (!saleRef.current) return;
-    saleRef.current.scrollBy({
-      left: -saleRef.current.clientWidth,
-      behavior: "smooth",
-    });
-  };
-
-  // Scroll right by one "page"
-  const saleScrollRight = () => {
-    if (!saleRef.current) return;
-    saleRef.current.scrollBy({
-      left: saleRef.current.clientWidth,
-      behavior: "smooth",
-    });
-  };
-
-  // Scroll to a specific page index (for dot clicks)
+  // Scroll to a specific product index
   const saleScrollToIndex = (index: number) => {
     if (!saleRef.current) return;
     const container = saleRef.current;
+    const slide = container.children[index] as HTMLElement | null;
+    if (!slide) return;
     container.scrollTo({
-      left: index * container.clientWidth,
+      left: slide.offsetLeft,
       behavior: "smooth",
     });
   };
 
-  // On scroll, figure out which page we're on
-  const saleHandleScroll = () => {
-    if (!saleRef.current) return;
-    const container = saleRef.current;
-    // current page = container.scrollLeft / container.clientWidth
-    const index = Math.round(container.scrollLeft / container.clientWidth);
-    setSaleIndex(index);
+  // Scroll left by one product
+  const saleScrollLeft = () => {
+    const newIndex = Math.max(saleIndex - 1, 0);
+    setSaleIndex(newIndex);
+    saleScrollToIndex(newIndex);
   };
 
-  // Recompute how many “pages” fit in the container
-  const saleHandleResize = () => {
-    if (!saleRef.current) return;
-    const container = saleRef.current;
-    setSaleSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-    saleHandleScroll();
+  // Scroll right by one product
+  const saleScrollRight = () => {
+    const newIndex = Math.min(saleIndex + 1, totalSlides - 1);
+    setSaleIndex(newIndex);
+    saleScrollToIndex(newIndex);
   };
 
-
-  // Set up listeners on mount
+  // Scroll event handlers
   useEffect(() => {
     const container = saleRef.current;
     if (!container) return;
 
-    // Initial calculation
-    saleHandleResize();
-    container.addEventListener("scroll", saleHandleScroll);
-    window.addEventListener("resize", saleHandleResize);
-
-    return () => {
-      container.removeEventListener("scroll", saleHandleScroll);
-      window.removeEventListener("resize", saleHandleResize);
+    const handleScrollEnd = () => {
+      const children = Array.from(container.children) as HTMLElement[];
+      const containerScrollLeft = container.scrollLeft + container.clientWidth / 2;
+      const activeSlide = children.findIndex(
+        (child) => containerScrollLeft >= child.offsetLeft &&
+                 containerScrollLeft < child.offsetLeft + child.offsetWidth
+      );
+      if (activeSlide !== -1) setSaleIndex(activeSlide);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  // If products change, re-check slides
-  useEffect(() => {
-    saleHandleResize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products]);
+    container.addEventListener("scrollend", handleScrollEnd);
+    return () => container.removeEventListener("scrollend", handleScrollEnd);
+  }, []);
 
   // Build dot range with optional max of 6
   const maxDots = 6;
-  const [startDot, endDot] = getDotRange(saleIndex, saleSlides, maxDots);
-  const dotsToRender = Array.from({ length: saleSlides }, (_, i) => i).slice(
+  const [startDot, endDot] = getDotRange(saleIndex, totalSlides, maxDots);
+  const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i).slice(
     startDot,
     endDot + 1
   );
-
-  // Filter sale products
-  const saleProducts = products.filter((p) => p.is_on_sale);
 
   // Show skeleton while loading
   if (loading || products.length === 0) {

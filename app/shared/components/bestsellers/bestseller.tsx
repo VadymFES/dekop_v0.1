@@ -41,83 +41,55 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
   // Refs and state
   const bestsellersRef = useRef<HTMLDivElement>(null);
   const [bestsellersIndex, setBestsellersIndex] = useState(0);
-  const [bestsellersSlides, setBestsellersSlides] = useState(1);
+  const totalSlides = bestsellerProducts.length;
 
   const bestsellersScrollLeft = () => {
-    if (!bestsellersRef.current) return;
-    bestsellersRef.current.scrollBy({
-      left: -bestsellersRef.current.clientWidth,
-      behavior: "smooth",
-    });
+    const newIndex = Math.max(bestsellersIndex - 1, 0);
+    setBestsellersIndex(newIndex);
+    bestsellersScrollToIndex(newIndex);
   };
 
   const bestsellersScrollRight = () => {
-    if (!bestsellersRef.current) return;
-    bestsellersRef.current.scrollBy({
-      left: bestsellersRef.current.clientWidth,
-      behavior: "smooth",
-    });
+    const newIndex = Math.min(bestsellersIndex + 1, totalSlides - 1);
+    setBestsellersIndex(newIndex);
+    bestsellersScrollToIndex(newIndex);
   };
 
-  // Scroll to a specific page index (for dot clicks)
+  // Scroll to a specific product index
   const bestsellersScrollToIndex = (index: number) => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
+    const slide = container.children[index] as HTMLElement | null;
+    if (!slide) return;
     container.scrollTo({
-      left: index * container.clientWidth,
+      left: slide.offsetLeft,
       behavior: "smooth",
     });
   };
 
-  // Update current slide index on scroll
-  const bestsellersHandleScroll = () => {
-    if (!bestsellersRef.current) return;
-    const container = bestsellersRef.current;
-    // This determines which "page" of the carousel we’re on.
-    const index = Math.round(container.scrollLeft / container.clientWidth);
-    setBestsellersIndex(index);
-  };
-
-  // Calculate how many slides fit in the container
-  const bestsellersHandleResize = () => {
-    if (!bestsellersRef.current) return;
-    const container = bestsellersRef.current;
-    setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
-    bestsellersHandleScroll();
-  };
-
-
-  // Add event listeners
+  // Scroll event handlers
   useEffect(() => {
     const container = bestsellersRef.current;
     if (!container) return;
 
-    const handleScroll = () => {
-      const index = Math.round(container.scrollLeft / container.clientWidth);
-      setBestsellersIndex(index);
+    const handleScrollEnd = () => {
+      const children = Array.from(container.children) as HTMLElement[];
+      const containerScrollLeft = container.scrollLeft + container.clientWidth / 2;
+      const activeSlide = children.findIndex(
+        (child) => containerScrollLeft >= child.offsetLeft &&
+                 containerScrollLeft < child.offsetLeft + child.offsetWidth
+      );
+      if (activeSlide !== -1) setBestsellersIndex(activeSlide);
     };
 
-    // Initial calculation
-    bestsellersHandleResize();
-    container.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", bestsellersHandleResize);
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", bestsellersHandleResize);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    container.addEventListener("scrollend", handleScrollEnd);
+    return () => container.removeEventListener("scrollend", handleScrollEnd);
   }, []);
 
-  // If products change, re-check slides
-  useEffect(() => {
-    bestsellersHandleResize();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products]);
-
   // Dots range
-  const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
-  const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
+  const maxDots = 6;
+  const [startDot, endDot] = getDotRange(bestsellersIndex, totalSlides, maxDots);
+  const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i).slice(
     startDot,
     endDot + 1
   );
