@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ProductCard from "../productCard/productCard";
 import CarouselSkeleton from "../carouselSkeleton/CarouselSkeleton";
 import styles from "./bestseller.module.css";
@@ -42,8 +42,6 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
   const bestsellersRef = useRef<HTMLDivElement>(null);
   const [bestsellersIndex, setBestsellersIndex] = useState(0);
   const [bestsellersSlides, setBestsellersSlides] = useState(1);
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
 
   const bestsellersScrollLeft = () => {
     if (!bestsellersRef.current) return;
@@ -71,52 +69,46 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
     });
   };
 
-  // Update current slide index on scroll
   const bestsellersHandleScroll = () => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
-    // This determines which "page" of the carousel we’re on.
     const index = Math.round(container.scrollLeft / container.clientWidth);
     setBestsellersIndex(index);
   };
 
-  // Calculate how many slides fit in the container
-  const bestsellersHandleResize = useCallback(() => {
+  const bestsellersHandleResize = () => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
     setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
     bestsellersHandleScroll();
-  }, []);
+  };
 
-  // Mobile detection and resize handler
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1088);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Add event listeners
   useEffect(() => {
     const container = bestsellersRef.current;
     if (!container) return;
-  
-    const handleScroll = () => {
-      const index = Math.round(container.scrollLeft / container.clientWidth);
-      setBestsellersIndex(index);
-    };
-  
-    container.addEventListener("scroll", handleScroll);
+
+    bestsellersHandleResize();
+    container.addEventListener("scroll", bestsellersHandleScroll);
     window.addEventListener("resize", bestsellersHandleResize);
-  
+
     return () => {
-      container.removeEventListener("scroll", handleScroll);
+      container.removeEventListener("scroll", bestsellersHandleScroll);
       window.removeEventListener("resize", bestsellersHandleResize);
     };
-  }, [bestsellersHandleResize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recalculate when products change
+  useEffect(() => {
+    if (bestsellerProducts.length > 0) {
+      bestsellersHandleResize();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bestsellerProducts.length]);
 
   // Dots range
-  const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
+  const maxDots = 6;
+  const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, maxDots);
   const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
     startDot,
     endDot + 1
@@ -138,8 +130,7 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
         ))}
       </div>
 
-      {/* Scroll buttons and dots - only show on mobile/tablet */}
-      {isMobile && (
+      {/* Scroll buttons and dots */}
       <div className={styles.scrollButtons}>
         <button className={styles.arrowScrollButton} onClick={bestsellersScrollLeft}>
           <svg
@@ -190,7 +181,6 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
           </svg>
         </button>
       </div>
-      )}
     </div>
   );
 };
