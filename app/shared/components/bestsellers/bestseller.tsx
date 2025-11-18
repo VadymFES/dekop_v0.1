@@ -91,20 +91,28 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
   useEffect(() => {
     const container = bestsellersRef.current;
     if (!container) return;
-  
+
     const handleScroll = () => {
       const index = Math.round(container.scrollLeft / container.clientWidth);
       setBestsellersIndex(index);
     };
-  
+
+    // Initial calculation
+    bestsellersHandleResize();
     container.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", bestsellersHandleResize);
-  
+
     return () => {
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", bestsellersHandleResize);
     };
   }, [bestsellersHandleResize]);
+
+  // If products change, re-check slides
+  useEffect(() => {
+    bestsellersHandleResize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products]);
 
   // Dots range
   const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
