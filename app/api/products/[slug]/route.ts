@@ -1,7 +1,8 @@
 // api/products/[slug]/route.ts
 
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { db } from "@/app/lib/db";
+import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { 
   ProductWithImages, 
   ProductImage, 
@@ -360,7 +361,7 @@ export async function GET(
 
   try {
     // Query to get the product by slug.
-    const { rows: productRows } = await sql`
+    const { rows: productRows } = await db.query`
       SELECT * FROM products WHERE slug = ${slug}
     `;
 
@@ -372,7 +373,7 @@ export async function GET(
     const normalizedCategory = normalizeCategory(product.category);
 
     // Отримання рейтингу та кількості відгуків з таблиці reviews
-    const { rows: reviewStats } = await sql`
+    const { rows: reviewStats } = await db.query`
       SELECT 
         COUNT(*) AS reviews_count, 
         COALESCE(AVG(rating), 0) AS average_rating
@@ -384,7 +385,7 @@ export async function GET(
     const averageRating = parseFloat(reviewStats[0]?.average_rating || '0');
 
     // Отримання всіх відгуків для цього товару
-    const { rows: reviewRows } = await sql`
+    const { rows: reviewRows } = await db.query`
       SELECT id, product_id, user_name, rating, comment, created_at
       FROM reviews
       WHERE product_id = ${product.id}
@@ -402,7 +403,7 @@ export async function GET(
     }));
 
     // Query to get product images with явним приведенням типів
-    const { rows: rawImageRows } = await sql`
+    const { rows: rawImageRows } = await db.query`
       SELECT id, image_url, alt, is_primary
       FROM product_images
       WHERE product_id = ${product.id}
@@ -417,7 +418,7 @@ export async function GET(
     }));
 
     // Query to get product colors with явним приведенням типів
-    const { rows: rawColorRows } = await sql`
+    const { rows: rawColorRows } = await db.query`
       SELECT product_id, color, image_url
       FROM product_spec_colors
       WHERE product_id = ${product.id}
@@ -436,47 +437,47 @@ export async function GET(
     // Визначаємо правильну таблицю специфікацій на основі категорії
     switch (normalizedCategory) {
       case 'corner_sofas':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM corner_sofa_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'sofas':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM sofa_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'sofa_beds':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM sofa_bed_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'chairs':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM chair_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'tables':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM table_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'beds':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM bed_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'mattresses':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM mattress_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'wardrobes':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM wardrobe_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
       case 'accessories':
-        specsRows = await sql`
+        specsRows = await db.query`
           SELECT * FROM accessory_specs WHERE product_id = ${product.id}
         `.then(result => result.rows);
         break;
@@ -524,11 +525,10 @@ export async function GET(
       reviewsList: reviews
     };
 
-    return NextResponse.json(response, { status: 200,
-      headers: {
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600'
-      }
-     });
+    return NextResponse.json(response, {
+      status: 200,
+      headers: getCacheHeaders('product'),
+    });
   } catch (error) {
     console.error("Error fetching product details:", error);
     return NextResponse.json({ error: "Failed to fetch product details" }, { status: 500 });

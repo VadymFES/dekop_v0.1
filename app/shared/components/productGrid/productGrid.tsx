@@ -5,7 +5,6 @@ import ProductCard from "../productCard/productCard";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 import styles from "./productGrid.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
-import useSWR from "swr";
 import Image from "next/image";
 
 function getDotRange(
@@ -28,16 +27,17 @@ function getDotRange(
   return [start, end];
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+interface ProductGridProps {
+  products?: ProductWithImages[]; // Accept products from parent (server component)
+}
 
-export default function ProductGrid() {
+export default function ProductGrid({ products: serverProducts }: ProductGridProps) {
   const productGridRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // SWR data fetching
-  const { data, error } = useSWR<ProductWithImages[]>("/api/products", fetcher);
-  const products = data?.slice(0, 6) || [];
+  // Use server-provided products (performance optimized)
+  const products = serverProducts?.slice(0, 6) || [];
   const totalSlides = products.length;
 
   // Mobile detection and resize handler
@@ -103,10 +103,8 @@ export default function ProductGrid() {
   const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i)
     .slice(dotStart, dotEnd + 1);
 
-  // Show skeleton while loading
-  if (!data) return <ProductGridSkeleton />;
-
-  if (error) return <div className={styles.error}>Failed to load products</div>;
+  // Show skeleton if no products provided
+  if (products.length === 0) return <ProductGridSkeleton />;
 
   return (
     <div className={styles.wrapper}>

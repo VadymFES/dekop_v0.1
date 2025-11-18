@@ -110,5 +110,6 @@ export default async function HomePage() {
   const products = await getFeaturedProducts();
 
   // Pass products as props to Main component
+  // Main component will be updated to accept props instead of using SWR
   return <Main products={products} />;
 }
