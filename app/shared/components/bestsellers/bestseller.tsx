@@ -40,112 +40,76 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
 
   // Refs and state
   const bestsellersRef = useRef<HTMLDivElement>(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [bestsellersIndex, setBestsellersIndex] = useState(0);
+  const [bestsellersSlides, setBestsellersSlides] = useState(1);
 
-  // Calculate pages based on container and item widths
-  const calculatePages = () => {
-    if (!bestsellersRef.current || bestsellerProducts.length === 0) return;
-
-    const container = bestsellersRef.current;
-    const firstChild = container.children[0] as HTMLElement;
-    if (!firstChild) return;
-
-    const containerWidth = container.clientWidth;
-    const itemWidth = firstChild.offsetWidth;
-    const gap = parseFloat(getComputedStyle(container).gap || '0');
-
-    // Calculate how many items fit in one view
-    const itemsVisible = Math.max(1, Math.floor((containerWidth + gap) / (itemWidth + gap)));
-    setItemsPerPage(itemsVisible);
-
-    // Calculate total pages
-    const pages = Math.ceil(bestsellerProducts.length / itemsVisible);
-    setTotalPages(pages);
-  };
-
-  // Scroll by page
   const bestsellersScrollLeft = () => {
-    const newPage = Math.max(currentPage - 1, 0);
-    setCurrentPage(newPage);
-    scrollToPage(newPage);
-  };
-
-  const bestsellersScrollRight = () => {
-    const newPage = Math.min(currentPage + 1, totalPages - 1);
-    setCurrentPage(newPage);
-    scrollToPage(newPage);
-  };
-
-  // Scroll to a specific page
-  const scrollToPage = (pageIndex: number) => {
     if (!bestsellersRef.current) return;
-    const container = bestsellersRef.current;
-    const itemIndex = pageIndex * itemsPerPage;
-    const slide = container.children[itemIndex] as HTMLElement | null;
-    if (!slide) return;
-    container.scrollTo({
-      left: slide.offsetLeft,
+    bestsellersRef.current.scrollBy({
+      left: -bestsellersRef.current.clientWidth,
       behavior: "smooth",
     });
   };
 
-  // Handle scroll to update current page
+  const bestsellersScrollRight = () => {
+    if (!bestsellersRef.current) return;
+    bestsellersRef.current.scrollBy({
+      left: bestsellersRef.current.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  // Scroll to a specific page index (for dot clicks)
+  const bestsellersScrollToIndex = (index: number) => {
+    if (!bestsellersRef.current) return;
+    const container = bestsellersRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  const bestsellersHandleScroll = () => {
+    if (!bestsellersRef.current) return;
+    const container = bestsellersRef.current;
+    const index = Math.round(container.scrollLeft / container.clientWidth);
+    setBestsellersIndex(index);
+  };
+
+  const bestsellersHandleResize = () => {
+    if (!bestsellersRef.current) return;
+    const container = bestsellersRef.current;
+    setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+    bestsellersHandleScroll();
+  };
+
   useEffect(() => {
     const container = bestsellersRef.current;
     if (!container) return;
 
-    const handleScrollEnd = () => {
-      if (itemsPerPage === 0) return;
+    bestsellersHandleResize();
+    container.addEventListener("scroll", bestsellersHandleScroll);
+    window.addEventListener("resize", bestsellersHandleResize);
 
-      const children = Array.from(container.children) as HTMLElement[];
-      const containerScrollLeft = container.scrollLeft + container.clientWidth / 2;
-
-      const activeItemIndex = children.findIndex(
-        (child) => containerScrollLeft >= child.offsetLeft &&
-                 containerScrollLeft < child.offsetLeft + child.offsetWidth
-      );
-
-      if (activeItemIndex !== -1) {
-        const page = Math.floor(activeItemIndex / itemsPerPage);
-        setCurrentPage(page);
-      }
-    };
-
-    container.addEventListener("scrollend", handleScrollEnd);
-    return () => container.removeEventListener("scrollend", handleScrollEnd);
-  }, [itemsPerPage]);
-
-  // Calculate pages on mount and resize
-  useEffect(() => {
-    // Defer calculation to ensure DOM is ready
-    const timer = setTimeout(() => {
-      calculatePages();
-    }, 0);
-
-    window.addEventListener("resize", calculatePages);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", calculatePages);
+      container.removeEventListener("scroll", bestsellersHandleScroll);
+      window.removeEventListener("resize", bestsellersHandleResize);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Recalculate when products change
   useEffect(() => {
     if (bestsellerProducts.length > 0) {
-      // Defer to ensure DOM has updated
-      const timer = setTimeout(() => {
-        calculatePages();
-      }, 0);
-      return () => clearTimeout(timer);
+      bestsellersHandleResize();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bestsellerProducts.length]);
 
   // Dots range
   const maxDots = 6;
-  const [startDot, endDot] = getDotRange(currentPage, totalPages, maxDots);
-  const dotsToRender = Array.from({ length: totalPages }, (_, i) => i).slice(
+  const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, maxDots);
+  const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
     startDot,
     endDot + 1
   );
@@ -190,14 +154,11 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
             <div
               key={dotIndex}
               className={
-                dotIndex === currentPage
+                dotIndex === bestsellersIndex
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
-              onClick={() => {
-                setCurrentPage(dotIndex);
-                scrollToPage(dotIndex);
-              }}
+              onClick={() => bestsellersScrollToIndex(dotIndex)}
               style={{ cursor: 'pointer' }}
             />
           ))}

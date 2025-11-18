@@ -42,114 +42,79 @@ const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
   // Ref for the scroll container
   const saleRef = useRef<HTMLDivElement>(null);
 
-  // Current page state
-  const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // Current index and slides
+  const [saleIndex, setSaleIndex] = useState(0);
+  const [saleSlides, setSaleSlides] = useState(1);
 
-  // Calculate pages based on container and item widths
-  const calculatePages = () => {
-    if (!saleRef.current || saleProducts.length === 0) return;
-
-    const container = saleRef.current;
-    const firstChild = container.children[0] as HTMLElement;
-    if (!firstChild) return;
-
-    const containerWidth = container.clientWidth;
-    const itemWidth = firstChild.offsetWidth;
-    const gap = parseFloat(getComputedStyle(container).gap || '0');
-
-    // Calculate how many items fit in one view
-    const itemsVisible = Math.max(1, Math.floor((containerWidth + gap) / (itemWidth + gap)));
-    setItemsPerPage(itemsVisible);
-
-    // Calculate total pages
-    const pages = Math.ceil(saleProducts.length / itemsVisible);
-    setTotalPages(pages);
-  };
-
-  // Scroll to a specific page
-  const scrollToPage = (pageIndex: number) => {
+  // Scroll left by one page (clientWidth)
+  const saleScrollLeft = () => {
     if (!saleRef.current) return;
-    const container = saleRef.current;
-    const itemIndex = pageIndex * itemsPerPage;
-    const slide = container.children[itemIndex] as HTMLElement | null;
-    if (!slide) return;
-    container.scrollTo({
-      left: slide.offsetLeft,
+    saleRef.current.scrollBy({
+      left: -saleRef.current.clientWidth,
       behavior: "smooth",
     });
   };
 
-  // Scroll left by one page
-  const saleScrollLeft = () => {
-    const newPage = Math.max(currentPage - 1, 0);
-    setCurrentPage(newPage);
-    scrollToPage(newPage);
-  };
-
   // Scroll right by one page
   const saleScrollRight = () => {
-    const newPage = Math.min(currentPage + 1, totalPages - 1);
-    setCurrentPage(newPage);
-    scrollToPage(newPage);
+    if (!saleRef.current) return;
+    saleRef.current.scrollBy({
+      left: saleRef.current.clientWidth,
+      behavior: "smooth",
+    });
   };
 
-  // Scroll event handlers
+  // Scroll to a specific page index (for dot clicks)
+  const saleScrollToIndex = (index: number) => {
+    if (!saleRef.current) return;
+    const container = saleRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
+  const saleHandleScroll = () => {
+    if (!saleRef.current) return;
+    const container = saleRef.current;
+    const index = Math.round(container.scrollLeft / container.clientWidth);
+    setSaleIndex(index);
+  };
+
+  const saleHandleResize = () => {
+    if (!saleRef.current) return;
+    const container = saleRef.current;
+    setSaleSlides(Math.ceil(container.scrollWidth / container.clientWidth));
+    saleHandleScroll();
+  };
+
   useEffect(() => {
     const container = saleRef.current;
     if (!container) return;
 
-    const handleScrollEnd = () => {
-      if (itemsPerPage === 0) return;
+    saleHandleResize();
+    container.addEventListener("scroll", saleHandleScroll);
+    window.addEventListener("resize", saleHandleResize);
 
-      const children = Array.from(container.children) as HTMLElement[];
-      const containerScrollLeft = container.scrollLeft + container.clientWidth / 2;
-
-      const activeItemIndex = children.findIndex(
-        (child) => containerScrollLeft >= child.offsetLeft &&
-                 containerScrollLeft < child.offsetLeft + child.offsetWidth
-      );
-
-      if (activeItemIndex !== -1) {
-        const page = Math.floor(activeItemIndex / itemsPerPage);
-        setCurrentPage(page);
-      }
-    };
-
-    container.addEventListener("scrollend", handleScrollEnd);
-    return () => container.removeEventListener("scrollend", handleScrollEnd);
-  }, [itemsPerPage]);
-
-  // Calculate pages on mount and resize
-  useEffect(() => {
-    // Defer calculation to ensure DOM is ready
-    const timer = setTimeout(() => {
-      calculatePages();
-    }, 0);
-
-    window.addEventListener("resize", calculatePages);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", calculatePages);
+      container.removeEventListener("scroll", saleHandleScroll);
+      window.removeEventListener("resize", saleHandleResize);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Recalculate when products change
   useEffect(() => {
     if (saleProducts.length > 0) {
-      // Defer to ensure DOM has updated
-      const timer = setTimeout(() => {
-        calculatePages();
-      }, 0);
-      return () => clearTimeout(timer);
+      saleHandleResize();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saleProducts.length]);
 
   // Build dot range with optional max of 6
   const maxDots = 6;
-  const [startDot, endDot] = getDotRange(currentPage, totalPages, maxDots);
-  const dotsToRender = Array.from({ length: totalPages }, (_, i) => i).slice(
+  const [startDot, endDot] = getDotRange(saleIndex, saleSlides, maxDots);
+  const dotsToRender = Array.from({ length: saleSlides }, (_, i) => i).slice(
     startDot,
     endDot + 1
   );
@@ -194,14 +159,11 @@ const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
             <div
               key={dotIndex}
               className={
-                dotIndex === currentPage
+                dotIndex === saleIndex
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
-              onClick={() => {
-                setCurrentPage(dotIndex);
-                scrollToPage(dotIndex);
-              }}
+              onClick={() => saleScrollToIndex(dotIndex)}
               style={{ cursor: 'pointer' }}
             />
           ))}
