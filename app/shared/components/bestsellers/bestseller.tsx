@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ProductCard from "../productCard/productCard";
 import CarouselSkeleton from "../carouselSkeleton/CarouselSkeleton";
 import styles from "./bestseller.module.css";
@@ -79,12 +79,12 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
   };
 
   // Calculate how many slides fit in the container
-  const bestsellersHandleResize = useCallback(() => {
+  const bestsellersHandleResize = () => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
     setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
     bestsellersHandleScroll();
-  }, []);
+  };
 
 
   // Add event listeners
@@ -106,7 +106,8 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", bestsellersHandleResize);
     };
-  }, [bestsellersHandleResize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // If products change, re-check slides
   useEffect(() => {
