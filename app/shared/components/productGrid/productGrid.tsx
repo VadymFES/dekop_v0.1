@@ -79,18 +79,6 @@ export default function ProductGrid() {
     });
   };
 
-  const handleScrollLeft = () => {
-    const newIndex = Math.max(currentIndex - 1, 0);
-    setCurrentIndex(newIndex);
-    scrollToSlide(newIndex);
-  };
-
-  const handleScrollRight = () => {
-    const newIndex = Math.min(currentIndex + 1, totalSlides - 1);
-    setCurrentIndex(newIndex);
-    scrollToSlide(newIndex);
-  };
-
   // Dot click handler
   const handleDotClick = (index: number) => {
     setCurrentIndex(index);
@@ -134,47 +122,16 @@ export default function ProductGrid() {
       </div>
 
       {isMobile && (
-        <div className={styles.scrollButtons}>
-          <button
-            className={styles.arrowScrollButton}
-            onClick={handleScrollLeft}
-            aria-label="Scroll Left"
-          >
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <button
-            className={styles.arrowScrollButton}
-            onClick={handleScrollRight}
-            aria-label="Scroll Right"
-          >
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+        <div className={styles.dotsContainer}>
+          {dotsToRender.map((dotIndex) => (
+            <div
+              key={dotIndex}
+              className={`${styles.dot} ${
+                dotIndex === currentIndex ? styles.activeDot : ""
+              }`}
+              onClick={() => handleDotClick(dotIndex)}
+            />
+          ))}
         </div>
       )}
     </div>
