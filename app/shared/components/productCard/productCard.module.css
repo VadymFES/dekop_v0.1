@@ -90,6 +90,7 @@
   
   .productMeta {
     text-align: right; /* Right-align the rating and price */
+    min-width: fit-content;
   }
   
   .productName,
