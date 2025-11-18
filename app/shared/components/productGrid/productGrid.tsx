@@ -133,8 +133,8 @@ export default function ProductGrid() {
         </div>
       </div>
 
-      <div className={styles.scrollButtons}>
-        {isMobile && (
+      {isMobile && (
+        <div className={styles.scrollButtons}>
           <button
             className={styles.arrowScrollButton}
             onClick={handleScrollLeft}
@@ -155,19 +155,17 @@ export default function ProductGrid() {
               />
             </svg>
           </button>
-        )}
-        <div className={styles.dotsContainer}>
-          {dotsToRender.map((dotIndex) => (
-            <div
-              key={dotIndex}
-              className={`${styles.dot} ${
-                dotIndex === currentIndex ? styles.activeDot : ""
-              }`}
-              onClick={() => handleDotClick(dotIndex)}
-            />
-          ))}
-        </div>
-        {isMobile && (
+          <div className={styles.dotsContainer}>
+            {dotsToRender.map((dotIndex) => (
+              <div
+                key={dotIndex}
+                className={`${styles.dot} ${
+                  dotIndex === currentIndex ? styles.activeDot : ""
+                }`}
+                onClick={() => handleDotClick(dotIndex)}
+              />
+            ))}
+          </div>
           <button
             className={styles.arrowScrollButton}
             onClick={handleScrollRight}
@@ -188,8 +186,8 @@ export default function ProductGrid() {
               />
             </svg>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
