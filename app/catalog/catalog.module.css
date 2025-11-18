@@ -213,6 +213,12 @@
   pointer-events: none;
 }
 
+.productCardWrapper {
+  display: flex;
+  max-width: 300px;
+  gap: 20px;
+}
+
 /* Sidebar responsive adjustments */
 @media (min-width: 1200px) {
   .sidebar {
@@ -452,7 +458,7 @@
   gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
-  width: 100%;
+  /* width: 100%; */
 }
 
 /* Responsive design */
