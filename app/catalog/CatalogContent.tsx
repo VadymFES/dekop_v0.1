@@ -15,7 +15,7 @@ import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
 import { FilterModal } from "./components/FilterModal";
-import { ProductCatalogGrid } from "@/app/shared/components/catalog/ProductCatalogGrid";
+import { ProductsDisplay } from "./components/ProductsDisplay";
 
 export default function CatalogContent(): React.ReactElement {
   const searchParams = useSearchParams();
@@ -203,7 +203,7 @@ export default function CatalogContent(): React.ReactElement {
               handleFilterChange={handleFilterChange}
               handlePriceChange={handlePriceChange}
             />
-            <ProductCatalogGrid
+            <ProductsDisplay
               loading={loading}
               isFiltering={false} // No longer needed with new architecture
               error={error}

@@ -4,7 +4,7 @@ import ReviewsSection from "../review/reviewSection";
 import Partners from "../partners/partners";
 import dynamic from 'next/dynamic';
 import Image from "next/image";
-import FeaturedProductsSection from "../home/FeaturedProductsSection";
+import ProductGrid from "../productGrid/productGrid";
 import Bestseller from "../bestsellers/bestseller";
 import { ProductWithImages } from "@/app/lib/definitions";
 import Sale from "../saleCarousel/sale";
@@ -148,7 +148,7 @@ const Main = () => {
               </svg>
             </Link>
           </div>
-          <FeaturedProductsSection />
+          <ProductGrid />
         </section>
 
 
