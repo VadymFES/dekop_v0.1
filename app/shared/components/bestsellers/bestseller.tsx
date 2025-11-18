@@ -119,15 +119,28 @@ const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) =>
 
   // Calculate pages on mount and resize
   useEffect(() => {
-    calculatePages();
+    // Defer calculation to ensure DOM is ready
+    const timer = setTimeout(() => {
+      calculatePages();
+    }, 0);
+
     window.addEventListener("resize", calculatePages);
-    return () => window.removeEventListener("resize", calculatePages);
-  }, [bestsellerProducts.length]);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", calculatePages);
+    };
+  }, []);
 
   // Recalculate when products change
   useEffect(() => {
-    calculatePages();
-  }, [products]);
+    if (bestsellerProducts.length > 0) {
+      // Defer to ensure DOM has updated
+      const timer = setTimeout(() => {
+        calculatePages();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [bestsellerProducts.length]);
 
   // Dots range
   const maxDots = 6;

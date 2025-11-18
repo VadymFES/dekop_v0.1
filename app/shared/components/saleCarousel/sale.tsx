@@ -123,15 +123,28 @@ const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
 
   // Calculate pages on mount and resize
   useEffect(() => {
-    calculatePages();
+    // Defer calculation to ensure DOM is ready
+    const timer = setTimeout(() => {
+      calculatePages();
+    }, 0);
+
     window.addEventListener("resize", calculatePages);
-    return () => window.removeEventListener("resize", calculatePages);
-  }, [saleProducts.length]);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", calculatePages);
+    };
+  }, []);
 
   // Recalculate when products change
   useEffect(() => {
-    calculatePages();
-  }, [products]);
+    if (saleProducts.length > 0) {
+      // Defer to ensure DOM has updated
+      const timer = setTimeout(() => {
+        calculatePages();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [saleProducts.length]);
 
   // Build dot range with optional max of 6
   const maxDots = 6;
