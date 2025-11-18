@@ -132,11 +132,11 @@
   min-height: 44px;
 }
 
-.sortSelect:focus {
+/* .sortSelect:focus {
   outline: 2px solid var(--hover-color);
   outline-offset: 2px;
   border-color: var(--hover-color);
-}
+} */
 
 /* Selected Filters Display */
 .selectedFilters {
@@ -184,10 +184,10 @@
   background-color: #e8e8e8;
 }
 
-.clearAllFilters:focus {
+/* .clearAllFilters:focus {
   outline: 2px solid var(--hover-color);
   outline-offset: 2px;
-}
+} */
 
 /* Main Content Layout */
 .contentWrapper {
@@ -280,11 +280,11 @@
   min-height: 44px;
 }
 
-.categorySelect:focus {
+/* .categorySelect:focus {
   outline: 2px solid var(--hover-color);
   outline-offset: 2px;
   border-color: var(--hover-color);
-}
+} */
 
 .filterTitle {
   font-size: 16px;
@@ -329,10 +329,10 @@
   flex-shrink: 0;
 }
 
-.checkbox:focus {
+/* .checkbox:focus {
   outline: 2px solid var(--hover-color);
   outline-offset: 2px;
-}
+} */
 
 .checkbox:checked::before {
   content: '';
