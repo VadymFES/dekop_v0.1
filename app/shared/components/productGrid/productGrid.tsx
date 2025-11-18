@@ -155,17 +155,6 @@ export default function ProductGrid() {
               />
             </svg>
           </button>
-          <div className={styles.dotsContainer}>
-            {dotsToRender.map((dotIndex) => (
-              <div
-                key={dotIndex}
-                className={`${styles.dot} ${
-                  dotIndex === currentIndex ? styles.activeDot : ""
-                }`}
-                onClick={() => handleDotClick(dotIndex)}
-              />
-            ))}
-          </div>
           <button
             className={styles.arrowScrollButton}
             onClick={handleScrollRight}
