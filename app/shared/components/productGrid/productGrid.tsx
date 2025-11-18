@@ -34,6 +34,8 @@ export default function ProductGrid() {
   const productGridRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   // SWR data fetching
   const { data, error } = useSWR<ProductWithImages[]>("/api/products", fetcher);
@@ -48,6 +50,17 @@ export default function ProductGrid() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Update scroll button states
+  const updateScrollButtons = () => {
+    const container = productGridRef.current;
+    if (!container) return;
+
+    setCanScrollLeft(container.scrollLeft > 0);
+    setCanScrollRight(
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 1
+    );
+  };
+
   // Scroll event handlers
   useEffect(() => {
     const container = productGridRef.current;
@@ -57,14 +70,27 @@ export default function ProductGrid() {
       const children = Array.from(container.children) as HTMLElement[];
       const containerScrollLeft = container.scrollLeft + container.clientWidth / 2;
       const activeSlide = children.findIndex(
-        (child) => containerScrollLeft >= child.offsetLeft && 
+        (child) => containerScrollLeft >= child.offsetLeft &&
                  containerScrollLeft < child.offsetLeft + child.offsetWidth
       );
       if (activeSlide !== -1) setCurrentIndex(activeSlide);
+      updateScrollButtons();
+    };
+
+    const handleScroll = () => {
+      updateScrollButtons();
     };
 
     container.addEventListener("scrollend", handleScrollEnd);
-    return () => container.removeEventListener("scrollend", handleScrollEnd);
+    container.addEventListener("scroll", handleScroll);
+
+    // Initial button state
+    updateScrollButtons();
+
+    return () => {
+      container.removeEventListener("scrollend", handleScrollEnd);
+      container.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   // Scroll handlers
@@ -133,61 +159,61 @@ export default function ProductGrid() {
         </div>
       </div>
 
-      {isMobile && (
-        <div className={styles.scrollButtons}>
-          <button
-            className={styles.arrowScrollButton}
-            onClick={handleScrollLeft}
-            aria-label="Scroll Left"
+      <div className={styles.scrollButtons}>
+        <button
+          className={styles.arrowScrollButton}
+          onClick={handleScrollLeft}
+          disabled={!canScrollLeft}
+          aria-label="Scroll Left"
+        >
+          <svg
+            width="34"
+            height="24"
+            viewBox="0 0 24 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <div className={styles.dotsContainer}>
-            {dotsToRender.map((dotIndex) => (
-              <div
-                key={dotIndex}
-                className={`${styles.dot} ${
-                  dotIndex === currentIndex ? styles.activeDot : ""
-                }`}
-                onClick={() => handleDotClick(dotIndex)}
-              />
-            ))}
-          </div>
-          <button
-            className={styles.arrowScrollButton}
-            onClick={handleScrollRight}
-            aria-label="Scroll Right"
-          >
-            <svg
-              width="34"
-              height="24"
-              viewBox="0 0 24 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
-                stroke="#160101"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+            <path
+              d="M22.6663 7H1.33301M1.33301 7L9.33301 13M1.33301 7L9.33301 1"
+              stroke={canScrollLeft ? "#160101" : "#ccc"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <div className={styles.dotsContainer}>
+          {dotsToRender.map((dotIndex) => (
+            <div
+              key={dotIndex}
+              className={`${styles.dot} ${
+                dotIndex === currentIndex ? styles.activeDot : ""
+              }`}
+              onClick={() => handleDotClick(dotIndex)}
+            />
+          ))}
         </div>
-      )}
+        <button
+          className={styles.arrowScrollButton}
+          onClick={handleScrollRight}
+          disabled={!canScrollRight}
+          aria-label="Scroll Right"
+        >
+          <svg
+            width="34"
+            height="24"
+            viewBox="0 0 24 14"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M1.33301 7H22.6663M22.6663 7L14.6663 1M22.6663 7L14.6663 13"
+              stroke={canScrollRight ? "#160101" : "#ccc"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

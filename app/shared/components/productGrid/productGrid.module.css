@@ -10,11 +10,26 @@
   }
 
   .productGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns */
-    grid-template-rows: repeat(2, 1fr); /* 2 rows */
+    display: flex;
+    gap: 16px;
     height: 730px; /* Full height matching the special showcase */
-    width: fit-content;
+    width: 100%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    flex-wrap: wrap;
+    align-content: flex-start;
+  }
+
+  .productGrid::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
+  .productCardSlide {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
 
 
@@ -37,8 +52,9 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
+    margin-top: 1.5rem;
   }
-  
+
   .arrowScrollButton {
     background: none;
     border: none;
@@ -47,9 +63,19 @@
     margin: 0 4rem;
     display: flex;
     align-items: center;
+    transition: transform 0.2s ease, opacity 0.2s ease;
   }
-  
-  .arrowScrollButton:active{
+
+  .arrowScrollButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .arrowScrollButton:not(:disabled):hover {
+    transform: scale(1.1);
+  }
+
+  .arrowScrollButton:not(:disabled):active {
     transform: scale(0.9);
   }
   
@@ -85,98 +111,35 @@
   }
 
   @media screen and (max-width: 1500px) {
-  
     .bodyContentGrid{
       display: flex;
       justify-content: center;
       width: 100%;
     }
 
-
-    .productCardSlide {
-      flex: 0 0 auto;
-      width: max-content;
-      scroll-snap-align: start;
-    }
-
     .specialProductShowcase {
-        display: none;
-      }
+      display: none;
     }
+  }
 
   @media screen and (max-width: 1088px) {
     .bodyContentGrid {
       display: block;
       height: auto;
-
-    }
-    
-      .productGrid {
-        display: flex;
-        gap: 16px;
-        height: max-content;
-        width: 100%;
-        overflow-x: auto;
-        scroll-behavior: smooth;
-        scrollbar-width: none; /* Firefox */
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
     }
 
-    /* Scroll buttons container */
-  .scrollButtons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  /* Arrow buttons */
-  .arrowScrollButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    align-items: center;
-  }
-  
-  .arrowScrollButton:active {
-    transform: scale(0.9);
-  }
-  
-  /* Dots container */
-  .dotsContainer {
-    display: flex;
-    justify-content: center;
-    max-width: 150px;
-  }
-  
-  /* Individual dot */
-  .dot {
-    width: 0.75rem;
-    height: 0.75rem;
-    border-radius: 50%;
-    background-color: #ccc;
-    margin: 0 0.25rem;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    cursor: pointer;
-  }
+    .productGrid {
+      height: max-content;
+      flex-wrap: nowrap;
+    }
 
-  .dot:hover {
-    background-color: #999;
-    transform: scale(1.2);
-  }
+    .scrollButtons {
+      margin-top: 1rem;
+    }
 
-  .activeDot {
-    background-color: #F45145;
-  }
-
-  .activeDot:hover {
-    background-color: #E2281B;
-  }
+    .arrowScrollButton {
+      margin: 0;
+    }
   }
 
 @media screen and (max-width: 768px) {
