@@ -51,8 +51,9 @@
 
 .filterControls {
   flex: 1;
-  min-height: 70px;
+  /* min-height: 70px; */
   min-width: 0;
+  min-height: fit-content;
   /* Prevent flex shrinkage issues */
 }
 
