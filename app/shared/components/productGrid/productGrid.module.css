@@ -6,7 +6,7 @@
     display: flex;
     justify-content: space-between; 
     height: 730px;
-    
+    gap: 20px;
   }
 
   .productGrid {
@@ -15,6 +15,7 @@
     grid-template-rows: repeat(2, 1fr); /* 2 rows */
     height: 730px; /* Full height matching the special showcase */
     width: fit-content;
+    gap: 20px; /* Space between grid items */
   }
 
 
