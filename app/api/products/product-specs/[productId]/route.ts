@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { db } from "@/app/lib/db";
+import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { ProductSpecs, SofaSpecs, CornerSofaSpecs, BedSpecs, TableSpecs, ChairSpecs, MattressSpecs, WardrobeSpecs, AccessorySpecs } from "@/app/lib/definitions";
 
 export async function GET(
@@ -11,7 +12,7 @@ export async function GET(
 
   try {
     // Fetch the product's category
-    const { rows: productRows } = await sql`
+    const { rows: productRows } = await db.query`
       SELECT id, category FROM products WHERE id = ${Number(productId)}
     `;
 
@@ -47,7 +48,7 @@ export async function GET(
     console.log("Normalized category:", normalizedCategory);
 
     // Fetch raw product specs without transformations
-    const { rows: specRows } = await sql`
+    const { rows: specRows } = await db.query`
       SELECT * FROM product_specs WHERE product_id = ${Number(productId)}
     `;
 
@@ -140,7 +141,7 @@ export async function GET(
       sofaSpecs.armrest_type = row.armrest_type || null;
       sofaSpecs.seat_height = row.seat_height ? Number(row.seat_height) : null;
 
-      return NextResponse.json(sofaSpecs, { status: 200 });
+      return NextResponse.json(sofaSpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else if (normalizedCategory === "beds") {
       const bedSpecs = specs as Partial<BedSpecs>;
@@ -155,7 +156,7 @@ export async function GET(
       bedSpecs.storage_options = row.storage_options || null;
       bedSpecs.material = row.material_type || '';
 
-      return NextResponse.json(bedSpecs, { status: 200 });
+      return NextResponse.json(bedSpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else if (normalizedCategory === "tables") {
       const tableSpecs = specs as Partial<TableSpecs>;
@@ -172,7 +173,7 @@ export async function GET(
         height: row.height || 0
       };
 
-      return NextResponse.json(tableSpecs, { status: 200 });
+      return NextResponse.json(tableSpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else if (normalizedCategory === "chairs") {
       const chairSpecs = specs as Partial<ChairSpecs>;
@@ -188,7 +189,7 @@ export async function GET(
         height: row.height || 0
       };
 
-      return NextResponse.json(chairSpecs, { status: 200 });
+      return NextResponse.json(chairSpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else if (normalizedCategory === "mattresses") {
       const mattressSpecs = specs as Partial<MattressSpecs>;
@@ -201,7 +202,7 @@ export async function GET(
         width: row.depth || 0 // Using depth for width in mattresses
       };
 
-      return NextResponse.json(mattressSpecs, { status: 200 });
+      return NextResponse.json(mattressSpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else if (normalizedCategory === "wardrobes") {
       const wardrobeSpecs = specs as Partial<WardrobeSpecs>;
@@ -220,7 +221,7 @@ export async function GET(
         height: row.height || 0
       };
 
-      return NextResponse.json(wardrobeSpecs, { status: 200 });
+      return NextResponse.json(wardrobeSpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else if (normalizedCategory === "accessories") {
       const accessorySpecs = specs as Partial<AccessorySpecs>;
@@ -235,7 +236,7 @@ export async function GET(
         height: row.height || 0
       };
 
-      return NextResponse.json(accessorySpecs, { status: 200 });
+      return NextResponse.json(accessorySpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else {
       // If category doesn't match, return the raw data with a warning
@@ -255,7 +256,7 @@ export async function GET(
         },
         material: row.material_type || '',
         additional_features: row.additional_features || ''
-      }, { status: 200 });
+      }, { status: 200, headers: getCacheHeaders('static') });
     }
   } catch (error: unknown) {
     console.error("Error fetching product specs:", error);

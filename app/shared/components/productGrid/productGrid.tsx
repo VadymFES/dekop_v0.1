@@ -5,7 +5,6 @@ import ProductCard from "../productCard/productCard";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 import styles from "./productGrid.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
-import useSWR from "swr";
 import Image from "next/image";
 
 function getDotRange(
@@ -28,16 +27,17 @@ function getDotRange(
   return [start, end];
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+interface ProductGridProps {
+  products?: ProductWithImages[]; // Accept products from parent (server component)
+}
 
-export default function ProductGrid() {
+export default function ProductGrid({ products: serverProducts }: ProductGridProps) {
   const productGridRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // SWR data fetching
-  const { data, error } = useSWR<ProductWithImages[]>("/api/products", fetcher);
-  const products = data?.slice(0, 6) || [];
+  // Use server-provided products (performance optimized)
+  const products = serverProducts?.slice(0, 6) || [];
   const totalSlides = products.length;
 
   // Mobile detection and resize handler
@@ -103,10 +103,8 @@ export default function ProductGrid() {
   const dotsToRender = Array.from({ length: totalSlides }, (_, i) => i)
     .slice(dotStart, dotEnd + 1);
 
-  // Show skeleton while loading
-  if (!data) return <ProductGridSkeleton />;
-
-  if (error) return <div className={styles.error}>Failed to load products</div>;
+  // Show skeleton if no products provided
+  if (products.length === 0) return <ProductGridSkeleton />;
 
   return (
     <div className={styles.wrapper}>
@@ -123,12 +121,13 @@ export default function ProductGrid() {
             src="https://images.unsplash.com/photo-1630585308572-f53438fc684f?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Special Product"
             className={styles.halfImageLeft}
-            layout="responsive"
             loading="lazy"
             placeholder="blur"
-            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAyMSIgaGVpZ2h0PSIxMDEwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDIwIiBoZWlnaHQ9IjEwMTAiIGZpbGw9IiNmZmYiLz48L3N2Zz4="
-            width={2021}
-            height={1010}
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAxMCIgaGVpZ2h0PSI1MDUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YwZjBmMCIvPjwvc3ZnPg=="
+            width={500}
+            height={730}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={false}
           />
         </div>
       </div>
