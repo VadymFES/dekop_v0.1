@@ -10,8 +10,15 @@ import {
   formatDeliveryAddress
 } from '@/app/lib/order-utils';
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization of Resend client to avoid errors during build
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 export interface SendOrderConfirmationParams {
   order: OrderWithItems;
@@ -48,7 +55,7 @@ export async function sendOrderConfirmationEmail(
     console.log('  To:', `${customerName} <${to}>`);
     console.log('  Order:', order.order_number);
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: `${fromName} <${fromEmail}>`,
       to: [to],
       subject: `Підтвердження замовлення ${order.order_number} - Dekop`,
@@ -413,7 +420,7 @@ export async function sendOrderStatusUpdateEmail(params: {
       </html>
     `;
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: `${fromName} <${fromEmail}>`,
       to: [to],
       subject: `Оновлення статусу замовлення ${order.order_number} - Dekop`,
