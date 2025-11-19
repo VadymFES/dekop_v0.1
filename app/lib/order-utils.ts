@@ -86,8 +86,19 @@ export function formatUkrainianDate(date: Date | string): string {
  * Formats price in Ukrainian currency format
  * Example: "16 000 грн"
  */
-export function formatUkrainianPrice(amount: number): string {
-  const formatted = amount.toLocaleString('uk-UA', {
+export function formatUkrainianPrice(amount: number | string | null | undefined): string {
+  // Handle edge cases: undefined, null, or string values
+  let numericAmount: number;
+
+  if (amount === null || amount === undefined) {
+    numericAmount = 0;
+  } else if (typeof amount === 'string') {
+    numericAmount = parseFloat(amount) || 0;
+  } else {
+    numericAmount = amount;
+  }
+
+  const formatted = numericAmount.toLocaleString('uk-UA', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });

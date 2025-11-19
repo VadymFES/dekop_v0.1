@@ -352,6 +352,13 @@ export default function CheckoutPage() {
 
   const createLiqPayPayment = async (order: OrderWithItems, amount: number, description: string) => {
     try {
+      // Get base URL - use window.location.origin for client-side, fallback to env variable
+      const baseUrl = typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+      console.log('🔗 Creating LiqPay payment with base URL:', baseUrl);
+
       // Call server-side API to create payment (keeps private key secure)
       const paymentResponse = await fetch('/api/payments/liqpay/create', {
         method: 'POST',
@@ -362,9 +369,9 @@ export default function CheckoutPage() {
           orderNumber: order.order_number,
           description: description,
           customerEmail: formData.customerInfo.email,
-          resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
-          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
-          serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
+          resultUrl: `${baseUrl}/order-success?orderId=${order.id}`,
+          cancelUrl: `${baseUrl}/payment-cancelled?orderId=${order.id}`,
+          serverUrl: `${baseUrl}/api/webhooks/liqpay`
         })
       });
 
@@ -405,6 +412,13 @@ export default function CheckoutPage() {
 
   const createMonobankPayment = async (order: OrderWithItems, amount: number, description: string) => {
     try {
+      // Get base URL - use window.location.origin for client-side, fallback to env variable
+      const baseUrl = typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+      console.log('🔗 Creating Monobank payment with base URL:', baseUrl);
+
       // Call server-side API to create Monobank invoice
       const paymentResponse = await fetch('/api/payments/monobank/create', {
         method: 'POST',
@@ -414,9 +428,9 @@ export default function CheckoutPage() {
           orderId: order.id,
           orderNumber: order.order_number,
           customerEmail: formData.customerInfo.email,
-          resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
-          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
-          serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/monobank`
+          resultUrl: `${baseUrl}/order-success?orderId=${order.id}`,
+          cancelUrl: `${baseUrl}/payment-cancelled?orderId=${order.id}`,
+          serverUrl: `${baseUrl}/api/webhooks/monobank`
         })
       });
 

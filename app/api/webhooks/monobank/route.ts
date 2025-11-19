@@ -113,6 +113,8 @@ async function handleMonobankPaymentSuccess(
 
     // Fetch complete order with items to send email
     try {
+      console.log(`📧 Fetching order ${orderId} to send confirmation email...`);
+
       const orderResult = await sql`
         SELECT
           o.*,
@@ -145,6 +147,8 @@ async function handleMonobankPaymentSuccess(
           items: orderRow.items || []
         } as any;
 
+        console.log(`📦 Order found: ${order.order_number}, sending email to ${order.user_email}`);
+
         // Send confirmation email
         const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
         await sendOrderConfirmationEmail({
@@ -153,11 +157,21 @@ async function handleMonobankPaymentSuccess(
           customerName: `${order.user_surname} ${order.user_name}`
         });
 
-        console.log(`Confirmation email sent for order ${orderId}`);
+        console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
+      } else {
+        console.error(`❌ Order ${orderId} not found - cannot send confirmation email`);
       }
     } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
+      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
+      console.error('Email error details:', emailError);
+
+      if (emailError instanceof Error) {
+        console.error('Email error message:', emailError.message);
+        console.error('Email error stack:', emailError.stack);
+      }
+
       // Don't throw - email failure shouldn't fail the webhook
+      // But make sure the error is clearly visible in logs
     }
 
   } catch (error) {

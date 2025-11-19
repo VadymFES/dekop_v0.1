@@ -14,26 +14,27 @@ import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
 
 export async function GET() {
   const diagnostics = {
-    mailchimpKeyConfigured: !!process.env.MAILCHIMP_TRANSACTIONAL_API_KEY,
-    fromEmail: process.env.MAILCHIMP_FROM_EMAIL || 'NOT CONFIGURED (defaults to orders@dekop.com)',
-    fromName: process.env.MAILCHIMP_FROM_NAME || 'NOT CONFIGURED (defaults to Dekop)',
+    resendKeyConfigured: !!process.env.RESEND_API_KEY,
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'NOT CONFIGURED (defaults to noreply@dekop.com.ua)',
+    fromName: process.env.RESEND_FROM_NAME || 'NOT CONFIGURED (defaults to Dekop Furniture Store)',
     nodeEnv: process.env.NODE_ENV,
   };
 
   return NextResponse.json({
     status: 'Email configuration check',
+    emailService: 'Resend',
     config: diagnostics,
     webhookFlow: {
       liqpay: 'POST /api/webhooks/liqpay → handleLiqPayPaymentSuccess → sendOrderConfirmationEmail',
       monobank: 'POST /api/webhooks/monobank → handleMonobankPaymentSuccess → sendOrderConfirmationEmail',
       manual: 'POST /api/orders/send-confirmation → sendOrderConfirmationEmail'
     },
-    message: diagnostics.mailchimpKeyConfigured
-      ? '✅ Mailchimp API key is configured - email service should work'
-      : '⚠️ MAILCHIMP_TRANSACTIONAL_API_KEY is not configured - emails will not be sent',
-    recommendation: diagnostics.mailchimpKeyConfigured
+    message: diagnostics.resendKeyConfigured
+      ? '✅ Resend API key is configured - email service should work'
+      : '⚠️ RESEND_API_KEY is not configured - emails will not be sent',
+    recommendation: diagnostics.resendKeyConfigured
       ? 'Use POST /api/test/email?test_email=YOUR_EMAIL to send a test email'
-      : 'Please configure MAILCHIMP_TRANSACTIONAL_API_KEY in your environment variables'
+      : 'Please configure RESEND_API_KEY in your environment variables (see RESEND_SETUP.md)'
   });
 }
 
@@ -48,18 +49,19 @@ export async function POST(request: Request) {
     }, { status: 400 });
   }
 
-  if (!process.env.MAILCHIMP_TRANSACTIONAL_API_KEY) {
+  if (!process.env.RESEND_API_KEY) {
     return NextResponse.json({
       error: 'Email service not configured',
-      message: 'MAILCHIMP_TRANSACTIONAL_API_KEY is not set',
+      message: 'RESEND_API_KEY is not set',
+      help: 'See RESEND_SETUP.md for setup instructions',
       config: {
-        mailchimpKeyConfigured: false,
-        fromEmail: process.env.MAILCHIMP_FROM_EMAIL || 'NOT CONFIGURED',
+        resendKeyConfigured: false,
+        fromEmail: process.env.RESEND_FROM_EMAIL || 'NOT CONFIGURED',
       }
     }, { status: 500 });
   }
 
-  // Create a test order object
+  // Create a test order object with proper types
   const testOrder = {
     id: 'test-' + Date.now(),
     order_number: 'TEST-' + Math.floor(Math.random() * 10000),
@@ -67,20 +69,46 @@ export async function POST(request: Request) {
     user_surname: 'Користувач',
     user_email: testEmail,
     user_phone: '+380123456789',
+    delivery_method: 'nova_poshta',
     delivery_city: 'Київ',
-    delivery_address: 'вул. Тестова, 1',
-    delivery_method: 'Нова Пошта',
-    payment_method: 'Тестова оплата',
-    total_amount: '1234.56',
-    created_at: new Date().toISOString(),
-    order_status: 'confirmed',
+    delivery_street: 'вул. Тестова',
+    delivery_building: '1',
+    delivery_apartment: '42',
+    delivery_postal_code: '01001',
+    store_location: null,
+
+    // Pricing - must be numbers, not strings
+    subtotal: 15000,
+    discount_percent: 0,
+    discount_amount: 0,
+    delivery_cost: 0,
+    total_amount: 15000,
+    prepayment_amount: 0,
+
+    payment_method: 'liqpay',
     payment_status: 'paid',
+    order_status: 'confirmed',
+    customer_notes: 'Це тестове замовлення для перевірки email',
+
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+
     items: [
       {
-        product_name: 'Тестовий товар',
+        id: 'item-1',
+        order_id: 'test-' + Date.now(),
+        product_id: 'prod-test-1',
+        product_name: 'Тестовий диван "Комфорт"',
+        product_slug: 'test-sofa-comfort',
+        product_article: 'TST-001',
         quantity: 1,
-        price: '1234.56',
-        image_url: 'https://via.placeholder.com/150'
+        color: 'Сірий',
+        unit_price: 15000,
+        total_price: 15000,
+        product_image_url: 'https://via.placeholder.com/150',
+        product_category: 'sofas',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
     ]
   };
@@ -92,23 +120,17 @@ export async function POST(request: Request) {
       customerName: 'Тестовий Користувач'
     });
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: `Test email sent successfully to ${testEmail}`,
-        messageId: result.messageId,
-        testOrder: {
-          order_number: testOrder.order_number,
-          total_amount: testOrder.total_amount
-        }
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        message: 'Email sending failed',
-        error: result.error
-      }, { status: 500 });
-    }
+    // If we reach here, email was sent successfully (otherwise it would throw)
+    return NextResponse.json({
+      success: true,
+      message: `Test email sent successfully to ${testEmail}`,
+      messageId: result.messageId,
+      status: result.status,
+      testOrder: {
+        order_number: testOrder.order_number,
+        total_amount: testOrder.total_amount
+      }
+    });
   } catch (error) {
     console.error('Error sending test email:', error);
     return NextResponse.json({
