@@ -14,10 +14,9 @@
 import { db } from '@/app/lib/db';
 import { ProductWithImages } from './lib/definitions';
 import Main from './shared/components/main/main';
-import { REVALIDATE } from './lib/cache-headers';
 
 // Enable ISR with 1 hour revalidation
-export const revalidate = REVALIDATE.HOMEPAGE; // 3600 seconds = 1 hour
+export const revalidate = 3600; // 3600 seconds = 1 hour
 
 /**
  * Fetch featured products directly from database (server-side)
