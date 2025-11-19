@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/app/lib/db";
+import { sql } from "@vercel/postgres";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
 
 // Helper function to normalize category names
@@ -273,7 +273,7 @@ export async function GET(request: Request) {
     // Додаємо сортування за рейтингом (опціонально)
     // query += ` ORDER BY rating DESC`;
 
-    const { rows } = await db.query(query, values);
+    const { rows } = await sql.query(query, values);
 
     const products = rows.map(row => {
       const normalizedCategory = normalizeCategory(row.category);
