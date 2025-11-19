@@ -14,26 +14,27 @@ import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
 
 export async function GET() {
   const diagnostics = {
-    mailchimpKeyConfigured: !!process.env.MAILCHIMP_TRANSACTIONAL_API_KEY,
-    fromEmail: process.env.MAILCHIMP_FROM_EMAIL || 'NOT CONFIGURED (defaults to orders@dekop.com)',
-    fromName: process.env.MAILCHIMP_FROM_NAME || 'NOT CONFIGURED (defaults to Dekop)',
+    resendKeyConfigured: !!process.env.RESEND_API_KEY,
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'NOT CONFIGURED (defaults to noreply@dekop.com.ua)',
+    fromName: process.env.RESEND_FROM_NAME || 'NOT CONFIGURED (defaults to Dekop Furniture Store)',
     nodeEnv: process.env.NODE_ENV,
   };
 
   return NextResponse.json({
     status: 'Email configuration check',
+    emailService: 'Resend',
     config: diagnostics,
     webhookFlow: {
       liqpay: 'POST /api/webhooks/liqpay → handleLiqPayPaymentSuccess → sendOrderConfirmationEmail',
       monobank: 'POST /api/webhooks/monobank → handleMonobankPaymentSuccess → sendOrderConfirmationEmail',
       manual: 'POST /api/orders/send-confirmation → sendOrderConfirmationEmail'
     },
-    message: diagnostics.mailchimpKeyConfigured
-      ? '✅ Mailchimp API key is configured - email service should work'
-      : '⚠️ MAILCHIMP_TRANSACTIONAL_API_KEY is not configured - emails will not be sent',
-    recommendation: diagnostics.mailchimpKeyConfigured
+    message: diagnostics.resendKeyConfigured
+      ? '✅ Resend API key is configured - email service should work'
+      : '⚠️ RESEND_API_KEY is not configured - emails will not be sent',
+    recommendation: diagnostics.resendKeyConfigured
       ? 'Use POST /api/test/email?test_email=YOUR_EMAIL to send a test email'
-      : 'Please configure MAILCHIMP_TRANSACTIONAL_API_KEY in your environment variables'
+      : 'Please configure RESEND_API_KEY in your environment variables (see RESEND_SETUP.md)'
   });
 }
 
@@ -48,13 +49,14 @@ export async function POST(request: Request) {
     }, { status: 400 });
   }
 
-  if (!process.env.MAILCHIMP_TRANSACTIONAL_API_KEY) {
+  if (!process.env.RESEND_API_KEY) {
     return NextResponse.json({
       error: 'Email service not configured',
-      message: 'MAILCHIMP_TRANSACTIONAL_API_KEY is not set',
+      message: 'RESEND_API_KEY is not set',
+      help: 'See RESEND_SETUP.md for setup instructions',
       config: {
-        mailchimpKeyConfigured: false,
-        fromEmail: process.env.MAILCHIMP_FROM_EMAIL || 'NOT CONFIGURED',
+        resendKeyConfigured: false,
+        fromEmail: process.env.RESEND_FROM_EMAIL || 'NOT CONFIGURED',
       }
     }, { status: 500 });
   }
