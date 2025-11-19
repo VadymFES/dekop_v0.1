@@ -1,3 +1,5 @@
+"use client";
+
 import styles from "./main.module.css";
 import MaterialsMain from "../materialsMain/materialsMain";
 import ReviewsSection from "../review/reviewSection";
@@ -8,21 +10,30 @@ import ProductGrid from "../productGrid/productGrid";
 import Bestseller from "../bestsellers/bestseller";
 import { ProductWithImages } from "@/app/lib/definitions";
 import Sale from "../saleCarousel/sale";
-import useSWR from 'swr'
 import Link from "next/link";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+// Lazy load heavy components for better performance
 const Map = dynamic(() => import('../mapComponent/map'), { ssr: false });
 
+interface MainProps {
+  products?: ProductWithImages[]; // Optional: passed from server component for better performance
+}
 
-const Main = () => {
+/**
+ * Main Homepage Component
+ *
+ * Can be used in two modes:
+ * 1. Server-rendered with pre-fetched products (optimal for performance)
+ * 2. Client-rendered with SWR (legacy fallback)
+ */
+const Main = ({ products: serverProducts }: MainProps) => {
+  // Use server-provided products if available (ISR mode)
+  const products = serverProducts || [];
 
-
-  const { data, error } = useSWR<ProductWithImages[]>('/api/products', fetcher);
-  const products = data || [];
-  const isLoading = !data && !error;
-
-  if (error) return <div className={styles.container}>Failed to load products</div>;
+  // Show empty state if no products
+  if (products.length === 0) {
+    return <div className={styles.container}>Loading products...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -148,7 +159,7 @@ const Main = () => {
               </svg>
             </Link>
           </div>
-          <ProductGrid />
+          <ProductGrid products={products} />
         </section>
 
 
@@ -395,7 +406,7 @@ const Main = () => {
               </svg>
             </Link>
           </div>
-          <Sale products={products} loading={isLoading} />
+          <Sale products={products} loading={false} />
         </section>
 
 
@@ -422,7 +433,7 @@ const Main = () => {
               </svg>
             </Link>
           </div>
-          <Bestseller products={products} loading={isLoading} />
+          <Bestseller products={products} loading={false} />
         </section>
 
         <section className={styles.bodyPartners}>

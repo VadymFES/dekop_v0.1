@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { getCacheHeaders } from "@/app/lib/cache-headers";
 
 // Helper function to normalize category names
 function normalizeCategory(category: string): string {
@@ -300,12 +301,10 @@ export async function GET(request: Request) {
       };
     });
 
-    // Add Cache-Control header to the response
-    return NextResponse.json(products, { 
+    // Return with optimized caching headers
+    return NextResponse.json(products, {
       status: 200,
-      headers: { 
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600' 
-      }
+      headers: getCacheHeaders('catalog'),
     });
   } catch (error) {
     console.error("Error fetching products:", error);

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { db } from "@/app/lib/db";
+import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { ProductColor } from "@/app/lib/definitions";
-
-export const dynamic = "force-dynamic";
 
 export async function GET(
   _request: Request,
@@ -12,7 +11,7 @@ export async function GET(
   const productId = (await params).productId;
 
   try {
-    const { rows } = await sql<ProductColor>`
+    const { rows } = await db.query`
       SELECT product_id, color, image_url FROM product_spec_colors WHERE product_id = ${Number(productId)}
     `;
 
@@ -23,7 +22,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(rows, { status: 200, headers: getCacheHeaders('static') });
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
