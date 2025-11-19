@@ -138,8 +138,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cart_items_cart_product
 
 -- Index for customer order lookup
 -- Used in: Fetching orders by email
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_customer_email
-  ON orders(customer_email);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_user_email
+  ON orders(user_email);
 
 -- Index for recent orders
 -- Used in: Admin dashboard, order history
@@ -147,8 +147,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_created_desc
   ON orders(created_at DESC);
 
 -- Index for order status filtering
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_status
-  ON orders(status);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_order_status
+  ON orders(order_status);
 
 -- Index for order payment status
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_payment_status
