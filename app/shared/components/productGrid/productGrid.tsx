@@ -124,8 +124,8 @@ export default function ProductGrid({ products: serverProducts }: ProductGridPro
             loading="lazy"
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAyMSIgaGVpZ2h0PSIxMDEwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDIwIiBoZWlnaHQ9IjEwMTAiIGZpbGw9IiNmZmYiLz48L3N2Zz4="
-            width={2021}
-            height={1010}
+            width={500}
+            height={730}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
