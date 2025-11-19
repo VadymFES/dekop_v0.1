@@ -13,6 +13,7 @@ import {
 } from '@/app/lib/order-utils';
 import OrderSummary from '@/app/components/order/OrderSummary';
 import { useCart } from '@/app/context/CartContext';
+import InvoiceDownloadButton from '@/app/components/invoice/InvoiceDownloadButton';
 import styles from './page.module.css';
 
 // LocalStorage key for checkout form data (same as in checkout page)
@@ -319,6 +320,20 @@ function OrderSuccessContent() {
             <p className={styles.notice}>
               📧 Підтвердження замовлення відправлено на {order.user_email}
             </p>
+          </section>
+
+          {/* Invoice Download Section */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Рахунок-фактура</h2>
+            <p className={styles.infoText} style={{ marginBottom: '15px' }}>
+              Завантажте рахунок-фактуру для ваших записів або бухгалтерії
+            </p>
+            <InvoiceDownloadButton
+              orderId={order.id}
+              orderNumber={order.order_number}
+              variant="secondary"
+              showPreview={true}
+            />
           </section>
         </div>
 
