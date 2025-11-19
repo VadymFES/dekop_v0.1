@@ -32,21 +32,27 @@ export async function sendOrderConfirmationEmail(
 
     // Check if Mailchimp API key is configured
     if (!process.env.MAILCHIMP_TRANSACTIONAL_API_KEY) {
-      console.warn('Mailchimp Transactional API key is not configured. Skipping email send.');
-      console.log('Email would have been sent to:', to);
-      console.log('Order:', order.order_number);
-      return {
-        success: false,
-        error: 'Email service not configured'
-      };
+      const errorMsg = 'MAILCHIMP_TRANSACTIONAL_API_KEY is not configured. Cannot send emails.';
+      console.error('❌ EMAIL SENDING FAILED:', errorMsg);
+      console.error('📧 Email would have been sent to:', to);
+      console.error('📦 Order:', order.order_number);
+      throw new Error(errorMsg);
     }
 
     // Build email HTML content
     const htmlContent = buildOrderConfirmationHTML(order);
 
+    const fromEmail = process.env.MAILCHIMP_FROM_EMAIL || 'orders@dekop.com';
+    const fromName = process.env.MAILCHIMP_FROM_NAME || 'Dekop Furniture';
+
+    console.log('📧 Attempting to send order confirmation email...');
+    console.log('  From:', `${fromName} <${fromEmail}>`);
+    console.log('  To:', `${customerName} <${to}>`);
+    console.log('  Order:', order.order_number);
+
     const message = {
-      from_email: process.env.MAILCHIMP_FROM_EMAIL || 'orders@dekop.com',
-      from_name: process.env.MAILCHIMP_FROM_NAME || 'Dekop Furniture',
+      from_email: fromEmail,
+      from_name: fromName,
       to: [
         {
           email: to,
@@ -72,7 +78,10 @@ export async function sendOrderConfirmationEmail(
       message,
     });
 
-    console.log('Order confirmation email sent:', response);
+    console.log('✅ Order confirmation email sent successfully!');
+    console.log('  Message ID:', response[0]?.id);
+    console.log('  Status:', response[0]?.status);
+    console.log('  Reject Reason:', response[0]?.reject_reason || 'none');
 
     return {
       success: true,
@@ -80,7 +89,19 @@ export async function sendOrderConfirmationEmail(
       status: response[0]?.status,
     };
   } catch (error) {
-    console.error('Error sending order confirmation email:', error);
+    console.error('❌ Error sending order confirmation email');
+    console.error('Error details:', error);
+
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
+    // Log the full error object for Mailchimp-specific errors
+    if (typeof error === 'object' && error !== null) {
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+    }
+
     throw new Error(
       error instanceof Error ? error.message : 'Failed to send email'
     );

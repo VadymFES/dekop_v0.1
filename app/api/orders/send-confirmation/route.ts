@@ -60,24 +60,36 @@ export async function POST(request: Request) {
 
     // Send confirmation email
     try {
+      console.log(`📧 Sending confirmation email for order ${order.order_number} to ${order.user_email}`);
+
       await sendOrderConfirmationEmail({
         order,
         to: order.user_email,
         customerName: `${order.user_surname} ${order.user_name}`
       });
 
-      console.log(`Confirmation email sent for order ${orderId}`);
+      console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
 
       return NextResponse.json({
         success: true,
-        message: 'Confirmation email sent successfully'
+        message: 'Confirmation email sent successfully',
+        orderNumber: order.order_number,
+        sentTo: order.user_email
       });
     } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
+      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
+      console.error('Email error:', emailError);
+
+      if (emailError instanceof Error) {
+        console.error('Error message:', emailError.message);
+        console.error('Error stack:', emailError.stack);
+      }
+
       return NextResponse.json(
         {
           error: 'Failed to send confirmation email',
-          details: emailError instanceof Error ? emailError.message : 'Unknown error'
+          details: emailError instanceof Error ? emailError.message : 'Unknown error',
+          orderNumber: order.order_number
         },
         { status: 500 }
       );
