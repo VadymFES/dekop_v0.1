@@ -25,39 +25,20 @@ export const revalidate = REVALIDATE.HOMEPAGE; // 3600 seconds = 1 hour
  */
 async function getFeaturedProducts(): Promise<ProductWithImages[]> {
   try {
+    // Optimized query - avoid expensive JSON aggregations and multiple JOINs
+    // Fetch primary image only, other data can be loaded by components if needed
     const { rows } = await db.query(`
       SELECT
         p.id, p.name, p.slug, p.description, p.category, p.price, p.stock,
         p.rating, p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', pi.id,
-              'image_url', pi.image_url,
-              'alt', pi.alt,
-              'is_primary', pi.is_primary
-            )
-          ) FILTER (WHERE pi.id IS NOT NULL),
-          '[]'
-        ) AS images,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'product_id', pc.product_id,
-              'color', pc.color,
-              'image_url', pc.image_url
-            )
-          ) FILTER (WHERE pc.product_id IS NOT NULL),
-          '[]'
-        ) AS colors,
-        COUNT(DISTINCT r.id) AS reviews
+        pi.id as image_id,
+        pi.image_url,
+        pi.alt as image_alt,
+        pi.is_primary,
+        (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) AS review_count
       FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.product_id
-      LEFT JOIN product_spec_colors pc ON p.id = pc.product_id
-      LEFT JOIN reviews r ON p.id = r.product_id
-      WHERE p.is_on_sale = true OR p.is_new = true OR p.is_bestseller = true
-      GROUP BY p.id, p.name, p.slug, p.description, p.category, p.price, p.stock,
-               p.rating, p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at
+      LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = true
+      WHERE (p.is_on_sale = true OR p.is_new = true OR p.is_bestseller = true)
       ORDER BY
         CASE
           WHEN p.is_on_sale THEN 1
@@ -79,14 +60,20 @@ async function getFeaturedProducts(): Promise<ProductWithImages[]> {
       price: row.price,
       stock: row.stock,
       rating: parseFloat(row.rating) || 0,
-      reviews: parseInt(row.reviews) || 0,
+      reviews: parseInt(row.review_count) || 0,
       is_on_sale: row.is_on_sale,
       is_new: row.is_new,
       is_bestseller: row.is_bestseller,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      images: Array.isArray(row.images) ? row.images : [],
-      colors: Array.isArray(row.colors) ? row.colors : [],
+      // Only include primary image for performance
+      images: row.image_id ? [{
+        id: row.image_id,
+        image_url: row.image_url,
+        alt: row.image_alt,
+        is_primary: row.is_primary,
+      }] : [],
+      colors: [], // Colors not needed on homepage
       specs: null, // Specs not needed for homepage
     }));
 

@@ -121,12 +121,12 @@ export default function ProductGrid({ products: serverProducts }: ProductGridPro
             src="https://images.unsplash.com/photo-1630585308572-f53438fc684f?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Special Product"
             className={styles.halfImageLeft}
-            layout="responsive"
             loading="lazy"
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAyMSIgaGVpZ2h0PSIxMDEwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDIwIiBoZWlnaHQ9IjEwMTAiIGZpbGw9IiNmZmYiLz48L3N2Zz4="
             width={2021}
             height={1010}
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
       </div>
