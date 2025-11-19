@@ -21,8 +21,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_featured
 -- Index for price filtering (catalog queries)
 -- Used in: /api/products?maxPrice=...
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_price
-  ON products(price)
-  WHERE price IS NOT NULL;
+  ON products(price);
 
 -- Index for slug lookups (product detail pages)
 -- Used in: /api/products/[slug]
@@ -34,17 +33,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_slug
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_created_desc
   ON products(created_at DESC);
 
--- Index for active products only
--- Used in: Most queries filter by active = true
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_active
-  ON products(active)
-  WHERE active = true;
-
--- Composite index for category + active filtering
--- Used in: /api/products?category=...&active=true
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_category_active
-  ON products(category, active)
-  WHERE active = true;
+-- Note: Removed idx_products_active - 'active' column does not exist in schema
+-- Note: Removed idx_products_category_active - 'active' column does not exist
 
 -- ============================================================================
 -- PRODUCT IMAGES TABLE INDEXES
