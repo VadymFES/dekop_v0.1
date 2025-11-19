@@ -8,7 +8,10 @@ import { FavoritesProvider } from "./context/FavoritesContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 
-// TODO: Add font optimization with Ukrainian (Cyrillic) support when deploying
+// Font optimization with Ukrainian (Cyrillic) support
+// Note: next/font/google disabled in build due to network restrictions
+// Using CSS @import with font-display: swap instead (see global.css)
+// TODO: Re-enable when deploying to Vercel (will work in production)
 // import { Inter } from 'next/font/google';
 // const inter = Inter({
 //   subsets: ['latin', 'cyrillic'],
@@ -16,6 +19,7 @@ import { Analytics } from "@vercel/analytics/next";
 //   variable: '--font-inter',
 //   preload: true,
 //   weight: ['400', '500', '600', '700'],
+//   fallback: ['Arial', 'Helvetica', 'sans-serif'],
 // });
 
 export const metadata: Metadata = {

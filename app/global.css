@@ -1,5 +1,10 @@
-/* Import Inter font from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+/* Import Inter font from Google Fonts with optimizations for CLS */
+/* display=swap prevents FOIT (Flash of Invisible Text) */
+/* Limited to only the weights we use: 400, 500, 600, 700 */
+/* Includes Cyrillic subset for Ukrainian language support */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=latin,cyrillic');
+
+/* Import Leaflet CSS for map components */
 @import url('https://unpkg.com/leaflet/dist/leaflet.css');
 
 /* Root Variables for Color Themes */
@@ -18,7 +23,7 @@ body {
     height: 100%;
     color: var(--foreground); /* Set text color */
     background: var(--background); /* Set background color */
-    font-family: 'Inter', Arial, Helvetica, sans-serif; /* Use Inter font */
+    font-family: 'Inter', Arial, Helvetica, sans-serif; /* Use Inter font with fallbacks */
     -webkit-font-smoothing: antialiased; /* Improve font rendering */
     -webkit-text-size-adjust: 100%;
 }
