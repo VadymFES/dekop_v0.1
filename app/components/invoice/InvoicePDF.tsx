@@ -344,8 +344,9 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({ data }) => {
   const t = labels[lang];
 
   // Format currency
-  const formatCurrency = (amount: number): string => {
-    return `${amount.toFixed(2)} ${data.pricing.currency}`;
+  const formatCurrency = (amount: number | string): string => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return `${numAmount.toFixed(2)} ${data.pricing.currency}`;
   };
 
   // Format date

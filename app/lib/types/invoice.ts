@@ -182,15 +182,22 @@ export function orderToInvoiceData(
     refunded: { uk: 'Повернено', en: 'Refunded' },
   };
 
+  // Helper to safely convert to number
+  const toNumber = (value: any): number => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') return parseFloat(value);
+    return 0;
+  };
+
   // Transform order items to invoice items
   const items: InvoiceItem[] = order.items.map((item) => ({
     id: item.id,
     name: item.product_name,
     article: item.product_article,
-    quantity: item.quantity,
+    quantity: toNumber(item.quantity),
     color: item.color,
-    unitPrice: item.unit_price,
-    totalPrice: item.total_price,
+    unitPrice: toNumber(item.unit_price),
+    totalPrice: toNumber(item.total_price),
     imageUrl: item.product_image_url,
     category: item.product_category,
   }));
@@ -232,13 +239,13 @@ export function orderToInvoiceData(
     items,
 
     pricing: {
-      subtotal: order.subtotal,
-      discountPercent: order.discount_percent,
-      discountAmount: order.discount_amount,
-      deliveryCost: order.delivery_cost,
-      total: order.total_amount,
-      prepaymentAmount: order.prepayment_amount,
-      remainingAmount: order.total_amount - (order.payment_status === 'paid' ? order.total_amount : order.prepayment_amount),
+      subtotal: toNumber(order.subtotal),
+      discountPercent: toNumber(order.discount_percent),
+      discountAmount: toNumber(order.discount_amount),
+      deliveryCost: toNumber(order.delivery_cost),
+      total: toNumber(order.total_amount),
+      prepaymentAmount: toNumber(order.prepayment_amount),
+      remainingAmount: toNumber(order.total_amount) - (order.payment_status === 'paid' ? toNumber(order.total_amount) : toNumber(order.prepayment_amount)),
       currency: 'UAH',
     },
 
@@ -259,7 +266,7 @@ export function orderToInvoiceData(
       methodLabel: paymentMethodLabels[order.payment_method]?.[language] || order.payment_method,
       status: order.payment_status,
       statusLabel: paymentStatusLabels[order.payment_status]?.[language] || order.payment_status,
-      paidAmount: order.payment_status === 'paid' ? order.total_amount : order.prepayment_amount,
+      paidAmount: order.payment_status === 'paid' ? toNumber(order.total_amount) : toNumber(order.prepayment_amount),
       paymentDate: order.payment_status === 'paid' ? order.updated_at : undefined,
       deadline: order.payment_deadline,
     },
