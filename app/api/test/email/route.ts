@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }, { status: 500 });
   }
 
-  // Create a test order object
+  // Create a test order object with proper types
   const testOrder = {
     id: 'test-' + Date.now(),
     order_number: 'TEST-' + Math.floor(Math.random() * 10000),
@@ -67,20 +67,46 @@ export async function POST(request: Request) {
     user_surname: 'Користувач',
     user_email: testEmail,
     user_phone: '+380123456789',
+    delivery_method: 'nova_poshta',
     delivery_city: 'Київ',
-    delivery_address: 'вул. Тестова, 1',
-    delivery_method: 'Нова Пошта',
-    payment_method: 'Тестова оплата',
-    total_amount: '1234.56',
-    created_at: new Date().toISOString(),
-    order_status: 'confirmed',
+    delivery_street: 'вул. Тестова',
+    delivery_building: '1',
+    delivery_apartment: '42',
+    delivery_postal_code: '01001',
+    store_location: null,
+
+    // Pricing - must be numbers, not strings
+    subtotal: 15000,
+    discount_percent: 0,
+    discount_amount: 0,
+    delivery_cost: 0,
+    total_amount: 15000,
+    prepayment_amount: 0,
+
+    payment_method: 'liqpay',
     payment_status: 'paid',
+    order_status: 'confirmed',
+    customer_notes: 'Це тестове замовлення для перевірки email',
+
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+
     items: [
       {
-        product_name: 'Тестовий товар',
+        id: 'item-1',
+        order_id: 'test-' + Date.now(),
+        product_id: 'prod-test-1',
+        product_name: 'Тестовий диван "Комфорт"',
+        product_slug: 'test-sofa-comfort',
+        product_article: 'TST-001',
         quantity: 1,
-        price: '1234.56',
-        image_url: 'https://via.placeholder.com/150'
+        color: 'Сірий',
+        unit_price: 15000,
+        total_price: 15000,
+        product_image_url: 'https://via.placeholder.com/150',
+        product_category: 'sofas',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
     ]
   };
