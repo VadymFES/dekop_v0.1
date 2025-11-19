@@ -1,9 +1,10 @@
-// app/lib/invoice/invoice-generator.ts
+// app/lib/invoice/invoice-generator.tsx
 'use client';
 
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { InvoiceData, CompanyInfo } from '../types/invoice';
+import { InvoicePDF } from '@/app/components/invoice/InvoicePDF';
 
 /**
  * Get company information from environment variables
@@ -33,9 +34,6 @@ export async function generateInvoicePDF(
   invoiceData: InvoiceData
 ): Promise<Blob> {
   try {
-    // Dynamically import the InvoicePDF component to avoid SSR issues
-    const { InvoicePDF } = await import('@/app/components/invoice/InvoicePDF');
-
     // Generate PDF blob
     const blob = await pdf(<InvoicePDF data={invoiceData} />).toBlob();
 
