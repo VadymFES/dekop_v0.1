@@ -120,23 +120,17 @@ export async function POST(request: Request) {
       customerName: 'Тестовий Користувач'
     });
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: `Test email sent successfully to ${testEmail}`,
-        messageId: result.messageId,
-        testOrder: {
-          order_number: testOrder.order_number,
-          total_amount: testOrder.total_amount
-        }
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        message: 'Email sending failed',
-        error: result.error
-      }, { status: 500 });
-    }
+    // If we reach here, email was sent successfully (otherwise it would throw)
+    return NextResponse.json({
+      success: true,
+      message: `Test email sent successfully to ${testEmail}`,
+      messageId: result.messageId,
+      status: result.status,
+      testOrder: {
+        order_number: testOrder.order_number,
+        total_amount: testOrder.total_amount
+      }
+    });
   } catch (error) {
     console.error('Error sending test email:', error);
     return NextResponse.json({
