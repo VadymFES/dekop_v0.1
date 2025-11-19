@@ -42,7 +42,7 @@ async function getFeaturedProducts(): Promise<ProductWithImages[]> {
         ) AS images,
         COALESCE(
           json_agg(
-            DISTINCT json_build_object(
+            json_build_object(
               'product_id', pc.product_id,
               'color', pc.color,
               'image_url', pc.image_url
