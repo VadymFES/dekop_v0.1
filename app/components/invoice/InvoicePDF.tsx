@@ -1,5 +1,4 @@
 // app/components/invoice/InvoicePDF.tsx
-'use client';
 
 import React from 'react';
 import {
