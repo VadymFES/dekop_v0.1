@@ -8,14 +8,16 @@ When Vercel's bot protection is enabled, it can block legitimate API requests to
 
 This project implements a multi-layered approach to ensure email functionality works with bot protection enabled:
 
-### 1. Next.js Middleware (`middleware.ts`)
+### 1. Next.js Proxy Function (`proxy.ts`)
 
-The middleware identifies critical API routes and adds appropriate headers:
+The proxy function identifies critical API routes and adds appropriate headers:
 
 - `/api/webhooks/liqpay` - LiqPay payment webhook
 - `/api/webhooks/monobank` - Monobank payment webhook
 - `/api/orders/send-confirmation` - Order confirmation email endpoint
 - `/api/test/email` - Email testing endpoint
+
+Note: This project uses `proxy.ts` instead of `middleware.ts` for compatibility with Vercel's deployment system.
 
 ### 2. Vercel Configuration (`vercel.json`)
 
