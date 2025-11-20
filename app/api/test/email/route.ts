@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
+import { validateInternalApiKey, getUnauthorizedResponse } from '@/app/lib/api-auth';
 
 /**
  * Email Configuration Diagnostic Tool
  *
- * GET /api/test/email - Check email configuration
- * POST /api/test/email - Send test email (requires test_email query param)
+ * GET /api/test/email - Check email configuration (no auth required)
+ * POST /api/test/email - Send test email (requires API key and test_email query param)
  *
  * Usage:
  * - GET: curl https://your-domain.com/api/test/email
- * - POST: curl -X POST "https://your-domain.com/api/test/email?test_email=test@example.com"
+ * - POST: curl -X POST "https://your-domain.com/api/test/email?test_email=test@example.com" -H "x-api-key: your-key"
  */
 
 export async function GET() {
@@ -47,6 +48,21 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  // Validate API key
+  if (!validateInternalApiKey(request)) {
+    const errorResponse = getUnauthorizedResponse();
+    return NextResponse.json(
+      { error: errorResponse.error, message: errorResponse.message },
+      {
+        status: errorResponse.status,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const testEmail = searchParams.get('test_email');
 

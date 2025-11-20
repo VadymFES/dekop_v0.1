@@ -2,13 +2,30 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
+import { validateInternalApiKey, getUnauthorizedResponse } from '@/app/lib/api-auth';
 import type { OrderWithItems } from '@/app/lib/definitions';
 
 /**
  * POST /api/orders/send-confirmation
  * Sends order confirmation email for a given order ID
+ * Protected by internal API key authentication
  */
 export async function POST(request: Request) {
+  // Validate API key
+  if (!validateInternalApiKey(request)) {
+    const errorResponse = getUnauthorizedResponse();
+    return NextResponse.json(
+      { error: errorResponse.error, message: errorResponse.message },
+      {
+        status: errorResponse.status,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
+  }
+
   try {
     const { orderId } = await request.json();
 

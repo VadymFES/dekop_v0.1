@@ -6,26 +6,40 @@ When Vercel's bot protection is enabled, it can block legitimate API requests to
 
 ## Solution
 
-This project implements a multi-layered approach to ensure email functionality works with bot protection enabled:
+This project implements a security-first approach that works with Vercel's bot protection:
 
-### 1. Next.js Proxy Function (`proxy.ts`)
+### 1. Webhook Signature Verification (Already Implemented)
 
-The proxy function identifies critical API routes and adds appropriate headers:
+Payment webhooks use cryptographic signature verification:
 
-- `/api/webhooks/liqpay` - LiqPay payment webhook
-- `/api/webhooks/monobank` - Monobank payment webhook
-- `/api/orders/send-confirmation` - Order confirmation email endpoint
-- `/api/test/email` - Email testing endpoint
+- **LiqPay webhooks** (`/api/webhooks/liqpay`): Verifies signatures using `LIQPAY_PRIVATE_KEY`
+- **Monobank webhooks** (`/api/webhooks/monobank`): Verifies signatures using X-Sign header validation
 
-Note: This project uses `proxy.ts` instead of `middleware.ts` for compatibility with Vercel's deployment system.
+This allows webhooks to bypass bot protection because only legitimate payment providers can generate valid signatures.
 
-### 2. Vercel Configuration (`vercel.json`)
+### 2. Internal API Key Authentication
+
+Internal email endpoints use API key authentication:
+
+- **Order confirmation** (`/api/orders/send-confirmation`): Requires `x-api-key` header
+- **Test email** (`/api/test/email POST`): Requires `x-api-key` header
+
+Configure the API key in your environment variables:
+```bash
+# Generate a strong random key
+openssl rand -hex 32
+
+# Add to .env.local
+INTERNAL_API_KEY=your_generated_key_here
+```
+
+### 3. Vercel Configuration (`vercel.json`)
 
 The `vercel.json` file configures:
 - Cache headers for API routes
 - Extended timeout (30 seconds) for email and webhook functions
 
-### 3. Vercel Dashboard Configuration
+### 4. Vercel Dashboard Configuration
 
 **IMPORTANT**: You must also configure bot protection settings in your Vercel dashboard.
 
@@ -63,6 +77,12 @@ The `vercel.json` file configures:
    RESEND_API_KEY=your_resend_api_key
    RESEND_FROM_EMAIL=noreply@dekop.com.ua
    RESEND_FROM_NAME=Dekop Furniture Store
+   INTERNAL_API_KEY=your_internal_api_key
+   ```
+
+   Generate a strong API key:
+   ```bash
+   openssl rand -hex 32
    ```
 
 ## Testing the Configuration
@@ -71,12 +91,13 @@ After deploying, test each endpoint:
 
 ### Test Email Endpoint
 ```bash
-# Check configuration
+# Check configuration (no auth required)
 curl https://your-domain.vercel.app/api/test/email
 
-# Send test email
+# Send test email (requires API key)
 curl "https://your-domain.vercel.app/api/test/email?test_email=your@email.com" \
-  -X POST
+  -X POST \
+  -H "x-api-key: your_internal_api_key"
 ```
 
 ### Test Order Confirmation
@@ -84,6 +105,7 @@ curl "https://your-domain.vercel.app/api/test/email?test_email=your@email.com" \
 curl https://your-domain.vercel.app/api/orders/send-confirmation \
   -X POST \
   -H "Content-Type: application/json" \
+  -H "x-api-key: your_internal_api_key" \
   -d '{"orderId": "your-order-id"}'
 ```
 
@@ -133,23 +155,30 @@ Note: Free tier supports up to 10s, Hobby up to 10s, Pro up to 60s
 3. Review application logs for email service errors
 4. Test with `/api/test/email` endpoint first
 
-## Additional Security Considerations
+## Security Architecture
 
-While we're excluding these routes from bot protection, they have their own security measures:
+This approach provides strong security without relying on bot protection:
 
-1. **Webhook Signature Verification**
+1. **Webhook Signature Verification** (Payment Webhooks)
    - LiqPay webhooks verify signature using `LIQPAY_PRIVATE_KEY`
-   - Monobank webhooks verify signature using X-Sign header
-   - Only valid signatures are processed
+   - Monobank webhooks verify signature using X-Sign header and public key
+   - Only payment providers can generate valid signatures
+   - Bot protection is not needed because of cryptographic verification
 
-2. **Rate Limiting** (Optional Enhancement)
-   - Consider adding rate limiting middleware
-   - Use Vercel KV or external service
-   - Limit requests per IP/per time period
+2. **Internal API Key Authentication** (Email Endpoints)
+   - Order confirmation and test email endpoints require `x-api-key` header
+   - API key is stored securely in environment variables
+   - Prevents unauthorized access even if bot protection is off
+   - Key can be rotated without code changes
 
-3. **API Key Validation**
-   - Email endpoints check for valid Resend API key
-   - Invalid configurations are rejected early
+3. **Rate Limiting** (Optional Enhancement)
+   - Consider adding rate limiting using Vercel KV or Redis
+   - Implement per-IP rate limits for additional protection
+   - Example: 10 requests per minute per endpoint
+
+4. **Email Service Validation**
+   - All email endpoints validate Resend API key configuration
+   - Invalid configurations fail fast with clear error messages
 
 ## References
 
