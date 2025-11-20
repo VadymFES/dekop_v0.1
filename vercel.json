@@ -11,13 +11,16 @@
     }
   ],
   "functions": {
-    "api/webhooks/**": {
+    "app/api/webhooks/liqpay/route.ts": {
       "maxDuration": 30
     },
-    "api/orders/**": {
+    "app/api/webhooks/monobank/route.ts": {
       "maxDuration": 30
     },
-    "api/test/**": {
+    "app/api/orders/send-confirmation/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/test/email/route.ts": {
       "maxDuration": 30
     }
   }
