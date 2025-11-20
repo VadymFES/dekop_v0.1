@@ -17,6 +17,9 @@
     "app/api/webhooks/monobank/route.ts": {
       "maxDuration": 30
     },
+    "app/api/webhooks/resend/route.ts": {
+      "maxDuration": 30
+    },
     "app/api/orders/send-confirmation/route.ts": {
       "maxDuration": 30
     },
