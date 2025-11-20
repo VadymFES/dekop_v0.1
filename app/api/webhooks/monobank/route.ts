@@ -32,7 +32,13 @@ export async function POST(request: Request) {
     if (!xSign) {
       return NextResponse.json(
         { error: 'Missing x-sign header' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -44,7 +50,13 @@ export async function POST(request: Request) {
       console.error('Monobank webhook signature verification failed');
       return NextResponse.json(
         { error: 'Webhook signature verification failed' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -58,7 +70,13 @@ export async function POST(request: Request) {
       console.error('No order reference in Monobank webhook payload');
       return NextResponse.json(
         { error: 'Missing order reference' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -77,7 +95,16 @@ export async function POST(request: Request) {
       await handleMonobankPaymentPending(orderId, payload);
     }
 
-    return NextResponse.json({ received: true });
+    // Return success response with appropriate headers
+    return NextResponse.json(
+      { received: true },
+      {
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
 
   } catch (error) {
     console.error('Monobank webhook error:', error);
@@ -86,7 +113,13 @@ export async function POST(request: Request) {
         error: 'Webhook handler failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
     );
   }
 }

@@ -3,9 +3,10 @@ import { cookies } from "next/headers";
 import { sql } from "@vercel/postgres";
 
 export async function proxy(req: NextRequest) {
+  // Cart management logic - only for cart routes
   let storedCookie = await cookies();
   let cartCookie = storedCookie.get("cartId");
-  
+
   if (!cartCookie) {
     const { rows } = await sql`INSERT INTO carts DEFAULT VALUES RETURNING id`;
     const newCartId = rows[0].id;
