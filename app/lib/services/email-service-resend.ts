@@ -75,7 +75,25 @@ export async function sendOrderConfirmationEmail(
 
     if (error) {
       console.error('❌ Resend API error:', error);
-      throw new Error(error.message || 'Failed to send email via Resend');
+      console.error('📧 Failed email details:', {
+        from: `${fromName} <${fromEmail}>`,
+        to: to,
+        orderNumber: order.order_number,
+        environment: process.env.NODE_ENV,
+      });
+
+      // Enhanced error messaging for common issues
+      let errorMessage = error.message || 'Failed to send email via Resend';
+
+      if (errorMessage.includes('validation_error') || errorMessage.includes('domain')) {
+        errorMessage += ' - HINT: Verify your domain in Resend dashboard (https://resend.com/domains). For testing, use RESEND_FROM_EMAIL=onboarding@resend.dev';
+      }
+
+      if (errorMessage.includes('api_key') || errorMessage.includes('unauthorized')) {
+        errorMessage += ' - HINT: Check RESEND_API_KEY is set correctly in environment variables';
+      }
+
+      throw new Error(errorMessage);
     }
 
     console.log('✅ Order confirmation email sent successfully via Resend!');
@@ -88,6 +106,12 @@ export async function sendOrderConfirmationEmail(
     };
   } catch (error) {
     console.error('❌ Error sending order confirmation email via Resend');
+    console.error('🔍 Environment:', {
+      nodeEnv: process.env.NODE_ENV,
+      hasApiKey: !!process.env.RESEND_API_KEY,
+      fromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua',
+      apiKeyPrefix: process.env.RESEND_API_KEY?.substring(0, 8) + '...',
+    });
     console.error('Error details:', error);
 
     if (error instanceof Error) {
