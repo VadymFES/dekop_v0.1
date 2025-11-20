@@ -9,6 +9,8 @@ import {
   getOrderStatusName,
   formatDeliveryAddress
 } from '@/app/lib/order-utils';
+import { orderToInvoiceData, type CompanyInfo } from '@/app/lib/types/invoice';
+import { generateInvoicePDFBuffer } from '@/app/lib/invoice/invoice-generator-server';
 
 // Lazy initialization of Resend client to avoid errors during build
 let resendClient: Resend | null = null;
@@ -18,6 +20,25 @@ function getResendClient(): Resend {
     resendClient = new Resend(process.env.RESEND_API_KEY);
   }
   return resendClient;
+}
+
+/**
+ * Get company information from environment variables
+ */
+function getCompanyInfo(): CompanyInfo {
+  return {
+    name: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Dekop Furniture',
+    address: process.env.NEXT_PUBLIC_COMPANY_ADDRESS || 'вул. Прикладна, 123',
+    city: process.env.NEXT_PUBLIC_COMPANY_CITY || 'Київ',
+    postalCode: process.env.NEXT_PUBLIC_COMPANY_POSTAL_CODE || '01001',
+    phone: process.env.NEXT_PUBLIC_COMPANY_PHONE || '+380 XX XXX XXXX',
+    email: process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'info@dekop.com.ua',
+    website: process.env.NEXT_PUBLIC_COMPANY_WEBSITE || 'https://dekop.com.ua',
+    taxId: process.env.NEXT_PUBLIC_COMPANY_TAX_ID,
+    vatNumber: process.env.NEXT_PUBLIC_COMPANY_VAT_NUMBER,
+    bankAccount: process.env.NEXT_PUBLIC_COMPANY_BANK_ACCOUNT,
+    bankName: process.env.NEXT_PUBLIC_COMPANY_BANK_NAME,
+  };
 }
 
 export interface SendOrderConfirmationParams {
@@ -55,6 +76,21 @@ export async function sendOrderConfirmationEmail(
     console.log('  To:', `${customerName} <${to}>`);
     console.log('  Order:', order.order_number);
 
+    // Generate invoice PDF
+    let invoicePdfBuffer: Buffer | null = null;
+    try {
+      console.log('📄 Generating invoice PDF for attachment...');
+      const companyInfo = getCompanyInfo();
+      const invoiceData = orderToInvoiceData(order, companyInfo, {
+        language: 'uk',
+      });
+      invoicePdfBuffer = await generateInvoicePDFBuffer(invoiceData);
+      console.log('✅ Invoice PDF generated successfully');
+    } catch (pdfError) {
+      console.error('⚠️ Failed to generate invoice PDF:', pdfError);
+      console.log('📧 Continuing to send email without invoice attachment...');
+    }
+
     const { data, error } = await getResendClient().emails.send({
       from: `${fromName} <${fromEmail}>`,
       to: [to],
@@ -71,6 +107,15 @@ export async function sendOrderConfirmationEmail(
           value: order.id,
         },
       ],
+      // Attach invoice PDF if generation was successful
+      ...(invoicePdfBuffer && {
+        attachments: [
+          {
+            filename: `invoice-${order.order_number}.pdf`,
+            content: invoicePdfBuffer,
+          },
+        ],
+      }),
     });
 
     if (error) {
@@ -315,6 +360,16 @@ function buildOrderConfirmationHTML(order: OrderWithItems): string {
             </td>
           </tr>
 
+          <!-- Invoice Attachment Notice -->
+          <tr>
+            <td style="padding: 20px 40px; background-color: #E8F5E9; border-top: 1px solid #C8E6C9;">
+              <p style="margin: 0; color: #2E7D32; font-size: 14px; text-align: center;">
+                📎 <strong>Рахунок-фактура додано до листа</strong><br />
+                <span style="font-size: 13px;">PDF файл доступний у вкладеннях до цього листа</span>
+              </p>
+            </td>
+          </tr>
+
           <!-- Footer -->
           <tr>
             <td style="padding: 30px 40px; background-color: #f9f9f9; border-top: 1px solid #eee; border-radius: 0 0 12px 12px;">
@@ -380,6 +435,10 @@ function buildOrderConfirmationText(order: OrderWithItems): string {
     text += `Доставка: ${formatUkrainianPrice(order.delivery_cost)}\n`;
   }
   text += `Загальна вартість: ${formatUkrainianPrice(order.total_amount)}\n\n`;
+
+  text += `📎 РАХУНОК-ФАКТУРА\n`;
+  text += `Рахунок-фактура додано до листа у форматі PDF.\n`;
+  text += `Файл доступний у вкладеннях до цього листа.\n\n`;
 
   text += `Якщо у Вас виникли питання, зв'яжіться з нами:\n`;
   text += `${process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua'}\n`;
