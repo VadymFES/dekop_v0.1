@@ -1,0 +1,38 @@
+// Edge Middleware для обходу Bot Protection на webhook routes
+// Це middleware працює на Vercel Edge і може спробувати обійти Bot Protection
+
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+// Webhook routes що потребують bypass
+const WEBHOOK_ROUTES = [
+  '/api/webhooks/liqpay',
+  '/api/webhooks/monobank',
+  '/api/webhooks/resend',
+];
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Перевірка чи це webhook route
+  const isWebhook = WEBHOOK_ROUTES.some(route => pathname.startsWith(route));
+
+  if (isWebhook) {
+    // Додаємо headers для bypass Bot Protection
+    const response = NextResponse.next();
+
+    // Headers що можуть допомогти обійти Bot Protection
+    response.headers.set('X-Middleware-Next', '1');
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+
+    return response;
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/api/webhooks/:path*',
+  ],
+};
