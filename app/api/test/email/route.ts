@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
+import { validateInternalApiKey, getUnauthorizedResponse } from '@/app/lib/api-auth';
 
 /**
  * Email Configuration Diagnostic Tool
  *
- * GET /api/test/email - Check email configuration
- * POST /api/test/email - Send test email (requires test_email query param)
+ * GET /api/test/email - Check email configuration (no auth required)
+ * POST /api/test/email - Send test email (requires API key and test_email query param)
  *
  * Usage:
  * - GET: curl https://your-domain.com/api/test/email
- * - POST: curl -X POST "https://your-domain.com/api/test/email?test_email=test@example.com"
+ * - POST: curl -X POST "https://your-domain.com/api/test/email?test_email=test@example.com" -H "x-api-key: your-key"
  */
 
 export async function GET() {
@@ -20,45 +21,86 @@ export async function GET() {
     nodeEnv: process.env.NODE_ENV,
   };
 
-  return NextResponse.json({
-    status: 'Email configuration check',
-    emailService: 'Resend',
-    config: diagnostics,
-    webhookFlow: {
-      liqpay: 'POST /api/webhooks/liqpay → handleLiqPayPaymentSuccess → sendOrderConfirmationEmail',
-      monobank: 'POST /api/webhooks/monobank → handleMonobankPaymentSuccess → sendOrderConfirmationEmail',
-      manual: 'POST /api/orders/send-confirmation → sendOrderConfirmationEmail'
+  return NextResponse.json(
+    {
+      status: 'Email configuration check',
+      emailService: 'Resend',
+      config: diagnostics,
+      webhookFlow: {
+        liqpay: 'POST /api/webhooks/liqpay → handleLiqPayPaymentSuccess → sendOrderConfirmationEmail',
+        monobank: 'POST /api/webhooks/monobank → handleMonobankPaymentSuccess → sendOrderConfirmationEmail',
+        manual: 'POST /api/orders/send-confirmation → sendOrderConfirmationEmail'
+      },
+      message: diagnostics.resendKeyConfigured
+        ? '✅ Resend API key is configured - email service should work'
+        : '⚠️ RESEND_API_KEY is not configured - emails will not be sent',
+      recommendation: diagnostics.resendKeyConfigured
+        ? 'Use POST /api/test/email?test_email=YOUR_EMAIL to send a test email'
+        : 'Please configure RESEND_API_KEY in your environment variables (see RESEND_SETUP.md)'
     },
-    message: diagnostics.resendKeyConfigured
-      ? '✅ Resend API key is configured - email service should work'
-      : '⚠️ RESEND_API_KEY is not configured - emails will not be sent',
-    recommendation: diagnostics.resendKeyConfigured
-      ? 'Use POST /api/test/email?test_email=YOUR_EMAIL to send a test email'
-      : 'Please configure RESEND_API_KEY in your environment variables (see RESEND_SETUP.md)'
-  });
+    {
+      headers: {
+        'X-Robots-Tag': 'noindex',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      }
+    }
+  );
 }
 
 export async function POST(request: Request) {
+  // Validate API key
+  if (!validateInternalApiKey(request)) {
+    const errorResponse = getUnauthorizedResponse();
+    return NextResponse.json(
+      { error: errorResponse.error, message: errorResponse.message },
+      {
+        status: errorResponse.status,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const testEmail = searchParams.get('test_email');
 
   if (!testEmail) {
-    return NextResponse.json({
-      error: 'Missing test_email query parameter',
-      usage: 'POST /api/test/email?test_email=your@email.com'
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: 'Missing test_email query parameter',
+        usage: 'POST /api/test/email?test_email=your@email.com'
+      },
+      {
+        status: 400,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
   }
 
   if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({
-      error: 'Email service not configured',
-      message: 'RESEND_API_KEY is not set',
-      help: 'See RESEND_SETUP.md for setup instructions',
-      config: {
-        resendKeyConfigured: false,
-        fromEmail: process.env.RESEND_FROM_EMAIL || 'NOT CONFIGURED',
+    return NextResponse.json(
+      {
+        error: 'Email service not configured',
+        message: 'RESEND_API_KEY is not set',
+        help: 'See RESEND_SETUP.md for setup instructions',
+        config: {
+          resendKeyConfigured: false,
+          fromEmail: process.env.RESEND_FROM_EMAIL || 'NOT CONFIGURED',
+        }
+      },
+      {
+        status: 500,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
       }
-    }, { status: 500 });
+    );
   }
 
   // Create a test order object with proper types
@@ -121,22 +163,39 @@ export async function POST(request: Request) {
     });
 
     // If we reach here, email was sent successfully (otherwise it would throw)
-    return NextResponse.json({
-      success: true,
-      message: `Test email sent successfully to ${testEmail}`,
-      messageId: result.messageId,
-      status: result.status,
-      testOrder: {
-        order_number: testOrder.order_number,
-        total_amount: testOrder.total_amount
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Test email sent successfully to ${testEmail}`,
+        messageId: result.messageId,
+        status: result.status,
+        testOrder: {
+          order_number: testOrder.order_number,
+          total_amount: testOrder.total_amount
+        }
+      },
+      {
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
       }
-    });
+    );
   } catch (error) {
     console.error('Error sending test email:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'Email sending failed',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Email sending failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      {
+        status: 500,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
   }
 }
