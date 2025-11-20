@@ -262,11 +262,11 @@ function OrderSuccessContent() {
                   <p className={styles.prepaymentAmount}>
                     Сума передплати: {formatUkrainianPrice(order.prepayment_amount)}
                   </p>
-                  {order.payment_deadline && (
-                    <p className={styles.infoText}>
-                      Заплатіть до: {formatUkrainianDate(order.payment_deadline)}
+                  <div>
+                    <p className={styles.remainingAmount}>
+                      Залишок до сплати: {formatUkrainianPrice(order.total_amount - order.prepayment_amount)}
                     </p>
-                  )}
+                  </div>
                 </>
               )}
             </div>

@@ -2,7 +2,7 @@
 // Server-side invoice PDF generation (for email attachments)
 
 import React from 'react';
-import { renderToBuffer } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import { InvoiceData } from '../types/invoice';
 import { InvoicePDF } from '@/app/components/invoice/InvoicePDF';
 
@@ -15,8 +15,13 @@ export async function generateInvoicePDFBuffer(
   invoiceData: InvoiceData
 ): Promise<Buffer> {
   try {
-    // Generate PDF buffer using renderToBuffer
-    const buffer = await renderToBuffer(<InvoicePDF data={invoiceData} />);
+    // Generate PDF blob using pdf().toBlob()
+    const pdfDoc = pdf(<InvoicePDF data={invoiceData} />);
+    const blob = await pdfDoc.toBlob();
+
+    // Convert Blob to Buffer for Node.js
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     return buffer;
   } catch (error) {
