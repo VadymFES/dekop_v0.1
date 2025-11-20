@@ -20,7 +20,13 @@ export async function POST(request: Request) {
     if (!data || !signature) {
       return NextResponse.json(
         { error: 'Missing data or signature' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -31,7 +37,13 @@ export async function POST(request: Request) {
       console.error('LiqPay webhook signature verification failed');
       return NextResponse.json(
         { error: 'Invalid signature' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -51,7 +63,13 @@ export async function POST(request: Request) {
       console.error('No order_id in LiqPay callback data');
       return NextResponse.json(
         { error: 'Missing order_id' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -70,7 +88,16 @@ export async function POST(request: Request) {
       await handleLiqPayPaymentPending(orderId, transactionId || paymentId);
     }
 
-    return NextResponse.json({ status: 'ok' });
+    // Return success response with appropriate headers
+    return NextResponse.json(
+      { status: 'ok' },
+      {
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
 
   } catch (error) {
     console.error('LiqPay webhook error:', error);
@@ -79,7 +106,13 @@ export async function POST(request: Request) {
         error: 'Webhook handler failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
     );
   }
 }

@@ -15,7 +15,13 @@ export async function POST(request: Request) {
     if (!orderId) {
       return NextResponse.json(
         { error: 'Order ID is required' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -48,7 +54,13 @@ export async function POST(request: Request) {
     if (orderResult.rows.length === 0) {
       return NextResponse.json(
         { error: 'Order not found' },
-        { status: 404 }
+        {
+          status: 404,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -70,12 +82,20 @@ export async function POST(request: Request) {
 
       console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
 
-      return NextResponse.json({
-        success: true,
-        message: 'Confirmation email sent successfully',
-        orderNumber: order.order_number,
-        sentTo: order.user_email
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Confirmation email sent successfully',
+          orderNumber: order.order_number,
+          sentTo: order.user_email
+        },
+        {
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
     } catch (emailError) {
       console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
       console.error('Email error:', emailError);
@@ -91,7 +111,13 @@ export async function POST(request: Request) {
           details: emailError instanceof Error ? emailError.message : 'Unknown error',
           orderNumber: order.order_number
         },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -102,7 +128,13 @@ export async function POST(request: Request) {
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
     );
   }
 }

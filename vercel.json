@@ -1,0 +1,27 @@
+{
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "api/webhooks/liqpay.ts": {
+      "maxDuration": 30
+    },
+    "api/webhooks/monobank.ts": {
+      "maxDuration": 30
+    },
+    "api/orders/send-confirmation.ts": {
+      "maxDuration": 30
+    },
+    "api/test/email.ts": {
+      "maxDuration": 30
+    }
+  }
+}
