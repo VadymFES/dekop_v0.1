@@ -369,7 +369,7 @@ export default function CheckoutPage() {
           orderNumber: order.order_number,
           description: description,
           customerEmail: formData.customerInfo.email,
-          resultUrl: `${baseUrl}/order-success?orderId=${order.id}`,
+          resultUrl: `${baseUrl}/order-success?orderId=${order.id}&email=${encodeURIComponent(formData.customerInfo.email)}`,
           cancelUrl: `${baseUrl}/payment-cancelled?orderId=${order.id}`,
           serverUrl: `${baseUrl}/api/webhooks/liqpay`
         })
@@ -428,7 +428,7 @@ export default function CheckoutPage() {
           orderId: order.id,
           orderNumber: order.order_number,
           customerEmail: formData.customerInfo.email,
-          resultUrl: `${baseUrl}/order-success?orderId=${order.id}`,
+          resultUrl: `${baseUrl}/order-success?orderId=${order.id}&email=${encodeURIComponent(formData.customerInfo.email)}`,
           cancelUrl: `${baseUrl}/payment-cancelled?orderId=${order.id}`,
           serverUrl: `${baseUrl}/api/webhooks/monobank`
         })
