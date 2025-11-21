@@ -31,7 +31,7 @@ function OrderSuccessContent() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cartCleared, setCartCleared] = useState(false);
+  const [cleanupCompleted, setCleanupCompleted] = useState(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -95,48 +95,6 @@ function OrderSuccessContent() {
 
         if (data.success && data.order) {
           setOrder(data.order);
-
-          // Clear cart after successful order display using CartContext
-          if (!cartCleared) {
-            try {
-              await clearCart();
-              setCartCleared(true);
-            } catch (cartError) {
-              // Cart clearing may fail if already cleared - this is non-critical
-              console.warn('Cart clearing failed (may already be cleared):', cartError);
-              setCartCleared(true); // Mark as cleared anyway to prevent retries
-            }
-
-            // Clear saved checkout form data from localStorage
-            try {
-              localStorage.removeItem(CHECKOUT_STORAGE_KEY);
-            } catch (storageError) {
-              console.error('Error clearing checkout form data:', storageError);
-            }
-
-            // Clean up order-email mapping for this order
-            try {
-              const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
-              if (mappingData) {
-                const mapping = JSON.parse(mappingData);
-                delete mapping[orderId];
-                // Clean up old entries (older than 24 hours)
-                const now = Date.now();
-                Object.keys(mapping).forEach(key => {
-                  if (mapping[key].timestamp && (now - mapping[key].timestamp) > 24 * 60 * 60 * 1000) {
-                    delete mapping[key];
-                  }
-                });
-                if (Object.keys(mapping).length > 0) {
-                  localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
-                } else {
-                  localStorage.removeItem(ORDER_EMAIL_MAPPING_KEY);
-                }
-              }
-            } catch (cleanupError) {
-              console.error('Error cleaning up order-email mapping:', cleanupError);
-            }
-          }
         } else {
           throw new Error('Замовлення не знайдено');
         }
@@ -149,7 +107,60 @@ function OrderSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId, clearCart, cartCleared, searchParams]);
+  }, [orderId, searchParams]); // Removed clearCart and cartCleared from dependencies
+
+  // Separate effect for cleanup - runs only once after order is loaded
+  useEffect(() => {
+    if (order && !cleanupCompleted) {
+      console.log('[Order Success] Starting cleanup...');
+      const performCleanup = async () => {
+        // Clear cart
+        try {
+          await clearCart();
+          console.log('[Order Success] Cart cleared successfully');
+        } catch (cartError) {
+          // Cart clearing may fail if already cleared - this is non-critical
+          console.warn('[Order Success] Cart clearing failed (may already be cleared):', cartError);
+        }
+
+        // Clear saved checkout form data from localStorage
+        try {
+          localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+          console.log('[Order Success] Checkout form data cleared');
+        } catch (storageError) {
+          console.error('[Order Success] Error clearing checkout form data:', storageError);
+        }
+
+        // Clean up order-email mapping for this order
+        try {
+          const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+          if (mappingData) {
+            const mapping = JSON.parse(mappingData);
+            delete mapping[orderId];
+            // Clean up old entries (older than 24 hours)
+            const now = Date.now();
+            Object.keys(mapping).forEach(key => {
+              if (mapping[key].timestamp && (now - mapping[key].timestamp) > 24 * 60 * 60 * 1000) {
+                delete mapping[key];
+              }
+            });
+            if (Object.keys(mapping).length > 0) {
+              localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
+            } else {
+              localStorage.removeItem(ORDER_EMAIL_MAPPING_KEY);
+            }
+          }
+          console.log('[Order Success] Order-email mapping cleaned up');
+        } catch (cleanupError) {
+          console.error('[Order Success] Error cleaning up order-email mapping:', cleanupError);
+        }
+
+        setCleanupCompleted(true);
+      };
+
+      performCleanup();
+    }
+  }, [order, cleanupCompleted, clearCart, orderId]);
 
   const handleContinueShopping = () => {
     router.push('/');
