@@ -58,11 +58,38 @@ const removeFromCartAPI = async (id: string) => {
 
 // Clear entire cart
 const clearCartAPI = async () => {
+  console.log('[CartContext] Attempting to clear cart...');
   const res = await fetch('/cart/api/clear', {
     method: 'POST',
   });
-  if (!res.ok) throw new Error('Failed to clear cart');
-  return res.json();
+
+  console.log('[CartContext] Clear cart response:', {
+    ok: res.ok,
+    status: res.status,
+    statusText: res.statusText,
+    headers: Object.fromEntries(res.headers.entries())
+  });
+
+  // Try to read the response body for logging
+  const responseText = await res.text();
+  console.log('[CartContext] Clear cart response body:', responseText);
+
+  if (!res.ok) {
+    console.error('[CartContext] Failed to clear cart:', {
+      status: res.status,
+      statusText: res.statusText,
+      body: responseText
+    });
+    throw new Error(`Failed to clear cart: ${res.status} ${res.statusText}`);
+  }
+
+  // Parse the text we already read
+  try {
+    return JSON.parse(responseText);
+  } catch (e) {
+    console.error('[CartContext] Failed to parse response as JSON:', responseText);
+    return { success: true };
+  }
 };
 
 // Define the context type
