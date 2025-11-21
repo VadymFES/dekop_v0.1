@@ -4,6 +4,7 @@
  */
 
 import { timingSafeEqual } from 'crypto';
+import { logger } from './logger';
 
 /**
  * Performs timing-safe string comparison to prevent timing attacks
@@ -33,7 +34,17 @@ function timingSafeStringCompare(a: string, b: string): boolean {
     // Constant-time comparison
     return timingSafeEqual(bufferA, bufferB);
   } catch (error) {
-    console.error('Timing-safe comparison error:', error);
+    logger.security({
+      type: 'auth_failure',
+      severity: 'high',
+      details: {
+        message: 'Timing-safe comparison error',
+        error: error instanceof Error ? error.message : String(error)
+      },
+      metadata: {
+        function: 'timingSafeStringCompare'
+      }
+    });
     return false;
   }
 }
@@ -54,7 +65,17 @@ export function validateInternalApiKey(request: Request): boolean {
   // CRITICAL SECURITY: NEVER allow requests without proper authentication in production
   // If INTERNAL_API_KEY is not configured, deny all requests
   if (!internalApiKey) {
-    console.error('🚨 CRITICAL: INTERNAL_API_KEY not configured - denying access');
+    logger.security({
+      type: 'auth_failure',
+      severity: 'critical',
+      details: {
+        message: 'INTERNAL_API_KEY not configured - denying access'
+      },
+      metadata: {
+        function: 'validateInternalApiKey',
+        reason: 'missing_config'
+      }
+    });
     return false;
   }
 

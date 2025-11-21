@@ -1,6 +1,13 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: false,
+
+    // Enable instrumentation for Sentry
+    experimental: {
+        instrumentationHook: true,
+    },
     images: {
         remotePatterns: [
             {
@@ -128,4 +135,18 @@ const nextConfig = {
     },
 };
 
-export default nextConfig;
+// Sentry configuration options
+const sentryWebpackPluginOptions = {
+    // Suppresses source map uploading logs during build
+    silent: true,
+
+    // Organization and project from Sentry
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+
+    // Auth token for uploading source maps
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+};
+
+// Wrap the Next.js config with Sentry
+export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);

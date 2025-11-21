@@ -11,6 +11,7 @@ import {
   validateWebhookIp,
   validateWebhookTimestamp
 } from '@/app/lib/webhook-security';
+import { logger } from '@/app/lib/logger';
 
 /**
  * POST /api/webhooks/liqpay
@@ -27,7 +28,12 @@ export async function POST(request: Request) {
     // SECURITY LAYER 1: IP Whitelist Validation
     const ipValidation = validateWebhookIp(request, 'liqpay');
     if (!ipValidation.valid) {
-      console.error('LiqPay webhook IP validation failed:', ipValidation.reason);
+      logger.security({
+        type: 'webhook_invalid',
+        severity: 'high',
+        details: 'LiqPay webhook IP validation failed',
+        metadata: { reason: ipValidation.reason, provider: 'liqpay' }
+      }, { ip: ipValidation.clientIp });
       return NextResponse.json(
         { error: 'Unauthorized IP address' },
         {
@@ -61,7 +67,12 @@ export async function POST(request: Request) {
     const isValid = verifyLiqPayCallback(data, signature);
 
     if (!isValid) {
-      console.error('LiqPay webhook signature verification failed');
+      logger.security({
+        type: 'webhook_invalid',
+        severity: 'critical',
+        details: 'LiqPay webhook signature verification failed',
+        metadata: { provider: 'liqpay' }
+      });
       return NextResponse.json(
         { error: 'Invalid signature' },
         {
@@ -77,7 +88,11 @@ export async function POST(request: Request) {
     // Parse callback data
     const callbackData = parseLiqPayCallback(data);
 
-    console.log('LiqPay callback data:', callbackData);
+    logger.info('LiqPay webhook received', {
+      provider: 'liqpay',
+      orderId: callbackData.order_id,
+      status: callbackData.status
+    });
 
     const {
       order_id: orderId,
@@ -88,7 +103,10 @@ export async function POST(request: Request) {
     } = callbackData;
 
     if (!orderId) {
-      console.error('No order_id in LiqPay callback data');
+      logger.error('No order_id in LiqPay callback data', undefined, {
+        provider: 'liqpay',
+        callbackData
+      });
       return NextResponse.json(
         { error: 'Missing order_id' },
         {
@@ -105,7 +123,12 @@ export async function POST(request: Request) {
     const webhookId = `liqpay_${transactionId || paymentId}`;
     const isUnique = await isWebhookUnique(webhookId, 'liqpay', 3600, callbackData);
     if (!isUnique) {
-      console.error(`Replay attack detected for LiqPay webhook: ${webhookId}`);
+      logger.security({
+        type: 'replay_attack',
+        severity: 'critical',
+        details: `Replay attack detected for LiqPay webhook: ${webhookId}`,
+        metadata: { webhookId, provider: 'liqpay', orderId }
+      });
       return NextResponse.json(
         { error: 'Duplicate webhook - already processed' },
         {
@@ -122,7 +145,12 @@ export async function POST(request: Request) {
     if (createDate) {
       const timestamp = new Date(createDate).getTime();
       if (!validateWebhookTimestamp(timestamp, 600)) { // 10 minutes tolerance
-        console.error('LiqPay webhook timestamp validation failed');
+        logger.security({
+          type: 'webhook_invalid',
+          severity: 'high',
+          details: 'LiqPay webhook timestamp validation failed',
+          metadata: { provider: 'liqpay', createDate, orderId }
+        });
         return NextResponse.json(
           { error: 'Webhook timestamp too old or invalid' },
           {
@@ -163,7 +191,9 @@ export async function POST(request: Request) {
     );
 
   } catch (error) {
-    console.error('LiqPay webhook error:', error);
+    logger.error('LiqPay webhook error', error instanceof Error ? error : new Error('Unknown error'), {
+      provider: 'liqpay'
+    });
     return NextResponse.json(
       {
         error: 'Webhook handler failed',
@@ -196,11 +226,16 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay payment successful for order ${orderId}`);
+    logger.paymentLog({
+      event: 'success',
+      provider: 'liqpay',
+      orderId,
+      transactionId
+    });
 
     // Fetch complete order with items to send email
     try {
-      console.log(`📧 Fetching order ${orderId} to send confirmation email...`);
+      logger.info('Fetching order to send confirmation email', { orderId, provider: 'liqpay' });
 
       const orderResult = await sql`
         SELECT
@@ -234,7 +269,12 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
           items: orderRow.items || []
         } as any;
 
-        console.log(`📦 Order found: ${order.order_number}, sending email to ${order.user_email}`);
+        logger.info('Order found, sending confirmation email', {
+          orderId,
+          orderNumber: order.order_number,
+          userEmail: order.user_email,
+          provider: 'liqpay'
+        });
 
         // Send confirmation email
         const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
@@ -244,25 +284,28 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
           customerName: `${order.user_surname} ${order.user_name}`
         });
 
-        console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
+        logger.info('Confirmation email sent successfully', { orderId, provider: 'liqpay' });
       } else {
-        console.error(`❌ Order ${orderId} not found - cannot send confirmation email`);
+        logger.error('Order not found - cannot send confirmation email', undefined, {
+          orderId,
+          provider: 'liqpay'
+        });
       }
     } catch (emailError) {
-      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
-      console.error('Email error details:', emailError);
-
-      if (emailError instanceof Error) {
-        console.error('Email error message:', emailError.message);
-        console.error('Email error stack:', emailError.stack);
-      }
+      logger.error('Failed to send confirmation email',
+        emailError instanceof Error ? emailError : new Error('Unknown email error'),
+        { orderId, provider: 'liqpay' }
+      );
 
       // Don't throw - email failure shouldn't fail the webhook
-      // But make sure the error is clearly visible in logs
+      // Error details are already logged to Sentry via logger
     }
 
   } catch (error) {
-    console.error('Error handling LiqPay payment success:', error);
+    logger.error('Error handling LiqPay payment success',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId, provider: 'liqpay' }
+    );
     throw error;
   }
 }
@@ -281,10 +324,18 @@ async function handleLiqPayPaymentFailure(orderId: string, transactionId: string
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay payment failed for order ${orderId}`);
+    logger.paymentLog({
+      event: 'failed',
+      provider: 'liqpay',
+      orderId,
+      transactionId
+    });
 
   } catch (error) {
-    console.error('Error handling LiqPay payment failure:', error);
+    logger.error('Error handling LiqPay payment failure',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId, provider: 'liqpay' }
+    );
     throw error;
   }
 }
@@ -303,10 +354,18 @@ async function handleLiqPayRefund(orderId: string, transactionId: string) {
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay refund processed for order ${orderId}`);
+    logger.paymentLog({
+      event: 'refunded',
+      provider: 'liqpay',
+      orderId,
+      transactionId
+    });
 
   } catch (error) {
-    console.error('Error handling LiqPay refund:', error);
+    logger.error('Error handling LiqPay refund',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId, provider: 'liqpay' }
+    );
     throw error;
   }
 }
@@ -325,10 +384,13 @@ async function handleLiqPayPaymentPending(orderId: string, transactionId: string
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay payment pending for order ${orderId}`);
+    logger.info('LiqPay payment pending', { orderId, transactionId, provider: 'liqpay' });
 
   } catch (error) {
-    console.error('Error handling LiqPay payment pending:', error);
+    logger.error('Error handling LiqPay payment pending',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId, provider: 'liqpay' }
+    );
     throw error;
   }
 }

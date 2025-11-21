@@ -7,6 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { logger } from './logger';
 
 /**
  * Checks if a webhook has already been processed using database-backed deduplication
@@ -41,7 +42,16 @@ export async function isWebhookUnique(
     `;
 
     if (existingResult.rows.length > 0) {
-      console.warn(`[SECURITY] Replay attack detected: Webhook ${webhookId} already processed at ${existingResult.rows[0].processed_at}`);
+      logger.security({
+        type: 'replay_attack',
+        severity: 'critical',
+        details: `Webhook ${webhookId} already processed at ${existingResult.rows[0].processed_at}`,
+        metadata: {
+          webhookId,
+          provider,
+          processedAt: existingResult.rows[0].processed_at
+        }
+      });
 
       // Update as duplicate attempt
       await sql`
@@ -70,15 +80,25 @@ export async function isWebhookUnique(
       )
     `;
 
-    console.log(`[SECURITY] Webhook ${webhookId} marked as processed, expires at ${expiresAt.toISOString()}`);
+    logger.info('Webhook marked as processed', {
+      webhookId,
+      provider,
+      expiresAt: expiresAt.toISOString()
+    });
     return true;
 
   } catch (error) {
-    console.error(`Error checking webhook uniqueness for ${webhookId}:`, error);
+    logger.error('Error checking webhook uniqueness', error as Error, {
+      webhookId,
+      provider
+    });
 
     // FALLBACK: If database fails, use in-memory cache as backup
     // This prevents system failures from blocking legitimate webhooks
-    console.warn('[SECURITY] Database check failed, using in-memory fallback (NOT SUITABLE FOR PRODUCTION DISTRIBUTED SYSTEMS)');
+    logger.warn('Database check failed, using in-memory fallback (NOT SUITABLE FOR PRODUCTION DISTRIBUTED SYSTEMS)', {
+      webhookId,
+      provider
+    });
 
     // In-memory fallback for critical situations
     if (!inMemoryFallbackCache.has(webhookId)) {
@@ -164,7 +184,11 @@ export async function recordWebhookFailure(
           error_message = ${errorMessage}
     `;
   } catch (error) {
-    console.error(`Error recording webhook failure for ${webhookId}:`, error);
+    logger.error('Error recording webhook failure', error as Error, {
+      webhookId,
+      provider,
+      errorMessage
+    });
   }
 }
 
@@ -178,10 +202,12 @@ export async function cleanupExpiredWebhooks(): Promise<number> {
   try {
     const result = await sql`SELECT cleanup_expired_webhooks() as deleted_count`;
     const deletedCount = result.rows[0]?.deleted_count || 0;
-    console.log(`[CLEANUP] Removed ${deletedCount} expired webhook events`);
+    logger.info('Removed expired webhook events', {
+      deletedCount
+    });
     return deletedCount;
   } catch (error) {
-    console.error('Error cleaning up expired webhooks:', error);
+    logger.error('Error cleaning up expired webhooks', error as Error);
     return 0;
   }
 }
@@ -284,7 +310,9 @@ export function validateWebhookIp(
   // Allow disabling IP validation if provider IPs are not available
   // This is safe because signature verification is the primary security mechanism
   if (process.env.DISABLE_WEBHOOK_IP_VALIDATION === 'true') {
-    console.log(`[SECURITY] IP validation disabled for ${provider} webhook (signature verification still active)`);
+    logger.info('IP validation disabled via environment variable', {
+      provider
+    });
     return { valid: true, reason: 'IP validation disabled via environment variable' };
   }
 
@@ -300,9 +328,13 @@ export function validateWebhookIp(
   }
 
   if (!clientIp) {
-    console.error('Unable to determine client IP for webhook validation');
+    logger.error('Unable to determine client IP for webhook validation', new Error('Client IP not found'), {
+      provider
+    });
     // Don't fail webhook if IP cannot be determined - rely on signature verification
-    console.warn(`[SECURITY] Cannot determine IP for ${provider} webhook, allowing based on signature verification`);
+    logger.info('Cannot determine IP for webhook, allowing based on signature verification', {
+      provider
+    });
     return {
       valid: true,
       reason: 'IP cannot be determined - relying on signature verification',
@@ -321,10 +353,11 @@ export function validateWebhookIp(
   );
 
   if (!hasRealIPs) {
-    console.warn(
-      `[SECURITY] No real IPs configured for ${provider}, skipping IP validation. ` +
-      `Consider adding IPs or setting DISABLE_WEBHOOK_IP_VALIDATION=true`
-    );
+    logger.info('No real IPs configured for webhook provider, skipping IP validation', {
+      provider,
+      clientIp,
+      recommendation: 'Consider adding IPs or setting DISABLE_WEBHOOK_IP_VALIDATION=true'
+    });
     return {
       valid: true,
       clientIp,
@@ -336,9 +369,15 @@ export function validateWebhookIp(
   const isWhitelisted = whitelist.some((range) => isIpInRange(clientIp!, range));
 
   if (!isWhitelisted) {
-    console.warn(
-      `[SECURITY WARNING] Webhook IP validation failed for ${provider}: ${clientIp} not in whitelist`
-    );
+    logger.security({
+      type: 'webhook_invalid',
+      severity: 'high',
+      details: `IP address not in whitelist`,
+      metadata: {
+        provider,
+        clientIp
+      }
+    });
     return {
       valid: false,
       clientIp,
@@ -346,7 +385,10 @@ export function validateWebhookIp(
     };
   }
 
-  console.log(`[SECURITY] IP validation passed for ${provider}: ${clientIp}`);
+  logger.info('IP validation passed for webhook', {
+    provider,
+    clientIp
+  });
   return { valid: true, clientIp };
 }
 
@@ -370,13 +412,32 @@ export function validateWebhookTimestamp(
   const maxAgeMs = maxAgeSeconds * 1000;
 
   if (age > maxAgeMs) {
-    console.warn(`Webhook timestamp too old: ${age}ms (max: ${maxAgeMs}ms)`);
+    logger.security({
+      type: 'webhook_invalid',
+      severity: 'high',
+      details: `Webhook timestamp too old: ${age}ms (max: ${maxAgeMs}ms)`,
+      metadata: {
+        age,
+        maxAge: maxAgeMs,
+        timestamp,
+        now
+      }
+    });
     return false;
   }
 
   // Also reject timestamps from the future (clock skew tolerance: 1 minute)
   if (age < -60000) {
-    console.warn(`Webhook timestamp is in the future: ${age}ms`);
+    logger.security({
+      type: 'webhook_invalid',
+      severity: 'high',
+      details: `Webhook timestamp is in the future: ${age}ms`,
+      metadata: {
+        age,
+        timestamp,
+        now
+      }
+    });
     return false;
   }
 
@@ -394,8 +455,8 @@ export async function clearProcessedWebhooks(): Promise<void> {
   // Clear database records (for testing only)
   try {
     await sql`DELETE FROM webhook_events`;
-    console.log('[TEST] Cleared all webhook events from database');
+    logger.debug('Cleared all webhook events from database');
   } catch (error) {
-    console.error('Error clearing webhook events:', error);
+    logger.error('Error clearing webhook events', error as Error);
   }
 }

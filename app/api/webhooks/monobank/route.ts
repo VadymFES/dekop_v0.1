@@ -11,6 +11,7 @@ import {
   validateWebhookIp,
   validateWebhookTimestamp
 } from '@/app/lib/webhook-security';
+import { logger } from '@/app/lib/logger';
 
 interface MonobankWebhookPayload {
   invoiceId: string;
@@ -39,7 +40,12 @@ export async function POST(request: Request) {
     // SECURITY LAYER 1: IP Whitelist Validation
     const ipValidation = validateWebhookIp(request, 'monobank');
     if (!ipValidation.valid) {
-      console.error('Monobank webhook IP validation failed:', ipValidation.reason);
+      logger.security({
+        type: 'webhook_invalid',
+        severity: 'high',
+        details: 'Monobank webhook IP validation failed',
+        metadata: { reason: ipValidation.reason, provider: 'monobank' }
+      });
       return NextResponse.json(
         { error: 'Unauthorized IP address' },
         {
@@ -74,7 +80,12 @@ export async function POST(request: Request) {
     const isValid = verifyMonobankWebhook(publicKey, xSign, body);
 
     if (!isValid) {
-      console.error('Monobank webhook signature verification failed');
+      logger.security({
+        type: 'webhook_invalid',
+        severity: 'critical',
+        details: 'Monobank webhook signature verification failed',
+        metadata: { provider: 'monobank' }
+      });
       return NextResponse.json(
         { error: 'Webhook signature verification failed' },
         {
@@ -94,7 +105,9 @@ export async function POST(request: Request) {
     const orderId = payload.reference;
 
     if (!orderId) {
-      console.error('No order reference in Monobank webhook payload');
+      logger.error('No order reference in Monobank webhook payload', undefined, {
+        provider: 'monobank'
+      });
       return NextResponse.json(
         { error: 'Missing order reference' },
         {
@@ -111,7 +124,12 @@ export async function POST(request: Request) {
     const webhookId = `monobank_${payload.invoiceId}`;
     const isUnique = await isWebhookUnique(webhookId, 'monobank', 3600, payload);
     if (!isUnique) {
-      console.error(`Replay attack detected for Monobank webhook: ${webhookId}`);
+      logger.security({
+        type: 'replay_attack',
+        severity: 'critical',
+        details: `Replay attack detected for Monobank webhook: ${webhookId}`,
+        metadata: { webhookId, provider: 'monobank', orderId }
+      });
       return NextResponse.json(
         { error: 'Duplicate webhook - already processed' },
         {
@@ -128,7 +146,12 @@ export async function POST(request: Request) {
     if (payload.modifiedDate) {
       const timestamp = new Date(payload.modifiedDate).getTime();
       if (!validateWebhookTimestamp(timestamp, 600)) { // 10 minutes tolerance
-        console.error('Monobank webhook timestamp validation failed');
+        logger.security({
+          type: 'webhook_invalid',
+          severity: 'high',
+          details: 'Monobank webhook timestamp validation failed',
+          metadata: { provider: 'monobank', modifiedDate: payload.modifiedDate, orderId }
+        });
         return NextResponse.json(
           { error: 'Webhook timestamp too old or invalid' },
           {
@@ -169,7 +192,9 @@ export async function POST(request: Request) {
     );
 
   } catch (error) {
-    console.error('Monobank webhook error:', error);
+    logger.error('Monobank webhook error', error instanceof Error ? error : new Error('Unknown error'), {
+      provider: 'monobank'
+    });
     return NextResponse.json(
       {
         error: 'Webhook handler failed',
@@ -204,11 +229,16 @@ async function handleMonobankPaymentSuccess(
       WHERE id = ${orderId}
     `;
 
-    console.log(`Monobank payment successful for order ${orderId}`);
+    logger.paymentLog({
+      event: 'success',
+      provider: 'monobank',
+      orderId,
+      transactionId: payload.invoiceId
+    });
 
     // Fetch complete order with items to send email
     try {
-      console.log(`📧 Fetching order ${orderId} to send confirmation email...`);
+      logger.info('Fetching order to send confirmation email', { orderId, provider: 'monobank' });
 
       const orderResult = await sql`
         SELECT
@@ -242,7 +272,12 @@ async function handleMonobankPaymentSuccess(
           items: orderRow.items || []
         } as any;
 
-        console.log(`📦 Order found: ${order.order_number}, sending email to ${order.user_email}`);
+        logger.info('Order found, sending confirmation email', {
+          orderId,
+          orderNumber: order.order_number,
+          userEmail: order.user_email,
+          provider: 'monobank'
+        });
 
         // Send confirmation email
         const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
@@ -252,25 +287,28 @@ async function handleMonobankPaymentSuccess(
           customerName: `${order.user_surname} ${order.user_name}`
         });
 
-        console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
+        logger.info('Confirmation email sent successfully', { orderId, provider: 'monobank' });
       } else {
-        console.error(`❌ Order ${orderId} not found - cannot send confirmation email`);
+        logger.error('Order not found - cannot send confirmation email', undefined, {
+          orderId,
+          provider: 'monobank'
+        });
       }
     } catch (emailError) {
-      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
-      console.error('Email error details:', emailError);
-
-      if (emailError instanceof Error) {
-        console.error('Email error message:', emailError.message);
-        console.error('Email error stack:', emailError.stack);
-      }
+      logger.error('Failed to send confirmation email',
+        emailError instanceof Error ? emailError : new Error('Unknown email error'),
+        { orderId, provider: 'monobank' }
+      );
 
       // Don't throw - email failure shouldn't fail the webhook
-      // But make sure the error is clearly visible in logs
+      // Error details are already logged to Sentry via logger
     }
 
   } catch (error) {
-    console.error('Error handling Monobank payment success:', error);
+    logger.error('Error handling Monobank payment success',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId: payload.invoiceId, provider: 'monobank' }
+    );
     throw error;
   }
 }
@@ -292,10 +330,18 @@ async function handleMonobankPaymentFailure(
       WHERE id = ${orderId}
     `;
 
-    console.log(`Monobank payment failed for order ${orderId}`);
+    logger.paymentLog({
+      event: 'failed',
+      provider: 'monobank',
+      orderId,
+      transactionId: payload.invoiceId
+    });
 
   } catch (error) {
-    console.error('Error handling Monobank payment failure:', error);
+    logger.error('Error handling Monobank payment failure',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId: payload.invoiceId, provider: 'monobank' }
+    );
     throw error;
   }
 }
@@ -317,10 +363,18 @@ async function handleMonobankRefund(
       WHERE id = ${orderId}
     `;
 
-    console.log(`Monobank refund processed for order ${orderId}`);
+    logger.paymentLog({
+      event: 'refunded',
+      provider: 'monobank',
+      orderId,
+      transactionId: payload.invoiceId
+    });
 
   } catch (error) {
-    console.error('Error handling Monobank refund:', error);
+    logger.error('Error handling Monobank refund',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId: payload.invoiceId, provider: 'monobank' }
+    );
     throw error;
   }
 }
@@ -342,10 +396,17 @@ async function handleMonobankPaymentPending(
       WHERE id = ${orderId}
     `;
 
-    console.log(`Monobank payment pending for order ${orderId}`);
+    logger.info('Monobank payment pending', {
+      orderId,
+      transactionId: payload.invoiceId,
+      provider: 'monobank'
+    });
 
   } catch (error) {
-    console.error('Error handling Monobank payment pending:', error);
+    logger.error('Error handling Monobank payment pending',
+      error instanceof Error ? error : new Error('Unknown error'),
+      { orderId, transactionId: payload.invoiceId, provider: 'monobank' }
+    );
     throw error;
   }
 }

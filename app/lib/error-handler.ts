@@ -1,18 +1,22 @@
 // app/lib/error-handler.ts
 
 /**
- * Error Handling & Sanitization Utilities
+ * Error Handling & Sanitization Utilities with Sentry Integration
  *
- * Provides safe error handling with automatic sanitization for production environments.
+ * Provides safe error handling with automatic sanitization for production environments
+ * and comprehensive error tracking with Sentry.
  *
  * SECURITY FEATURES:
  * - Sanitizes error messages in production
  * - Prevents information disclosure
  * - Logs full errors internally
  * - Returns safe error responses to clients
+ * - Tracks errors in Sentry with context
+ * - Automatic error categorization and tagging
  */
 
 import { NextResponse } from 'next/server';
+import * as Sentry from "@sentry/nextjs";
 import { logger } from './logger';
 
 /**
@@ -106,7 +110,7 @@ function getStatusCode(errorType: ErrorType): number {
 }
 
 /**
- * Handles errors and returns sanitized response
+ * Handles errors and returns sanitized response with Sentry tracking
  *
  * @param error - The error to handle
  * @param context - Additional context for logging
@@ -131,6 +135,49 @@ export function handleError(
       stack: error.stack,
     }
   );
+
+  // ===== SENTRY INTEGRATION =====
+  // Capture error in Sentry with full context
+  try {
+    Sentry.withScope((scope) => {
+      // Set error type and severity
+      scope.setTag('errorType', errorType);
+      scope.setTag('statusCode', statusCode);
+      scope.setTag('isOperational', isAppError ? error.isOperational : false);
+
+      // Add context
+      if (context) {
+        Object.entries(context).forEach(([key, value]) => {
+          if (typeof value === 'string' || typeof value === 'number') {
+            scope.setTag(key, String(value));
+          }
+          scope.setExtra(key, value);
+        });
+      }
+
+      // Add error details if available
+      if (isAppError && error.details) {
+        scope.setExtra('errorDetails', error.details);
+      }
+
+      // Set severity level based on error type
+      const sentryLevel =
+        errorType === ErrorType.INTERNAL || errorType === ErrorType.DATABASE
+          ? 'error'
+          : errorType === ErrorType.AUTHENTICATION || errorType === ErrorType.AUTHORIZATION
+          ? 'warning'
+          : 'info';
+
+      scope.setLevel(sentryLevel);
+
+      // Capture the exception
+      Sentry.captureException(error, {
+        fingerprint: [errorType, error.message],
+      });
+    });
+  } catch (sentryError) {
+    console.error('Failed to capture error in Sentry:', sentryError);
+  }
 
   // Create sanitized response
   const response: ErrorResponse = {

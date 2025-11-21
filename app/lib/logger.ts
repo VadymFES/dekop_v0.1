@@ -1,19 +1,23 @@
 // app/lib/logger.ts
 
 /**
- * Structured Logging Utility
+ * Structured Logging Utility with Sentry Integration
  *
  * Provides structured logging with security event tracking, context enrichment,
- * and production-ready log formatting.
+ * and production-ready log formatting integrated with Sentry for monitoring.
  *
  * FEATURES:
  * - Structured JSON logging for easy parsing
+ * - Sentry integration for error tracking and monitoring
  * - Security event tracking
  * - Context enrichment (timestamp, environment, etc.)
  * - Log levels (debug, info, warn, error, security)
  * - Sensitive data masking
  * - Production/development formatting
+ * - Performance tracing with Sentry spans
  */
+
+import * as Sentry from "@sentry/nextjs";
 
 export enum LogLevel {
   DEBUG = 'debug',
@@ -100,7 +104,7 @@ class Logger {
   }
 
   /**
-   * Core logging method
+   * Core logging method with Sentry integration
    */
   private log(
     level: LogLevel,
@@ -111,12 +115,14 @@ class Logger {
     const timestamp = new Date().toISOString();
     const env = process.env.NODE_ENV || 'development';
 
+    const maskedContext = maskSensitiveData({ ...this.context, ...context });
+
     const logEntry = {
       timestamp,
       level,
       message,
       environment: env,
-      context: maskSensitiveData({ ...this.context, ...context }),
+      context: maskedContext,
       ...(error && {
         error: {
           name: error.name,
@@ -138,7 +144,7 @@ class Logger {
 
       console.log(
         `${emoji[level]} [${level.toUpperCase()}] ${message}`,
-        context ? maskSensitiveData(context) : ''
+        context ? maskedContext : ''
       );
 
       if (error) {
@@ -151,7 +157,80 @@ class Logger {
 
     // For security events, always log to console.error to ensure visibility
     if (level === LogLevel.SECURITY) {
-      console.error(`🚨 SECURITY EVENT: ${message}`, maskSensitiveData(context));
+      console.error(`🚨 SECURITY EVENT: ${message}`, maskedContext);
+    }
+
+    // ===== SENTRY INTEGRATION =====
+    // Send logs to Sentry based on level
+    try {
+      // Set context in Sentry scope
+      Sentry.withScope((scope) => {
+        // Add context as tags and extra data
+        if (maskedContext) {
+          Object.entries(maskedContext).forEach(([key, value]) => {
+            if (typeof value === 'string' || typeof value === 'number') {
+              scope.setTag(key, String(value));
+            }
+            scope.setExtra(key, value);
+          });
+        }
+
+        // Set log level
+        scope.setLevel(
+          level === LogLevel.ERROR || level === LogLevel.SECURITY
+            ? 'error'
+            : level === LogLevel.WARN
+            ? 'warning'
+            : level === LogLevel.INFO
+            ? 'info'
+            : 'debug'
+        );
+
+        // For errors, capture the exception
+        if (error) {
+          Sentry.captureException(error, {
+            level: level === LogLevel.SECURITY ? 'fatal' : 'error',
+            tags: {
+              logLevel: level,
+            },
+            contexts: {
+              log: maskedContext,
+            },
+          });
+        } else {
+          // For non-error logs, use Sentry's logger
+          const { logger: sentryLogger } = Sentry;
+
+          switch (level) {
+            case LogLevel.DEBUG:
+              sentryLogger.debug(message);
+              break;
+            case LogLevel.INFO:
+              sentryLogger.info(message);
+              break;
+            case LogLevel.WARN:
+              sentryLogger.warn(message);
+              break;
+            case LogLevel.ERROR:
+              sentryLogger.error(message);
+              break;
+            case LogLevel.SECURITY:
+              // Critical security events
+              sentryLogger.fatal(message);
+              Sentry.captureMessage(message, {
+                level: 'fatal',
+                tags: {
+                  security: true,
+                  logLevel: level,
+                },
+              });
+              break;
+          }
+        }
+      });
+    } catch (sentryError) {
+      // Don't let Sentry errors break logging
+      console.error('Failed to log to Sentry:', sentryError);
     }
   }
 
@@ -186,7 +265,7 @@ class Logger {
   }
 
   /**
-   * Security event logging
+   * Security event logging with Sentry integration
    *
    * IMPORTANT: Use this for all security-related events:
    * - Failed authentication attempts
@@ -207,15 +286,27 @@ class Logger {
 
     this.log(LogLevel.SECURITY, `Security Event: ${event.type}`, securityContext);
 
-    // For critical events, also alert (in production, this could send to monitoring service)
+    // Send security event to Sentry with appropriate severity
+    try {
+      Sentry.captureMessage(`Security Event: ${event.type} - ${event.details}`, {
+        level: event.severity === 'critical' || event.severity === 'high' ? 'fatal' : 'warning',
+        tags: {
+          security: true,
+          securityEventType: event.type,
+          severity: event.severity,
+        },
+        extra: {
+          securityContext: maskSensitiveData(securityContext),
+        },
+      });
+    } catch (sentryError) {
+      console.error('Failed to send security event to Sentry:', sentryError);
+    }
+
+    // For critical events, also alert
     if (event.severity === 'critical') {
       console.error('🚨🚨🚨 CRITICAL SECURITY EVENT 🚨🚨🚨');
       console.error(JSON.stringify(securityContext, null, 2));
-
-      // TODO: In production, send alerts to:
-      // - Sentry / DataDog / CloudWatch
-      // - Email / Slack / PagerDuty
-      // - Security incident response system
     }
   }
 
@@ -275,7 +366,7 @@ class Logger {
   }
 
   /**
-   * Log payment event
+   * Log payment event with Sentry transaction tracking
    */
   paymentLog(params: {
     event: 'created' | 'success' | 'failed' | 'refunded';
@@ -289,13 +380,70 @@ class Logger {
 
     const level = error ? LogLevel.ERROR : LogLevel.INFO;
 
-    this.log(level, `Payment ${event}: ${provider}`, {
+    const paymentContext = {
       paymentEvent: event,
       provider,
       orderId,
       amount,
       transactionId,
-    }, error);
+    };
+
+    this.log(level, `Payment ${event}: ${provider}`, paymentContext, error);
+
+    // Create audit trail in Sentry for all payment events
+    try {
+      Sentry.captureMessage(`Payment ${event}: ${provider} - Order ${orderId}`, {
+        level: error ? 'error' : 'info',
+        tags: {
+          payment: true,
+          paymentEvent: event,
+          provider,
+          orderId,
+        },
+        extra: {
+          amount,
+          transactionId,
+          ...paymentContext,
+        },
+      });
+
+      // Add breadcrumb for payment flow tracking
+      Sentry.addBreadcrumb({
+        category: 'payment',
+        message: `Payment ${event}: ${provider}`,
+        level: error ? 'error' : 'info',
+        data: paymentContext,
+      });
+    } catch (sentryError) {
+      console.error('Failed to log payment event to Sentry:', sentryError);
+    }
+  }
+
+  /**
+   * Create a Sentry span for performance tracking
+   *
+   * Usage:
+   * ```typescript
+   * const result = await logger.withSpan(
+   *   { op: 'http.client', name: 'Fetch user data' },
+   *   async () => {
+   *     return await fetchUserData();
+   *   }
+   * );
+   * ```
+   */
+  async withSpan<T>(
+    spanOptions: { op: string; name: string; attributes?: Record<string, any> },
+    callback: () => Promise<T>
+  ): Promise<T> {
+    return Sentry.startSpan(spanOptions, async (span) => {
+      if (spanOptions.attributes) {
+        Object.entries(spanOptions.attributes).forEach(([key, value]) => {
+          span.setAttribute(key, value);
+        });
+      }
+      return await callback();
+    });
   }
 }
 
