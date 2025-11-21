@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import {
@@ -17,6 +17,7 @@ import styles from './page.module.css';
 
 // LocalStorage key for checkout form data (same as in checkout page)
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
+const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
 
 /**
  * Order Success Page Content Component
@@ -30,7 +31,9 @@ function OrderSuccessContent() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cartCleared, setCartCleared] = useState(false);
+
+  // Use ref to track cleanup status to prevent infinite loops
+  const cleanupInitiatedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -42,9 +45,51 @@ function OrderSuccessContent() {
     // Fetch order details
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`/api/orders/${orderId}`);
+        // Get customer email - try multiple sources in order of preference
+        let customerEmail: string | null = null;
+
+        // 1. First, check order-email mapping (persists through payment flow)
+        try {
+          const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+          if (mappingData) {
+            const mapping = JSON.parse(mappingData);
+            const orderData = mapping[orderId];
+            // Email is stored as an object with email and timestamp
+            customerEmail = orderData?.email || null;
+          }
+        } catch (error) {
+          console.error('Error reading order-email mapping:', error);
+        }
+
+        // 2. If not found, try URL params (from payment gateway redirect)
+        if (!customerEmail) {
+          customerEmail = searchParams.get('email');
+        }
+
+        // 3. If still not found, try checkout form data (for cash_on_delivery)
+        if (!customerEmail) {
+          try {
+            const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
+            if (checkoutData) {
+              const parsedData = JSON.parse(checkoutData);
+              customerEmail = parsedData.formData?.customerInfo?.email || null;
+            }
+          } catch (storageError) {
+            console.error('Error reading checkout data from localStorage:', storageError);
+          }
+        }
+
+        if (!customerEmail) {
+          throw new Error('Не вдалося знайти email для перевірки замовлення');
+        }
+
+        // Fetch order with email verification
+        const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
 
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Не вдалося підтвердити доступ до замовлення');
+          }
           throw new Error('Не вдалося завантажити дані замовлення');
         }
 
@@ -52,23 +97,6 @@ function OrderSuccessContent() {
 
         if (data.success && data.order) {
           setOrder(data.order);
-
-          // Clear cart after successful order display using CartContext
-          if (!cartCleared) {
-            try {
-              clearCart();
-              setCartCleared(true);
-
-              // Also clear saved checkout form data from localStorage
-              try {
-                localStorage.removeItem(CHECKOUT_STORAGE_KEY);
-              } catch (storageError) {
-                console.error('Error clearing checkout form data:', storageError);
-              }
-            } catch (e) {
-              console.error('Error clearing cart:', e);
-            }
-          }
         } else {
           throw new Error('Замовлення не знайдено');
         }
@@ -81,7 +109,62 @@ function OrderSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId, clearCart, cartCleared]);
+  }, [orderId, searchParams]); // Removed clearCart and cartCleared from dependencies
+
+  // Separate effect for cleanup - runs only once after order is loaded
+  useEffect(() => {
+    if (order && !cleanupInitiatedRef.current) {
+      // Set ref immediately to prevent re-runs (before any async operations)
+      cleanupInitiatedRef.current = true;
+
+      console.log('[Order Success] Starting cleanup...');
+
+      const performCleanup = async () => {
+        // Clear cart
+        try {
+          await clearCart();
+          console.log('[Order Success] Cart cleared successfully');
+        } catch (cartError) {
+          // Cart clearing may fail if already cleared - this is non-critical
+          console.warn('[Order Success] Cart clearing failed (may already be cleared):', cartError);
+        }
+
+        // Clear saved checkout form data from localStorage
+        try {
+          localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+          console.log('[Order Success] Checkout form data cleared');
+        } catch (storageError) {
+          console.error('[Order Success] Error clearing checkout form data:', storageError);
+        }
+
+        // Clean up order-email mapping for this order
+        try {
+          const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+          if (mappingData && orderId) {
+            const mapping = JSON.parse(mappingData);
+            delete mapping[orderId];
+            // Clean up old entries (older than 24 hours)
+            const now = Date.now();
+            Object.keys(mapping).forEach(key => {
+              if (mapping[key].timestamp && (now - mapping[key].timestamp) > 24 * 60 * 60 * 1000) {
+                delete mapping[key];
+              }
+            });
+            if (Object.keys(mapping).length > 0) {
+              localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
+            } else {
+              localStorage.removeItem(ORDER_EMAIL_MAPPING_KEY);
+            }
+          }
+          console.log('[Order Success] Order-email mapping cleaned up');
+        } catch (cleanupError) {
+          console.error('[Order Success] Error cleaning up order-email mapping:', cleanupError);
+        }
+      };
+
+      performCleanup();
+    }
+  }, [order, clearCart, orderId]);
 
   const handleContinueShopping = () => {
     router.push('/');

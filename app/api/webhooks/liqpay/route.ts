@@ -6,13 +6,40 @@ import {
   parseLiqPayCallback,
   mapLiqPayStatus
 } from '@/app/lib/services/liqpay-service';
+import {
+  isWebhookUnique,
+  validateWebhookIp,
+  validateWebhookTimestamp
+} from '@/app/lib/webhook-security';
 
 /**
  * POST /api/webhooks/liqpay
  * Handles LiqPay webhook callbacks for payment confirmations
+ *
+ * SECURITY LAYERS:
+ * 1. IP whitelist validation
+ * 2. Signature verification
+ * 3. Replay attack prevention
+ * 4. Timestamp validation
  */
 export async function POST(request: Request) {
   try {
+    // SECURITY LAYER 1: IP Whitelist Validation
+    const ipValidation = validateWebhookIp(request, 'liqpay');
+    if (!ipValidation.valid) {
+      console.error('LiqPay webhook IP validation failed:', ipValidation.reason);
+      return NextResponse.json(
+        { error: 'Unauthorized IP address' },
+        {
+          status: 403,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
     const formData = await request.formData();
     const data = formData.get('data') as string;
     const signature = formData.get('signature') as string;
@@ -30,7 +57,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify callback signature
+    // SECURITY LAYER 2: Verify callback signature
     const isValid = verifyLiqPayCallback(data, signature);
 
     if (!isValid) {
@@ -56,7 +83,8 @@ export async function POST(request: Request) {
       order_id: orderId,
       status: liqpayStatus,
       transaction_id: transactionId,
-      payment_id: paymentId
+      payment_id: paymentId,
+      create_date: createDate
     } = callbackData;
 
     if (!orderId) {
@@ -71,6 +99,40 @@ export async function POST(request: Request) {
           }
         }
       );
+    }
+
+    // SECURITY LAYER 3: Replay Attack Prevention
+    const webhookId = `liqpay_${transactionId || paymentId}`;
+    if (!isWebhookUnique(webhookId)) {
+      console.error(`Replay attack detected for LiqPay webhook: ${webhookId}`);
+      return NextResponse.json(
+        { error: 'Duplicate webhook - already processed' },
+        {
+          status: 409,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
+    // SECURITY LAYER 4: Timestamp Validation
+    if (createDate) {
+      const timestamp = new Date(createDate).getTime();
+      if (!validateWebhookTimestamp(timestamp, 600)) { // 10 minutes tolerance
+        console.error('LiqPay webhook timestamp validation failed');
+        return NextResponse.json(
+          { error: 'Webhook timestamp too old or invalid' },
+          {
+            status: 400,
+            headers: {
+              'X-Robots-Tag': 'noindex',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+            }
+          }
+        );
+      }
     }
 
     // Map LiqPay status to our internal status

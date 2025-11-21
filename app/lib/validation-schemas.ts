@@ -53,7 +53,10 @@ const nonNegativeNumber = z.number().min(0, 'Must be non-negative');
  * Cart item validation schema
  */
 export const cartItemSchema = z.object({
-  productId: z.number().int().positive('Invalid product ID'),
+  productId: z.union([
+    z.number().int().positive('Invalid product ID'),
+    z.string().regex(/^\d+$/, 'Product ID must be a number').transform(val => parseInt(val, 10))
+  ]),
   quantity: z.number().int().min(1, 'Quantity must be at least 1').max(100, 'Quantity cannot exceed 100'),
   color: z.string().max(50, 'Color name too long').pipe(sanitizedString).optional().default(''),
 });
@@ -75,7 +78,8 @@ export const createOrderSchema = z.object({
   user_email: emailSchema,
 
   // Delivery information
-  delivery_method: z.enum(['nova_poshta', 'store_pickup', 'courier'], {
+  // Must match database CHECK constraint: ('nova_poshta', 'store_delivery', 'pickup')
+  delivery_method: z.enum(['nova_poshta', 'store_delivery', 'pickup'], {
     message: 'Invalid delivery method',
   }),
   delivery_address: z.string().max(500, 'Address too long').pipe(sanitizedString).optional(),

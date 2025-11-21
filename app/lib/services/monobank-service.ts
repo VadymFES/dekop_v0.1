@@ -179,6 +179,14 @@ export async function cancelMonobankInvoice(invoiceId: string) {
 /**
  * Verifies Monobank webhook signature
  * Monobank sends X-Sign header with webhook requests
+ *
+ * SECURITY: This function verifies that webhook requests actually come from Monobank
+ * by validating the RSA-SHA256 signature using Monobank's public key
+ *
+ * @param publicKey - Monobank's public key in PEM format
+ * @param xSignBase64 - Base64-encoded signature from X-Sign header
+ * @param bodyString - Raw request body as string
+ * @returns true if signature is valid, false otherwise
  */
 export function verifyMonobankWebhook(
   publicKey: string,
@@ -186,24 +194,42 @@ export function verifyMonobankWebhook(
   bodyString: string
 ): boolean {
   try {
-    // Note: This is a simplified version. In production, you need to:
-    // 1. Load Monobank's public key
-    // 2. Verify the signature using crypto.verify
-    // For now, we'll just do basic validation
-
-    if (!xSignBase64 || !bodyString) {
+    // Validate required parameters
+    if (!publicKey || !xSignBase64 || !bodyString) {
+      console.error('Monobank webhook verification failed: Missing required parameters', {
+        hasPublicKey: !!publicKey,
+        hasSignature: !!xSignBase64,
+        hasBody: !!bodyString
+      });
       return false;
     }
 
-    // TODO: Implement proper signature verification
-    // const crypto = require('crypto');
-    // const verify = crypto.createVerify('SHA256');
-    // verify.update(bodyString);
-    // return verify.verify(publicKey, xSignBase64, 'base64');
+    // Import crypto module
+    const crypto = require('crypto');
 
-    return true; // Placeholder - implement proper verification
+    // Create verifier with SHA256 algorithm
+    const verifier = crypto.createVerify('SHA256');
+
+    // Update with request body
+    verifier.update(bodyString);
+
+    // Verify signature using Monobank's public key
+    // The signature is base64-encoded, so we specify 'base64' as the encoding
+    const isValid = verifier.verify(publicKey, xSignBase64, 'base64');
+
+    if (!isValid) {
+      console.error('Monobank webhook signature verification failed: Invalid signature');
+    }
+
+    return isValid;
   } catch (error) {
     console.error('Monobank webhook verification error:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
     return false;
   }
 }

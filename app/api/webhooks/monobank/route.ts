@@ -6,6 +6,11 @@ import {
   verifyMonobankWebhook,
   mapMonobankStatus
 } from '@/app/lib/services/monobank-service';
+import {
+  isWebhookUnique,
+  validateWebhookIp,
+  validateWebhookTimestamp
+} from '@/app/lib/webhook-security';
 
 interface MonobankWebhookPayload {
   invoiceId: string;
@@ -22,9 +27,31 @@ interface MonobankWebhookPayload {
 /**
  * POST /api/webhooks/monobank
  * Handles Monobank webhook events for payment confirmations
+ *
+ * SECURITY LAYERS:
+ * 1. IP whitelist validation
+ * 2. Signature verification
+ * 3. Replay attack prevention
+ * 4. Timestamp validation
  */
 export async function POST(request: Request) {
   try {
+    // SECURITY LAYER 1: IP Whitelist Validation
+    const ipValidation = validateWebhookIp(request, 'monobank');
+    if (!ipValidation.valid) {
+      console.error('Monobank webhook IP validation failed:', ipValidation.reason);
+      return NextResponse.json(
+        { error: 'Unauthorized IP address' },
+        {
+          status: 403,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
     const body = await request.text();
     const headersList = await headers();
     const xSign = headersList.get('x-sign');
@@ -42,7 +69,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify webhook signature
+    // SECURITY LAYER 2: Verify webhook signature
     const publicKey = process.env.MONOBANK_PUBLIC_KEY || '';
     const isValid = verifyMonobankWebhook(publicKey, xSign, body);
 
@@ -78,6 +105,40 @@ export async function POST(request: Request) {
           }
         }
       );
+    }
+
+    // SECURITY LAYER 3: Replay Attack Prevention
+    const webhookId = `monobank_${payload.invoiceId}`;
+    if (!isWebhookUnique(webhookId)) {
+      console.error(`Replay attack detected for Monobank webhook: ${webhookId}`);
+      return NextResponse.json(
+        { error: 'Duplicate webhook - already processed' },
+        {
+          status: 409,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
+    // SECURITY LAYER 4: Timestamp Validation
+    if (payload.modifiedDate) {
+      const timestamp = new Date(payload.modifiedDate).getTime();
+      if (!validateWebhookTimestamp(timestamp, 600)) { // 10 minutes tolerance
+        console.error('Monobank webhook timestamp validation failed');
+        return NextResponse.json(
+          { error: 'Webhook timestamp too old or invalid' },
+          {
+            status: 400,
+            headers: {
+              'X-Robots-Tag': 'noindex',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+            }
+          }
+        );
+      }
     }
 
     // Map Monobank status to our internal status
