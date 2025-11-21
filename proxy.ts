@@ -106,8 +106,12 @@ export async function proxy(req: NextRequest) {
     "base-uri 'self'",
     "form-action 'self' https://www.liqpay.ua",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
   ];
+
+  // Only upgrade to HTTPS in production (breaks localhost development)
+  if (process.env.NODE_ENV === 'production') {
+    cspDirectives.push("upgrade-insecure-requests");
+  }
 
   response.headers.set(
     'Content-Security-Policy',
