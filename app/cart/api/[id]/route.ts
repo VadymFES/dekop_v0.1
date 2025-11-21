@@ -4,6 +4,7 @@ import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
 import { CartItem, ProductWithImages } from "@/app/lib/definitions";
 import { handleApiError } from "@/app/lib/server-error";
+import { updateCartQuantitySchema, safeValidateInput } from "@/app/lib/validation-schemas";
 
 // Interface to represent the raw cart item data from the database
 interface CartItemWithProductData {
@@ -82,17 +83,43 @@ export async function PATCH(
 ) {
   try {
     const id = ((await params).id);
-    const { quantity } = await request.json();
+    const body = await request.json();
 
-    if (!id || !quantity || isNaN(Number(quantity))) {
-      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    // SECURITY: Validate item ID (UUID format)
+    if (!id) {
+      return NextResponse.json({ error: "Invalid cart item ID" }, { status: 400 });
     }
 
-    await sql`
-      UPDATE cart_items
-      SET quantity = ${quantity}
-      WHERE id = ${id}
-    `;
+    // SECURITY: Validate and sanitize quantity input
+    const validationResult = safeValidateInput(updateCartQuantitySchema, body);
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: errorMessages
+        },
+        { status: 400 }
+      );
+    }
+
+    const { quantity } = validationResult.data;
+
+    // If quantity is 0, delete the item instead of updating
+    if (quantity === 0) {
+      await sql`DELETE FROM cart_items WHERE id = ${id}`;
+    } else {
+      await sql`
+        UPDATE cart_items
+        SET quantity = ${quantity}
+        WHERE id = ${id}
+      `;
+    }
 
     const cookieStore = await cookies();
     const cartId = cookieStore.get("cartId")?.value;

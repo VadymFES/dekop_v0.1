@@ -14,11 +14,11 @@ export function validateInternalApiKey(request: Request): boolean {
   const apiKey = request.headers.get('x-api-key');
   const internalApiKey = process.env.INTERNAL_API_KEY;
 
-  // If no internal API key is configured, allow the request
-  // This allows the endpoint to work during development
+  // CRITICAL SECURITY: NEVER allow requests without proper authentication in production
+  // If INTERNAL_API_KEY is not configured, deny all requests
   if (!internalApiKey) {
-    console.warn('⚠️ INTERNAL_API_KEY not configured - API key validation skipped');
-    return true;
+    console.error('🚨 CRITICAL: INTERNAL_API_KEY not configured - denying access');
+    return false;
   }
 
   // Validate the API key
