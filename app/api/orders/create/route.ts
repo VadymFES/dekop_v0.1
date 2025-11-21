@@ -10,6 +10,7 @@ import {
   generateProductArticle
 } from '@/app/lib/order-utils';
 import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schemas';
+import { logger } from '@/app/lib/logger';
 
 /**
  * POST /api/orders/create
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
       }));
 
       // Log validation errors for debugging
-      console.error('Order validation failed:', {
+      logger.error('Order validation failed', new Error('Validation failed'), {
         errors: errorMessages,
         receivedData: {
           user_name: body.user_name,
@@ -259,7 +260,7 @@ export async function POST(request: Request) {
       await client.query('ROLLBACK');
 
       // Transaction failed and was rolled back
-      console.error('Transaction failed during order creation:', transactionError);
+      logger.error('Transaction failed during order creation', transactionError instanceof Error ? transactionError : new Error(String(transactionError)));
       throw new Error(
         `Failed to create order: ${transactionError instanceof Error ? transactionError.message : 'Transaction rolled back'}`
       );
@@ -275,7 +276,7 @@ export async function POST(request: Request) {
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error creating order:', error);
+    logger.error('Error creating order', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: 'Помилка при створенні замовлення',

@@ -13,6 +13,7 @@ import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
 import { useCart } from '@/app/context/CartContext';
+import { logger } from '@/app/lib/logger';
 import styles from './checkout.module.css';
 
 // LocalStorage key for checkout form data
@@ -31,7 +32,7 @@ const saveFormData = (data: CheckoutFormData, step: number) => {
     };
     localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(storageData));
   } catch (error) {
-    console.error('Error saving checkout data to localStorage:', error);
+    logger.error('Error saving checkout data to localStorage', error instanceof Error ? error : new Error(String(error)), { component: 'CheckoutPage' });
   }
 };
 
@@ -54,7 +55,7 @@ const loadFormData = (): { formData: CheckoutFormData | null; currentStep: numbe
 
     return { formData, currentStep: currentStep || 1 };
   } catch (error) {
-    console.error('Error loading checkout data from localStorage:', error);
+    logger.error('Error loading checkout data from localStorage', error instanceof Error ? error : new Error(String(error)), { component: 'CheckoutPage' });
     return { formData: null, currentStep: 1 };
   }
 };
@@ -64,7 +65,7 @@ const clearFormData = () => {
   try {
     localStorage.removeItem(CHECKOUT_STORAGE_KEY);
   } catch (error) {
-    console.error('Error clearing checkout data from localStorage:', error);
+    logger.error('Error clearing checkout data from localStorage', error instanceof Error ? error : new Error(String(error)), { component: 'CheckoutPage' });
   }
 };
 
@@ -82,7 +83,7 @@ const saveOrderEmailMapping = (orderId: string, email: string) => {
 
     localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
   } catch (error) {
-    console.error('Error saving order-email mapping:', error);
+    logger.error('Error saving order-email mapping', error instanceof Error ? error : new Error(String(error)), { component: 'CheckoutPage' });
   }
 };
 
@@ -364,7 +365,7 @@ export default function CheckoutPage() {
       }
 
     } catch (error) {
-      console.error('Order submission error:', error);
+      logger.error('Order submission error', error instanceof Error ? error : new Error(String(error)), { component: 'CheckoutPage' });
       const errMsg = error instanceof Error ? error.message : 'Помилка при створенні замовлення. Спробуйте ще раз.';
       setErrorMessage(errMsg);
       setShowError(true);
@@ -379,7 +380,7 @@ export default function CheckoutPage() {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-      console.log('🔗 Creating LiqPay payment with base URL:', baseUrl);
+      logger.info('Creating LiqPay payment', { component: 'CheckoutPage', baseUrl });
 
       // Call server-side API to create payment (keeps private key secure)
       const paymentResponse = await fetch('/api/payments/liqpay/create', {
@@ -427,7 +428,7 @@ export default function CheckoutPage() {
         throw new Error('Failed to create LiqPay payment');
       }
     } catch (liqpayError) {
-      console.error('LiqPay payment error:', liqpayError);
+      logger.error('LiqPay payment error', liqpayError instanceof Error ? liqpayError : new Error(String(liqpayError)), { component: 'CheckoutPage' });
       throw new Error('Помилка при створенні платежу LiqPay');
     }
   };
@@ -439,7 +440,7 @@ export default function CheckoutPage() {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-      console.log('🔗 Creating Monobank payment with base URL:', baseUrl);
+      logger.info('Creating Monobank payment', { component: 'CheckoutPage', baseUrl });
 
       // Call server-side API to create Monobank invoice
       const paymentResponse = await fetch('/api/payments/monobank/create', {
@@ -470,7 +471,7 @@ export default function CheckoutPage() {
         throw new Error('Failed to create Monobank payment');
       }
     } catch (monobankError) {
-      console.error('Monobank payment error:', monobankError);
+      logger.error('Monobank payment error', monobankError instanceof Error ? monobankError : new Error(String(monobankError)), { component: 'CheckoutPage' });
       throw new Error('Помилка при створенні платежу Monobank');
     }
   };
@@ -483,9 +484,9 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id })
       });
-      console.log('Confirmation email sent');
+      logger.info('Confirmation email sent', { component: 'CheckoutPage' });
     } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
+      logger.error('Error sending confirmation email', emailError instanceof Error ? emailError : new Error(String(emailError)), { component: 'CheckoutPage' });
       // Don't block the flow if email fails
     }
 
@@ -493,7 +494,7 @@ export default function CheckoutPage() {
     try {
       clearCart();
     } catch (error) {
-      console.error('Error clearing cart:', error);
+      logger.error('Error clearing cart', error instanceof Error ? error : new Error(String(error)), { component: 'CheckoutPage' });
     }
 
     // Clear saved checkout form data from localStorage

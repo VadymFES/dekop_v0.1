@@ -5,6 +5,7 @@ import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { InvoiceData } from '../types/invoice';
 import { InvoicePDF } from '@/app/components/invoice/InvoicePDF';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Generate invoice PDF as a Buffer (for server-side use, e.g., email attachments)
@@ -25,7 +26,7 @@ export async function generateInvoicePDFBuffer(
 
     return buffer;
   } catch (error) {
-    console.error('Error generating invoice PDF buffer:', error);
+    logger.error('Error generating invoice PDF buffer', error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to generate invoice PDF buffer');
   }
 }
@@ -42,7 +43,7 @@ export async function generateInvoicePDFBase64(
     const buffer = await generateInvoicePDFBuffer(invoiceData);
     return buffer.toString('base64');
   } catch (error) {
-    console.error('Error converting invoice PDF to base64:', error);
+    logger.error('Error converting invoice PDF to base64', error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to convert invoice PDF to base64');
   }
 }

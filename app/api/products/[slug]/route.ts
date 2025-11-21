@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
+import { logger } from '@/app/lib/logger';
 import { 
   ProductWithImages, 
   ProductImage, 
@@ -530,7 +531,7 @@ export async function GET(
       headers: getCacheHeaders('product'),
     });
   } catch (error) {
-    console.error("Error fetching product details:", error);
+    logger.error("Error fetching product details", { error, slug });
     return NextResponse.json({ error: "Failed to fetch product details" }, { status: 500 });
   }
 }

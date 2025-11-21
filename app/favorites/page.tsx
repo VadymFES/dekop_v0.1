@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { ProductWithImages } from "@/app/lib/definitions";
+import { logger } from '@/app/lib/logger';
 import ProductCard from "@/app/shared/components/productCard/productCard";
 import styles from "./favorites.module.css";
 
@@ -46,7 +47,7 @@ export default function FavoritesPage() {
 
         setFavoriteProducts(favProducts);
       } catch (err) {
-        console.error('Error fetching favorite products:', err);
+        logger.error('Error fetching favorite products', err instanceof Error ? err : new Error(String(err)), { component: 'FavoritesPage' });
         setError('Не вдалося завантажити обрані товари. Спробуйте пізніше.');
       } finally {
         setIsLoading(false);

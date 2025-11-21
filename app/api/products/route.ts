@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
+import { logger } from '@/app/lib/logger';
 
 // Helper function to normalize category names
 function normalizeCategory(category: string): string {
@@ -307,7 +308,7 @@ export async function GET(request: Request) {
       headers: getCacheHeaders('catalog'),
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
+    logger.error("Error fetching products", { error, category, maxPrice, types, materials, features, size });
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }

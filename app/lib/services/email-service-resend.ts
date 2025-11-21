@@ -11,6 +11,7 @@ import {
 } from '@/app/lib/order-utils';
 import { orderToInvoiceData, type CompanyInfo } from '@/app/lib/types/invoice';
 import { generateInvoicePDFBuffer } from '@/app/lib/invoice/invoice-generator-server';
+import { logger } from '../logger';
 
 // Lazy initialization of Resend client to avoid errors during build
 let resendClient: Resend | null = null;
@@ -59,9 +60,11 @@ export async function sendOrderConfirmationEmail(
     // Check if Resend API key is configured
     if (!process.env.RESEND_API_KEY) {
       const errorMsg = 'RESEND_API_KEY is not configured. Cannot send emails.';
-      console.error('❌ EMAIL SENDING FAILED:', errorMsg);
-      console.error('📧 Email would have been sent to:', to);
-      console.error('📦 Order:', order.order_number);
+      logger.error('EMAIL SENDING FAILED: RESEND_API_KEY is not configured', undefined, {
+        to,
+        orderNumber: order.order_number,
+        orderId: order.id,
+      });
       throw new Error(errorMsg);
     }
 
@@ -71,24 +74,38 @@ export async function sendOrderConfirmationEmail(
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua';
     const fromName = process.env.RESEND_FROM_NAME || 'Dekop Furniture Store';
 
-    console.log('📧 Attempting to send order confirmation email via Resend...');
-    console.log('  From:', `${fromName} <${fromEmail}>`);
-    console.log('  To:', `${customerName} <${to}>`);
-    console.log('  Order:', order.order_number);
+    logger.info('Attempting to send order confirmation email via Resend', {
+      from: `${fromName} <${fromEmail}>`,
+      to: `${customerName} <${to}>`,
+      orderNumber: order.order_number,
+      orderId: order.id,
+    });
 
     // Generate invoice PDF
     let invoicePdfBuffer: Buffer | null = null;
     try {
-      console.log('📄 Generating invoice PDF for attachment...');
+      logger.info('Generating invoice PDF for attachment', {
+        orderNumber: order.order_number,
+        orderId: order.id,
+      });
       const companyInfo = getCompanyInfo();
       const invoiceData = orderToInvoiceData(order, companyInfo, {
         language: 'uk',
       });
       invoicePdfBuffer = await generateInvoicePDFBuffer(invoiceData);
-      console.log('✅ Invoice PDF generated successfully');
+      logger.info('Invoice PDF generated successfully', {
+        orderNumber: order.order_number,
+        orderId: order.id,
+      });
     } catch (pdfError) {
-      console.error('⚠️ Failed to generate invoice PDF:', pdfError);
-      console.log('📧 Continuing to send email without invoice attachment...');
+      logger.error('Failed to generate invoice PDF', pdfError instanceof Error ? pdfError : undefined, {
+        orderNumber: order.order_number,
+        orderId: order.id,
+      });
+      logger.info('Continuing to send email without invoice attachment', {
+        orderNumber: order.order_number,
+        orderId: order.id,
+      });
     }
 
     const { data, error } = await getResendClient().emails.send({
@@ -119,12 +136,21 @@ export async function sendOrderConfirmationEmail(
     });
 
     if (error) {
-      console.error('❌ Resend API error:', error);
+      logger.error('Resend API error', undefined, {
+        errorMessage: error.message,
+        orderNumber: order.order_number,
+        orderId: order.id,
+        to,
+      });
       throw new Error(error.message || 'Failed to send email via Resend');
     }
 
-    console.log('✅ Order confirmation email sent successfully via Resend!');
-    console.log('  Message ID:', data?.id);
+    logger.info('Order confirmation email sent successfully via Resend', {
+      messageId: data?.id,
+      orderNumber: order.order_number,
+      orderId: order.id,
+      to,
+    });
 
     return {
       success: true,
@@ -132,18 +158,16 @@ export async function sendOrderConfirmationEmail(
       status: 'sent',
     };
   } catch (error) {
-    console.error('❌ Error sending order confirmation email via Resend');
-    console.error('Error details:', error);
-
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-
-    // Log Resend-specific error details
-    if (typeof error === 'object' && error !== null) {
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-    }
+    logger.error(
+      'Error sending order confirmation email via Resend',
+      error instanceof Error ? error : undefined,
+      {
+        orderNumber: order.order_number,
+        orderId: order.id,
+        to,
+        errorDetails: typeof error === 'object' && error !== null ? JSON.stringify(error) : String(error),
+      }
+    );
 
     throw new Error(
       error instanceof Error ? error.message : 'Failed to send email'
@@ -502,7 +526,16 @@ export async function sendOrderStatusUpdateEmail(params: {
       status: 'sent',
     };
   } catch (error) {
-    console.error('Error sending order status update email:', error);
+    logger.error(
+      'Error sending order status update email',
+      error instanceof Error ? error : undefined,
+      {
+        orderNumber: order.order_number,
+        orderId: order.id,
+        to,
+        newStatus,
+      }
+    );
     throw error;
   }
 }

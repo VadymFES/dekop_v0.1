@@ -5,6 +5,7 @@ import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { InvoiceData, CompanyInfo } from '../types/invoice';
 import { InvoicePDF } from '@/app/components/invoice/InvoicePDF';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Get company information from environment variables
@@ -39,7 +40,7 @@ export async function generateInvoicePDF(
 
     return blob;
   } catch (error) {
-    console.error('Error generating invoice PDF:', error);
+    logger.error('Error generating invoice PDF', error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to generate invoice PDF');
   }
 }
@@ -72,7 +73,7 @@ export async function downloadInvoicePDF(
     // Clean up
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Error downloading invoice PDF:', error);
+    logger.error('Error downloading invoice PDF', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -94,7 +95,7 @@ export async function previewInvoicePDF(invoiceData: InvoiceData): Promise<void>
       URL.revokeObjectURL(url);
     }, 100);
   } catch (error) {
-    console.error('Error previewing invoice PDF:', error);
+    logger.error('Error previewing invoice PDF', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -127,7 +128,7 @@ export async function printInvoicePDF(invoiceData: InvoiceData): Promise<void> {
       }, 100);
     };
   } catch (error) {
-    console.error('Error printing invoice PDF:', error);
+    logger.error('Error printing invoice PDF', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -155,7 +156,7 @@ export async function getInvoicePDFBase64(
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error('Error converting invoice PDF to base64:', error);
+    logger.error('Error converting invoice PDF to base64', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }
@@ -172,7 +173,7 @@ export async function getInvoicePDFSize(
     const blob = await generateInvoicePDF(invoiceData);
     return blob.size / 1024; // Convert bytes to KB
   } catch (error) {
-    console.error('Error calculating invoice PDF size:', error);
+    logger.error('Error calculating invoice PDF size', error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }

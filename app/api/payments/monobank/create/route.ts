@@ -1,6 +1,7 @@
 // app/api/payments/monobank/create/route.ts
 import { NextResponse } from 'next/server';
 import { createMonobankInvoice } from '@/app/lib/services/monobank-service';
+import { logger } from '@/app/lib/logger';
 
 /**
  * POST /api/payments/monobank/create
@@ -45,7 +46,16 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
-    console.error('Monobank payment creation error:', error);
+    logger.error(
+      'Monobank payment creation error',
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        provider: 'monobank',
+        orderId: body?.orderId,
+        amount: body?.amount,
+        orderNumber: body?.orderNumber
+      }
+    );
     return NextResponse.json(
       {
         error: 'Помилка при створенні платежу Monobank',

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { Review } from "@/app/lib/definitions";
+import { logger } from '@/app/lib/logger';
 
 // Utility function to validate productId
 function validateProductId(productId: string): number | null {
@@ -35,7 +36,7 @@ export async function GET(
 
     return NextResponse.json(rows, { status: 200, headers: getCacheHeaders('static') });
   } catch (error) {
-    console.error("Error fetching reviews:", error);
+    logger.error("Error fetching reviews", { error, productId });
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return errorResponse(`Failed to fetch reviews: ${errorMessage}`, 500);
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { logger } from '@/app/lib/logger';
 
 // Define the context type
 interface FavoritesContextType {
@@ -31,7 +32,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         setFavorites(Array.isArray(parsed) ? parsed : []);
       }
     } catch (error) {
-      console.error("Error loading favorites from localStorage:", error);
+      logger.error('Error loading favorites from localStorage', error instanceof Error ? error : new Error(String(error)), { component: 'FavoritesContext' });
       setFavorites([]);
     } finally {
       setIsLoading(false);
@@ -44,7 +45,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
       } catch (error) {
-        console.error("Error saving favorites to localStorage:", error);
+        logger.error('Error saving favorites to localStorage', error instanceof Error ? error : new Error(String(error)), { component: 'FavoritesContext' });
       }
     }
   }, [favorites, isLoading]);

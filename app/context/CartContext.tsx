@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
+import { logger } from '@/app/lib/logger';
 
 // Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
@@ -58,12 +59,13 @@ const removeFromCartAPI = async (id: string) => {
 
 // Clear entire cart
 const clearCartAPI = async () => {
-  console.log('[CartContext] Attempting to clear cart...');
+  logger.info('Attempting to clear cart', { component: 'CartContext' });
   const res = await fetch('/cart/api/clear', {
     method: 'POST',
   });
 
-  console.log('[CartContext] Clear cart response:', {
+  logger.info('Clear cart response', {
+    component: 'CartContext',
     ok: res.ok,
     status: res.status,
     statusText: res.statusText,
@@ -72,10 +74,11 @@ const clearCartAPI = async () => {
 
   // Try to read the response body for logging
   const responseText = await res.text();
-  console.log('[CartContext] Clear cart response body:', responseText);
+  logger.debug('Clear cart response body', { component: 'CartContext', responseText });
 
   if (!res.ok) {
-    console.error('[CartContext] Failed to clear cart:', {
+    logger.error('Failed to clear cart', undefined, {
+      component: 'CartContext',
       status: res.status,
       statusText: res.statusText,
       body: responseText
@@ -87,7 +90,7 @@ const clearCartAPI = async () => {
   try {
     return JSON.parse(responseText);
   } catch (e) {
-    console.error('[CartContext] Failed to parse response as JSON:', responseText);
+    logger.error('Failed to parse response as JSON', undefined, { component: 'CartContext', responseText });
     return { success: true };
   }
 };
@@ -186,7 +189,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
       }
-      console.error('Add to cart failed:', error);
+      logger.error('Add to cart failed', error instanceof Error ? error : new Error(String(error)));
     },
     onSettled: () => {
       // Always refetch after mutation to ensure data consistency
@@ -219,7 +222,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
       }
-      console.error('Update cart failed:', error);
+      logger.error('Update cart failed', error instanceof Error ? error : new Error(String(error)));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
@@ -252,7 +255,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
       }
-      console.error('Remove from cart failed:', error);
+      logger.error('Remove from cart failed', error instanceof Error ? error : new Error(String(error)));
     },
     onSettled: () => {
       // Only invalidate after the mutation has completed
@@ -281,7 +284,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
       }
-      console.error('Clear cart failed:', error);
+      logger.error('Clear cart failed', error instanceof Error ? error : new Error(String(error)));
     },
     onSettled: () => {
       // Invalidate cart and refetch

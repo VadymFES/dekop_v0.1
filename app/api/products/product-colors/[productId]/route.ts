@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { ProductColor } from "@/app/lib/definitions";
+import { logger } from '@/app/lib/logger';
 
 export async function GET(
   _request: Request,
@@ -24,7 +25,7 @@ export async function GET(
 
     return NextResponse.json(rows, { status: 200, headers: getCacheHeaders('static') });
   } catch (error) {
-    console.error("Error:", error);
+    logger.error("Error fetching product colors", { error, productId });
     return NextResponse.json(
       { error: "Failed to fetch product colors" },
       { status: 500 }

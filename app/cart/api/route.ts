@@ -6,6 +6,7 @@ import { CartItem, ProductWithImages } from "@/app/lib/definitions";
 import { handleApiError } from "@/app/lib/server-error";
 import { randomUUID } from "crypto";
 import { cartItemSchema, safeValidateInput } from "@/app/lib/validation-schemas";
+import { logger } from '@/app/lib/logger';
 
 // Interface to represent the raw cart item data from the database
 interface CartItemWithProductData {
@@ -132,7 +133,7 @@ export async function GET() {
 
     return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching cart:", error);
+    logger.error("Error fetching cart", { cartId, error });
     return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
   }
 }
@@ -143,6 +144,11 @@ export async function GET() {
  * Add an item to the cart or increase quantity if already present.
  */
 export async function POST(request: NextRequest) {
+  let cartId: string | undefined;
+  let numericProductId: number | undefined;
+  let quantity: number | undefined;
+  let color: string | undefined;
+
   try {
     const body = await request.json();
 
@@ -165,10 +171,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Use validated and sanitized data
-    const { productId: numericProductId, quantity, color } = validationResult.data;
+    ({ productId: numericProductId, quantity, color } = validationResult.data);
 
     const cookieStore = await cookies();
-    let cartId = cookieStore.get("cartId")?.value;
+    cartId = cookieStore.get("cartId")?.value;
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7-day expiration
 
     if (cartId) {
@@ -249,7 +255,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("Error adding to cart:", error);
+    logger.error("Error adding to cart", { cartId, productId: numericProductId, quantity, color, error });
     return NextResponse.json({ error: "Failed to add item to cart" }, { status: 500 });
   }
 }

@@ -13,6 +13,7 @@ import {
 } from '@/app/lib/order-utils';
 import OrderSummary from '@/app/components/order/OrderSummary';
 import { useCart } from '@/app/context/CartContext';
+import { logger } from '@/app/lib/logger';
 import styles from './page.module.css';
 
 // LocalStorage key for checkout form data (same as in checkout page)
@@ -58,7 +59,7 @@ function OrderSuccessContent() {
             customerEmail = orderData?.email || null;
           }
         } catch (error) {
-          console.error('Error reading order-email mapping:', error);
+          logger.error('Error reading order-email mapping', error instanceof Error ? error : new Error(String(error)), { component: 'OrderSuccessPage' });
         }
 
         // 2. If not found, try URL params (from payment gateway redirect)
@@ -75,7 +76,7 @@ function OrderSuccessContent() {
               customerEmail = parsedData.formData?.customerInfo?.email || null;
             }
           } catch (storageError) {
-            console.error('Error reading checkout data from localStorage:', storageError);
+            logger.error('Error reading checkout data from localStorage', storageError instanceof Error ? storageError : new Error(String(storageError)), { component: 'OrderSuccessPage' });
           }
         }
 
@@ -101,7 +102,7 @@ function OrderSuccessContent() {
           throw new Error('Замовлення не знайдено');
         }
       } catch (err) {
-        console.error('Error fetching order:', err);
+        logger.error('Error fetching order', err instanceof Error ? err : new Error(String(err)), { component: 'OrderSuccessPage' });
         setError(err instanceof Error ? err.message : 'Помилка завантаження замовлення');
       } finally {
         setLoading(false);
@@ -117,24 +118,24 @@ function OrderSuccessContent() {
       // Set ref immediately to prevent re-runs (before any async operations)
       cleanupInitiatedRef.current = true;
 
-      console.log('[Order Success] Starting cleanup...');
+      logger.info('Starting cleanup', { component: 'OrderSuccessPage' });
 
       const performCleanup = async () => {
         // Clear cart
         try {
           await clearCart();
-          console.log('[Order Success] Cart cleared successfully');
+          logger.info('Cart cleared successfully', { component: 'OrderSuccessPage' });
         } catch (cartError) {
           // Cart clearing may fail if already cleared - this is non-critical
-          console.warn('[Order Success] Cart clearing failed (may already be cleared):', cartError);
+          logger.warn('Cart clearing failed (may already be cleared)', { component: 'OrderSuccessPage', error: cartError });
         }
 
         // Clear saved checkout form data from localStorage
         try {
           localStorage.removeItem(CHECKOUT_STORAGE_KEY);
-          console.log('[Order Success] Checkout form data cleared');
+          logger.debug('Checkout form data cleared', { component: 'OrderSuccessPage' });
         } catch (storageError) {
-          console.error('[Order Success] Error clearing checkout form data:', storageError);
+          logger.error('Error clearing checkout form data', storageError instanceof Error ? storageError : new Error(String(storageError)), { component: 'OrderSuccessPage' });
         }
 
         // Clean up order-email mapping for this order
@@ -156,9 +157,9 @@ function OrderSuccessContent() {
               localStorage.removeItem(ORDER_EMAIL_MAPPING_KEY);
             }
           }
-          console.log('[Order Success] Order-email mapping cleaned up');
+          logger.debug('Order-email mapping cleaned up', { component: 'OrderSuccessPage' });
         } catch (cleanupError) {
-          console.error('[Order Success] Error cleaning up order-email mapping:', cleanupError);
+          logger.error('Error cleaning up order-email mapping', cleanupError instanceof Error ? cleanupError : new Error(String(cleanupError)), { component: 'OrderSuccessPage' });
         }
       };
 

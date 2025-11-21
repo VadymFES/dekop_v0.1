@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { ProductSpecs, SofaSpecs, CornerSofaSpecs, BedSpecs, TableSpecs, ChairSpecs, MattressSpecs, WardrobeSpecs, AccessorySpecs } from "@/app/lib/definitions";
+import { logger } from '@/app/lib/logger';
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ productId: string }> }
 ) {
   const productId = (await params).productId;
-  console.log("Fetching specs for product ID:", productId);
+  logger.info("Fetching specs for product ID", { productId });
 
   try {
     // Fetch the product's category
@@ -17,16 +18,16 @@ export async function GET(
     `;
 
     if (productRows.length === 0) {
-      console.log("Product not found:", productId);
+      logger.warn("Product not found", { productId });
       return NextResponse.json(
         { error: "Product not found" },
         { status: 404 }
       );
     }
 
-    console.log("Product found:", productRows[0]);
+    logger.info("Product found", { productId, product: productRows[0] });
     const category = productRows[0].category.trim().toLowerCase();
-    console.log("Raw category from database:", category);
+    logger.info("Raw category from database", { productId, category });
 
     // Define a mapping from Ukrainian categories to English categories
     const categoryMapping: { [key: string]: string } = {
@@ -45,7 +46,7 @@ export async function GET(
 
     // Normalize the category by mapping it to its English equivalent
     const normalizedCategory = categoryMapping[category] || category;
-    console.log("Normalized category:", normalizedCategory);
+    logger.info("Normalized category", { productId, category, normalizedCategory });
 
     // Fetch raw product specs without transformations
     const { rows: specRows } = await db.query`
@@ -53,14 +54,14 @@ export async function GET(
     `;
 
     if (specRows.length === 0) {
-      console.log("No specs found for product:", productId);
+      logger.warn("No specs found for product", { productId });
       return NextResponse.json(
         { error: "Product specs not found" },
         { status: 404 }
       );
     }
 
-    console.log("Raw specs found:", specRows[0]);
+    logger.info("Raw specs found", { productId, specs: specRows[0] });
     const row = specRows[0];
 
     // Base specs object with common fields
@@ -79,7 +80,7 @@ export async function GET(
         try {
             types = JSON.parse(row.types);
           } catch (error) {
-            console.error("Failed to parse JSON types:", error);
+            logger.error("Failed to parse JSON types", { error, productId, types: row.types });
           // If it's a comma-separated string
           types = row.types.split(',').map((t: string) => t.trim());
         }
@@ -240,7 +241,7 @@ export async function GET(
     } 
     else {
       // If category doesn't match, return the raw data with a warning
-      console.log(`Unknown category after mapping: ${normalizedCategory}`);
+      logger.warn("Unknown category after mapping", { productId, category, normalizedCategory });
       return NextResponse.json({
         warning: `Category '${category}' (normalized to '${normalizedCategory}') is not specifically handled`,
         rawData: row,
@@ -259,12 +260,12 @@ export async function GET(
       }, { status: 200, headers: getCacheHeaders('static') });
     }
   } catch (error: unknown) {
-    console.error("Error fetching product specs:", error);
+    logger.error("Error fetching product specs", { error, productId });
     return NextResponse.json(
-      { 
+      {
         error: "Failed to fetch product specs",
         message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined 
+        stack: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }
     );

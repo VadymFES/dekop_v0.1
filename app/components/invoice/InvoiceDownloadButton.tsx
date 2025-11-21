@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { downloadInvoicePDF, previewInvoicePDF } from '@/app/lib/invoice/invoice-generator';
 import type { InvoiceData } from '@/app/lib/types/invoice';
 import styles from './InvoiceDownloadButton.module.css';
+import { logger } from '@/app/lib/logger';
 
 interface InvoiceDownloadButtonProps {
   orderId: string;
@@ -60,7 +61,7 @@ export const InvoiceDownloadButton: React.FC<InvoiceDownloadButtonProps> = ({
       const invoice = await fetchInvoiceData();
       await downloadInvoicePDF(invoice);
     } catch (err) {
-      console.error('Error downloading invoice:', err);
+      logger.error('Error downloading invoice', err instanceof Error ? err : new Error(String(err)), { orderId });
       setError(err instanceof Error ? err.message : 'Помилка завантаження рахунку');
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ export const InvoiceDownloadButton: React.FC<InvoiceDownloadButtonProps> = ({
       const invoice = await fetchInvoiceData();
       await previewInvoicePDF(invoice);
     } catch (err) {
-      console.error('Error previewing invoice:', err);
+      logger.error('Error previewing invoice', err instanceof Error ? err : new Error(String(err)), { orderId });
       setError(err instanceof Error ? err.message : 'Помилка перегляду рахунку');
     } finally {
       setLoading(false);

@@ -7,6 +7,7 @@ import {
   type ResendWebhookPayload,
   type ResendWebhookEvent
 } from '@/app/lib/services/resend-webhook-service';
+import { logger } from '@/app/lib/logger';
 
 /**
  * POST /api/webhooks/resend
@@ -30,14 +31,22 @@ export async function POST(request: Request) {
     const svixTimestamp = headersList.get('svix-timestamp');
 
     // Log webhook receipt
-    console.log('📧 Resend webhook received:', {
-      id: svixId,
+    logger.info('Resend webhook received', {
+      webhookId: svixId,
       timestamp: svixTimestamp,
       bodyLength: body.length
     });
 
     if (!signature) {
-      console.error('Missing svix-signature header');
+      logger.security(
+        {
+          type: 'webhook_invalid',
+          severity: 'medium',
+          details: 'Missing svix-signature header',
+          metadata: { webhookId: svixId }
+        },
+        { path: '/api/webhooks/resend' }
+      );
       return NextResponse.json(
         { error: 'Missing signature header' },
         {
@@ -53,7 +62,10 @@ export async function POST(request: Request) {
     // Get webhook signing secret
     const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      console.error('RESEND_WEBHOOK_SECRET not configured');
+      logger.error('RESEND_WEBHOOK_SECRET not configured', undefined, {
+        path: '/api/webhooks/resend',
+        webhookId: svixId
+      });
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         {
@@ -69,7 +81,15 @@ export async function POST(request: Request) {
     // Verify webhook signature
     const isValid = verifyResendWebhook(body, signature, webhookSecret);
     if (!isValid) {
-      console.error('Resend webhook signature verification failed');
+      logger.security(
+        {
+          type: 'webhook_invalid',
+          severity: 'high',
+          details: 'Resend webhook signature verification failed',
+          metadata: { webhookId: svixId, timestamp: svixTimestamp }
+        },
+        { path: '/api/webhooks/resend' }
+      );
       return NextResponse.json(
         { error: 'Invalid signature' },
         {
@@ -84,7 +104,15 @@ export async function POST(request: Request) {
 
     // Validate timestamp to prevent replay attacks
     if (!validateWebhookTimestamp(signature)) {
-      console.error('Resend webhook timestamp validation failed (possible replay attack)');
+      logger.security(
+        {
+          type: 'replay_attack',
+          severity: 'high',
+          details: 'Resend webhook timestamp validation failed (possible replay attack)',
+          metadata: { webhookId: svixId, timestamp: svixTimestamp }
+        },
+        { path: '/api/webhooks/resend' }
+      );
       return NextResponse.json(
         { error: 'Webhook timestamp expired' },
         {
@@ -100,8 +128,9 @@ export async function POST(request: Request) {
     // Parse webhook payload
     const payload: ResendWebhookPayload = JSON.parse(body);
 
-    console.log('✅ Resend webhook verified:', {
-      type: payload.type,
+    logger.info('Resend webhook verified', {
+      webhookId: svixId,
+      eventType: payload.type,
       emailId: payload.data.email_id,
       to: payload.data.to
     });
@@ -120,7 +149,11 @@ export async function POST(request: Request) {
     );
 
   } catch (error) {
-    console.error('Resend webhook error:', error);
+    logger.error(
+      'Resend webhook error',
+      error instanceof Error ? error : new Error(String(error)),
+      { path: '/api/webhooks/resend' }
+    );
     return NextResponse.json(
       {
         error: 'Webhook handler failed',
@@ -145,24 +178,37 @@ async function handleResendEvent(payload: ResendWebhookPayload) {
 
   switch (type) {
     case 'email.sent':
-      console.log(`📨 Email sent: ${data.email_id} to ${data.to.join(', ')}`);
+      logger.info('Email sent', {
+        emailId: data.email_id,
+        to: data.to,
+        eventType: 'email.sent'
+      });
       // Track email sent event
       break;
 
     case 'email.delivered':
-      console.log(`✅ Email delivered: ${data.email_id} to ${data.to.join(', ')}`);
+      logger.info('Email delivered', {
+        emailId: data.email_id,
+        to: data.to,
+        eventType: 'email.delivered'
+      });
       // Track successful delivery
       break;
 
     case 'email.delivery_delayed':
-      console.warn(`⏱️ Email delivery delayed: ${data.email_id}`);
+      logger.warn('Email delivery delayed', {
+        emailId: data.email_id,
+        eventType: 'email.delivery_delayed'
+      });
       // Track delayed delivery
       break;
 
     case 'email.bounced':
-      console.error(`❌ Email bounced: ${data.email_id}`, {
+      logger.error('Email bounced', undefined, {
+        emailId: data.email_id,
         bounceType: data.bounce_type,
-        reason: data.bounce_reason
+        bounceReason: data.bounce_reason,
+        eventType: 'email.bounced'
       });
       // Handle bounce (hard bounces should remove from mailing list)
       if (data.bounce_type === 'Hard') {
@@ -172,8 +218,10 @@ async function handleResendEvent(payload: ResendWebhookPayload) {
       break;
 
     case 'email.complained':
-      console.error(`🚨 Spam complaint: ${data.email_id}`, {
-        complaintType: data.complaint_type
+      logger.error('Spam complaint', undefined, {
+        emailId: data.email_id,
+        complaintType: data.complaint_type,
+        eventType: 'email.complained'
       });
       // Handle spam complaint
       // TODO: Unsubscribe user immediately
@@ -181,22 +229,28 @@ async function handleResendEvent(payload: ResendWebhookPayload) {
       break;
 
     case 'email.opened':
-      console.log(`👁️ Email opened: ${data.email_id}`, {
-        ipAddress: data.ip_address
+      logger.info('Email opened', {
+        emailId: data.email_id,
+        ipAddress: data.ip_address,
+        eventType: 'email.opened'
       });
       // Track email open
       break;
 
     case 'email.clicked':
-      console.log(`🔗 Link clicked: ${data.email_id}`, {
+      logger.info('Link clicked', {
+        emailId: data.email_id,
         link: data.link,
         ipAddress: data.ip_address,
-        userAgent: data.user_agent
+        userAgent: data.user_agent,
+        eventType: 'email.clicked'
       });
       // Track link click
       break;
 
     default:
-      console.warn(`Unknown event type: ${type}`);
+      logger.warn('Unknown event type', {
+        eventType: type
+      });
   }
 }
