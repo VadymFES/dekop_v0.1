@@ -42,9 +42,34 @@ function OrderSuccessContent() {
     // Fetch order details
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`/api/orders/${orderId}`);
+        // Get customer email from localStorage (saved during checkout)
+        let customerEmail: string | null = null;
+        try {
+          const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
+          if (checkoutData) {
+            const parsedData = JSON.parse(checkoutData);
+            customerEmail = parsedData.user_email || null;
+          }
+        } catch (storageError) {
+          console.error('Error reading checkout data from localStorage:', storageError);
+        }
+
+        // If no email in localStorage, try to get it from URL params (fallback)
+        if (!customerEmail) {
+          customerEmail = searchParams.get('email');
+        }
+
+        if (!customerEmail) {
+          throw new Error('Не вдалося знайти email для перевірки замовлення');
+        }
+
+        // Fetch order with email verification
+        const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
 
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Не вдалося підтвердити доступ до замовлення');
+          }
           throw new Error('Не вдалося завантажити дані замовлення');
         }
 
@@ -81,7 +106,7 @@ function OrderSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId, clearCart, cartCleared]);
+  }, [orderId, clearCart, cartCleared, searchParams]);
 
   const handleContinueShopping = () => {
     router.push('/');
