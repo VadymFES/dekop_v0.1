@@ -17,6 +17,7 @@ import styles from './page.module.css';
 
 // LocalStorage key for checkout form data (same as in checkout page)
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
+const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
 
 /**
  * Order Success Page Content Component
@@ -42,22 +43,38 @@ function OrderSuccessContent() {
     // Fetch order details
     const fetchOrder = async () => {
       try {
-        // Get customer email from localStorage (saved during checkout)
+        // Get customer email - try multiple sources in order of preference
         let customerEmail: string | null = null;
+
+        // 1. First, check order-email mapping (persists through payment flow)
         try {
-          const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
-          if (checkoutData) {
-            const parsedData = JSON.parse(checkoutData);
-            // Email is nested in formData.customerInfo.email
-            customerEmail = parsedData.formData?.customerInfo?.email || null;
+          const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+          if (mappingData) {
+            const mapping = JSON.parse(mappingData);
+            const orderData = mapping[orderId];
+            // Email is stored as an object with email and timestamp
+            customerEmail = orderData?.email || null;
           }
-        } catch (storageError) {
-          console.error('Error reading checkout data from localStorage:', storageError);
+        } catch (error) {
+          console.error('Error reading order-email mapping:', error);
         }
 
-        // If no email in localStorage, try to get it from URL params (fallback)
+        // 2. If not found, try URL params (from payment gateway redirect)
         if (!customerEmail) {
           customerEmail = searchParams.get('email');
+        }
+
+        // 3. If still not found, try checkout form data (for cash_on_delivery)
+        if (!customerEmail) {
+          try {
+            const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
+            if (checkoutData) {
+              const parsedData = JSON.parse(checkoutData);
+              customerEmail = parsedData.formData?.customerInfo?.email || null;
+            }
+          } catch (storageError) {
+            console.error('Error reading checkout data from localStorage:', storageError);
+          }
         }
 
         if (!customerEmail) {
@@ -82,17 +99,42 @@ function OrderSuccessContent() {
           // Clear cart after successful order display using CartContext
           if (!cartCleared) {
             try {
-              clearCart();
+              await clearCart();
               setCartCleared(true);
+            } catch (cartError) {
+              // Cart clearing may fail if already cleared - this is non-critical
+              console.warn('Cart clearing failed (may already be cleared):', cartError);
+              setCartCleared(true); // Mark as cleared anyway to prevent retries
+            }
 
-              // Also clear saved checkout form data from localStorage
-              try {
-                localStorage.removeItem(CHECKOUT_STORAGE_KEY);
-              } catch (storageError) {
-                console.error('Error clearing checkout form data:', storageError);
+            // Clear saved checkout form data from localStorage
+            try {
+              localStorage.removeItem(CHECKOUT_STORAGE_KEY);
+            } catch (storageError) {
+              console.error('Error clearing checkout form data:', storageError);
+            }
+
+            // Clean up order-email mapping for this order
+            try {
+              const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+              if (mappingData) {
+                const mapping = JSON.parse(mappingData);
+                delete mapping[orderId];
+                // Clean up old entries (older than 24 hours)
+                const now = Date.now();
+                Object.keys(mapping).forEach(key => {
+                  if (mapping[key].timestamp && (now - mapping[key].timestamp) > 24 * 60 * 60 * 1000) {
+                    delete mapping[key];
+                  }
+                });
+                if (Object.keys(mapping).length > 0) {
+                  localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
+                } else {
+                  localStorage.removeItem(ORDER_EMAIL_MAPPING_KEY);
+                }
               }
-            } catch (e) {
-              console.error('Error clearing cart:', e);
+            } catch (cleanupError) {
+              console.error('Error cleaning up order-email mapping:', cleanupError);
             }
           }
         } else {

@@ -18,6 +18,7 @@ import styles from './checkout.module.css';
 // LocalStorage key for checkout form data
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const CHECKOUT_STEP_KEY = 'dekop_checkout_step';
+const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
 const STORAGE_EXPIRATION_MINUTES = 20; // Data expires after 20 minutes
 
 // Helper to save form data to localStorage
@@ -64,6 +65,24 @@ const clearFormData = () => {
     localStorage.removeItem(CHECKOUT_STORAGE_KEY);
   } catch (error) {
     console.error('Error clearing checkout data from localStorage:', error);
+  }
+};
+
+// Helper to save orderId->email mapping (persists through payment flow)
+const saveOrderEmailMapping = (orderId: string, email: string) => {
+  try {
+    const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+    const mapping = mappingData ? JSON.parse(mappingData) : {};
+
+    // Store email with timestamp for cleanup
+    mapping[orderId] = {
+      email: email,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
+  } catch (error) {
+    console.error('Error saving order-email mapping:', error);
   }
 };
 
@@ -315,6 +334,9 @@ export default function CheckoutPage() {
       }
 
       const { order } = await orderResponse.json();
+
+      // Save orderId->email mapping to persist through payment flow
+      saveOrderEmailMapping(order.id, formData.customerInfo.email);
 
       // Handle different payment methods
       if (formData.paymentInfo.method === 'liqpay') {
