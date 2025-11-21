@@ -12,6 +12,7 @@ import {
 import { orderToInvoiceData, type CompanyInfo } from '@/app/lib/types/invoice';
 import { generateInvoicePDFBuffer } from '@/app/lib/invoice/invoice-generator-server';
 import { logger } from '../logger';
+import * as Sentry from '@sentry/nextjs';
 
 // Lazy initialization of Resend client to avoid errors during build
 let resendClient: Resend | null = null;
@@ -97,6 +98,8 @@ export async function sendOrderConfirmationEmail(
         orderNumber: order.order_number,
         orderId: order.id,
       });
+      // Track PDF size metric
+      Sentry.metrics.distribution('email.pdf_size', invoicePdfBuffer.length, { unit: 'byte' });
     } catch (pdfError) {
       logger.error('Failed to generate invoice PDF', pdfError instanceof Error ? pdfError : undefined, {
         orderNumber: order.order_number,
@@ -108,34 +111,44 @@ export async function sendOrderConfirmationEmail(
       });
     }
 
-    const { data, error } = await getResendClient().emails.send({
-      from: `${fromName} <${fromEmail}>`,
-      to: [to],
-      subject: `Підтвердження замовлення ${order.order_number} - Dekop`,
-      html: htmlContent,
-      text: buildOrderConfirmationText(order),
-      tags: [
-        {
-          name: 'category',
-          value: 'order-confirmation',
-        },
-        {
-          name: 'order_id',
-          value: order.id,
-        },
-      ],
-      // Attach invoice PDF if generation was successful
-      ...(invoicePdfBuffer && {
-        attachments: [
-          {
-            filename: `invoice-${order.order_number}.pdf`,
-            content: invoicePdfBuffer,
-          },
-        ],
-      }),
-    });
+    const { data, error } = await Sentry.startSpan(
+      {
+        op: 'email.send',
+        name: 'Send Order Confirmation Email',
+        attributes: { to: to, orderNumber: order.order_number }
+      },
+      async () => {
+        return await getResendClient().emails.send({
+          from: `${fromName} <${fromEmail}>`,
+          to: [to],
+          subject: `Підтвердження замовлення ${order.order_number} - Dekop`,
+          html: htmlContent,
+          text: buildOrderConfirmationText(order),
+          tags: [
+            {
+              name: 'category',
+              value: 'order-confirmation',
+            },
+            {
+              name: 'order_id',
+              value: order.id,
+            },
+          ],
+          // Attach invoice PDF if generation was successful
+          ...(invoicePdfBuffer && {
+            attachments: [
+              {
+                filename: `invoice-${order.order_number}.pdf`,
+                content: invoicePdfBuffer,
+              },
+            ],
+          }),
+        });
+      }
+    );
 
     if (error) {
+      Sentry.metrics.increment('email.failed', 1, { tags: { type: 'order_confirmation' } });
       logger.error('Resend API error', undefined, {
         errorMessage: error.message,
         orderNumber: order.order_number,
@@ -145,6 +158,7 @@ export async function sendOrderConfirmationEmail(
       throw new Error(error.message || 'Failed to send email via Resend');
     }
 
+    Sentry.metrics.increment('email.sent', 1, { tags: { type: 'order_confirmation' } });
     logger.info('Order confirmation email sent successfully via Resend', {
       messageId: data?.id,
       orderNumber: order.order_number,
@@ -158,6 +172,7 @@ export async function sendOrderConfirmationEmail(
       status: 'sent',
     };
   } catch (error) {
+    Sentry.metrics.increment('email.failed', 1, { tags: { type: 'order_confirmation' } });
     logger.error(
       'Error sending order confirmation email via Resend',
       error instanceof Error ? error : undefined,

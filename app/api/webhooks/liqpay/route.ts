@@ -1,6 +1,7 @@
 // app/api/webhooks/liqpay/route.ts
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import * as Sentry from '@sentry/nextjs';
 import {
   verifyLiqPayCallback,
   parseLiqPayCallback,
@@ -24,27 +25,40 @@ import { logger } from '@/app/lib/logger';
  * 4. Timestamp validation
  */
 export async function POST(request: Request) {
-  try {
-    // SECURITY LAYER 1: IP Whitelist Validation
-    const ipValidation = validateWebhookIp(request, 'liqpay');
-    if (!ipValidation.valid) {
-      logger.security({
-        type: 'webhook_invalid',
-        severity: 'high',
-        details: 'LiqPay webhook IP validation failed',
-        metadata: { reason: ipValidation.reason, provider: 'liqpay' }
-      }, { ip: ipValidation.clientIp });
-      return NextResponse.json(
-        { error: 'Unauthorized IP address' },
-        {
-          status: 403,
-          headers: {
-            'X-Robots-Tag': 'noindex',
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-          }
+  return await Sentry.startSpan(
+    {
+      op: 'webhook.process',
+      name: 'Process LiqPay Webhook',
+      attributes: {
+        provider: 'liqpay'
+      }
+    },
+    async () => {
+      try {
+        // Track webhook received
+        Sentry.metrics.increment('webhook.received', 1, { tags: { provider: 'liqpay' } });
+
+        // SECURITY LAYER 1: IP Whitelist Validation
+        const ipValidation = validateWebhookIp(request, 'liqpay');
+        if (!ipValidation.valid) {
+          Sentry.metrics.increment('webhook.ip_validation_failed', 1, { tags: { provider: 'liqpay' } });
+          logger.security({
+            type: 'webhook_invalid',
+            severity: 'high',
+            details: 'LiqPay webhook IP validation failed',
+            metadata: { reason: ipValidation.reason, provider: 'liqpay' }
+          }, { ip: ipValidation.clientIp });
+          return NextResponse.json(
+            { error: 'Unauthorized IP address' },
+            {
+              status: 403,
+              headers: {
+                'X-Robots-Tag': 'noindex',
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+              }
+            }
+          );
         }
-      );
-    }
 
     const formData = await request.formData();
     const data = formData.get('data') as string;
@@ -67,6 +81,7 @@ export async function POST(request: Request) {
     const isValid = verifyLiqPayCallback(data, signature);
 
     if (!isValid) {
+      Sentry.metrics.increment('webhook.signature_invalid', 1, { tags: { provider: 'liqpay' } });
       logger.security({
         type: 'webhook_invalid',
         severity: 'critical',
@@ -123,6 +138,7 @@ export async function POST(request: Request) {
     const webhookId = `liqpay_${transactionId || paymentId}`;
     const isUnique = await isWebhookUnique(webhookId, 'liqpay', 3600, callbackData);
     if (!isUnique) {
+      Sentry.metrics.increment('webhook.replay_attack', 1, { tags: { provider: 'liqpay' } });
       logger.security({
         type: 'replay_attack',
         severity: 'critical',
@@ -179,6 +195,9 @@ export async function POST(request: Request) {
       await handleLiqPayPaymentPending(orderId, transactionId || paymentId);
     }
 
+    // Track successful webhook processing
+    Sentry.metrics.increment('webhook.processed', 1, { tags: { provider: 'liqpay', status: paymentStatus } });
+
     // Return success response with appropriate headers
     return NextResponse.json(
       { status: 'ok' },
@@ -190,24 +209,26 @@ export async function POST(request: Request) {
       }
     );
 
-  } catch (error) {
-    logger.error('LiqPay webhook error', error instanceof Error ? error : new Error('Unknown error'), {
-      provider: 'liqpay'
-    });
-    return NextResponse.json(
-      {
-        error: 'Webhook handler failed',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      {
-        status: 500,
-        headers: {
-          'X-Robots-Tag': 'noindex',
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        }
+      } catch (error) {
+        logger.error('LiqPay webhook error', error instanceof Error ? error : new Error('Unknown error'), {
+          provider: 'liqpay'
+        });
+        return NextResponse.json(
+          {
+            error: 'Webhook handler failed',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          },
+          {
+            status: 500,
+            headers: {
+              'X-Robots-Tag': 'noindex',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+            }
+          }
+        );
       }
-    );
-  }
+    }
+  );
 }
 
 /**

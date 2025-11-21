@@ -13,6 +13,7 @@
 
 import { sql } from '@vercel/postgres';
 import { logger } from './logger';
+import * as Sentry from '@sentry/nextjs';
 
 // Query statistics for monitoring
 let totalQueries = 0;
@@ -44,9 +45,14 @@ export const db = {
       const duration = Date.now() - start;
       totalQueries++;
 
+      // Track query performance metrics
+      Sentry.metrics.distribution('db.query.duration', duration, { unit: 'millisecond' });
+      Sentry.metrics.increment('db.query.total', 1);
+
       // Log slow queries (>100ms) for monitoring
       if (duration > 100) {
         slowQueries++;
+        Sentry.metrics.increment('db.query.slow', 1);
         const queryText = typeof strings === 'string'
           ? strings
           : strings.join('?');

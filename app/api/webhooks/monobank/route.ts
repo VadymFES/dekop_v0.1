@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { sql } from '@vercel/postgres';
+import * as Sentry from '@sentry/nextjs';
 import {
   verifyMonobankWebhook,
   mapMonobankStatus
@@ -36,27 +37,40 @@ interface MonobankWebhookPayload {
  * 4. Timestamp validation
  */
 export async function POST(request: Request) {
-  try {
-    // SECURITY LAYER 1: IP Whitelist Validation
-    const ipValidation = validateWebhookIp(request, 'monobank');
-    if (!ipValidation.valid) {
-      logger.security({
-        type: 'webhook_invalid',
-        severity: 'high',
-        details: 'Monobank webhook IP validation failed',
-        metadata: { reason: ipValidation.reason, provider: 'monobank' }
-      });
-      return NextResponse.json(
-        { error: 'Unauthorized IP address' },
-        {
-          status: 403,
-          headers: {
-            'X-Robots-Tag': 'noindex',
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-          }
+  return await Sentry.startSpan(
+    {
+      op: 'webhook.process',
+      name: 'Process Monobank Webhook',
+      attributes: {
+        provider: 'monobank'
+      }
+    },
+    async () => {
+      try {
+        // Track webhook received
+        Sentry.metrics.increment('webhook.received', 1, { tags: { provider: 'monobank' } });
+
+        // SECURITY LAYER 1: IP Whitelist Validation
+        const ipValidation = validateWebhookIp(request, 'monobank');
+        if (!ipValidation.valid) {
+          Sentry.metrics.increment('webhook.ip_validation_failed', 1, { tags: { provider: 'monobank' } });
+          logger.security({
+            type: 'webhook_invalid',
+            severity: 'high',
+            details: 'Monobank webhook IP validation failed',
+            metadata: { reason: ipValidation.reason, provider: 'monobank' }
+          });
+          return NextResponse.json(
+            { error: 'Unauthorized IP address' },
+            {
+              status: 403,
+              headers: {
+                'X-Robots-Tag': 'noindex',
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+              }
+            }
+          );
         }
-      );
-    }
 
     const body = await request.text();
     const headersList = await headers();
@@ -80,6 +94,7 @@ export async function POST(request: Request) {
     const isValid = verifyMonobankWebhook(publicKey, xSign, body);
 
     if (!isValid) {
+      Sentry.metrics.increment('webhook.signature_invalid', 1, { tags: { provider: 'monobank' } });
       logger.security({
         type: 'webhook_invalid',
         severity: 'critical',
@@ -124,6 +139,7 @@ export async function POST(request: Request) {
     const webhookId = `monobank_${payload.invoiceId}`;
     const isUnique = await isWebhookUnique(webhookId, 'monobank', 3600, payload);
     if (!isUnique) {
+      Sentry.metrics.increment('webhook.replay_attack', 1, { tags: { provider: 'monobank' } });
       logger.security({
         type: 'replay_attack',
         severity: 'critical',
@@ -180,6 +196,9 @@ export async function POST(request: Request) {
       await handleMonobankPaymentPending(orderId, payload);
     }
 
+    // Track successful webhook processing
+    Sentry.metrics.increment('webhook.processed', 1, { tags: { provider: 'monobank', status: paymentStatus } });
+
     // Return success response with appropriate headers
     return NextResponse.json(
       { received: true },
@@ -191,24 +210,26 @@ export async function POST(request: Request) {
       }
     );
 
-  } catch (error) {
-    logger.error('Monobank webhook error', error instanceof Error ? error : new Error('Unknown error'), {
-      provider: 'monobank'
-    });
-    return NextResponse.json(
-      {
-        error: 'Webhook handler failed',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      {
-        status: 500,
-        headers: {
-          'X-Robots-Tag': 'noindex',
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-        }
+      } catch (error) {
+        logger.error('Monobank webhook error', error instanceof Error ? error : new Error('Unknown error'), {
+          provider: 'monobank'
+        });
+        return NextResponse.json(
+          {
+            error: 'Webhook handler failed',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          },
+          {
+            status: 500,
+            headers: {
+              'X-Robots-Tag': 'noindex',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+            }
+          }
+        );
       }
-    );
-  }
+    }
+  );
 }
 
 /**
