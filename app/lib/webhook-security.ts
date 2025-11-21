@@ -6,73 +6,184 @@
  */
 
 import { NextRequest } from 'next/server';
+import { sql } from '@vercel/postgres';
 
-// In-memory cache for tracking processed webhooks
-// In production, use Redis or a database for distributed systems
+/**
+ * Checks if a webhook has already been processed using database-backed deduplication
+ *
+ * SECURITY: Prevents replay attacks by tracking webhook IDs in the database
+ * This works in serverless/distributed environments unlike in-memory Maps
+ * Each webhook can only be processed once within the TTL window
+ *
+ * @param webhookId - Unique identifier for the webhook (e.g., transaction ID, invoice ID)
+ * @param provider - Payment provider name ('liqpay', 'monobank', 'other')
+ * @param ttlSeconds - Time to live in seconds (default: 1 hour)
+ * @param eventData - Optional webhook payload for debugging
+ * @returns true if webhook is new and should be processed, false if already processed
+ */
+export async function isWebhookUnique(
+  webhookId: string,
+  provider: 'liqpay' | 'monobank' | 'other' = 'other',
+  ttlSeconds: number = 3600,
+  eventData?: Record<string, any>
+): Promise<boolean> {
+  try {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + ttlSeconds * 1000);
+
+    // Check if webhook was already processed and hasn't expired
+    const existingResult = await sql`
+      SELECT id, processed_at, expires_at
+      FROM webhook_events
+      WHERE webhook_id = ${webhookId}
+        AND expires_at > ${now.toISOString()}
+      LIMIT 1
+    `;
+
+    if (existingResult.rows.length > 0) {
+      console.warn(`[SECURITY] Replay attack detected: Webhook ${webhookId} already processed at ${existingResult.rows[0].processed_at}`);
+
+      // Update as duplicate attempt
+      await sql`
+        UPDATE webhook_events
+        SET processing_status = 'duplicate'
+        WHERE webhook_id = ${webhookId}
+      `;
+
+      return false;
+    }
+
+    // Mark webhook as processed in database
+    await sql`
+      INSERT INTO webhook_events (
+        webhook_id,
+        provider,
+        event_data,
+        expires_at,
+        processing_status
+      ) VALUES (
+        ${webhookId},
+        ${provider},
+        ${eventData ? JSON.stringify(eventData) : null},
+        ${expiresAt.toISOString()},
+        'processed'
+      )
+    `;
+
+    console.log(`[SECURITY] Webhook ${webhookId} marked as processed, expires at ${expiresAt.toISOString()}`);
+    return true;
+
+  } catch (error) {
+    console.error(`Error checking webhook uniqueness for ${webhookId}:`, error);
+
+    // FALLBACK: If database fails, use in-memory cache as backup
+    // This prevents system failures from blocking legitimate webhooks
+    console.warn('[SECURITY] Database check failed, using in-memory fallback (NOT SUITABLE FOR PRODUCTION DISTRIBUTED SYSTEMS)');
+
+    // In-memory fallback for critical situations
+    if (!inMemoryFallbackCache.has(webhookId)) {
+      inMemoryFallbackCache.set(webhookId, {
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (ttlSeconds * 1000)
+      });
+      return true;
+    }
+
+    const cached = inMemoryFallbackCache.get(webhookId)!;
+    if (cached.expiresAt > Date.now()) {
+      return false;
+    }
+
+    // Update expired entry
+    inMemoryFallbackCache.set(webhookId, {
+      timestamp: Date.now(),
+      expiresAt: Date.now() + (ttlSeconds * 1000)
+    });
+    return true;
+  }
+}
+
+/**
+ * In-memory fallback cache for webhook deduplication
+ * ONLY used when database is unavailable
+ * WARNING: This does NOT work in serverless/distributed environments
+ */
 interface ProcessedWebhook {
   timestamp: number;
   expiresAt: number;
 }
 
-const processedWebhooks = new Map<string, ProcessedWebhook>();
+const inMemoryFallbackCache = new Map<string, ProcessedWebhook>();
 
-// Cleanup interval: remove expired entries every 5 minutes
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
-let cleanupTimer: NodeJS.Timeout | null = null;
-
-/**
- * Starts the cleanup timer to remove expired webhook entries
- */
-function startCleanupTimer() {
-  if (cleanupTimer) return;
-
-  cleanupTimer = setInterval(() => {
+// Cleanup expired entries from fallback cache every 5 minutes
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
     const now = Date.now();
-    for (const [key, value] of processedWebhooks.entries()) {
+    for (const [key, value] of inMemoryFallbackCache.entries()) {
       if (value.expiresAt < now) {
-        processedWebhooks.delete(key);
+        inMemoryFallbackCache.delete(key);
       }
     }
-  }, CLEANUP_INTERVAL_MS);
+  }, 5 * 60 * 1000);
+}
 
-  // Prevent the timer from keeping the process alive
-  if (cleanupTimer.unref) {
-    cleanupTimer.unref();
+/**
+ * Records a failed webhook processing attempt
+ *
+ * @param webhookId - Unique identifier for the webhook
+ * @param provider - Payment provider name
+ * @param errorMessage - Error message describing the failure
+ * @param ttlSeconds - Time to live in seconds (default: 1 hour)
+ */
+export async function recordWebhookFailure(
+  webhookId: string,
+  provider: 'liqpay' | 'monobank' | 'other',
+  errorMessage: string,
+  ttlSeconds: number = 3600
+): Promise<void> {
+  try {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + ttlSeconds * 1000);
+
+    await sql`
+      INSERT INTO webhook_events (
+        webhook_id,
+        provider,
+        expires_at,
+        processing_status,
+        error_message
+      ) VALUES (
+        ${webhookId},
+        ${provider},
+        ${expiresAt.toISOString()},
+        'failed',
+        ${errorMessage}
+      )
+      ON CONFLICT (webhook_id) DO UPDATE
+      SET processing_status = 'failed',
+          error_message = ${errorMessage}
+    `;
+  } catch (error) {
+    console.error(`Error recording webhook failure for ${webhookId}:`, error);
   }
 }
 
 /**
- * Checks if a webhook has already been processed
+ * Cleans up expired webhook events from the database
+ * Should be called periodically (e.g., via a cron job)
  *
- * SECURITY: Prevents replay attacks by tracking webhook IDs
- * Each webhook can only be processed once within the TTL window
- *
- * @param webhookId - Unique identifier for the webhook (e.g., transaction ID, invoice ID)
- * @param ttlSeconds - Time to live in seconds (default: 1 hour)
- * @returns true if webhook is new and should be processed, false if already processed
+ * @returns Number of expired webhooks deleted
  */
-export function isWebhookUnique(
-  webhookId: string,
-  ttlSeconds: number = 3600
-): boolean {
-  startCleanupTimer();
-
-  const now = Date.now();
-  const existing = processedWebhooks.get(webhookId);
-
-  // Check if webhook was already processed and hasn't expired
-  if (existing && existing.expiresAt > now) {
-    console.warn(`Replay attack detected: Webhook ${webhookId} already processed`);
-    return false;
+export async function cleanupExpiredWebhooks(): Promise<number> {
+  try {
+    const result = await sql`SELECT cleanup_expired_webhooks() as deleted_count`;
+    const deletedCount = result.rows[0]?.deleted_count || 0;
+    console.log(`[CLEANUP] Removed ${deletedCount} expired webhook events`);
+    return deletedCount;
+  } catch (error) {
+    console.error('Error cleaning up expired webhooks:', error);
+    return 0;
   }
-
-  // Mark webhook as processed
-  processedWebhooks.set(webhookId, {
-    timestamp: now,
-    expiresAt: now + (ttlSeconds * 1000),
-  });
-
-  return true;
 }
 
 /**
@@ -274,11 +385,17 @@ export function validateWebhookTimestamp(
 
 /**
  * Cleanup function - useful for testing
+ * Clears both in-memory fallback cache and database records
  */
-export function clearProcessedWebhooks() {
-  processedWebhooks.clear();
-  if (cleanupTimer) {
-    clearInterval(cleanupTimer);
-    cleanupTimer = null;
+export async function clearProcessedWebhooks(): Promise<void> {
+  // Clear in-memory fallback cache
+  inMemoryFallbackCache.clear();
+
+  // Clear database records (for testing only)
+  try {
+    await sql`DELETE FROM webhook_events`;
+    console.log('[TEST] Cleared all webhook events from database');
+  } catch (error) {
+    console.error('Error clearing webhook events:', error);
   }
 }

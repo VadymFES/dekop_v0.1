@@ -1,7 +1,7 @@
 // app/api/orders/create/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { sql } from '@vercel/postgres';
+import { sql, db } from '@vercel/postgres';
 import type { CreateOrderRequest, OrderWithItems, CartItem } from '@/app/lib/definitions';
 import {
   generateOrderNumber,
@@ -112,129 +112,161 @@ export async function POST(request: Request) {
     // Calculate payment deadline
     const paymentDeadline = calculatePaymentDeadline();
 
-    // Create order using validated and sanitized data
-    const orderResult = await sql`
-      INSERT INTO orders (
-        order_number,
-        user_name,
-        user_surname,
-        user_phone,
-        user_email,
-        delivery_method,
-        delivery_address,
-        delivery_city,
-        delivery_street,
-        delivery_building,
-        delivery_apartment,
-        delivery_postal_code,
-        store_location,
-        subtotal,
-        discount_percent,
-        discount_amount,
-        delivery_cost,
-        total_amount,
-        prepayment_amount,
-        payment_method,
-        payment_status,
-        order_status,
-        customer_notes,
-        payment_deadline
-      ) VALUES (
-        ${orderNumber},
-        ${validatedData.user_name},
-        ${validatedData.user_surname},
-        ${validatedData.user_phone},
-        ${validatedData.user_email},
-        ${validatedData.delivery_method},
-        ${validatedData.delivery_address || null},
-        ${validatedData.delivery_city || null},
-        ${validatedData.delivery_street || null},
-        ${validatedData.delivery_building || null},
-        ${validatedData.delivery_apartment || null},
-        ${validatedData.delivery_postal_code || null},
-        ${validatedData.store_location || null},
-        ${totals.subtotal},
-        ${totals.discountPercent},
-        ${totals.discountAmount},
-        ${totals.deliveryCost},
-        ${totals.totalAmount},
-        ${totals.prepaymentAmount},
-        ${validatedData.payment_method},
+    // TRANSACTION: Wrap order creation in a transaction to ensure data consistency
+    // If any operation fails, all changes will be rolled back to prevent orphaned records
+    let order: OrderWithItems;
+
+    // Get a connection from the pool for transaction support
+    const client = await db.connect();
+
+    try {
+      // Begin transaction
+      await client.query('BEGIN');
+
+      // Create order using validated and sanitized data
+      const orderResult = await client.query(`
+        INSERT INTO orders (
+          order_number,
+          user_name,
+          user_surname,
+          user_phone,
+          user_email,
+          delivery_method,
+          delivery_address,
+          delivery_city,
+          delivery_street,
+          delivery_building,
+          delivery_apartment,
+          delivery_postal_code,
+          store_location,
+          subtotal,
+          discount_percent,
+          discount_amount,
+          delivery_cost,
+          total_amount,
+          prepayment_amount,
+          payment_method,
+          payment_status,
+          order_status,
+          customer_notes,
+          payment_deadline
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
+        )
+        RETURNING id, order_number, total_amount, prepayment_amount, created_at
+      `, [
+        orderNumber,
+        validatedData.user_name,
+        validatedData.user_surname,
+        validatedData.user_phone,
+        validatedData.user_email,
+        validatedData.delivery_method,
+        validatedData.delivery_address || null,
+        validatedData.delivery_city || null,
+        validatedData.delivery_street || null,
+        validatedData.delivery_building || null,
+        validatedData.delivery_apartment || null,
+        validatedData.delivery_postal_code || null,
+        validatedData.store_location || null,
+        totals.subtotal,
+        totals.discountPercent,
+        totals.discountAmount,
+        totals.deliveryCost,
+        totals.totalAmount,
+        totals.prepaymentAmount,
+        validatedData.payment_method,
         'pending',
         'processing',
-        ${validatedData.customer_notes || null},
-        ${paymentDeadline.toISOString()}
-      )
-      RETURNING id, order_number, total_amount, prepayment_amount, created_at
-    `;
+        validatedData.customer_notes || null,
+        paymentDeadline.toISOString()
+      ]);
 
-    const orderId = orderResult.rows[0].id;
+      const orderId = orderResult.rows[0].id;
 
-    // Create order items from cart
-    for (const cartItem of cartResult.rows) {
-      const article = generateProductArticle(cartItem.product_id);
-      const unitPrice = cartItem.price;
-      const totalPrice = unitPrice * cartItem.quantity;
+      // Create order items from cart
+      for (const cartItem of cartResult.rows) {
+        const article = generateProductArticle(cartItem.product_id);
+        const unitPrice = cartItem.price;
+        const totalPrice = unitPrice * cartItem.quantity;
 
-      await sql`
-        INSERT INTO order_items (
-          order_id,
-          product_id,
-          product_name,
-          product_slug,
-          product_article,
-          quantity,
-          color,
-          unit_price,
-          total_price,
-          product_image_url,
-          product_category
-        ) VALUES (
-          ${orderId},
-          ${cartItem.product_id},
-          ${cartItem.name},
-          ${cartItem.slug},
-          ${article},
-          ${cartItem.quantity},
-          ${cartItem.color || null},
-          ${unitPrice},
-          ${totalPrice},
-          ${cartItem.image_url || null},
-          ${cartItem.category}
-        )
-      `;
-    }
-
-    // Fetch complete order with items
-    const completeOrderResult = await sql`
-      SELECT
-        o.*,
-        json_agg(
-          json_build_object(
-            'id', oi.id,
-            'product_id', oi.product_id,
-            'product_name', oi.product_name,
-            'product_slug', oi.product_slug,
-            'product_article', oi.product_article,
-            'quantity', oi.quantity,
-            'color', oi.color,
-            'unit_price', oi.unit_price,
-            'total_price', oi.total_price,
-            'product_image_url', oi.product_image_url,
-            'product_category', oi.product_category
+        await client.query(`
+          INSERT INTO order_items (
+            order_id,
+            product_id,
+            product_name,
+            product_slug,
+            product_article,
+            quantity,
+            color,
+            unit_price,
+            total_price,
+            product_image_url,
+            product_category
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
           )
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.id = ${orderId}
-      GROUP BY o.id
-    `;
+        `, [
+          orderId,
+          cartItem.product_id,
+          cartItem.name,
+          cartItem.slug,
+          article,
+          cartItem.quantity,
+          cartItem.color || null,
+          unitPrice,
+          totalPrice,
+          cartItem.image_url || null,
+          cartItem.category
+        ]);
+      }
 
-    const orderRow = completeOrderResult.rows[0];
-    const order: OrderWithItems = {
-      ...orderRow,
-      items: orderRow.items || []
-    } as OrderWithItems;
+      // Fetch complete order with items within the same transaction
+      const completeOrderResult = await client.query(`
+        SELECT
+          o.*,
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'product_id', oi.product_id,
+              'product_name', oi.product_name,
+              'product_slug', oi.product_slug,
+              'product_article', oi.product_article,
+              'quantity', oi.quantity,
+              'color', oi.color,
+              'unit_price', oi.unit_price,
+              'total_price', oi.total_price,
+              'product_image_url', oi.product_image_url,
+              'product_category', oi.product_category
+            )
+          ) as items
+        FROM orders o
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.id = $1
+        GROUP BY o.id
+      `, [orderId]);
+
+      // Commit transaction
+      await client.query('COMMIT');
+
+      // Transaction completed successfully
+      order = {
+        ...completeOrderResult.rows[0],
+        items: completeOrderResult.rows[0].items || []
+      } as OrderWithItems;
+
+    } catch (transactionError) {
+      // Rollback transaction on error
+      await client.query('ROLLBACK');
+
+      // Transaction failed and was rolled back
+      console.error('Transaction failed during order creation:', transactionError);
+      throw new Error(
+        `Failed to create order: ${transactionError instanceof Error ? transactionError.message : 'Transaction rolled back'}`
+      );
+    } finally {
+      // Always release the client back to the pool
+      client.release();
+    }
 
     return NextResponse.json({
       success: true,
