@@ -12,11 +12,12 @@ export async function POST() {
     const cookieStore = await cookies();
     const cartId = cookieStore.get('cartId')?.value;
 
+    // If there's no cart, it's already cleared - return success (idempotent operation)
     if (!cartId) {
-      return NextResponse.json(
-        { error: 'Кошик не знайдено' },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: true,
+        message: 'Кошик вже очищено'
+      });
     }
 
     // Delete all items from cart
