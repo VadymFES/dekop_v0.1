@@ -12,6 +12,7 @@
  */
 
 import { sql } from '@vercel/postgres';
+import { logger } from './logger';
 
 // Query statistics for monitoring
 let totalQueries = 0;
@@ -49,17 +50,21 @@ export const db = {
         const queryText = typeof strings === 'string'
           ? strings
           : strings.join('?');
-        console.warn(
-          `⚠️ Slow query (${duration}ms) [${slowQueries}/${totalQueries} slow]:`,
-          queryText.substring(0, 100) + '...'
-        );
+        logger.warn('Slow query detected', {
+          duration,
+          query: queryText.substring(0, 100) + '...',
+          slowQueriesCount: slowQueries,
+          totalQueriesCount: totalQueries,
+        });
       }
 
       // Log query stats every 100 queries in development
       if (process.env.NODE_ENV === 'development' && totalQueries % 100 === 0) {
-        console.log(
-          `📊 Query Stats: ${totalQueries} total, ${slowQueries} slow (${((slowQueries / totalQueries) * 100).toFixed(1)}%)`
-        );
+        logger.info('Query Statistics', {
+          totalQueries,
+          slowQueries,
+          slowQueryPercentage: ((slowQueries / totalQueries) * 100).toFixed(1) + '%',
+        });
       }
 
       return result;
@@ -69,11 +74,13 @@ export const db = {
         ? strings
         : strings.join('?');
 
-      console.error(
-        `❌ Database error (${duration}ms):`,
-        error instanceof Error ? error.message : 'Unknown error',
-        '\nQuery:',
-        queryText.substring(0, 100) + '...'
+      logger.error(
+        'Database error',
+        error instanceof Error ? error : undefined,
+        {
+          duration,
+          query: queryText.substring(0, 100) + '...',
+        }
       );
       throw error;
     }

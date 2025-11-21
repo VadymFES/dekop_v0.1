@@ -5,7 +5,8 @@ import styles from "./header.module.css";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from "@/app/context/CartContext";
-import { useFavorites } from "@/app/context/FavoritesContext"; 
+import { useFavorites } from "@/app/context/FavoritesContext";
+import { logger } from "@/app/lib/logger"; 
   
 
 interface HeaderProps {
@@ -39,9 +40,9 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
     // Force style recalculation for the arrow by toggling state in this sequence
     const newState = !isCatalogView;
     setIsCatalogView(newState);
-    
+
     // Make sure to log for debugging
-    console.log('Catalog view toggled:', newState);
+    logger.debug('Catalog view toggled', { catalogView: newState });
   };
 
   // Add an extra property to track if the mouse is over the dropdown

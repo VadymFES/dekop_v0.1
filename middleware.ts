@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { sql } from "@vercel/postgres";
 
 /**
- * Next.js Proxy - Combines Cart Management & Security Features
+ * Next.js Middleware - Combines Cart Management & Security Features
  *
  * FEATURES:
  * - Cart session management
@@ -12,7 +12,7 @@ import { sql } from "@vercel/postgres";
  * - Security logging
  */
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
   const requestUrl = new URL(req.url);
 

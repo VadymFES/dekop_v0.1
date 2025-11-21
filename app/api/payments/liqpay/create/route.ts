@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createLiqPayPayment } from '@/app/lib/services/liqpay-service';
+import { logger } from '@/app/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -51,7 +52,16 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
-    console.error('LiqPay payment creation error:', error);
+    logger.error(
+      'LiqPay payment creation error',
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        provider: 'liqpay',
+        orderId: body?.orderId,
+        amount: body?.amount,
+        orderNumber: body?.orderNumber
+      }
+    );
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Помилка при створенні платежу',

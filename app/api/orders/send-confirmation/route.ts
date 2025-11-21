@@ -4,6 +4,7 @@ import { sql } from '@vercel/postgres';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
 import { validateInternalApiKey, getUnauthorizedResponse } from '@/app/lib/api-auth';
 import type { OrderWithItems } from '@/app/lib/definitions';
+import { logger } from '@/app/lib/logger';
 
 /**
  * POST /api/orders/send-confirmation
@@ -89,7 +90,11 @@ export async function POST(request: Request) {
 
     // Send confirmation email
     try {
-      console.log(`📧 Sending confirmation email for order ${order.order_number} to ${order.user_email}`);
+      logger.info('Sending confirmation email', {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        email: order.user_email
+      });
 
       await sendOrderConfirmationEmail({
         order,
@@ -97,7 +102,10 @@ export async function POST(request: Request) {
         customerName: `${order.user_surname} ${order.user_name}`
       });
 
-      console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
+      logger.info('Confirmation email sent successfully', {
+        orderId: order.id,
+        orderNumber: order.order_number
+      });
 
       return NextResponse.json(
         {
@@ -114,13 +122,10 @@ export async function POST(request: Request) {
         }
       );
     } catch (emailError) {
-      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
-      console.error('Email error:', emailError);
-
-      if (emailError instanceof Error) {
-        console.error('Error message:', emailError.message);
-        console.error('Error stack:', emailError.stack);
-      }
+      logger.error('Failed to send confirmation email', emailError instanceof Error ? emailError : new Error(String(emailError)), {
+        orderId: order.id,
+        orderNumber: order.order_number
+      });
 
       return NextResponse.json(
         {
@@ -139,7 +144,7 @@ export async function POST(request: Request) {
     }
 
   } catch (error) {
-    console.error('Error in send-confirmation:', error);
+    logger.error('Error in send-confirmation', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       {
         error: 'Internal server error',

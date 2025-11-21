@@ -7,6 +7,7 @@ import {
   type InvoiceData,
   type CompanyInfo,
 } from '@/app/lib/types/invoice';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Get company information from environment variables
@@ -103,7 +104,9 @@ export async function GET(
       invoice: invoiceData,
     });
   } catch (error) {
-    console.error('Error fetching invoice data:', error);
+    logger.error('Error fetching invoice data', error instanceof Error ? error : new Error(String(error)), {
+      orderId: (await params).orderId
+    });
     return NextResponse.json(
       {
         error: 'Помилка при формуванні рахунку',

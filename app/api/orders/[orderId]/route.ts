@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import { validateApiKey } from '@/app/lib/api-auth';
+import { logger } from '@/app/lib/logger';
 
 /**
  * GET /api/orders/[orderId]
@@ -97,7 +98,9 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error fetching order:', error);
+    logger.error('Error fetching order', error instanceof Error ? error : new Error(String(error)), {
+      orderId: (await params).orderId
+    });
     return NextResponse.json(
       {
         error: 'Помилка при отриманні замовлення',
@@ -196,7 +199,9 @@ export async function PATCH(
     });
 
   } catch (error) {
-    console.error('Error updating order:', error);
+    logger.error('Error updating order', error instanceof Error ? error : new Error(String(error)), {
+      orderId: (await params).orderId
+    });
     return NextResponse.json(
       {
         error: 'Помилка при оновленні замовлення',

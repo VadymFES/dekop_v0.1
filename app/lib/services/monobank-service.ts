@@ -1,4 +1,5 @@
 // app/lib/services/monobank-service.ts
+import { logger } from '../logger';
 
 /**
  * Monobank Acquiring API Integration
@@ -86,7 +87,15 @@ export async function createMonobankInvoice(
       pageUrl: data.pageUrl,
     };
   } catch (error) {
-    console.error('Monobank invoice creation error:', error);
+    logger.error(
+      'Monobank invoice creation error',
+      error instanceof Error ? error : undefined,
+      {
+        orderId,
+        orderNumber,
+        amount,
+      }
+    );
     throw new Error(
       error instanceof Error ? error.message : 'Failed to create Monobank invoice'
     );
@@ -132,7 +141,13 @@ export async function getMonobankInvoiceStatus(invoiceId: string) {
       reference: data.reference,
     };
   } catch (error) {
-    console.error('Monobank get invoice status error:', error);
+    logger.error(
+      'Monobank get invoice status error',
+      error instanceof Error ? error : undefined,
+      {
+        invoiceId,
+      }
+    );
     throw new Error(
       error instanceof Error ? error.message : 'Failed to get invoice status'
     );
@@ -169,7 +184,13 @@ export async function cancelMonobankInvoice(invoiceId: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Monobank cancel invoice error:', error);
+    logger.error(
+      'Monobank cancel invoice error',
+      error instanceof Error ? error : undefined,
+      {
+        invoiceId,
+      }
+    );
     throw new Error(
       error instanceof Error ? error.message : 'Failed to cancel invoice'
     );
@@ -196,7 +217,7 @@ export function verifyMonobankWebhook(
   try {
     // Validate required parameters
     if (!publicKey || !xSignBase64 || !bodyString) {
-      console.error('Monobank webhook verification failed: Missing required parameters', {
+      logger.error('Monobank webhook verification failed: Missing required parameters', undefined, {
         hasPublicKey: !!publicKey,
         hasSignature: !!xSignBase64,
         hasBody: !!bodyString
@@ -218,18 +239,20 @@ export function verifyMonobankWebhook(
     const isValid = verifier.verify(publicKey, xSignBase64, 'base64');
 
     if (!isValid) {
-      console.error('Monobank webhook signature verification failed: Invalid signature');
+      logger.error('Monobank webhook signature verification failed: Invalid signature');
     }
 
     return isValid;
   } catch (error) {
-    console.error('Monobank webhook verification error:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack
-      });
-    }
+    logger.error(
+      'Monobank webhook verification error',
+      error instanceof Error ? error : undefined,
+      {
+        hasPublicKey: !!publicKey,
+        hasSignature: !!xSignBase64,
+        hasBody: !!bodyString,
+      }
+    );
     return false;
   }
 }

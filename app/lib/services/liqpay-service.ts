@@ -1,5 +1,6 @@
 // app/lib/services/liqpay-service.ts
 import crypto from 'crypto';
+import { logger } from '../logger';
 
 /**
  * LiqPay Payment Integration
@@ -105,7 +106,15 @@ export async function createLiqPayPayment(
       checkoutUrl: LIQPAY_CHECKOUT_URL
     };
   } catch (error) {
-    console.error('LiqPay payment creation error:', error);
+    logger.error(
+      'LiqPay payment creation error',
+      error instanceof Error ? error : undefined,
+      {
+        orderId,
+        orderNumber,
+        amount,
+      }
+    );
     throw new Error(
       error instanceof Error ? error.message : 'Failed to create LiqPay payment'
     );
@@ -120,7 +129,14 @@ export function verifyLiqPayCallback(data: string, signature: string): boolean {
     const expectedSignature = generateSignature(data);
     return signature === expectedSignature;
   } catch (error) {
-    console.error('LiqPay signature verification error:', error);
+    logger.error(
+      'LiqPay signature verification error',
+      error instanceof Error ? error : undefined,
+      {
+        hasData: !!data,
+        hasSignature: !!signature,
+      }
+    );
     return false;
   }
 }
@@ -132,7 +148,13 @@ export function parseLiqPayCallback(data: string): any {
   try {
     return decodeData(data);
   } catch (error) {
-    console.error('LiqPay callback parsing error:', error);
+    logger.error(
+      'LiqPay callback parsing error',
+      error instanceof Error ? error : undefined,
+      {
+        hasData: !!data,
+      }
+    );
     throw new Error('Failed to parse LiqPay callback data');
   }
 }
@@ -197,7 +219,13 @@ export async function checkLiqPayPaymentStatus(orderId: string) {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('LiqPay status check error:', error);
+    logger.error(
+      'LiqPay status check error',
+      error instanceof Error ? error : undefined,
+      {
+        orderId,
+      }
+    );
     throw new Error(
       error instanceof Error ? error.message : 'Failed to check payment status'
     );

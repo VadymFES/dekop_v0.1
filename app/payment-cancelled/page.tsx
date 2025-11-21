@@ -9,6 +9,7 @@ import {
   getDeliveryMethodName,
   getPaymentMethodName,
 } from '@/app/lib/order-utils';
+import { logger } from '@/app/lib/logger';
 import styles from './page.module.css';
 
 /**
@@ -48,7 +49,7 @@ function PaymentCancelledContent() {
           throw new Error('Замовлення не знайдено');
         }
       } catch (err) {
-        console.error('Error fetching order:', err);
+        logger.error('Error fetching order', err instanceof Error ? err : new Error(String(err)), { component: 'PaymentCancelledPage' });
         setError(err instanceof Error ? err.message : 'Помилка завантаження замовлення');
       } finally {
         setLoading(false);
@@ -145,7 +146,7 @@ function PaymentCancelledContent() {
         }
       }
     } catch (error) {
-      console.error('Retry payment error:', error);
+      logger.error('Retry payment error', error instanceof Error ? error : new Error(String(error)), { component: 'PaymentCancelledPage' });
       alert('Помилка при спробі повторної оплати. Будь ласка, спробуйте ще раз або зв\'яжіться з нами.');
       setIsRetrying(false);
     }

@@ -2,6 +2,7 @@
 
 import { Metadata, ResolvingMetadata } from 'next';
 import { ProductWithImages } from '@/app/lib/definitions';
+import { logger } from '@/app/lib/logger';
 import { notFound } from 'next/navigation';
 
 // Import client components
@@ -74,7 +75,7 @@ async function getProductData(slug: string) {
       colors,
     };
 
-    console.log('Full product with specs:', {
+    logger.debug('Full product with specs', {
       id: fullProduct.id,
       category: fullProduct.category,
       hasSpecs: Boolean(fullProduct.specs)
@@ -86,7 +87,7 @@ async function getProductData(slug: string) {
       similarProducts,
     };
   } catch (error) {
-    console.error('Error loading product data:', error);
+    logger.error('Error loading product data', error instanceof Error ? error : new Error(String(error)), { component: 'ProductPage' });
     return null;
   }
 }

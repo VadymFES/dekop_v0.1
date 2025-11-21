@@ -13,6 +13,7 @@
 
 import { db } from '@/app/lib/db';
 import { ProductWithImages } from './lib/definitions';
+import { logger } from '@/app/lib/logger';
 import Main from './shared/components/main/main';
 
 // Enable ISR with 1 hour revalidation
@@ -78,7 +79,7 @@ async function getFeaturedProducts(): Promise<ProductWithImages[]> {
 
     return products;
   } catch (error) {
-    console.error('Error fetching featured products:', error);
+    logger.error('Error fetching featured products', error instanceof Error ? error : new Error(String(error)), { component: 'HomePage' });
     // Return empty array on error to prevent homepage crash
     return [];
   }

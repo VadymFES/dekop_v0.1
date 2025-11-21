@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { logger } from '../logger';
 
 /**
  * Resend Webhook Verification
@@ -26,14 +27,19 @@ export function verifyResendWebhook(
     // Example: "v1,1234567890,abc123def456..."
 
     if (!signature || !secret) {
-      console.error('Missing signature or secret for Resend webhook verification');
+      logger.error('Missing signature or secret for Resend webhook verification', undefined, {
+        hasSignature: !!signature,
+        hasSecret: !!secret,
+      });
       return false;
     }
 
     // Parse the signature header
     const signatureParts = signature.split(',');
     if (signatureParts.length < 3) {
-      console.error('Invalid signature format');
+      logger.error('Invalid signature format', undefined, {
+        signaturePartsLength: signatureParts.length,
+      });
       return false;
     }
 
@@ -43,7 +49,9 @@ export function verifyResendWebhook(
     const signatures = signatureParts.slice(2);
 
     if (version !== 'v1') {
-      console.error('Unsupported signature version:', version);
+      logger.error('Unsupported signature version', undefined, {
+        version,
+      });
       return false;
     }
 
@@ -68,7 +76,15 @@ export function verifyResendWebhook(
       }
     });
   } catch (error) {
-    console.error('Error verifying Resend webhook signature:', error);
+    logger.error(
+      'Error verifying Resend webhook signature',
+      error instanceof Error ? error : undefined,
+      {
+        hasPayload: !!payload,
+        hasSignature: !!signature,
+        hasSecret: !!secret,
+      }
+    );
     return false;
   }
 }

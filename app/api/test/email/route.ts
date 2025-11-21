@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
 import { validateInternalApiKey, getUnauthorizedResponse } from '@/app/lib/api-auth';
+import { logger } from '@/app/lib/logger';
 
 /**
  * Email Configuration Diagnostic Tool
@@ -198,7 +199,7 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
-    console.error('Error sending test email:', error);
+    logger.error('Error sending test email', error instanceof Error ? error : new Error(String(error)), { testEmail });
     return NextResponse.json(
       {
         success: false,

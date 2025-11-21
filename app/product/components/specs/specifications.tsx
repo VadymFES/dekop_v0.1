@@ -13,6 +13,7 @@ import {
   AccessorySpecs,
   SofaBedSpecs
 } from '@/app/lib/definitions';
+import { logger } from '@/app/lib/logger';
 
 type SpecificationsProps = {
   product?: ProductWithImages;
@@ -40,10 +41,10 @@ export default function Specifications({ product }: SpecificationsProps) {
       'шафа': 'wardrobes',
       'аксесуар': 'accessories',
     };
-    
+
     // Debug output
-    console.log(`Category normalization: "${cat}" -> "${categoryMap[catLower] || catLower}"`);
-    
+    logger.debug('Category normalization', { original: cat, normalized: categoryMap[catLower] || catLower });
+
     return categoryMap[catLower] || catLower;
   };
 

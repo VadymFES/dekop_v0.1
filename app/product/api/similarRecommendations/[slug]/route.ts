@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { Product, ProductImage, ProductSpecs } from "@/app/lib/definitions";
+import { logger } from '@/app/lib/logger';
 
 // Extended interface to match what's returned from the database
 interface ProductImageWithProductId extends ProductImage {
@@ -87,7 +88,7 @@ export async function GET(
 
     return NextResponse.json(similarProducts, { status: 200 });
   } catch (error) {
-    console.error("Error fetching similar products:", error);
+    logger.error("Error fetching similar products", { error, slug });
     return NextResponse.json({ error: "Failed to fetch similar products" }, { status: 500 });
   }
 }

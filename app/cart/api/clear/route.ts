@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { sql } from '@vercel/postgres';
+import { logger } from '@/app/lib/logger';
 
 /**
  * POST /cart/api/clear
@@ -9,36 +10,36 @@ import { sql } from '@vercel/postgres';
  */
 export async function POST() {
   try {
-    console.log('[Cart Clear API] Request received');
+    logger.info('Cart clear request received');
     const cookieStore = await cookies();
     const cartId = cookieStore.get('cartId')?.value;
 
-    console.log('[Cart Clear API] Cart ID from cookie:', cartId);
+    logger.info('Retrieved cart ID from cookie', { cartId });
 
     // If there's no cart, it's already cleared - return success (idempotent operation)
     if (!cartId) {
-      console.log('[Cart Clear API] No cart ID found, returning success (already cleared)');
+      logger.info('No cart ID found, cart already cleared');
       return NextResponse.json({
         success: true,
         message: 'Кошик вже очищено'
       });
     }
 
-    console.log('[Cart Clear API] Deleting cart items for cart:', cartId);
+    logger.info('Deleting cart items', { cartId });
     // Delete all items from cart
     await sql`
       DELETE FROM cart_items
       WHERE cart_id = ${cartId}
     `;
 
-    console.log('[Cart Clear API] Deleting cart:', cartId);
+    logger.info('Deleting cart', { cartId });
     // Delete the cart itself
     await sql`
       DELETE FROM carts
       WHERE id = ${cartId}
     `;
 
-    console.log('[Cart Clear API] Cart cleared successfully, preparing response');
+    logger.info('Cart cleared successfully', { cartId });
     // Create response
     const response = NextResponse.json({
       success: true,
@@ -54,15 +55,15 @@ export async function POST() {
       maxAge: 0, // Expire immediately
     });
 
-    console.log('[Cart Clear API] Returning success response');
+    logger.info('Returning cart clear success response', { cartId });
     return response;
 
   } catch (error) {
-    console.error('[Cart Clear API] Error clearing cart:', error);
-    console.error('[Cart Clear API] Error details:', {
+    logger.error('Error clearing cart', {
+      cartId: typeof cartId !== 'undefined' ? cartId : undefined,
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      error: error
+      error
     });
     return NextResponse.json(
       {
