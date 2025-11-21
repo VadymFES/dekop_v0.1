@@ -19,7 +19,7 @@ export async function proxy(req: NextRequest) {
   // ==========================================
   // CART MANAGEMENT (for cart routes only)
   // ==========================================
-  if (requestUrl.pathname.startsWith('/api/cart')) {
+  if (requestUrl.pathname.startsWith('/cart/api')) {
     let storedCookie = await cookies();
     let cartCookie = storedCookie.get("cartId");
 
