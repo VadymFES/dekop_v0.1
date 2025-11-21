@@ -103,7 +103,8 @@ export async function POST(request: Request) {
 
     // SECURITY LAYER 3: Replay Attack Prevention
     const webhookId = `liqpay_${transactionId || paymentId}`;
-    if (!isWebhookUnique(webhookId)) {
+    const isUnique = await isWebhookUnique(webhookId, 'liqpay', 3600, callbackData);
+    if (!isUnique) {
       console.error(`Replay attack detected for LiqPay webhook: ${webhookId}`);
       return NextResponse.json(
         { error: 'Duplicate webhook - already processed' },

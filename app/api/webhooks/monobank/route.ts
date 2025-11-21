@@ -109,7 +109,8 @@ export async function POST(request: Request) {
 
     // SECURITY LAYER 3: Replay Attack Prevention
     const webhookId = `monobank_${payload.invoiceId}`;
-    if (!isWebhookUnique(webhookId)) {
+    const isUnique = await isWebhookUnique(webhookId, 'monobank', 3600, payload);
+    if (!isUnique) {
       console.error(`Replay attack detected for Monobank webhook: ${webhookId}`);
       return NextResponse.json(
         { error: 'Duplicate webhook - already processed' },
