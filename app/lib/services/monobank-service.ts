@@ -29,22 +29,22 @@ export interface MonobankInvoiceResponse {
 export async function createMonobankInvoice(
   params: CreateMonobankInvoiceParams
 ): Promise<MonobankInvoiceResponse> {
+  const {
+    amount,
+    orderId,
+    orderNumber,
+    customerEmail,
+    redirectUrl,
+    cancelUrl,
+    webhookUrl
+  } = params;
+
   try {
     const token = process.env.MONOBANK_TOKEN;
 
     if (!token) {
       throw new Error('Monobank token is not configured');
     }
-
-    const {
-      amount,
-      orderId,
-      orderNumber,
-      customerEmail,
-      redirectUrl,
-      cancelUrl,
-      webhookUrl
-    } = params;
 
     // Convert to kopiykas (smallest unit, 1 UAH = 100 kopiykas)
     const amountInKopiykas = Math.round(amount * 100);

@@ -36,7 +36,7 @@ export async function GET(
 
     return NextResponse.json(rows, { status: 200, headers: getCacheHeaders('static') });
   } catch (error) {
-    logger.error("Error fetching reviews", { error, productId });
+    logger.error("Error fetching reviews", error instanceof Error ? error : new Error(String(error)), { productId });
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return errorResponse(`Failed to fetch reviews: ${errorMessage}`, 500);
   }

@@ -31,7 +31,9 @@ export async function POST(request: Request) {
       async () => {
         // Validate required fields
         if (!amount || !orderId || !orderNumber) {
-          Sentry.metrics.increment('payment.failed', 1, { tags: { provider: 'liqpay', error: 'validation_failed' } });
+          logger.error('LiqPay payment validation failed', undefined, {
+            provider: 'liqpay', orderId, amount, orderNumber
+          });
           return NextResponse.json(
             { error: 'Відсутні обов\'язкові поля' },
             { status: 400 }
@@ -51,7 +53,9 @@ export async function POST(request: Request) {
         });
 
         if (!payment.success) {
-          Sentry.metrics.increment('payment.failed', 1, { tags: { provider: 'liqpay', error: 'payment_creation_failed' } });
+          logger.error('LiqPay payment creation failed', undefined, {
+            provider: 'liqpay', orderId, amount, orderNumber
+          });
           return NextResponse.json(
             { error: 'Помилка при створенні платежу' },
             { status: 500 }
@@ -59,8 +63,9 @@ export async function POST(request: Request) {
         }
 
         // Track successful payment creation
-        Sentry.metrics.increment('payment.created', 1, { tags: { provider: 'liqpay' } });
-        Sentry.metrics.distribution('payment.amount', amount, { unit: 'uah', tags: { provider: 'liqpay' } });
+        logger.info('LiqPay payment created successfully', {
+          provider: 'liqpay', orderId, amount, orderNumber
+        });
 
         // Return payment data and signature to client
         return NextResponse.json({
@@ -83,7 +88,6 @@ export async function POST(request: Request) {
         orderNumber: body?.orderNumber
       }
     );
-    Sentry.metrics.increment('payment.failed', 1, { tags: { provider: 'liqpay', error: 'exception' } });
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'Помилка при створенні платежу',

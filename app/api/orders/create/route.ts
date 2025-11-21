@@ -50,9 +50,6 @@ export async function POST(request: Request) {
             }
           });
 
-          // Track validation failure
-          Sentry.metrics.increment('order.validation_failed', 1);
-
           return NextResponse.json(
             {
               error: 'Validation failed',
@@ -265,19 +262,22 @@ export async function POST(request: Request) {
               ...completeOrderResult.rows[0],
               items: completeOrderResult.rows[0].items || []
             } as OrderWithItems;
+
+            // Track successful order creation
+            logger.info('Order created successfully', {
+              orderId: order.id,
+              orderNumber: order.order_number,
+              itemCount: order.items.length,
+              totalAmount: order.total_amount
+            });
+
+            // Set span attributes with order details
+            const activeSpan = Sentry.getActiveSpan();
+            if (activeSpan) {
+              activeSpan.setAttribute('itemCount', order.items.length);
+              activeSpan.setAttribute('totalAmount', order.total_amount);
+            }
           });
-
-          // Track successful order creation
-          Sentry.metrics.increment('order.created', 1);
-          Sentry.metrics.distribution('order.item_count', order.items.length, { unit: 'none' });
-          Sentry.metrics.distribution('order.total_amount', order.total_amount, { unit: 'uah' });
-
-          // Set span attributes with order details
-          const activeSpan = Sentry.getActiveSpan();
-          if (activeSpan) {
-            activeSpan.setAttribute('itemCount', order.items.length);
-            activeSpan.setAttribute('totalAmount', order.total_amount);
-          }
 
         } catch (transactionError) {
           // Rollback transaction on error
@@ -295,7 +295,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
           success: true,
-          order,
+          order: order!,  // Non-null assertion: order is always assigned if we reach here
           message: 'Замовлення успішно створено'
         }, { status: 201 });
       }

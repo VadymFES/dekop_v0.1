@@ -531,7 +531,7 @@ export async function GET(
       headers: getCacheHeaders('product'),
     });
   } catch (error) {
-    logger.error("Error fetching product details", { error, slug });
+    logger.error("Error fetching product details", error instanceof Error ? error : new Error(String(error)), { slug });
     return NextResponse.json({ error: "Failed to fetch product details" }, { status: 500 });
   }
 }

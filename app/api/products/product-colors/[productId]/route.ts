@@ -25,7 +25,7 @@ export async function GET(
 
     return NextResponse.json(rows, { status: 200, headers: getCacheHeaders('static') });
   } catch (error) {
-    logger.error("Error fetching product colors", { error, productId });
+    logger.error("Error fetching product colors", error instanceof Error ? error : new Error(String(error)), { productId });
     return NextResponse.json(
       { error: "Failed to fetch product colors" },
       { status: 500 }

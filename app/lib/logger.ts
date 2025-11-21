@@ -400,11 +400,7 @@ class Logger {
           provider,
           orderId,
         },
-        extra: {
-          amount,
-          transactionId,
-          ...paymentContext,
-        },
+        extra: paymentContext,
       });
 
       // Add breadcrumb for payment flow tracking

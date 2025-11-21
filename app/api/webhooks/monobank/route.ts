@@ -47,13 +47,9 @@ export async function POST(request: Request) {
     },
     async () => {
       try {
-        // Track webhook received
-        Sentry.metrics.increment('webhook.received', 1, { tags: { provider: 'monobank' } });
-
         // SECURITY LAYER 1: IP Whitelist Validation
         const ipValidation = validateWebhookIp(request, 'monobank');
         if (!ipValidation.valid) {
-          Sentry.metrics.increment('webhook.ip_validation_failed', 1, { tags: { provider: 'monobank' } });
           logger.security({
             type: 'webhook_invalid',
             severity: 'high',
@@ -94,7 +90,6 @@ export async function POST(request: Request) {
     const isValid = verifyMonobankWebhook(publicKey, xSign, body);
 
     if (!isValid) {
-      Sentry.metrics.increment('webhook.signature_invalid', 1, { tags: { provider: 'monobank' } });
       logger.security({
         type: 'webhook_invalid',
         severity: 'critical',
@@ -139,7 +134,6 @@ export async function POST(request: Request) {
     const webhookId = `monobank_${payload.invoiceId}`;
     const isUnique = await isWebhookUnique(webhookId, 'monobank', 3600, payload);
     if (!isUnique) {
-      Sentry.metrics.increment('webhook.replay_attack', 1, { tags: { provider: 'monobank' } });
       logger.security({
         type: 'replay_attack',
         severity: 'critical',
@@ -195,9 +189,6 @@ export async function POST(request: Request) {
       // pending or other status
       await handleMonobankPaymentPending(orderId, payload);
     }
-
-    // Track successful webhook processing
-    Sentry.metrics.increment('webhook.processed', 1, { tags: { provider: 'monobank', status: paymentStatus } });
 
     // Return success response with appropriate headers
     return NextResponse.json(

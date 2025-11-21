@@ -55,8 +55,9 @@ export interface SendOrderConfirmationParams {
 export async function sendOrderConfirmationEmail(
   params: SendOrderConfirmationParams
 ) {
+  const { order, to, customerName } = params;
+
   try {
-    const { order, to, customerName } = params;
 
     // Check if Resend API key is configured
     if (!process.env.RESEND_API_KEY) {
@@ -98,8 +99,6 @@ export async function sendOrderConfirmationEmail(
         orderNumber: order.order_number,
         orderId: order.id,
       });
-      // Track PDF size metric
-      Sentry.metrics.distribution('email.pdf_size', invoicePdfBuffer.length, { unit: 'byte' });
     } catch (pdfError) {
       logger.error('Failed to generate invoice PDF', pdfError instanceof Error ? pdfError : undefined, {
         orderNumber: order.order_number,
@@ -148,7 +147,6 @@ export async function sendOrderConfirmationEmail(
     );
 
     if (error) {
-      Sentry.metrics.increment('email.failed', 1, { tags: { type: 'order_confirmation' } });
       logger.error('Resend API error', undefined, {
         errorMessage: error.message,
         orderNumber: order.order_number,
@@ -158,7 +156,6 @@ export async function sendOrderConfirmationEmail(
       throw new Error(error.message || 'Failed to send email via Resend');
     }
 
-    Sentry.metrics.increment('email.sent', 1, { tags: { type: 'order_confirmation' } });
     logger.info('Order confirmation email sent successfully via Resend', {
       messageId: data?.id,
       orderNumber: order.order_number,
@@ -172,7 +169,6 @@ export async function sendOrderConfirmationEmail(
       status: 'sent',
     };
   } catch (error) {
-    Sentry.metrics.increment('email.failed', 1, { tags: { type: 'order_confirmation' } });
     logger.error(
       'Error sending order confirmation email via Resend',
       error instanceof Error ? error : undefined,
@@ -494,8 +490,9 @@ export async function sendOrderStatusUpdateEmail(params: {
   customerName: string;
   newStatus: string;
 }) {
+  const { order, to, customerName, newStatus } = params;
+
   try {
-    const { order, to, customerName, newStatus } = params;
 
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua';
     const fromName = process.env.RESEND_FROM_NAME || 'Dekop Furniture Store';

@@ -308,7 +308,7 @@ export async function GET(request: Request) {
       headers: getCacheHeaders('catalog'),
     });
   } catch (error) {
-    logger.error("Error fetching products", { error, category, maxPrice, types, materials, features, size });
+    logger.error("Error fetching products", error instanceof Error ? error : new Error(String(error)), { category, maxPrice, types, materials, features, size });
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }

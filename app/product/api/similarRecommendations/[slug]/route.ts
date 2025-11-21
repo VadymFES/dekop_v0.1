@@ -88,7 +88,7 @@ export async function GET(
 
     return NextResponse.json(similarProducts, { status: 200 });
   } catch (error) {
-    logger.error("Error fetching similar products", { error, slug });
+    logger.error("Error fetching similar products", error instanceof Error ? error : new Error(String(error)), { slug });
     return NextResponse.json({ error: "Failed to fetch similar products" }, { status: 500 });
   }
 }

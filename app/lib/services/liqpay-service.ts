@@ -59,6 +59,17 @@ function decodeData(encodedData: string): any {
 export async function createLiqPayPayment(
   params: CreateLiqPayPaymentParams
 ): Promise<LiqPayPaymentResponse> {
+  const {
+    amount,
+    orderId,
+    orderNumber,
+    description,
+    customerEmail,
+    resultUrl,
+    cancelUrl,
+    serverUrl
+  } = params;
+
   try {
     const publicKey = process.env.LIQPAY_PUBLIC_KEY;
     const privateKey = process.env.LIQPAY_PRIVATE_KEY;
@@ -66,17 +77,6 @@ export async function createLiqPayPayment(
     if (!publicKey || !privateKey) {
       throw new Error('LiqPay credentials are not configured');
     }
-
-    const {
-      amount,
-      orderId,
-      orderNumber,
-      description,
-      customerEmail,
-      resultUrl,
-      cancelUrl,
-      serverUrl
-    } = params;
 
     // Prepare payment data
     // Note: LiqPay doesn't have a separate cancel_url parameter

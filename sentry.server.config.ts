@@ -58,7 +58,7 @@ Sentry.init({
       }
 
       // Sanitize query parameters
-      if (event.request.query_string) {
+      if (event.request.query_string && typeof event.request.query_string === 'string') {
         // Remove sensitive query params
         const sensitiveParams = ["token", "api_key", "password", "secret"];
         let queryString = event.request.query_string;

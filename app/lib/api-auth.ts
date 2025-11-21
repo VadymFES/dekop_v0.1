@@ -37,12 +37,10 @@ function timingSafeStringCompare(a: string, b: string): boolean {
     logger.security({
       type: 'auth_failure',
       severity: 'high',
-      details: {
-        message: 'Timing-safe comparison error',
-        error: error instanceof Error ? error.message : String(error)
-      },
+      details: 'Timing-safe comparison error',
       metadata: {
-        function: 'timingSafeStringCompare'
+        function: 'timingSafeStringCompare',
+        error: error instanceof Error ? error.message : String(error)
       }
     });
     return false;
@@ -68,9 +66,7 @@ export function validateInternalApiKey(request: Request): boolean {
     logger.security({
       type: 'auth_failure',
       severity: 'critical',
-      details: {
-        message: 'INTERNAL_API_KEY not configured - denying access'
-      },
+      details: 'INTERNAL_API_KEY not configured - denying access',
       metadata: {
         function: 'validateInternalApiKey',
         reason: 'missing_config'

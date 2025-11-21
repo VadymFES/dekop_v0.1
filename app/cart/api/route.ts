@@ -83,10 +83,12 @@ type Params = { id: string };
  * Fetch the user's cart items along with full product details.
  */
 export async function GET() {
+  let cartId: string | undefined;
+
   try {
     const cookieStore = await cookies();
     const cartCookie = cookieStore.get("cartId");
-    const cartId = cartCookie?.value;
+    cartId = cartCookie?.value;
 
     if (!cartId) {
       return NextResponse.json({ items: [] }, { status: 200 });
@@ -133,7 +135,7 @@ export async function GET() {
 
     return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
-    logger.error("Error fetching cart", { cartId, error });
+    logger.error("Error fetching cart", error instanceof Error ? error : new Error(String(error)), { cartId });
     return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
   }
 }
@@ -255,7 +257,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    logger.error("Error adding to cart", { cartId, productId: numericProductId, quantity, color, error });
+    logger.error("Error adding to cart", error instanceof Error ? error : new Error(String(error)), { cartId, productId: numericProductId, quantity, color });
     return NextResponse.json({ error: "Failed to add item to cart" }, { status: 500 });
   }
 }

@@ -35,7 +35,9 @@ export async function POST(request: Request) {
       async () => {
         // Validate required fields
         if (!amount || !orderId || !orderNumber) {
-          Sentry.metrics.increment('payment.failed', 1, { tags: { provider: 'monobank', error: 'validation_failed' } });
+          logger.error('Monobank payment validation failed', undefined, {
+            provider: 'monobank', orderId, amount, orderNumber
+          });
           return NextResponse.json(
             { error: 'Missing required fields' },
             { status: 400 }
@@ -54,8 +56,9 @@ export async function POST(request: Request) {
         });
 
         // Track successful payment creation
-        Sentry.metrics.increment('payment.created', 1, { tags: { provider: 'monobank' } });
-        Sentry.metrics.distribution('payment.amount', amount, { unit: 'uah', tags: { provider: 'monobank' } });
+        logger.info('Monobank payment created successfully', {
+          provider: 'monobank', orderId, amount, orderNumber, invoiceId: invoice.invoiceId
+        });
 
         return NextResponse.json({
           success: true,
@@ -76,7 +79,6 @@ export async function POST(request: Request) {
         orderNumber: body?.orderNumber
       }
     );
-    Sentry.metrics.increment('payment.failed', 1, { tags: { provider: 'monobank', error: 'exception' } });
     return NextResponse.json(
       {
         error: 'Помилка при створенні платежу Monobank',

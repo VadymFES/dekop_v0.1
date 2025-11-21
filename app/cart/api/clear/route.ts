@@ -9,10 +9,12 @@ import { logger } from '@/app/lib/logger';
  * Clears all items from the user's cart
  */
 export async function POST() {
+  let cartId: string | undefined;
+
   try {
     logger.info('Cart clear request received');
     const cookieStore = await cookies();
-    const cartId = cookieStore.get('cartId')?.value;
+    cartId = cookieStore.get('cartId')?.value;
 
     logger.info('Retrieved cart ID from cookie', { cartId });
 
@@ -59,11 +61,8 @@ export async function POST() {
     return response;
 
   } catch (error) {
-    logger.error('Error clearing cart', {
-      cartId: typeof cartId !== 'undefined' ? cartId : undefined,
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      error
+    logger.error('Error clearing cart', error instanceof Error ? error : new Error(String(error)), {
+      cartId
     });
     return NextResponse.json(
       {

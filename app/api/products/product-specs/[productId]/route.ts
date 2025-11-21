@@ -80,7 +80,7 @@ export async function GET(
         try {
             types = JSON.parse(row.types);
           } catch (error) {
-            logger.error("Failed to parse JSON types", { error, productId, types: row.types });
+            logger.error("Failed to parse JSON types", error instanceof Error ? error : new Error(String(error)), { productId, types: row.types });
           // If it's a comma-separated string
           types = row.types.split(',').map((t: string) => t.trim());
         }
@@ -260,7 +260,7 @@ export async function GET(
       }, { status: 200, headers: getCacheHeaders('static') });
     }
   } catch (error: unknown) {
-    logger.error("Error fetching product specs", { error, productId });
+    logger.error("Error fetching product specs", error instanceof Error ? error : new Error(String(error)), { productId });
     return NextResponse.json(
       {
         error: "Failed to fetch product specs",
