@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import {
@@ -31,7 +31,9 @@ function OrderSuccessContent() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cleanupCompleted, setCleanupCompleted] = useState(false);
+
+  // Use ref to track cleanup status to prevent infinite loops
+  const cleanupInitiatedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -111,8 +113,12 @@ function OrderSuccessContent() {
 
   // Separate effect for cleanup - runs only once after order is loaded
   useEffect(() => {
-    if (order && !cleanupCompleted) {
+    if (order && !cleanupInitiatedRef.current) {
+      // Set ref immediately to prevent re-runs (before any async operations)
+      cleanupInitiatedRef.current = true;
+
       console.log('[Order Success] Starting cleanup...');
+
       const performCleanup = async () => {
         // Clear cart
         try {
@@ -154,13 +160,11 @@ function OrderSuccessContent() {
         } catch (cleanupError) {
           console.error('[Order Success] Error cleaning up order-email mapping:', cleanupError);
         }
-
-        setCleanupCompleted(true);
       };
 
       performCleanup();
     }
-  }, [order, cleanupCompleted, clearCart, orderId]);
+  }, [order, clearCart, orderId]);
 
   const handleContinueShopping = () => {
     router.push('/');
