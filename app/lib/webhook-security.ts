@@ -93,9 +93,14 @@ export function isWebhookUnique(
  * Example IPs (UPDATE WITH ACTUAL IPs):
  */
 const LIQPAY_IP_WHITELIST = [
-  // '91.226.25.0/24',    // Example: LiqPay production IPs
-  // '77.120.109.0/24',   // Example: LiqPay backup IPs
-  // Add actual IP ranges provided by LiqPay
+  '99.83.131.17',
+  '75.2.86.201',
+  '54.229.105.178',
+  '54.229.105.179',
+  '34.255.91.122',
+  '34.253.252.244',
+  '54.171.60.13',
+  '217.117.76.0/24'
 ];
 
 /**
@@ -110,8 +115,7 @@ const LIQPAY_IP_WHITELIST = [
  * If IPs are not available, disable IP validation and rely on signature verification.
  */
 const MONOBANK_IP_WHITELIST = [
-  // '195.69.188.0/24',   // Example: Monobank production IPs
-  // Add actual IP ranges provided by Monobank
+  '18.203.190.118'
 ];
 
 /**
