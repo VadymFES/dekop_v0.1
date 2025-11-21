@@ -100,7 +100,7 @@ export async function proxy(req: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+    "connect-src 'self' https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io",
     "frame-src 'self' https://www.liqpay.ua https://pay.google.com",
     "object-src 'none'",
     "base-uri 'self'",
@@ -171,6 +171,8 @@ export async function proxy(req: NextRequest) {
   const isBot = /bot|crawler|spider|scraper/i.test(userAgent);
 
   // Log access to sensitive endpoints
+  // Note: Middleware runs in Edge runtime, so we use console.log here
+  // Structured logging via Sentry happens in route handlers
   if (requestUrl.pathname.startsWith('/api/orders') ||
       requestUrl.pathname.startsWith('/api/webhooks') ||
       requestUrl.pathname.startsWith('/api/payments')) {
