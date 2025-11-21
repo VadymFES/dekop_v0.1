@@ -140,7 +140,7 @@ function OrderSuccessContent() {
         // Clean up order-email mapping for this order
         try {
           const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
-          if (mappingData) {
+          if (mappingData && orderId) {
             const mapping = JSON.parse(mappingData);
             delete mapping[orderId];
             // Clean up old entries (older than 24 hours)
