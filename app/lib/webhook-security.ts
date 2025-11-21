@@ -82,17 +82,36 @@ export function isWebhookUnique(
  * This provides an additional layer of security beyond signature verification
  */
 
-// LiqPay IP ranges (update based on official documentation)
+/**
+ * LiqPay IP Whitelist
+ *
+ * CONFIGURATION OPTIONS:
+ * 1. Add actual LiqPay IPs here when available
+ * 2. Leave empty and set DISABLE_WEBHOOK_IP_VALIDATION=true if IPs not available
+ * 3. Contact LiqPay support to request webhook IP ranges
+ *
+ * Example IPs (UPDATE WITH ACTUAL IPs):
+ */
 const LIQPAY_IP_WHITELIST = [
-  '91.226.25.0/24',    // LiqPay production IPs
-  '77.120.109.0/24',   // LiqPay backup IPs
-  // Add more IP ranges as provided by LiqPay
+  // '91.226.25.0/24',    // Example: LiqPay production IPs
+  // '77.120.109.0/24',   // Example: LiqPay backup IPs
+  // Add actual IP ranges provided by LiqPay
 ];
 
-// Monobank IP ranges (update based on official documentation)
+/**
+ * Monobank IP Whitelist
+ *
+ * CONFIGURATION OPTIONS:
+ * 1. Add actual Monobank IPs here when available
+ * 2. Leave empty and set DISABLE_WEBHOOK_IP_VALIDATION=true if IPs not available
+ * 3. Contact Monobank support to request webhook IP ranges
+ *
+ * NOTE: Many payment providers use cloud infrastructure with dynamic IPs.
+ * If IPs are not available, disable IP validation and rely on signature verification.
+ */
 const MONOBANK_IP_WHITELIST = [
-  '195.69.188.0/24',   // Monobank production IPs
-  // Add more IP ranges as provided by Monobank
+  // '195.69.188.0/24',   // Example: Monobank production IPs
+  // Add actual IP ranges provided by Monobank
 ];
 
 /**
@@ -127,9 +146,16 @@ function isIpInRange(ip: string, range: string): boolean {
 /**
  * Validates if the request comes from a whitelisted IP address
  *
+ * IMPORTANT: IP validation is OPTIONAL. If you cannot obtain payment provider IPs,
+ * you can disable this check by setting the environment variable:
+ * DISABLE_WEBHOOK_IP_VALIDATION=true
+ *
+ * Signature verification (Layer 2) is the PRIMARY security mechanism.
+ * IP validation is just an additional defense layer.
+ *
  * @param request - Next.js request object
  * @param provider - Payment provider ('liqpay' or 'monobank')
- * @returns true if IP is whitelisted, false otherwise
+ * @returns validation result with IP information
  */
 export function validateWebhookIp(
   request: NextRequest | Request,
@@ -138,6 +164,13 @@ export function validateWebhookIp(
   // Skip IP validation in development
   if (process.env.NODE_ENV === 'development') {
     return { valid: true, reason: 'Development mode - IP check skipped' };
+  }
+
+  // Allow disabling IP validation if provider IPs are not available
+  // This is safe because signature verification is the primary security mechanism
+  if (process.env.DISABLE_WEBHOOK_IP_VALIDATION === 'true') {
+    console.log(`[SECURITY] IP validation disabled for ${provider} webhook (signature verification still active)`);
+    return { valid: true, reason: 'IP validation disabled via environment variable' };
   }
 
   // Get client IP from various headers (Vercel, CloudFlare, etc.)
@@ -153,9 +186,11 @@ export function validateWebhookIp(
 
   if (!clientIp) {
     console.error('Unable to determine client IP for webhook validation');
+    // Don't fail webhook if IP cannot be determined - rely on signature verification
+    console.warn(`[SECURITY] Cannot determine IP for ${provider} webhook, allowing based on signature verification`);
     return {
-      valid: false,
-      reason: 'Unable to determine client IP',
+      valid: true,
+      reason: 'IP cannot be determined - relying on signature verification',
     };
   }
 
@@ -163,12 +198,31 @@ export function validateWebhookIp(
   const whitelist =
     provider === 'liqpay' ? LIQPAY_IP_WHITELIST : MONOBANK_IP_WHITELIST;
 
+  // If whitelist is empty or contains only placeholder IPs, skip validation
+  const hasRealIPs = whitelist.some(ip =>
+    !ip.includes('0.0.0.0') &&
+    !ip.includes('UPDATE_ME') &&
+    ip.trim() !== ''
+  );
+
+  if (!hasRealIPs) {
+    console.warn(
+      `[SECURITY] No real IPs configured for ${provider}, skipping IP validation. ` +
+      `Consider adding IPs or setting DISABLE_WEBHOOK_IP_VALIDATION=true`
+    );
+    return {
+      valid: true,
+      clientIp,
+      reason: 'No IPs configured - relying on signature verification',
+    };
+  }
+
   // Check if IP is in whitelist
   const isWhitelisted = whitelist.some((range) => isIpInRange(clientIp!, range));
 
   if (!isWhitelisted) {
     console.warn(
-      `Webhook IP validation failed for ${provider}: ${clientIp} not in whitelist`
+      `[SECURITY WARNING] Webhook IP validation failed for ${provider}: ${clientIp} not in whitelist`
     );
     return {
       valid: false,
@@ -177,6 +231,7 @@ export function validateWebhookIp(
     };
   }
 
+  console.log(`[SECURITY] IP validation passed for ${provider}: ${clientIp}`);
   return { valid: true, clientIp };
 }
 
