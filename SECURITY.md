@@ -257,7 +257,7 @@ const sanitizedString = z.string().transform((val) => {
 
 ## Security Headers
 
-Implemented via Next.js middleware at `/middleware.ts`.
+Implemented via Next.js proxy at `/proxy.ts` (combined with cart management).
 
 ### Headers Applied
 
