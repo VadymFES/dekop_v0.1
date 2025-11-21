@@ -78,8 +78,11 @@ export const createOrderSchema = z.object({
   user_email: emailSchema,
 
   // Delivery information
-  delivery_method: z.enum(['nova_poshta', 'store_pickup', 'courier'], {
+  delivery_method: z.enum(['nova_poshta', 'store_pickup', 'courier', 'pickup'], {
     message: 'Invalid delivery method',
+  }).transform((val) => {
+    // Normalize 'pickup' to 'store_pickup' for consistency
+    return val === 'pickup' ? 'store_pickup' : val;
   }),
   delivery_address: z.string().max(500, 'Address too long').pipe(sanitizedString).optional(),
   delivery_city: z.string().max(100, 'City name too long').pipe(sanitizedString).optional(),
