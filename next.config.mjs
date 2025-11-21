@@ -3,11 +3,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: false,
-
-    // Enable instrumentation for Sentry
-    experimental: {
-        instrumentationHook: true,
-    },
     images: {
         remotePatterns: [
             {

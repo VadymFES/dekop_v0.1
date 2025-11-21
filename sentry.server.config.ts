@@ -29,12 +29,14 @@ Sentry.init({
     // HTTP instrumentation for API calls
     Sentry.httpIntegration(),
 
-    // Node.js profiling
-    Sentry.nodeProfilingIntegration(),
+    // Note: nodeProfilingIntegration() requires @sentry/profiling-node package
+    // Uncomment if you install it: npm install @sentry/profiling-node
+    // Sentry.nodeProfilingIntegration(),
   ],
 
-  // Profiling sample rate (optional)
-  profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  // Note: Profiling requires additional package installation
+  // Uncomment if you install @sentry/profiling-node
+  // profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
   // Data filtering - remove sensitive information
   beforeSend(event, hint) {
