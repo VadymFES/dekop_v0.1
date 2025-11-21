@@ -48,7 +48,8 @@ function OrderSuccessContent() {
           const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
           if (checkoutData) {
             const parsedData = JSON.parse(checkoutData);
-            customerEmail = parsedData.user_email || null;
+            // Email is nested in formData.customerInfo.email
+            customerEmail = parsedData.formData?.customerInfo?.email || null;
           }
         } catch (storageError) {
           console.error('Error reading checkout data from localStorage:', storageError);
