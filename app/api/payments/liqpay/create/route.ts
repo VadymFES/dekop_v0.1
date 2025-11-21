@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createLiqPayPayment } from '@/app/lib/services/liqpay-service';
+import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/rate-limiter';
 
 export async function POST(request: Request) {
   try {
+    // SECURITY: Apply strict rate limiting to prevent payment fraud
+    const rateLimitResult = applyRateLimit(request, RateLimitConfig.PAYMENT);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
+    }
+
     const body = await request.json();
     const {
       amount,
@@ -43,12 +50,15 @@ export async function POST(request: Request) {
     }
 
     // Return payment data and signature to client
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: payment.data,
       signature: payment.signature,
       checkoutUrl: payment.checkoutUrl
     });
+
+    // Add rate limit headers to response
+    return addRateLimitHeaders(response, rateLimitResult.headers);
 
   } catch (error) {
     console.error('LiqPay payment creation error:', error);

@@ -6,6 +6,7 @@ import {
   verifyMonobankWebhook,
   mapMonobankStatus
 } from '@/app/lib/services/monobank-service';
+import { applyRateLimit, RateLimitConfig } from '@/app/lib/rate-limiter';
 
 interface MonobankWebhookPayload {
   invoiceId: string;
@@ -25,6 +26,12 @@ interface MonobankWebhookPayload {
  */
 export async function POST(request: Request) {
   try {
+    // SECURITY: Apply rate limiting to prevent webhook abuse
+    const rateLimitResult = applyRateLimit(request, RateLimitConfig.WEBHOOK);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
+    }
+
     const body = await request.text();
     const headersList = await headers();
     const xSign = headersList.get('x-sign');

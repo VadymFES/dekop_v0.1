@@ -9,6 +9,9 @@ import {
   calculatePaymentDeadline,
   generateProductArticle
 } from '@/app/lib/order-utils';
+import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schemas';
+import { ZodError } from 'zod';
+import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/rate-limiter';
 
 /**
  * POST /api/orders/create
@@ -16,24 +19,45 @@ import {
  */
 export async function POST(request: Request) {
   try {
+    // SECURITY: Apply rate limiting to prevent abuse
+    const rateLimitResult = applyRateLimit(request, RateLimitConfig.ORDER_CREATE);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
+    }
+
     const body = await request.json();
 
-    // Get cart ID from cookies (server-side) or from request body
-    const cookieStore = await cookies();
-    const cartId = cookieStore.get('cartId')?.value || body.cart_id;
+    // SECURITY: Validate and sanitize all input data
+    const validationResult = safeValidateInput(createOrderSchema, body);
 
-    // Validate required fields
+    if (!validationResult.success) {
+      // Return detailed validation errors
+      const errorMessages = validationResult.error.issues.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: errorMessages
+        },
+        { status: 400 }
+      );
+    }
+
+    // Use validated and sanitized data
+    const validatedData = validationResult.data;
+
+    // Get cart ID from cookies (server-side) or from validated request body
+    const cookieStore = await cookies();
+    const cartId = cookieStore.get('cartId')?.value || validatedData.cart_id;
+
+    // Validate cart ID exists
     if (!cartId) {
       return NextResponse.json(
         { error: 'Кошик не знайдено' },
         { status: 404 }
-      );
-    }
-
-    if (!body.user_name || !body.user_surname || !body.user_phone || !body.user_email) {
-      return NextResponse.json(
-        { error: 'Відсутні обов\'язкові поля' },
-        { status: 400 }
       );
     }
 
@@ -67,13 +91,13 @@ export async function POST(request: Request) {
       return sum + (item.price * item.quantity);
     }, 0);
 
-    // Calculate order totals
+    // Calculate order totals using validated data
     const totals = calculateOrderTotals({
       subtotal,
-      discountPercent: body.discount_percent || 0,
-      deliveryCost: body.delivery_cost || 0,
-      prepaymentPercentage: body.prepayment_amount
-        ? body.prepayment_amount / (subtotal + (body.delivery_cost || 0))
+      discountPercent: validatedData.discount_percent || 0,
+      deliveryCost: validatedData.delivery_cost || 0,
+      prepaymentPercentage: validatedData.prepayment_amount
+        ? validatedData.prepayment_amount / (subtotal + (validatedData.delivery_cost || 0))
         : undefined
     });
 
@@ -83,7 +107,7 @@ export async function POST(request: Request) {
     // Calculate payment deadline
     const paymentDeadline = calculatePaymentDeadline();
 
-    // Create order
+    // Create order using validated and sanitized data
     const orderResult = await sql`
       INSERT INTO orders (
         order_number,
@@ -112,28 +136,28 @@ export async function POST(request: Request) {
         payment_deadline
       ) VALUES (
         ${orderNumber},
-        ${body.user_name},
-        ${body.user_surname},
-        ${body.user_phone},
-        ${body.user_email},
-        ${body.delivery_method},
-        ${body.delivery_address || null},
-        ${body.delivery_city || null},
-        ${body.delivery_street || null},
-        ${body.delivery_building || null},
-        ${body.delivery_apartment || null},
-        ${body.delivery_postal_code || null},
-        ${body.store_location || null},
+        ${validatedData.user_name},
+        ${validatedData.user_surname},
+        ${validatedData.user_phone},
+        ${validatedData.user_email},
+        ${validatedData.delivery_method},
+        ${validatedData.delivery_address || null},
+        ${validatedData.delivery_city || null},
+        ${validatedData.delivery_street || null},
+        ${validatedData.delivery_building || null},
+        ${validatedData.delivery_apartment || null},
+        ${validatedData.delivery_postal_code || null},
+        ${validatedData.store_location || null},
         ${totals.subtotal},
         ${totals.discountPercent},
         ${totals.discountAmount},
         ${totals.deliveryCost},
         ${totals.totalAmount},
         ${totals.prepaymentAmount},
-        ${body.payment_method},
+        ${validatedData.payment_method},
         'pending',
         'processing',
-        ${body.customer_notes || null},
+        ${validatedData.customer_notes || null},
         ${paymentDeadline.toISOString()}
       )
       RETURNING id, order_number, total_amount, prepayment_amount, created_at
@@ -207,11 +231,14 @@ export async function POST(request: Request) {
       items: orderRow.items || []
     } as OrderWithItems;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       order,
       message: 'Замовлення успішно створено'
     }, { status: 201 });
+
+    // Add rate limit headers to response
+    return addRateLimitHeaders(response, rateLimitResult.headers);
 
   } catch (error) {
     console.error('Error creating order:', error);

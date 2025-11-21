@@ -6,6 +6,7 @@ import {
   parseLiqPayCallback,
   mapLiqPayStatus
 } from '@/app/lib/services/liqpay-service';
+import { applyRateLimit, RateLimitConfig } from '@/app/lib/rate-limiter';
 
 /**
  * POST /api/webhooks/liqpay
@@ -13,6 +14,12 @@ import {
  */
 export async function POST(request: Request) {
   try {
+    // SECURITY: Apply rate limiting to prevent webhook abuse
+    const rateLimitResult = applyRateLimit(request, RateLimitConfig.WEBHOOK);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
+    }
+
     const formData = await request.formData();
     const data = formData.get('data') as string;
     const signature = formData.get('signature') as string;
