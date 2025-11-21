@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { CartItem, ProductWithImages } from "@/app/lib/definitions";
 import { handleApiError } from "@/app/lib/server-error";
 import { updateCartQuantitySchema, safeValidateInput } from "@/app/lib/validation-schemas";
-import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from "@/app/lib/rate-limiter";
 
 // Interface to represent the raw cart item data from the database
 interface CartItemWithProductData {
@@ -83,12 +82,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // SECURITY: Apply rate limiting to prevent cart abuse
-    const rateLimitResult = applyRateLimit(request, RateLimitConfig.CART);
-    if (!rateLimitResult.success) {
-      return rateLimitResult.response;
-    }
-
     const id = ((await params).id);
     const body = await request.json();
 
@@ -169,9 +162,7 @@ export async function PATCH(
 
     const transformedItems = transformCartItems(updatedCart);
 
-    const response = NextResponse.json({ items: transformedItems }, { status: 200 });
-    // Add rate limit headers to response
-    return addRateLimitHeaders(response, rateLimitResult.headers);
+    return NextResponse.json({ items: transformedItems }, { status: 200 });
   } catch (error) {
     return handleApiError(error, "Failed to update cart item quantity");
   }

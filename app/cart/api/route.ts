@@ -6,7 +6,6 @@ import { CartItem, ProductWithImages } from "@/app/lib/definitions";
 import { handleApiError } from "@/app/lib/server-error";
 import { randomUUID } from "crypto";
 import { cartItemSchema, safeValidateInput } from "@/app/lib/validation-schemas";
-import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from "@/app/lib/rate-limiter";
 
 // Interface to represent the raw cart item data from the database
 interface CartItemWithProductData {
@@ -145,12 +144,6 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    // SECURITY: Apply rate limiting to prevent cart abuse
-    const rateLimitResult = applyRateLimit(request, RateLimitConfig.CART);
-    if (!rateLimitResult.success) {
-      return rateLimitResult.response;
-    }
-
     const body = await request.json();
 
     // SECURITY: Validate and sanitize input data
@@ -254,8 +247,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Add rate limit headers to response
-    return addRateLimitHeaders(response, rateLimitResult.headers);
+    return response;
   } catch (error) {
     console.error("Error adding to cart:", error);
     return NextResponse.json({ error: "Failed to add item to cart" }, { status: 500 });

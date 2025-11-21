@@ -1,7 +1,6 @@
 // app/api/payments/monobank/create/route.ts
 import { NextResponse } from 'next/server';
 import { createMonobankInvoice } from '@/app/lib/services/monobank-service';
-import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/rate-limiter';
 
 /**
  * POST /api/payments/monobank/create
@@ -9,12 +8,6 @@ import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/
  */
 export async function POST(request: Request) {
   try {
-    // SECURITY: Apply strict rate limiting to prevent payment fraud
-    const rateLimitResult = applyRateLimit(request, RateLimitConfig.PAYMENT);
-    if (!rateLimitResult.success) {
-      return rateLimitResult.response;
-    }
-
     const body = await request.json();
     const {
       amount,
@@ -45,14 +38,11 @@ export async function POST(request: Request) {
       webhookUrl: serverUrl
     });
 
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       invoiceId: invoice.invoiceId,
       pageUrl: invoice.pageUrl
     });
-
-    // Add rate limit headers to response
-    return addRateLimitHeaders(response, rateLimitResult.headers);
 
   } catch (error) {
     console.error('Monobank payment creation error:', error);

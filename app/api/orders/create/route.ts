@@ -10,8 +10,6 @@ import {
   generateProductArticle
 } from '@/app/lib/order-utils';
 import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schemas';
-import { ZodError } from 'zod';
-import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/rate-limiter';
 
 /**
  * POST /api/orders/create
@@ -19,12 +17,6 @@ import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/
  */
 export async function POST(request: Request) {
   try {
-    // SECURITY: Apply rate limiting to prevent abuse
-    const rateLimitResult = applyRateLimit(request, RateLimitConfig.ORDER_CREATE);
-    if (!rateLimitResult.success) {
-      return rateLimitResult.response;
-    }
-
     const body = await request.json();
 
     // SECURITY: Validate and sanitize all input data
@@ -231,14 +223,11 @@ export async function POST(request: Request) {
       items: orderRow.items || []
     } as OrderWithItems;
 
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       order,
       message: 'Замовлення успішно створено'
     }, { status: 201 });
-
-    // Add rate limit headers to response
-    return addRateLimitHeaders(response, rateLimitResult.headers);
 
   } catch (error) {
     console.error('Error creating order:', error);

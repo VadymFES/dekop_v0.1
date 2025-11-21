@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sendOrderConfirmationEmail } from '@/app/lib/services/email-service';
 import { validateInternalApiKey, getUnauthorizedResponse } from '@/app/lib/api-auth';
-import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/rate-limiter';
 
 /**
  * Email Configuration Diagnostic Tool
@@ -15,12 +14,6 @@ import { applyRateLimit, RateLimitConfig, addRateLimitHeaders } from '@/app/lib/
  */
 
 export async function GET(request: Request) {
-  // SECURITY: Apply rate limiting to test endpoints
-  const rateLimitResult = applyRateLimit(request, RateLimitConfig.TEST);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
   // SECURITY: Require authentication to prevent information disclosure
   if (!validateInternalApiKey(request)) {
     const errorResponse = getUnauthorizedResponse();
@@ -71,12 +64,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  // SECURITY: Apply rate limiting to test endpoints
-  const rateLimitResult = applyRateLimit(request, RateLimitConfig.TEST);
-  if (!rateLimitResult.success) {
-    return rateLimitResult.response;
-  }
-
   // Validate API key
   if (!validateInternalApiKey(request)) {
     const errorResponse = getUnauthorizedResponse();
