@@ -29,6 +29,19 @@ export async function POST(request: Request) {
         message: err.message
       }));
 
+      // Log validation errors for debugging
+      console.error('Order validation failed:', {
+        errors: errorMessages,
+        receivedData: {
+          user_name: body.user_name,
+          user_surname: body.user_surname,
+          user_phone: body.user_phone,
+          user_email: body.user_email,
+          delivery_method: body.delivery_method,
+          payment_method: body.payment_method,
+        }
+      });
+
       return NextResponse.json(
         {
           error: 'Validation failed',
