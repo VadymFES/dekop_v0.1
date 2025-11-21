@@ -96,8 +96,8 @@ const nextConfig = {
                             "img-src 'self' data: https: blob:",
                             // Fonts: allow self and Google Fonts
                             "font-src 'self' data: https://fonts.gstatic.com",
-                            // Connect: allow self and API endpoints
-                            "connect-src 'self' https://api.liqpay.ua https://www.liqpay.ua https://api.monobank.ua",
+                            // Connect: allow self, API endpoints, and Sentry error tracking
+                            "connect-src 'self' https://api.liqpay.ua https://www.liqpay.ua https://api.monobank.ua https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io",
                             // Frame: disallow all frames except same origin
                             "frame-src 'self' https://www.liqpay.ua",
                             // Object: disallow plugins
