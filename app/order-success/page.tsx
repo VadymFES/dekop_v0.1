@@ -256,19 +256,20 @@ function OrderSuccessContent() {
                    order.payment_status === 'pending' ? 'Очікується' :
                    order.payment_status === 'failed' ? 'Не вдалося' : 'Повернуто'}
                 </span>
-              </div>
-              {order.prepayment_amount > 0 && (
-                <>
-                  <p className={styles.prepaymentAmount}>
-                    Сума передплати: {formatUkrainianPrice(order.prepayment_amount)}
-                  </p>
-                  <div>
-                    <p className={styles.remainingAmount}>
-                      Залишок до сплати: {formatUkrainianPrice(order.total_amount - order.prepayment_amount)}
-                    </p>
-                  </div>
-                </>
-              )}
+              </div> {/* if its prepayment make prepayed amount status here*/}
+
+              {/* {order.prepayment_amount > 0 && (
+                // <>
+                //   <p className={styles.prepaymentAmount}>
+                //     Сума передплати: {formatUkrainianPrice(order.prepayment_amount)}
+                //   </p>
+                //   <div>
+                //     <p className={styles.remainingAmount}>
+                //       Залишок до сплати: {formatUkrainianPrice(order.total_amount - order.prepayment_amount)}
+                //     </p>
+                //   </div>
+                // </>
+              )} */}
             </div>
           </section>
 
@@ -305,10 +306,18 @@ function OrderSuccessContent() {
                   </span>
                 </div>
               )}
+                
               <div className={`${styles.totalRow} ${styles.grandTotal}`}>
-                <span className={styles.totalLabel}>Загальна вартість:</span>
+                <span className={styles.totalLabel}>Сплачено:</span>
                 <span className={styles.totalValue}>
-                  {formatUkrainianPrice(order.total_amount)}
+                  {formatUkrainianPrice(order.prepayment_amount)}
+                </span>
+              </div>
+
+              <div className={`${styles.totalRow} ${styles.grandTotal}`}>
+                <span className={styles.totalLabel}>Залишок до сплати:</span>
+                <span className={styles.totalValue}>
+                  {formatUkrainianPrice(order.total_amount - order.prepayment_amount)}
                 </span>
               </div>
             </div>
