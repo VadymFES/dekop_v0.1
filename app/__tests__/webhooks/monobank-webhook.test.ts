@@ -6,7 +6,6 @@
 import crypto from 'crypto'
 import { POST } from '@/app/api/webhooks/monobank/route'
 import { createTestKeyPair } from '../test-utils'
-import * as webhookSecurity from '@/app/lib/webhook-security'
 
 // Mock dependencies
 jest.mock('@vercel/postgres', () => ({
@@ -21,9 +20,20 @@ jest.mock('@/app/lib/services/email-service', () => ({
   sendOrderConfirmationEmail: jest.fn(),
 }))
 
+jest.mock('@/app/lib/webhook-security', () => ({
+  isWebhookUnique: jest.fn(),
+  validateWebhookIp: jest.fn(),
+  validateWebhookTimestamp: jest.fn(),
+}))
+
 const { sql } = require('@vercel/postgres')
 const { headers } = require('next/headers')
 const { sendOrderConfirmationEmail } = require('@/app/lib/services/email-service')
+const {
+  isWebhookUnique,
+  validateWebhookIp,
+  validateWebhookTimestamp,
+} = require('@/app/lib/webhook-security')
 
 describe('Monobank Webhook Integration', () => {
   const originalEnv = process.env
@@ -36,16 +46,22 @@ describe('Monobank Webhook Integration', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    jest.restoreAllMocks() // Restore all spies
     process.env = {
       ...originalEnv,
       MONOBANK_PUBLIC_KEY: testKeyPair.publicKey,
       MONOBANK_TOKEN: 'test_monobank_token',
       DISABLE_WEBHOOK_IP_VALIDATION: 'true',
     }
+
+    // Set default mock return values
+    validateWebhookIp.mockReturnValue({ valid: true, reason: 'Test mode' })
+    validateWebhookTimestamp.mockReturnValue(true)
   })
 
   afterEach(() => {
     process.env = originalEnv
+    jest.restoreAllMocks() // Clean up spies after each test
   })
 
   /**
@@ -103,7 +119,7 @@ describe('Monobank Webhook Integration', () => {
         reference: 'order-123',
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload, { ip: '1.2.3.4' })
@@ -143,7 +159,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: new Date().toISOString(),
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload)
@@ -250,7 +266,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: new Date().toISOString(),
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload)
@@ -271,7 +287,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: new Date().toISOString(),
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(false)
+      isWebhookUnique.mockResolvedValue(false)
 
       const request = createMonobankWebhookRequest(payload)
       const response = await POST(request)
@@ -291,7 +307,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: new Date().toISOString(),
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload)
@@ -342,7 +358,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: oldDate,
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
 
       const request = createMonobankWebhookRequest(payload)
       const response = await POST(request)
@@ -364,7 +380,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: recentDate,
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload)
@@ -382,7 +398,7 @@ describe('Monobank Webhook Integration', () => {
         reference: 'order-no-timestamp',
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload)
@@ -394,7 +410,7 @@ describe('Monobank Webhook Integration', () => {
 
   describe('Payment Status Handling', () => {
     beforeEach(() => {
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
     })
 
     it('should handle successful payment', async () => {
@@ -526,7 +542,7 @@ describe('Monobank Webhook Integration', () => {
         }
 
         sql.mockResolvedValue({ rows: [], rowCount: 1 })
-        jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+        isWebhookUnique.mockResolvedValue(true)
 
         const request = createMonobankWebhookRequest(payload)
         const response = await POST(request)
@@ -542,7 +558,7 @@ describe('Monobank Webhook Integration', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
     })
 
     it('should return error when reference (order ID) is missing', async () => {
@@ -650,7 +666,7 @@ describe('Monobank Webhook Integration', () => {
         modifiedDate: new Date().toISOString(),
       }
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createMonobankWebhookRequest(payload)
@@ -683,7 +699,7 @@ describe('Monobank Webhook Integration', () => {
           modifiedDate: new Date().toISOString(),
         }
 
-        jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+        isWebhookUnique.mockResolvedValue(true)
         sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
         const request = createMonobankWebhookRequest(payload)

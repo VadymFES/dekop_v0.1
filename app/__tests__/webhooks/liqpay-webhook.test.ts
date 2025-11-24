@@ -6,8 +6,6 @@
 import crypto from 'crypto'
 import { POST } from '@/app/api/webhooks/liqpay/route'
 import { createMockRequest } from '../test-utils'
-import * as webhookSecurity from '@/app/lib/webhook-security'
-import * as liqpayService from '@/app/lib/services/liqpay-service'
 
 // Mock dependencies
 jest.mock('@vercel/postgres', () => ({
@@ -18,24 +16,41 @@ jest.mock('@/app/lib/services/email-service', () => ({
   sendOrderConfirmationEmail: jest.fn(),
 }))
 
+jest.mock('@/app/lib/webhook-security', () => ({
+  isWebhookUnique: jest.fn(),
+  validateWebhookIp: jest.fn(),
+  validateWebhookTimestamp: jest.fn(),
+}))
+
 const { sql } = require('@vercel/postgres')
 const { sendOrderConfirmationEmail } = require('@/app/lib/services/email-service')
+const {
+  isWebhookUnique,
+  validateWebhookIp,
+  validateWebhookTimestamp,
+} = require('@/app/lib/webhook-security')
 
 describe('LiqPay Webhook Integration', () => {
   const originalEnv = process.env
 
   beforeEach(() => {
     jest.clearAllMocks()
+    jest.restoreAllMocks() // Restore all spies
     process.env = {
       ...originalEnv,
       LIQPAY_PUBLIC_KEY: 'test_public_key',
       LIQPAY_PRIVATE_KEY: 'test_private_key',
       DISABLE_WEBHOOK_IP_VALIDATION: 'true',
     }
+
+    // Set default mock return values
+    validateWebhookIp.mockReturnValue({ valid: true, reason: 'Test mode' })
+    validateWebhookTimestamp.mockReturnValue(true)
   })
 
   afterEach(() => {
     process.env = originalEnv
+    jest.restoreAllMocks() // Clean up spies after each test
   })
 
   /**
@@ -80,7 +95,7 @@ describe('LiqPay Webhook Integration', () => {
       const { data, signature } = createLiqPayWebhookData(payload)
 
       // Mock webhook uniqueness check
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
 
       // Mock database update
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
@@ -124,7 +139,7 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       // Use an IP from the LiqPay whitelist
@@ -229,7 +244,7 @@ describe('LiqPay Webhook Integration', () => {
       const { data, signature } = createLiqPayWebhookData(payload)
 
       // First webhook is unique
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(false)
+      isWebhookUnique.mockResolvedValue(false)
 
       const request = createWebhookRequest(data, signature)
       const response = await POST(request)
@@ -249,7 +264,7 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createWebhookRequest(data, signature)
@@ -299,7 +314,7 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
 
       const request = createWebhookRequest(data, signature)
       const response = await POST(request)
@@ -322,7 +337,7 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createWebhookRequest(data, signature)
@@ -340,7 +355,7 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createWebhookRequest(data, signature)
@@ -352,7 +367,7 @@ describe('LiqPay Webhook Integration', () => {
 
   describe('Payment Status Handling', () => {
     beforeEach(() => {
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
     })
 
     it('should handle successful payment', async () => {
@@ -527,7 +542,7 @@ describe('LiqPay Webhook Integration', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
     })
 
     it('should return error when order_id is missing', async () => {
@@ -628,7 +643,7 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      jest.spyOn(webhookSecurity, 'isWebhookUnique').mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createWebhookRequest(data, signature)
