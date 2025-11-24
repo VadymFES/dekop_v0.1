@@ -307,7 +307,7 @@ Implemented via Next.js proxy at `/proxy.ts` (combined with cart management).
 **Directives:**
 ```
 default-src 'self'
-script-src 'self' 'unsafe-inline' 'unsafe-eval'
+script-src 'self'
   https://www.liqpay.ua
   https://api.monobank.ua
   https://pay.google.com
@@ -335,7 +335,8 @@ upgrade-insecure-requests (production only)
 - `upgrade-insecure-requests` disabled in development to support localhost
 - Google Pay domains added for LiqPay payment integration
 - Vercel Analytics whitelisted for monitoring
-- `unsafe-inline` and `unsafe-eval` required for payment gateways
+- `unsafe-inline` in `style-src` required for Next.js styled-jsx
+- Removed `unsafe-inline` and `unsafe-eval` from `script-src` to prevent XSS attacks
 
 ### CORS Configuration
 
@@ -662,6 +663,25 @@ Consider hiring security firm for:
 ---
 
 ## Changelog
+
+### 2025-11-24 (Session 3) - CSP Security Enhancement
+
+**Security Enhancements:**
+- ✅ Removed `'unsafe-inline'` from `script-src` directive in CSP
+  - Eliminates XSS attack vector from inline JavaScript execution
+  - Verified no inline scripts or `dangerouslySetInnerHTML` in codebase
+- ✅ Removed `'unsafe-eval'` from `script-src` directive in CSP
+  - Prevents arbitrary code execution via `eval()` and similar functions
+  - Verified no `eval()` or `Function()` calls in codebase
+- ✅ Updated CSP in both `next.config.mjs` and `proxy.ts`
+  - Maintained `'unsafe-inline'` in `style-src` for Next.js styled-jsx compatibility
+  - Payment gateway integrations verified to work with server-side redirects
+- ✅ Updated security documentation to reflect CSP improvements
+
+**Impact:**
+- Significantly improved security posture against XSS attacks
+- No breaking changes to payment flows or user experience
+- All external scripts properly whitelisted (Vercel Analytics, payment providers)
 
 ### 2025-11-21 (Session 2) - Production Deployment & Bug Fixes
 

@@ -96,7 +96,7 @@ export async function proxy(req: NextRequest) {
    */
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com",
+    "script-src 'self' https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
