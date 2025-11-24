@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "test:unit": "jest --testPathPattern=__tests__/services",
+    "test:integration": "jest --testPathPattern=__tests__/webhooks",
+    "test:api": "jest --testPathPattern=__tests__/api"
   },
   "dependencies": {
     "@mailchimp/mailchimp_transactional": "^1.0.59",
@@ -29,12 +36,22 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
     "@types/leaflet": "^1.9.16",
     "@types/node": "^22",
     "@types/react": "19.2.5",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "msw": "^2.12.3",
+    "node-mocks-http": "^1.17.2",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
     "typescript": "5.9.3",
     "vercel": "^32.3.0",
     "webpack": "^5.97.1"
