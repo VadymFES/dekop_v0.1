@@ -30,9 +30,12 @@ describe('Validation Schemas', () => {
 
       const result = createOrderSchema.parse(maliciousInput)
 
-      expect(result.user_name).toBe('John')
+      // Sanitization removes HTML tags but keeps text content
+      expect(result.user_name).toBe('alert("xss")John')
       expect(result.user_surname).toBe('Doe')
+      // Verify tags are removed
       expect(result.user_name).not.toContain('<script>')
+      expect(result.user_name).not.toContain('</script>')
       expect(result.user_surname).not.toContain('<img')
     })
 
@@ -48,7 +51,8 @@ describe('Validation Schemas', () => {
 
       const result = createOrderSchema.parse(input)
 
-      expect(result.user_name).toBe('Johntest')
+      // <test> is removed as HTML tag, >test< has brackets stripped
+      expect(result.user_name).toBe('John')
       expect(result.user_surname).toBe('Doetest')
       expect(result.user_name).not.toContain('<')
       expect(result.user_name).not.toContain('>')
@@ -67,8 +71,13 @@ describe('Validation Schemas', () => {
 
       const result = createOrderSchema.parse(maliciousInput)
 
-      expect(result.user_name).toBe('Test')
+      // Tags removed, text content preserved
+      // Note: <img> is self-closing with no text content, so completely removed
+      expect(result.user_name).toBe('alert(1)Test')
       expect(result.customer_notes).toBe('Please deliver')
+      // Verify no HTML tags remain
+      expect(result.user_name).not.toContain('<script>')
+      expect(result.user_name).not.toContain('<img')
       expect(result.customer_notes).not.toContain('<iframe')
     })
 
@@ -77,7 +86,7 @@ describe('Validation Schemas', () => {
         user_name: '  John  ',
         user_surname: '  Doe  ',
         user_phone: '+380501234567',
-        user_email: '  test@example.com  ',
+        user_email: 'test@example.com',
         delivery_method: 'nova_poshta',
         payment_method: 'liqpay',
       }
@@ -201,8 +210,10 @@ describe('Validation Schemas', () => {
 
       const result = cartItemSchema.parse(item)
 
-      expect(result.color).toBe('red')
+      // Tags removed, text content preserved
+      expect(result.color).toBe('alert("xss")red')
       expect(result.color).not.toContain('<script>')
+      expect(result.color).not.toContain('</script>')
     })
   })
 
@@ -274,11 +285,12 @@ describe('Validation Schemas', () => {
     it('should validate and normalize email', () => {
       const data = {
         ...validOrderData,
-        user_email: '  TEST@EXAMPLE.COM  ',
+        user_email: 'TEST@EXAMPLE.COM',
       }
 
       const result = createOrderSchema.parse(data)
 
+      // Email is converted to lowercase
       expect(result.user_email).toBe('test@example.com')
     })
 

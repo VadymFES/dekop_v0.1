@@ -111,6 +111,12 @@ describe('LiqPay Webhook Integration', () => {
     it('should reject webhook from unauthorized IP when validation enabled', async () => {
       process.env.DISABLE_WEBHOOK_IP_VALIDATION = 'false'
 
+      // Mock IP validation to reject unauthorized IP
+      validateWebhookIp.mockReturnValue({
+        valid: false,
+        reason: 'Unauthorized IP address',
+      })
+
       const payload = {
         order_id: 'test-order-123',
         status: 'success',
@@ -283,15 +289,13 @@ describe('LiqPay Webhook Integration', () => {
 
       const { data, signature } = createLiqPayWebhookData(payload)
 
-      const uniqueCheck = jest
-        .spyOn(webhookSecurity, 'isWebhookUnique')
-        .mockResolvedValue(true)
+      isWebhookUnique.mockResolvedValue(true)
       sql.mockResolvedValue({ rows: [], rowCount: 1 })
 
       const request = createWebhookRequest(data, signature)
       await POST(request)
 
-      expect(uniqueCheck).toHaveBeenCalledWith(
+      expect(isWebhookUnique).toHaveBeenCalledWith(
         'liqpay_pay_123',
         'liqpay',
         expect.any(Number),
@@ -315,6 +319,8 @@ describe('LiqPay Webhook Integration', () => {
       const { data, signature } = createLiqPayWebhookData(payload)
 
       isWebhookUnique.mockResolvedValue(true)
+      // Mock timestamp validation to reject old timestamps
+      validateWebhookTimestamp.mockReturnValue(false)
 
       const request = createWebhookRequest(data, signature)
       const response = await POST(request)
@@ -410,13 +416,11 @@ describe('LiqPay Webhook Integration', () => {
       expect(response.status).toBe(200)
       expect(result.status).toBe('ok')
 
-      // Verify database was updated
-      expect(sql).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.stringMatching(/UPDATE orders/),
-          expect.stringMatching(/payment_status = 'paid'/),
-        ])
-      )
+      // Verify database was updated (check first call)
+      const firstCall = sql.mock.calls[0]
+      const queryParts = firstCall[0].join('')
+      expect(queryParts).toContain('UPDATE orders')
+      expect(queryParts).toContain("payment_status = 'paid'")
 
       // Verify email was sent
       expect(sendOrderConfirmationEmail).toHaveBeenCalled()
@@ -440,12 +444,10 @@ describe('LiqPay Webhook Integration', () => {
       expect(response.status).toBe(200)
 
       // Verify payment_status set to 'failed'
-      expect(sql).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.stringMatching(/UPDATE orders/),
-          expect.stringMatching(/payment_status = 'failed'/),
-        ])
-      )
+      const firstCall = sql.mock.calls[0]
+      const queryParts = firstCall[0].join('')
+      expect(queryParts).toContain('UPDATE orders')
+      expect(queryParts).toContain("payment_status = 'failed'")
 
       // Email should NOT be sent for failed payment
       expect(sendOrderConfirmationEmail).not.toHaveBeenCalled()
@@ -469,12 +471,10 @@ describe('LiqPay Webhook Integration', () => {
       expect(response.status).toBe(200)
 
       // Verify payment_status set to 'refunded'
-      expect(sql).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.stringMatching(/UPDATE orders/),
-          expect.stringMatching(/payment_status = 'refunded'/),
-        ])
-      )
+      const firstCall = sql.mock.calls[0]
+      const queryParts = firstCall[0].join('')
+      expect(queryParts).toContain('UPDATE orders')
+      expect(queryParts).toContain("payment_status = 'refunded'")
     })
 
     it('should handle pending payment', async () => {
@@ -495,12 +495,10 @@ describe('LiqPay Webhook Integration', () => {
       expect(response.status).toBe(200)
 
       // Verify payment_status set to 'pending'
-      expect(sql).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.stringMatching(/UPDATE orders/),
-          expect.stringMatching(/payment_status = 'pending'/),
-        ])
-      )
+      const firstCall = sql.mock.calls[0]
+      const queryParts = firstCall[0].join('')
+      expect(queryParts).toContain('UPDATE orders')
+      expect(queryParts).toContain("payment_status = 'pending'")
     })
 
     it('should handle sandbox status as successful', async () => {
@@ -534,9 +532,9 @@ describe('LiqPay Webhook Integration', () => {
       expect(response.status).toBe(200)
 
       // Sandbox should be treated as paid
-      expect(sql).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.stringMatching(/payment_status = 'paid'/)])
-      )
+      const firstCall = sql.mock.calls[0]
+      const queryParts = firstCall[0].join('')
+      expect(queryParts).toContain("payment_status = 'paid'")
     })
   })
 

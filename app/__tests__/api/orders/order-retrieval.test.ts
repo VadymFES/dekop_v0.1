@@ -457,18 +457,15 @@ describe('Order Retrieval API - IDOR Protection', () => {
         params: Promise.resolve({ orderId: testOrderId }),
       })
 
-      // Should be handled safely (parameterized query)
-      // The email passes basic validation, queries DB, and returns 404 (no match)
-      expect(response.status).toBe(404)
+      // SQL injection email fails validation and returns 400
+      expect(response.status).toBe(400)
 
-      // Verify the database was queried (meaning the email format passed validation)
-      expect(sql).toHaveBeenCalled()
+      // Verify the database was NOT queried (email validation caught it)
+      expect(sql).not.toHaveBeenCalled()
 
-      // The use of sql`...` tagged template literals ensures parameterized queries
-      // The SQL injection attempt is safely handled as a literal string parameter
-      const query = sql.mock.calls[0]
-      expect(query).toBeDefined()
-      expect(query.length).toBeGreaterThan(0)
+      // The email validation layer prevents SQL injection attempts
+      // Even if it passed validation, sql`...` tagged template literals
+      // would safely handle the SQL injection as a literal string parameter
     })
   })
 
