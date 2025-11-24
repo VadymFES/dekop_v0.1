@@ -87,17 +87,17 @@ const nextConfig = {
                             // Default: only allow same origin
                             "default-src 'self'",
                             // Scripts: allow self and whitelisted external scripts only
-                            "script-src 'self' https://www.googletagmanager.com https://va.vercel-scripts.com",
-                            // Styles: allow self and Google Fonts (unsafe-inline needed for Next.js styled-jsx)
-                            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                            "script-src 'self' https://www.googletagmanager.com https://va.vercel-scripts.com https://www.liqpay.ua https://api.monobank.ua https://pay.google.com",
+                            // Styles: allow self, inline styles, Google Fonts, and Leaflet CDN
+                            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
                             // Images: allow self, data URIs, HTTPS images, and configured remote patterns
                             "img-src 'self' data: https: blob:",
-                            // Fonts: allow self and Google Fonts
-                            "font-src 'self' data: https://fonts.gstatic.com",
+                            // Fonts: allow self, Google Fonts, and Leaflet CDN
+                            "font-src 'self' data: https://fonts.gstatic.com https://unpkg.com",
                             // Connect: allow self, API endpoints, and analytics
                             "connect-src 'self' https://api.liqpay.ua https://www.liqpay.ua https://api.monobank.ua https://va.vercel-scripts.com https://vitals.vercel-insights.com",
                             // Frame: allow payment providers
-                            "frame-src 'self' https://www.liqpay.ua",
+                            "frame-src 'self' https://www.liqpay.ua https://pay.google.com",
                             // Object: disallow plugins
                             "object-src 'none'",
                             // Base: restrict base tag

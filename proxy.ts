@@ -96,10 +96,16 @@ export async function proxy(req: NextRequest) {
    */
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com",
-    "style-src 'self' 'unsafe-inline'",
+    // In development, allow 'unsafe-inline' for Next.js hot reload scripts
+    // In production, strict CSP without inline scripts
+    process.env.NODE_ENV === 'development'
+      ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com"
+      : "script-src 'self' https://www.googletagmanager.com https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com",
+    // Allow inline styles and external stylesheets (Leaflet, Google Fonts, etc.)
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
     "img-src 'self' data: https: blob:",
-    "font-src 'self' data:",
+    // Allow fonts from self, data URIs, Google Fonts, and Leaflet CDN
+    "font-src 'self' data: https://fonts.gstatic.com https://unpkg.com",
     "connect-src 'self' https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
     "frame-src 'self' https://www.liqpay.ua https://pay.google.com",
     "object-src 'none'",
