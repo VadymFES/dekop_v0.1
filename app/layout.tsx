@@ -8,6 +8,7 @@ import { CartProvider } from "./context/CartContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+import GoogleTagManager from "./components/GoogleTagManager";
 
 // Font optimization with Ukrainian (Cyrillic) support
 // Note: next/font/google disabled in build due to network restrictions
