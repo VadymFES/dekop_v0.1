@@ -40,3 +40,6 @@ next-env.d.ts
 
 # IDEs and editors
 .vscode/
+
+# Jest snapshot files
+**/__snapshots__/
