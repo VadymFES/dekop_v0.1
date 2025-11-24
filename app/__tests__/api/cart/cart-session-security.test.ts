@@ -149,7 +149,7 @@ describe('Cart Session Cookie Security', () => {
 
       const setCookieHeader = response.headers.get('set-cookie');
       if (setCookieHeader) {
-        expect(setCookieHeader).toContain('SameSite=Strict');
+        expect(setCookieHeader).toContain('SameSite=strict');
       }
     });
 
