@@ -818,3 +818,171 @@ export async function cancelDeletionRequest(
     return false;
   }
 }
+
+/**
+ * Right to Rectification (Ukrainian Law Article 20)
+ */
+
+export interface UserDataUpdates {
+  name?: string;
+  surname?: string;
+  phone?: string;
+  email?: string;
+  delivery_address?: string;
+  delivery_city?: string;
+  delivery_street?: string;
+  delivery_building?: string;
+  delivery_apartment?: string;
+  delivery_postal_code?: string;
+}
+
+/**
+ * Updates user personal data (Right to Rectification - Article 20)
+ * Must respond within 30 days according to Ukrainian Law
+ *
+ * @param userEmail - Current user's email address
+ * @param updates - Fields to update
+ * @returns Updated record count
+ */
+export async function updateUserData(
+  userEmail: string,
+  updates: UserDataUpdates
+): Promise<{ success: boolean; updatedFields: string[] }> {
+  try {
+    const updatedFields: string[] = [];
+
+    // Check if user exists
+    const userCheck = await sql`
+      SELECT user_email FROM orders
+      WHERE LOWER(user_email) = LOWER(${userEmail})
+      LIMIT 1
+    `;
+
+    if (!userCheck.rows.length) {
+      // No existing data for this email
+      await logGDPRAction(userEmail, 'data_rectification_no_data', {
+        requestedUpdates: Object.keys(updates),
+        timestamp: new Date().toISOString(),
+      });
+      return { success: false, updatedFields: [] };
+    }
+
+    // Build dynamic UPDATE query for orders table
+    const orderUpdates: string[] = [];
+    const orderValues: any[] = [];
+    let paramIndex = 1;
+
+    if (updates.name !== undefined) {
+      orderUpdates.push(`user_name = $${paramIndex++}`);
+      orderValues.push(updates.name);
+      updatedFields.push('name');
+    }
+    if (updates.surname !== undefined) {
+      orderUpdates.push(`user_surname = $${paramIndex++}`);
+      orderValues.push(updates.surname);
+      updatedFields.push('surname');
+    }
+    if (updates.phone !== undefined) {
+      orderUpdates.push(`user_phone = $${paramIndex++}`);
+      orderValues.push(updates.phone);
+      updatedFields.push('phone');
+    }
+    if (updates.delivery_address !== undefined) {
+      orderUpdates.push(`delivery_address = $${paramIndex++}`);
+      orderValues.push(updates.delivery_address);
+      updatedFields.push('delivery_address');
+    }
+    if (updates.delivery_city !== undefined) {
+      orderUpdates.push(`delivery_city = $${paramIndex++}`);
+      orderValues.push(updates.delivery_city);
+      updatedFields.push('delivery_city');
+    }
+    if (updates.delivery_street !== undefined) {
+      orderUpdates.push(`delivery_street = $${paramIndex++}`);
+      orderValues.push(updates.delivery_street);
+      updatedFields.push('delivery_street');
+    }
+    if (updates.delivery_building !== undefined) {
+      orderUpdates.push(`delivery_building = $${paramIndex++}`);
+      orderValues.push(updates.delivery_building);
+      updatedFields.push('delivery_building');
+    }
+    if (updates.delivery_apartment !== undefined) {
+      orderUpdates.push(`delivery_apartment = $${paramIndex++}`);
+      orderValues.push(updates.delivery_apartment);
+      updatedFields.push('delivery_apartment');
+    }
+    if (updates.delivery_postal_code !== undefined) {
+      orderUpdates.push(`delivery_postal_code = $${paramIndex++}`);
+      orderValues.push(updates.delivery_postal_code);
+      updatedFields.push('delivery_postal_code');
+    }
+
+    // Update orders table if there are changes
+    if (orderUpdates.length > 0) {
+      orderValues.push(userEmail);
+      await sql.query(
+        `UPDATE orders SET ${orderUpdates.join(', ')} WHERE LOWER(user_email) = LOWER($${paramIndex})`,
+        orderValues
+      );
+    }
+
+    // Update carts table if name/surname/phone changed
+    if (updates.name || updates.surname || updates.phone) {
+      // Note: Carts table might not have all these fields, adjust as needed
+      // This is a placeholder for cart updates if your schema supports it
+    }
+
+    // Log the rectification action
+    await logGDPRAction(userEmail, 'data_rectification_completed', {
+      updatedFields,
+      timestamp: new Date().toISOString(),
+    });
+
+    return { success: true, updatedFields };
+  } catch (error) {
+    console.error('Error updating user data:', error);
+    await logGDPRAction(userEmail, 'data_rectification_failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    });
+    throw new Error('Failed to update user data');
+  }
+}
+
+/**
+ * Gets current user data for review before rectification
+ *
+ * @param userEmail - User's email address
+ * @returns Current user data
+ */
+export async function getCurrentUserData(userEmail: string): Promise<UserDataUpdates | null> {
+  try {
+    const result = await sql`
+      SELECT
+        user_name as name,
+        user_surname as surname,
+        user_phone as phone,
+        user_email as email,
+        delivery_address,
+        delivery_city,
+        delivery_street,
+        delivery_building,
+        delivery_apartment,
+        delivery_postal_code
+      FROM orders
+      WHERE LOWER(user_email) = LOWER(${userEmail})
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error getting current user data:', error);
+    return null;
+  }
+}

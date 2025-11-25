@@ -8,6 +8,7 @@ import { FavoritesProvider } from "./context/FavoritesContext";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import GoogleTagManager from "./components/GoogleTagManager";
+import CookieConsent from "./components/CookieConsent";
 
 // Font optimization with Ukrainian (Cyrillic) support
 // Note: next/font/google disabled in build due to network restrictions
@@ -58,6 +59,7 @@ export default function RootLayout({
           <CartProvider>
             <FavoritesProvider>
               <ClientLayout>{children}</ClientLayout>
+              <CookieConsent />
               <SpeedInsights />
               <Analytics />
             </FavoritesProvider>
