@@ -713,13 +713,22 @@ export async function hasRequiredConsents(
   requiredConsents: ConsentType['type'][]
 ): Promise<boolean> {
   try {
-    const result = await sql`
+    // If no consents required, return true
+    if (requiredConsents.length === 0) {
+      return true;
+    }
+
+    // Build IN clause with individual parameters
+    const placeholders = requiredConsents.map((_, i) => `$${i + 2}`).join(', ');
+    const queryText = `
       SELECT consent_type, granted
       FROM user_consents
-      WHERE user_email = ${userEmail}
-        AND consent_type = ANY(${requiredConsents})
+      WHERE user_email = $1
+        AND consent_type IN (${placeholders})
         AND granted = true
     `;
+
+    const result = await sql.query(queryText, [userEmail, ...requiredConsents]);
 
     return result.rows.length === requiredConsents.length;
   } catch (error) {
