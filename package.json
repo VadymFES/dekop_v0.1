@@ -13,7 +13,9 @@
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:unit": "jest --testPathPattern=__tests__/services",
     "test:integration": "jest --testPathPattern=__tests__/webhooks",
-    "test:api": "jest --testPathPattern=__tests__/api"
+    "test:api": "jest --testPathPattern=__tests__/api",
+    "migrate": "node app/db/run-migration.js",
+    "migrate:004": "node app/db/run-migration.js 004_create_users_and_gdpr_tables.sql"
   },
   "dependencies": {
     "@mailchimp/mailchimp_transactional": "^1.0.59",
