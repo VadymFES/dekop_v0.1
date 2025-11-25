@@ -1,67 +1,87 @@
 # Database Migrations
 
-This directory contains SQL migration files for the Dekop e-commerce database.
-
-## Running Migrations
-
-Since this project uses Vercel PostgreSQL, you need to run migrations manually using the Vercel CLI or pgAdmin.
-
-### Option 1: Using Vercel CLI
-
-```bash
-# Install Vercel CLI if not already installed
-npm i -g vercel
-
-# Login to Vercel
-vercel login
-
-# Link your project
-vercel link
-
-# Run the migration
-vercel env pull .env.local
-psql $POSTGRES_URL < app/db/migrations/001_create_orders_tables.sql
-```
-
-### Option 2: Using Vercel Dashboard
-
-1. Go to your Vercel project dashboard
-2. Navigate to Storage → Your Postgres database
-3. Click on "Query" tab
-4. Copy and paste the SQL from `001_create_orders_tables.sql`
-5. Click "Run Query"
-
-### Option 3: Using psql directly
-
-```bash
-# Make sure you have your database URL from Vercel
-psql "postgres://username:password@host/database" < app/db/migrations/001_create_orders_tables.sql
-```
+This directory contains SQL migration scripts for the Dekop furniture e-commerce application.
 
 ## Migration Files
 
-| File | Description | Date |
-|------|-------------|------|
-| `001_create_orders_tables.sql` | Creates orders and order_items tables with indexes and triggers | 2025-11-15 |
+1. **001_create_orders_tables.sql** - Orders and order items tables
+2. **002_add_performance_indexes.sql** - Performance optimization indexes
+3. **003_create_webhook_deduplication_table.sql** - Webhook deduplication
+4. **004_create_users_and_gdpr_tables.sql** - Users, sessions, carts, and GDPR compliance tables
 
-## Schema Overview
+## Tables Created in Migration 004
 
-### orders table
-- Stores complete order information including customer details, delivery, and payment
-- Unique order numbers in format: `#1234567890`
-- Supports multiple delivery methods: Nova Poshta, courier, store pickup
-- Supports multiple payment methods: Stripe, Monobank, cash on delivery
-- Tracks order status and payment status separately
+### User Management
+- **users** - User accounts (optional, for future authentication)
 
-### order_items table
-- Stores snapshot of products at time of order
-- Prevents issues when product details change later
-- Includes product name, price, color, and image at time of purchase
-- Links to products table via product_id (but not a foreign key)
+### Session Security (Phase 2)
+- **sessions** - User sessions with token hashing (SHA-256)
+- **csrf_tokens** - CSRF protection tokens
 
-## Notes
+### Shopping Cart
+- **carts** - Shopping cart containers
+- **cart_items** - Items within shopping carts
 
-- All timestamps use `TIMESTAMP WITH TIME ZONE` for proper timezone handling
-- Automatic `updated_at` triggers are set up for both tables
-- Indexes are created for common query patterns (email lookups, status filtering, etc.)
-- Product information is denormalized in order_items to preserve order history
+### GDPR Compliance (Phase 3)
+- **user_consents** - User consent management (Article 7)
+- **privacy_policy_acceptances** - Privacy policy tracking
+- **gdpr_audit_log** - Audit trail for GDPR actions
+- **data_deletion_requests** - Right to erasure requests (Article 17)
+
+## How to Run Migrations
+
+### Option 1: Using psql (Recommended)
+
+```bash
+# Connect to your database and run the migration
+psql $DATABASE_URL -f app/db/migrations/004_create_users_and_gdpr_tables.sql
+```
+
+### Option 2: Using Vercel Postgres CLI
+
+```bash
+# If using Vercel Postgres
+vercel env pull .env.local
+# Then use the connection string from .env.local
+psql "$(grep POSTGRES_URL .env.local | cut -d= -f2-)" -f app/db/migrations/004_create_users_and_gdpr_tables.sql
+```
+
+## Cleanup Functions
+
+The migration includes several utility functions for maintenance:
+
+### Clean Up Expired Sessions
+```sql
+SELECT cleanup_expired_sessions();
+```
+
+### Clean Up Expired CSRF Tokens
+```sql
+SELECT cleanup_expired_csrf_tokens();
+```
+
+### Clean Up Expired Carts
+```sql
+SELECT cleanup_expired_carts();
+```
+
+### Process Scheduled Deletions
+```sql
+SELECT process_scheduled_deletions();
+```
+
+## GDPR Compliance
+
+This schema supports:
+- ✅ **Article 7**: Conditions for consent
+- ✅ **Article 17**: Right to erasure (Right to be Forgotten)
+- ✅ **Article 20**: Right to data portability
+
+### Consent Types Supported
+- marketing, analytics, cookies, data_processing, third_party_sharing
+
+### Data Deletion Process
+1. User requests deletion → 30-day grace period
+2. User confirms via email token
+3. After 30 days, automatic processing
+4. Data anonymized or deleted based on legal requirements
