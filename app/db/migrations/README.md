@@ -80,8 +80,9 @@ This schema supports:
 ### Consent Types Supported
 - marketing, analytics, cookies, data_processing, third_party_sharing
 
-### Data Deletion Process
-1. User requests deletion → 30-day grace period
-2. User confirms via email token
-3. After 30 days, automatic processing
+### Data Deletion Process (No Verification Required)
+1. User requests deletion → Immediately confirmed with 30-day grace period
+2. User can cancel during grace period using request ID
+3. After 30 days, status changes to 'processing'
 4. Data anonymized or deleted based on legal requirements
+5. User receives notification after completion

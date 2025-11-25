@@ -177,9 +177,8 @@ CREATE TABLE IF NOT EXISTS data_deletion_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_email VARCHAR(255) NOT NULL,
 
-  -- Request details
-  verification_token VARCHAR(255) NOT NULL UNIQUE,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'processing', 'completed', 'cancelled')),
+  -- Request details (no verification token required - immediate confirmation)
+  status VARCHAR(20) NOT NULL DEFAULT 'confirmed' CHECK (status IN ('pending', 'confirmed', 'processing', 'completed', 'cancelled')),
 
   -- Deletion options
   deletion_options JSONB, -- Options like anonymize, keep_orders, etc.
@@ -187,7 +186,7 @@ CREATE TABLE IF NOT EXISTS data_deletion_requests (
   -- Important dates
   requested_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   scheduled_for TIMESTAMP WITH TIME ZONE NOT NULL, -- Date when deletion will occur (30 days from request)
-  confirmed_at TIMESTAMP WITH TIME ZONE,
+  confirmed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   completed_at TIMESTAMP WITH TIME ZONE,
   cancelled_at TIMESTAMP WITH TIME ZONE,
 
@@ -252,7 +251,6 @@ CREATE INDEX IF NOT EXISTS idx_gdpr_audit_created_at ON gdpr_audit_log(created_a
 CREATE INDEX IF NOT EXISTS idx_deletion_requests_user_email ON data_deletion_requests(user_email);
 CREATE INDEX IF NOT EXISTS idx_deletion_requests_status ON data_deletion_requests(status);
 CREATE INDEX IF NOT EXISTS idx_deletion_requests_scheduled_for ON data_deletion_requests(scheduled_for);
-CREATE INDEX IF NOT EXISTS idx_deletion_requests_verification_token ON data_deletion_requests(verification_token);
 
 -- =====================================================
 -- TRIGGERS
@@ -438,8 +436,8 @@ COMMENT ON COLUMN sessions.revoked IS 'Whether the session has been manually rev
 COMMENT ON COLUMN csrf_tokens.used IS 'Whether the token has been used (one-time use)';
 COMMENT ON COLUMN user_consents.consent_type IS 'Type of consent: marketing, analytics, cookies, data_processing, third_party_sharing';
 COMMENT ON COLUMN user_consents.version IS 'Version of the consent text that was accepted';
-COMMENT ON COLUMN data_deletion_requests.scheduled_for IS 'Date when deletion will occur (typically 30 days from request)';
-COMMENT ON COLUMN data_deletion_requests.verification_token IS 'Token sent to user email to confirm deletion request';
+COMMENT ON COLUMN data_deletion_requests.scheduled_for IS 'Date when deletion will occur (30 days from request)';
+COMMENT ON COLUMN data_deletion_requests.status IS 'Status: confirmed (immediately upon request), processing, completed, or cancelled';
 
 -- =====================================================
 -- INITIAL DATA (Optional)

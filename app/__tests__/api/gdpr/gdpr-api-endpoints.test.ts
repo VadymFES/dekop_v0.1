@@ -11,6 +11,8 @@ import {
   getUserConsents,
   recordPrivacyPolicyAcceptance,
   hasAcceptedLatestPrivacyPolicy,
+  scheduleDeletionRequest,
+  cancelDeletionRequest,
 } from '@/app/lib/gdpr-compliance';
 
 // Mock dependencies
@@ -172,27 +174,23 @@ describe('GDPR API Endpoints', () => {
   });
 
   describe('POST /api/gdpr/delete - Data Deletion Endpoint', () => {
-    it('should require verification before deletion', async () => {
+    it('should immediately confirm deletion request with grace period', async () => {
       const userEmail = 'user@example.com';
-      const verificationToken = 'delete-verification-token';
 
-      // User requests deletion
-      sql.mockResolvedValueOnce({ rows: [], rowCount: 1 });
+      // User requests deletion - immediately confirmed with 30-day grace period
+      const scheduledDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      await sql`
-        INSERT INTO data_deletion_requests (
-          user_email,
-          verification_token,
-          scheduled_date,
-          status
-        ) VALUES (
-          ${userEmail},
-          ${verificationToken},
-          NOW() + INTERVAL '30 days',
-          'pending_verification'
-        )
-      `;
+      sql
+        .mockResolvedValueOnce({
+          rows: [{ id: 'request-id-123', scheduled_for: scheduledDate.toISOString() }],
+          rowCount: 1
+        })
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // Log action
 
+      const result = await scheduleDeletionRequest(userEmail, scheduledDate);
+
+      expect(result).toHaveProperty('requestId');
+      expect(result).toHaveProperty('scheduledFor');
       expect(sql).toHaveBeenCalled();
     });
 
@@ -206,21 +204,21 @@ describe('GDPR API Endpoints', () => {
         rows: [
           {
             user_email: userEmail,
-            scheduled_date: scheduledDate.toISOString(),
-            status: 'verified',
+            scheduled_for: scheduledDate.toISOString(),
+            status: 'confirmed',
           },
         ],
       });
 
       const deletionRequest = await sql`
-        SELECT scheduled_date, status
+        SELECT scheduled_for, status
         FROM data_deletion_requests
         WHERE user_email = ${userEmail}
       `;
 
-      expect(deletionRequest.rows[0].status).toBe('verified');
+      expect(deletionRequest.rows[0].status).toBe('confirmed');
 
-      const requestDate = new Date(deletionRequest.rows[0].scheduled_date);
+      const requestDate = new Date(deletionRequest.rows[0].scheduled_for);
       const daysDiff = Math.floor(
         (requestDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
       );
@@ -230,18 +228,15 @@ describe('GDPR API Endpoints', () => {
 
     it('should allow cancellation during grace period', async () => {
       const userEmail = 'user@example.com';
+      const requestId = 'test-request-id';
 
-      sql.mockResolvedValueOnce({ rows: [], rowCount: 1 });
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 });
 
-      await sql`
-        UPDATE data_deletion_requests
-        SET status = 'cancelled',
-            cancelled_at = NOW()
-        WHERE user_email = ${userEmail}
-          AND status = 'verified'
-          AND scheduled_date > NOW()
-      `;
+      const cancelled = await cancelDeletionRequest(userEmail, requestId);
 
+      expect(cancelled).toBe(true);
       expect(sql).toHaveBeenCalled();
     });
 

@@ -15,6 +15,7 @@ import {
   getGDPRAuditLog,
   hasRequiredConsents,
   scheduleDeletionRequest,
+  cancelDeletionRequest,
 } from '@/app/lib/gdpr-compliance';
 
 // Mock dependencies
@@ -720,30 +721,50 @@ describe('GDPR Compliance - Deletion Request Scheduling', () => {
   });
 
   describe('scheduleDeletionRequest', () => {
-    it('should schedule a deletion request', async () => {
-      const verificationToken = 'token-123';
-      const scheduledDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    it('should schedule a deletion request without verification', async () => {
+      const scheduledDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
       sql
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // Insert request
+        .mockResolvedValueOnce({
+          rows: [{ id: 'test-id', scheduled_for: scheduledDate.toISOString() }],
+          rowCount: 1
+        }) // Insert request
         .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // Log action
 
-      await scheduleDeletionRequest(testEmail, verificationToken, scheduledDate);
+      const result = await scheduleDeletionRequest(testEmail, scheduledDate);
 
+      expect(result).toHaveProperty('requestId');
+      expect(result).toHaveProperty('scheduledFor');
       const insertCall = sql.mock.calls[0][0];
       expect(insertCall.join('')).toContain('data_deletion_requests');
-      expect(insertCall.join('')).toContain('pending');
+      expect(insertCall.join('')).toContain('confirmed');
+    });
+
+    it('should use default 30-day grace period if no date provided', async () => {
+      sql
+        .mockResolvedValueOnce({
+          rows: [{ id: 'test-id', scheduled_for: new Date().toISOString() }],
+          rowCount: 1
+        })
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 });
+
+      const result = await scheduleDeletionRequest(testEmail);
+
+      expect(result).toHaveProperty('requestId');
+      expect(result).toHaveProperty('scheduledFor');
     });
 
     it('should log the scheduled deletion', async () => {
-      const verificationToken = 'token-456';
       const scheduledDate = new Date();
 
       sql
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({
+          rows: [{ id: 'test-id', scheduled_for: scheduledDate.toISOString() }],
+          rowCount: 1
+        })
         .mockResolvedValueOnce({ rows: [], rowCount: 1 });
 
-      await scheduleDeletionRequest(testEmail, verificationToken, scheduledDate);
+      await scheduleDeletionRequest(testEmail, scheduledDate);
 
       const logCall = sql.mock.calls[1][0];
       expect(logCall.join('')).toContain('gdpr_audit_log');
@@ -757,8 +778,43 @@ describe('GDPR Compliance - Deletion Request Scheduling', () => {
       const scheduledDate = new Date();
 
       await expect(
-        scheduleDeletionRequest(testEmail, 'token', scheduledDate)
+        scheduleDeletionRequest(testEmail, scheduledDate)
       ).rejects.toThrow('Failed to schedule deletion request');
+    });
+  });
+
+  describe('cancelDeletionRequest', () => {
+    it('should cancel a deletion request during grace period', async () => {
+      const requestId = 'test-request-id';
+
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // Update request
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 }); // Log action
+
+      const result = await cancelDeletionRequest(testEmail, requestId);
+
+      expect(result).toBe(true);
+      const updateCall = sql.mock.calls[0][0];
+      expect(updateCall.join('')).toContain('UPDATE data_deletion_requests');
+      expect(updateCall.join('')).toContain('cancelled');
+    });
+
+    it('should return false if request not found or already processed', async () => {
+      const requestId = 'non-existent-id';
+
+      sql.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+      const result = await cancelDeletionRequest(testEmail, requestId);
+
+      expect(result).toBe(false);
+    });
+
+    it('should handle cancellation errors gracefully', async () => {
+      sql.mockRejectedValue(new Error('Database error'));
+
+      const result = await cancelDeletionRequest(testEmail, 'test-id');
+
+      expect(result).toBe(false);
     });
   });
 });

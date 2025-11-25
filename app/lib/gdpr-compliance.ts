@@ -729,40 +729,92 @@ export async function hasRequiredConsents(
 }
 
 /**
- * Schedules a data deletion request (for verification period)
+ * Schedules a data deletion request with grace period (no verification required)
  *
  * @param userEmail - User's email address
- * @param verificationToken - Token for verification
- * @param scheduledDate - Date when deletion should occur
+ * @param scheduledDate - Date when deletion should occur (default: 30 days from now)
+ * @param options - Deletion options
  */
 export async function scheduleDeletionRequest(
   userEmail: string,
-  verificationToken: string,
-  scheduledDate: Date
-): Promise<void> {
+  scheduledDate?: Date,
+  options?: DeletionOptions
+): Promise<{ requestId: string; scheduledFor: Date }> {
   try {
-    await sql`
+    // Default to 30 days from now if no date provided
+    const deletionDate = scheduledDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const result = await sql`
       INSERT INTO data_deletion_requests (
         user_email,
-        verification_token,
-        scheduled_date,
+        scheduled_for,
         status,
+        deletion_options,
+        requested_at,
         created_at
       ) VALUES (
         ${userEmail},
-        ${verificationToken},
-        ${scheduledDate.toISOString()},
-        'pending',
+        ${deletionDate.toISOString()},
+        'confirmed',
+        ${JSON.stringify(options || {})},
+        NOW(),
         NOW()
       )
+      RETURNING id, scheduled_for
     `;
 
+    const request = result.rows[0];
+
     await logGDPRAction(userEmail, 'deletion_request_scheduled', {
-      scheduledDate: scheduledDate.toISOString(),
+      requestId: request.id,
+      scheduledDate: deletionDate.toISOString(),
+      options,
       timestamp: new Date().toISOString(),
     });
+
+    return {
+      requestId: request.id,
+      scheduledFor: new Date(request.scheduled_for),
+    };
   } catch (error) {
     console.error('Error scheduling deletion request:', error);
     throw new Error('Failed to schedule deletion request');
+  }
+}
+
+/**
+ * Cancels a scheduled deletion request (during grace period)
+ *
+ * @param userEmail - User's email address
+ * @param requestId - Deletion request ID
+ */
+export async function cancelDeletionRequest(
+  userEmail: string,
+  requestId: string
+): Promise<boolean> {
+  try {
+    const result = await sql`
+      UPDATE data_deletion_requests
+      SET status = 'cancelled',
+          cancelled_at = NOW(),
+          updated_at = NOW()
+      WHERE id = ${requestId}
+        AND user_email = ${userEmail}
+        AND status IN ('pending', 'confirmed')
+        AND scheduled_for > NOW()
+    `;
+
+    if (result.rowCount && result.rowCount > 0) {
+      await logGDPRAction(userEmail, 'deletion_request_cancelled', {
+        requestId,
+        timestamp: new Date().toISOString(),
+      });
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error cancelling deletion request:', error);
+    return false;
   }
 }
