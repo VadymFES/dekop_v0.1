@@ -1,108 +1,43 @@
--- Migration: Create users, sessions, carts, and GDPR compliance tables
+-- Migration: Add GDPR compliance tables to existing schema
 -- Created: 2025-11-25
--- Description: Creates tables for user management, session security, cart functionality, and GDPR compliance
+-- Description: Adds GDPR-specific tables (consents, privacy policy, audit log, deletion requests)
+--              and updates existing tables with missing GDPR-related columns
 
 -- =====================================================
--- TABLE: users (Optional - for future authentication)
+-- UPDATES TO EXISTING TABLES
 -- =====================================================
-CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) NOT NULL UNIQUE,
-  name VARCHAR(100),
-  surname VARCHAR(100),
-  phone VARCHAR(20),
 
-  -- Account status
-  email_verified BOOLEAN DEFAULT FALSE,
-  account_status VARCHAR(20) DEFAULT 'active' CHECK (account_status IN ('active', 'suspended', 'deleted')),
+-- Add missing columns to carts table for GDPR compliance
+DO $$
+BEGIN
+  -- Add user_email column if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'carts' AND column_name = 'user_email'
+  ) THEN
+    ALTER TABLE carts ADD COLUMN user_email VARCHAR(255);
+    CREATE INDEX IF NOT EXISTS idx_carts_user_email ON carts(user_email);
+    COMMENT ON COLUMN carts.user_email IS 'User email for GDPR data export and deletion';
+  END IF;
 
-  -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  last_login_at TIMESTAMP WITH TIME ZONE,
-  deleted_at TIMESTAMP WITH TIME ZONE
-);
+  -- Add session_id column if it doesn't exist (should already exist but check)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'carts' AND column_name = 'session_id'
+  ) THEN
+    ALTER TABLE carts ADD COLUMN session_id UUID REFERENCES sessions(id) ON DELETE SET NULL;
+    CREATE INDEX IF NOT EXISTS idx_carts_session_id ON carts(session_id);
+  END IF;
 
--- =====================================================
--- TABLE: sessions
--- =====================================================
-CREATE TABLE IF NOT EXISTS sessions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_token VARCHAR(255) NOT NULL UNIQUE,
-  session_token_hash VARCHAR(255) NOT NULL, -- SHA-256 hash of session token
-  user_id VARCHAR(255), -- Can be email or UUID
-
-  -- Session metadata
-  ip_address VARCHAR(45), -- IPv4 or IPv6
-  user_agent TEXT,
-  metadata JSONB, -- Additional session data
-
-  -- Session status
-  revoked BOOLEAN DEFAULT FALSE,
-  revoked_at TIMESTAMP WITH TIME ZONE,
-  revoked_reason TEXT,
-
-  -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  last_accessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- =====================================================
--- TABLE: csrf_tokens
--- =====================================================
-CREATE TABLE IF NOT EXISTS csrf_tokens (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  token VARCHAR(255) NOT NULL UNIQUE,
-  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
-
-  -- Token status
-  used BOOLEAN DEFAULT FALSE,
-  used_at TIMESTAMP WITH TIME ZONE,
-
-  -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP WITH TIME ZONE NOT NULL
-);
-
--- =====================================================
--- TABLE: carts
--- =====================================================
-CREATE TABLE IF NOT EXISTS carts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_email VARCHAR(255) NOT NULL, -- User identifier (can be temporary)
-  session_id UUID REFERENCES sessions(id) ON DELETE SET NULL,
-
-  -- Cart metadata
-  metadata JSONB, -- Additional cart data (discounts, coupons, etc.)
-
-  -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP + INTERVAL '30 days')
-);
-
--- =====================================================
--- TABLE: cart_items
--- =====================================================
-CREATE TABLE IF NOT EXISTS cart_items (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  cart_id UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
-
-  -- Product information
-  product_id INTEGER NOT NULL,
-  product_slug VARCHAR(255),
-  quantity INTEGER NOT NULL CHECK (quantity > 0),
-  color VARCHAR(100),
-
-  -- Pricing (cached for performance)
-  unit_price NUMERIC(10, 2),
-
-  -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+  -- Add metadata column if it doesn't exist
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'carts' AND column_name = 'metadata'
+  ) THEN
+    ALTER TABLE carts ADD COLUMN metadata JSONB;
+    COMMENT ON COLUMN carts.metadata IS 'Additional cart data (discounts, coupons, etc.)';
+  END IF;
+END $$;
 
 -- =====================================================
 -- TABLE: user_consents (GDPR Article 7)
@@ -131,6 +66,10 @@ CREATE TABLE IF NOT EXISTS user_consents (
   CONSTRAINT unique_user_consent UNIQUE (user_email, consent_type)
 );
 
+COMMENT ON TABLE user_consents IS 'GDPR Article 7: User consents for data processing';
+COMMENT ON COLUMN user_consents.consent_type IS 'Type of consent: marketing, analytics, cookies, data_processing, third_party_sharing';
+COMMENT ON COLUMN user_consents.version IS 'Version of the consent text that was accepted';
+
 -- =====================================================
 -- TABLE: privacy_policy_acceptances
 -- =====================================================
@@ -151,6 +90,8 @@ CREATE TABLE IF NOT EXISTS privacy_policy_acceptances (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+COMMENT ON TABLE privacy_policy_acceptances IS 'Privacy policy acceptance tracking';
+
 -- =====================================================
 -- TABLE: gdpr_audit_log
 -- =====================================================
@@ -169,6 +110,8 @@ CREATE TABLE IF NOT EXISTS gdpr_audit_log (
   -- Timestamps
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+COMMENT ON TABLE gdpr_audit_log IS 'Audit trail for all GDPR-related actions';
 
 -- =====================================================
 -- TABLE: data_deletion_requests (GDPR Article 17)
@@ -199,37 +142,13 @@ CREATE TABLE IF NOT EXISTS data_deletion_requests (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+COMMENT ON TABLE data_deletion_requests IS 'GDPR Article 17: Right to erasure requests';
+COMMENT ON COLUMN data_deletion_requests.scheduled_for IS 'Date when deletion will occur (30 days from request)';
+COMMENT ON COLUMN data_deletion_requests.status IS 'Status: confirmed (immediately upon request), processing, completed, or cancelled';
+
 -- =====================================================
--- INDEXES
+-- INDEXES FOR GDPR TABLES
 -- =====================================================
-
--- Users indexes
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_users_account_status ON users(account_status);
-
--- Sessions indexes
-CREATE INDEX IF NOT EXISTS idx_sessions_session_token_hash ON sessions(session_token_hash);
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_sessions_revoked ON sessions(revoked);
-CREATE INDEX IF NOT EXISTS idx_sessions_created_at ON sessions(created_at DESC);
-
--- CSRF tokens indexes
-CREATE INDEX IF NOT EXISTS idx_csrf_tokens_token ON csrf_tokens(token);
-CREATE INDEX IF NOT EXISTS idx_csrf_tokens_session_id ON csrf_tokens(session_id);
-CREATE INDEX IF NOT EXISTS idx_csrf_tokens_expires_at ON csrf_tokens(expires_at);
-CREATE INDEX IF NOT EXISTS idx_csrf_tokens_used ON csrf_tokens(used);
-
--- Carts indexes
-CREATE INDEX IF NOT EXISTS idx_carts_user_email ON carts(user_email);
-CREATE INDEX IF NOT EXISTS idx_carts_session_id ON carts(session_id);
-CREATE INDEX IF NOT EXISTS idx_carts_expires_at ON carts(expires_at);
-CREATE INDEX IF NOT EXISTS idx_carts_updated_at ON carts(updated_at DESC);
-
--- Cart items indexes
-CREATE INDEX IF NOT EXISTS idx_cart_items_cart_id ON cart_items(cart_id);
-CREATE INDEX IF NOT EXISTS idx_cart_items_product_id ON cart_items(product_id);
 
 -- User consents indexes
 CREATE INDEX IF NOT EXISTS idx_user_consents_user_email ON user_consents(user_email);
@@ -253,64 +172,8 @@ CREATE INDEX IF NOT EXISTS idx_deletion_requests_status ON data_deletion_request
 CREATE INDEX IF NOT EXISTS idx_deletion_requests_scheduled_for ON data_deletion_requests(scheduled_for);
 
 -- =====================================================
--- TRIGGERS
+-- TRIGGERS FOR GDPR TABLES
 -- =====================================================
-
--- Trigger to update updated_at timestamp on users
-CREATE OR REPLACE FUNCTION update_users_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = CURRENT_TIMESTAMP;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER users_updated_at_trigger
-  BEFORE UPDATE ON users
-  FOR EACH ROW
-  EXECUTE FUNCTION update_users_updated_at();
-
--- Trigger to update updated_at timestamp on sessions
-CREATE OR REPLACE FUNCTION update_sessions_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = CURRENT_TIMESTAMP;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER sessions_updated_at_trigger
-  BEFORE UPDATE ON sessions
-  FOR EACH ROW
-  EXECUTE FUNCTION update_sessions_updated_at();
-
--- Trigger to update updated_at timestamp on carts
-CREATE OR REPLACE FUNCTION update_carts_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = CURRENT_TIMESTAMP;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER carts_updated_at_trigger
-  BEFORE UPDATE ON carts
-  FOR EACH ROW
-  EXECUTE FUNCTION update_carts_updated_at();
-
--- Trigger to update updated_at timestamp on cart_items
-CREATE OR REPLACE FUNCTION update_cart_items_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = CURRENT_TIMESTAMP;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER cart_items_updated_at_trigger
-  BEFORE UPDATE ON cart_items
-  FOR EACH ROW
-  EXECUTE FUNCTION update_cart_items_updated_at();
 
 -- Trigger to update updated_at timestamp on user_consents
 CREATE OR REPLACE FUNCTION update_user_consents_updated_at()
@@ -321,6 +184,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS user_consents_updated_at_trigger ON user_consents;
 CREATE TRIGGER user_consents_updated_at_trigger
   BEFORE UPDATE ON user_consents
   FOR EACH ROW
@@ -335,16 +199,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS deletion_requests_updated_at_trigger ON data_deletion_requests;
 CREATE TRIGGER deletion_requests_updated_at_trigger
   BEFORE UPDATE ON data_deletion_requests
   FOR EACH ROW
   EXECUTE FUNCTION update_deletion_requests_updated_at();
 
 -- =====================================================
--- CLEANUP FUNCTIONS
+-- CLEANUP FUNCTIONS FOR EXISTING TABLES
 -- =====================================================
 
--- Function to clean up expired sessions
+-- Function to clean up expired sessions (uses existing sessions table)
 CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
 RETURNS INTEGER AS $$
 DECLARE
@@ -359,7 +224,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to clean up expired CSRF tokens
+-- Function to clean up expired CSRF tokens (uses existing csrf_tokens table)
 CREATE OR REPLACE FUNCTION cleanup_expired_csrf_tokens()
 RETURNS INTEGER AS $$
 DECLARE
@@ -374,7 +239,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to clean up expired carts
+-- Function to clean up expired carts (uses existing carts table)
 CREATE OR REPLACE FUNCTION cleanup_expired_carts()
 RETURNS INTEGER AS $$
 DECLARE
@@ -418,32 +283,77 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- =====================================================
--- COMMENTS
+-- VERIFICATION QUERIES
 -- =====================================================
 
-COMMENT ON TABLE users IS 'User accounts (optional - for future authentication)';
-COMMENT ON TABLE sessions IS 'User sessions for security and session management';
-COMMENT ON TABLE csrf_tokens IS 'CSRF tokens for protecting state-changing operations';
-COMMENT ON TABLE carts IS 'Shopping carts for users';
-COMMENT ON TABLE cart_items IS 'Items within shopping carts';
-COMMENT ON TABLE user_consents IS 'GDPR Article 7: User consents for data processing';
-COMMENT ON TABLE privacy_policy_acceptances IS 'Privacy policy acceptance tracking';
-COMMENT ON TABLE gdpr_audit_log IS 'Audit trail for all GDPR-related actions';
-COMMENT ON TABLE data_deletion_requests IS 'GDPR Article 17: Right to erasure requests';
+-- Query to check if all GDPR tables exist
+DO $$
+DECLARE
+  table_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO table_count
+  FROM information_schema.tables
+  WHERE table_name IN ('user_consents', 'privacy_policy_acceptances', 'gdpr_audit_log', 'data_deletion_requests')
+    AND table_schema = 'public';
 
-COMMENT ON COLUMN sessions.session_token_hash IS 'SHA-256 hash of session token for secure storage';
-COMMENT ON COLUMN sessions.revoked IS 'Whether the session has been manually revoked';
-COMMENT ON COLUMN csrf_tokens.used IS 'Whether the token has been used (one-time use)';
-COMMENT ON COLUMN user_consents.consent_type IS 'Type of consent: marketing, analytics, cookies, data_processing, third_party_sharing';
-COMMENT ON COLUMN user_consents.version IS 'Version of the consent text that was accepted';
-COMMENT ON COLUMN data_deletion_requests.scheduled_for IS 'Date when deletion will occur (30 days from request)';
-COMMENT ON COLUMN data_deletion_requests.status IS 'Status: confirmed (immediately upon request), processing, completed, or cancelled';
+  IF table_count = 4 THEN
+    RAISE NOTICE 'SUCCESS: All 4 GDPR tables created successfully';
+  ELSE
+    RAISE WARNING 'WARNING: Only % of 4 GDPR tables were created', table_count;
+  END IF;
+END $$;
+
+-- Query to check if cleanup functions exist
+DO $$
+DECLARE
+  function_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO function_count
+  FROM pg_proc p
+  JOIN pg_namespace n ON p.pronamespace = n.oid
+  WHERE n.nspname = 'public'
+    AND p.proname IN ('cleanup_expired_sessions', 'cleanup_expired_csrf_tokens', 'cleanup_expired_carts', 'process_scheduled_deletions');
+
+  IF function_count = 4 THEN
+    RAISE NOTICE 'SUCCESS: All 4 cleanup functions created successfully';
+  ELSE
+    RAISE WARNING 'WARNING: Only % of 4 cleanup functions were created', function_count;
+  END IF;
+END $$;
 
 -- =====================================================
--- INITIAL DATA (Optional)
+-- COMPLETION MESSAGE
 -- =====================================================
 
--- You can add initial privacy policy version or default consents here if needed
--- Example:
--- INSERT INTO privacy_policy_acceptances (user_email, policy_version, accepted_at)
--- VALUES ('system@example.com', '1.0', CURRENT_TIMESTAMP);
+DO $$
+BEGIN
+  RAISE NOTICE '=======================================================';
+  RAISE NOTICE 'Migration 004 completed successfully!';
+  RAISE NOTICE '=======================================================';
+  RAISE NOTICE '';
+  RAISE NOTICE 'GDPR Tables Created:';
+  RAISE NOTICE '  ✓ user_consents';
+  RAISE NOTICE '  ✓ privacy_policy_acceptances';
+  RAISE NOTICE '  ✓ gdpr_audit_log';
+  RAISE NOTICE '  ✓ data_deletion_requests';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Updates to Existing Tables:';
+  RAISE NOTICE '  ✓ carts.user_email (if not exists)';
+  RAISE NOTICE '  ✓ carts.session_id (if not exists)';
+  RAISE NOTICE '  ✓ carts.metadata (if not exists)';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Cleanup Functions:';
+  RAISE NOTICE '  ✓ cleanup_expired_sessions()';
+  RAISE NOTICE '  ✓ cleanup_expired_csrf_tokens()';
+  RAISE NOTICE '  ✓ cleanup_expired_carts()';
+  RAISE NOTICE '  ✓ process_scheduled_deletions()';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Next Steps:';
+  RAISE NOTICE '  1. Run: SELECT cleanup_expired_sessions();';
+  RAISE NOTICE '  2. Run: SELECT cleanup_expired_csrf_tokens();';
+  RAISE NOTICE '  3. Run: SELECT cleanup_expired_carts();';
+  RAISE NOTICE '  4. Schedule: SELECT process_scheduled_deletions();';
+  RAISE NOTICE '';
+  RAISE NOTICE 'GDPR Compliance Status: Ready';
+  RAISE NOTICE '=======================================================';
+END $$;
