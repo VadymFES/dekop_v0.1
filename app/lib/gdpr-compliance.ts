@@ -186,7 +186,7 @@ async function fetchAllUserData(
 
   // Fetch privacy policy acceptances
   const privacyResult = await sql`
-    SELECT version, accepted_at, ip_address, user_agent
+    SELECT policy_version as version, accepted_at, ip_address, user_agent
     FROM privacy_policy_acceptances
     WHERE user_email = ${userEmail}
     ORDER BY accepted_at DESC
@@ -580,7 +580,7 @@ export async function recordPrivacyPolicyAcceptance(
     await sql`
       INSERT INTO privacy_policy_acceptances (
         user_email,
-        version,
+        policy_version,
         accepted_at,
         ip_address,
         user_agent
@@ -616,7 +616,7 @@ export async function hasAcceptedLatestPrivacyPolicy(
 ): Promise<boolean> {
   try {
     const result = await sql`
-      SELECT version
+      SELECT policy_version as version
       FROM privacy_policy_acceptances
       WHERE user_email = ${userEmail}
       ORDER BY accepted_at DESC
