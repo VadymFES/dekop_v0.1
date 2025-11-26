@@ -33,4 +33,4 @@ const nextConfig = {
     // ⚠️ REMOVED: async headers() function (CSP logic moved to middleware)
 };
 
-module.exports = nextConfig;
+export default nextConfig;
