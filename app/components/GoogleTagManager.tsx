@@ -1,18 +1,21 @@
 import Script from 'next/script';
 
+
 interface GoogleTagManagerProps {
   gtmId: string;
+  nonce: string;
 }
 
 /**
  * Google Tag Manager component that complies with strict CSP
  * Uses external script loading without inline JavaScript
  */
-export default function GoogleTagManager({ gtmId }: GoogleTagManagerProps) {
+export default function GoogleTagManager({ gtmId, nonce }: GoogleTagManagerProps) {
   return (
     <>
       {/* GTM Script - loads externally to comply with CSP */}
       <Script
+        nonce={nonce}
         id="gtm-script"
         src={`https://www.googletagmanager.com/gtm.js?id=${gtmId}&l=dataLayer`}
         strategy="afterInteractive"
