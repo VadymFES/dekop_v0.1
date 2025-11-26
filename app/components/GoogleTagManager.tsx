@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import styles from './GoogleTagManager.module.css';
 
 
 interface GoogleTagManagerProps {
@@ -27,7 +28,7 @@ export default function GoogleTagManager({ gtmId, nonce }: GoogleTagManagerProps
           src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
           height="0"
           width="0"
-          style={{ display: "none", visibility: "hidden" }}
+          className={styles.gtmNoscriptIframe}
         />
       </noscript>
     </>
