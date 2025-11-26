@@ -10,6 +10,7 @@ import {
   generateProductArticle
 } from '@/app/lib/order-utils';
 import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schemas';
+import { handleError } from '@/app/lib/error-handler';
 
 /**
  * POST /api/orders/create
@@ -276,12 +277,6 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Error creating order:', error);
-    return NextResponse.json(
-      {
-        error: 'Помилка при створенні замовлення',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    return handleError(error instanceof Error ? error : new Error('Упс, щось поламалось'));
   }
 }
