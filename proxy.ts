@@ -1,61 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { sql } from "@vercel/postgres";
 
-const generateNonce = () => {
+/**
+ * Generates a cryptographically secure nonce for CSP
+ */
+function generateNonce(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return Buffer.from(bytes).toString('base64');
-};
+}
 
 /**
- * Next.js Proxy - Combines Cart Management & Security Features
- *
- * FEATURES:
- * - Cart session management
- * - Security headers (CSP, HSTS, etc.)
- * - CORS configuration
- * - Security logging
+ * Next.js Middleware - Security Headers & CSP with Nonce
+ * 
+ * SECURITY FEATURES:
+ * - Content Security Policy with dynamic nonce
+ * - CORS configuration for allowed origins
+ * - HSTS, X-Frame-Options, and other security headers
+ * - Security logging for sensitive endpoints
  */
-
-export async function proxy(req: NextRequest) {
-  const response = NextResponse.next();
+export function middleware(req: NextRequest) {
   const requestUrl = new URL(req.url);
-
-  // ==========================================
-  // NONCE GENERATION
-  // ==========================================
+  const origin = req.headers.get('origin');
+  
+  // Generate nonce for this request
   const nonce = generateNonce();
-
-  // Set the nonce on a custom *request* header. 
-  // This is the reliable way for pages/layouts to read it later via headers().
-  req.headers.set('x-content-security-policy-nonce', nonce); 
-
-  // ==========================================
-  // CART MANAGEMENT (for cart routes only)
-  // ==========================================
-  if (requestUrl.pathname.startsWith('/cart/api')) {
-    let storedCookie = await cookies();
-    let cartCookie = storedCookie.get("cartId");
-
-    if (!cartCookie) {
-      // @ts-ignore - Vercel's sql module may not have standard TS types
-      const { rows } = await sql`INSERT INTO carts DEFAULT VALUES RETURNING id`;
-      const newCartId = rows[0].id;
-
-      response.cookies.set("cartId", newCartId, {
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      });
-    }
-  }
 
   // ==========================================
   // CORS CONFIGURATION
   // ==========================================
-  const origin = req.headers.get('origin');
   const allowedOrigins = [
     process.env.NEXT_PUBLIC_SITE_URL,
     process.env.NEXT_PUBLIC_BASE_URL,
@@ -70,11 +42,7 @@ export async function proxy(req: NextRequest) {
     return origin === allowed;
   });
 
-  if (isAllowedOrigin && origin) {
-    response.headers.set('Access-Control-Allow-Origin', origin);
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
-  }
-
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     const preflightResponse = new NextResponse(null, { status: 204 });
 
@@ -96,96 +64,197 @@ export async function proxy(req: NextRequest) {
     return preflightResponse;
   }
 
-  // ==========================================
-  // SECURITY HEADERS (Nonce Applied Here)
-  // ==========================================
+  // Create response with nonce header for downstream components
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-nonce', nonce);
+  
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
-  /**
-   * Content-Security-Policy (CSP)
-   */
-  const nonceSource = `'nonce-${nonce}'`;
+  // ==========================================
+  // CORS HEADERS
+  // ==========================================
+  if (isAllowedOrigin && origin) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+  }
 
+  // ==========================================
+  // CONTENT SECURITY POLICY
+  // ==========================================
+  const isDev = process.env.NODE_ENV === 'development';
+  
+  // Script sources
   const scriptSources = [
     "'self'",
-    nonceSource,
+    `'nonce-${nonce}'`,
+    "'strict-dynamic'", // Allows scripts loaded by trusted scripts
     "https://www.googletagmanager.com",
+    "https://www.google-analytics.com",
     "https://www.liqpay.ua",
     "https://api.monobank.ua",
     "https://pay.google.com",
     "https://va.vercel-scripts.com",
   ];
 
-  // Add 'unsafe-eval' in dev for Next.js HMR/Fast Refresh
-  if (process.env.NODE_ENV === 'development') {
+  // In development, Next.js requires 'unsafe-eval' for Fast Refresh/HMR
+  if (isDev) {
     scriptSources.push("'unsafe-eval'");
   }
 
+  // Style sources
+  // Note: 'unsafe-inline' is required for:
+  // - React inline styles (style={{...}})
+  // - Third-party libraries (Leaflet, etc.) that inject styles
+  // - Next.js internal style handling
+  // This is a known limitation when using libraries that inject inline styles
   const styleSources = [
     "'self'",
-    nonceSource,
+    "'unsafe-inline'", // Required for React inline styles and third-party libs
     "https://fonts.googleapis.com",
     "https://unpkg.com",
   ];
 
-  const cspDirectives = [
-    "default-src 'self'",
-    `script-src ${scriptSources.join(' ')}`,
-    `style-src ${styleSources.join(' ')}`,
-    "img-src 'self' data: https: blob:",
-    "font-src 'self' data: https://fonts.gstatic.com https://unpkg.com",
-    "connect-src 'self' https://api.liqpay.ua https://www.liqpay.ua https://api.monobank.ua https://pay.google.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.google-analytics.com https://www.googletagmanager.com https://analytics.google.com",
-    "frame-src 'self' https://www.liqpay.ua https://pay.google.com",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self' https://www.liqpay.ua",
-    "frame-ancestors 'none'",
+  // Image sources
+  const imgSources = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https:",
+    // Specific domains for better security in production
+    "https://dekor-1.s3.eu-north-1.amazonaws.com",
+    "https://fullhouse.uz",
+    "https://drive.google.com",
+    "https://tk.ua",
+    "https://images.unsplash.com",
+    "https://images.pexels.com",
+    // Leaflet map tiles
+    "https://*.tile.openstreetmap.org",
+    "https://unpkg.com",
   ];
 
-  let cspHeaderValue = cspDirectives.join('; ');
+  // Font sources
+  const fontSources = [
+    "'self'",
+    "data:",
+    "https://fonts.gstatic.com",
+    "https://unpkg.com",
+  ];
 
-  if (process.env.NODE_ENV === 'production') {
-    cspHeaderValue = `${cspHeaderValue}; upgrade-insecure-requests`;
+  // Connect sources (APIs, analytics, etc.)
+  const connectSources = [
+    "'self'",
+    "https://api.liqpay.ua",
+    "https://www.liqpay.ua",
+    "https://api.monobank.ua",
+    "https://pay.google.com",
+    "https://va.vercel-scripts.com",
+    "https://vitals.vercel-insights.com",
+    "https://www.google-analytics.com",
+    "https://www.googletagmanager.com",
+    "https://analytics.google.com",
+    // Leaflet tiles
+    "https://*.tile.openstreetmap.org",
+  ];
 
+  // Frame sources
+  const frameSources = [
+    "'self'",
+    "https://www.liqpay.ua",
+    "https://pay.google.com",
+  ];
+
+  // Worker sources (for service workers, web workers)
+  const workerSources = [
+    "'self'",
+    "blob:", // Required for some worker implementations
+  ];
+
+  // Build CSP directives
+  const cspDirectives = [
+    `default-src 'self'`,
+    `script-src ${scriptSources.join(' ')}`,
+    `style-src ${styleSources.join(' ')}`,
+    `img-src ${imgSources.join(' ')}`,
+    `font-src ${fontSources.join(' ')}`,
+    `connect-src ${connectSources.join(' ')}`,
+    `frame-src ${frameSources.join(' ')}`,
+    `worker-src ${workerSources.join(' ')}`,
+    `object-src 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self' https://www.liqpay.ua`,
+    `frame-ancestors 'none'`,
+    // manifest-src for PWA support
+    `manifest-src 'self'`,
+  ];
+
+  // Add upgrade-insecure-requests in production
+  if (!isDev) {
+    cspDirectives.push('upgrade-insecure-requests');
+  }
+
+  const cspHeader = cspDirectives.join('; ');
+
+  // Set CSP header
+  // Use Content-Security-Policy in production, Report-Only in development for debugging
+  response.headers.set('Content-Security-Policy', cspHeader);
+
+  // ==========================================
+  // ADDITIONAL SECURITY HEADERS
+  // ==========================================
+  
+  // HSTS - only in production
+  if (!isDev) {
     response.headers.set(
       'Strict-Transport-Security',
       'max-age=31536000; includeSubDomains; preload'
     );
   }
 
-  response.headers.set(
-    'Content-Security-Policy',
-    cspHeaderValue
-  );
-
-  /**
-   * Non-CSP Security Headers
-   */
-  response.headers.set('X-Frame-Options', 'DENY'); 
+  // Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'DENY');
+  
+  // Prevent MIME type sniffing
   response.headers.set('X-Content-Type-Options', 'nosniff');
+  
+  // Referrer policy
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Permissions policy (formerly Feature-Policy)
   response.headers.set(
     'Permissions-Policy',
     'camera=(), microphone=(), geolocation=(), interest-cohort=()'
   );
+  
+  // XSS Protection (legacy, but still useful for older browsers)
   response.headers.set('X-XSS-Protection', '1; mode=block');
+  
+  // DNS prefetch control
   response.headers.set('X-DNS-Prefetch-Control', 'on');
 
   // ==========================================
-  // SECURITY LOGGING
+  // SECURITY LOGGING (for sensitive endpoints)
   // ==========================================
-  const userAgent = req.headers.get('user-agent') || '';
-  const isBot = /bot|crawler|spider|scraper/i.test(userAgent);
+  const sensitivePatterns = ['/api/orders', '/api/webhooks', '/api/payments', '/api/gdpr'];
+  const isSensitivePath = sensitivePatterns.some(pattern => 
+    requestUrl.pathname.startsWith(pattern)
+  );
 
-  if (requestUrl.pathname.startsWith('/api/orders') ||
-      requestUrl.pathname.startsWith('/api/webhooks') ||
-      requestUrl.pathname.startsWith('/api/payments')) {
-    console.log('[SECURITY]', {
+  if (isSensitivePath) {
+    const userAgent = req.headers.get('user-agent') || '';
+    const isBot = /bot|crawler|spider|scraper/i.test(userAgent);
+
+    console.log('[SECURITY]', JSON.stringify({
+      timestamp: new Date().toISOString(),
       method: req.method,
       path: requestUrl.pathname,
-      origin,
+      origin: origin || 'none',
       userAgent: isBot ? 'bot' : 'user',
-      timestamp: new Date().toISOString(),
-    });
+      ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+    }));
   }
 
   return response;
@@ -197,6 +266,13 @@ export async function proxy(req: NextRequest) {
  */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf)$).*)',
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - Static assets (images, fonts, etc.)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf|eot)$).*)',
   ],
 };

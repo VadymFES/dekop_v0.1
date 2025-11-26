@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-import { headers } from 'next/headers'; 
+import { getNonce } from "@/app/lib/csp";
 import QueryProvider from "@/app/providers/QueryProvider";
 import ClientLayout from "./ClientLayout";
 import "./global.css";
@@ -51,17 +51,12 @@ export default async function RootLayout({
 }: Readonly<{
  children: React.ReactNode;
 }>) {
-  // ⚡ NONCE RETRIEVAL: Read the custom header set by the Middleware
-  const headerList = await headers();
-  // Ensure the header name matches the one set in middleware/proxy.ts
-  const nonce = headerList.get('x-content-security-policy-nonce') || '';
+  const nonce = await getNonce();
 
  return (
-    // ⚡ NONCE APPLICATION 1: Apply the nonce to the <html> tag.
-    // Next.js automatically applies this nonce to its internal inline scripts/styles.
   <html lang="uk" nonce={nonce}> 
    <body>
-        {/* ⚡ NONCE APPLICATION 2: Pass the nonce to your GTM component */}
+        {/* Pass nonce to GTM for script CSP compliance */}
     <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />
 
     <QueryProvider>
