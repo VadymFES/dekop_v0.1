@@ -19,15 +19,22 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/product/',
+        ],
         disallow: [
           '/api/', // API routes should not be indexed
           '/checkout/', // User checkout pages
           '/order-success/', // Order confirmation pages
           '/payment-cancelled/', // Payment cancellation pages
           '/_next/', // Next.js internal files
-          '/admin/', // Admin pages (if any)
+          '/admin/', // Admin pages
+          '/cart/',
+          '/favorites/',
+          '/search*',
         ],
+        crawlDelay: 1, 
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
