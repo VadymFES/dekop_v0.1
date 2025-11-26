@@ -86,8 +86,8 @@ const nextConfig = {
                         value: [
                             // Default: only allow same origin
                             "default-src 'self'",
-                            // Scripts: allow self and whitelisted external scripts only
-                            "script-src 'self' https://www.googletagmanager.com https://va.vercel-scripts.com https://www.liqpay.ua https://api.monobank.ua https://pay.google.com",
+                            // Scripts: allow self, inline scripts (needed for GTM/Analytics), and whitelisted external scripts
+                            "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://va.vercel-scripts.com https://www.liqpay.ua https://api.monobank.ua https://pay.google.com",
                             // Styles: allow self, inline styles, Google Fonts, and Leaflet CDN
                             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
                             // Images: allow self, data URIs, HTTPS images, and configured remote patterns
@@ -95,7 +95,7 @@ const nextConfig = {
                             // Fonts: allow self, Google Fonts, and Leaflet CDN
                             "font-src 'self' data: https://fonts.gstatic.com https://unpkg.com",
                             // Connect: allow self, API endpoints, and analytics
-                            "connect-src 'self' https://api.liqpay.ua https://www.liqpay.ua https://api.monobank.ua https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+                            "connect-src 'self' https://api.liqpay.ua https://www.liqpay.ua https://api.monobank.ua https://va.vercel-scripts.com https://vitals.vercel-insights.com https://www.google-analytics.com https://www.googletagmanager.com https://analytics.google.com",
                             // Frame: allow payment providers
                             "frame-src 'self' https://www.liqpay.ua https://pay.google.com",
                             // Object: disallow plugins
