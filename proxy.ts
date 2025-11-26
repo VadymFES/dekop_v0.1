@@ -18,7 +18,7 @@ function generateNonce(): string {
  * - HSTS, X-Frame-Options, and other security headers
  * - Security logging for sensitive endpoints
  */
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const requestUrl = new URL(req.url);
   const origin = req.headers.get('origin');
   
