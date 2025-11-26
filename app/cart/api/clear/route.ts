@@ -45,14 +45,8 @@ export async function POST() {
       message: 'Кошик успішно очищено'
     });
 
-    // Clear the cookie by setting it with expired date
-    response.cookies.set('cartId', '', {
-      path: '/',
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 0, // Expire immediately
-    });
+    // Clear the cookie after successful order creation
+    response.cookies.delete('cartId');
 
     console.log('[Cart Clear API] Returning success response');
     return response;
