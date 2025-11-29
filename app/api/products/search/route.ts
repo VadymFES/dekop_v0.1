@@ -77,13 +77,7 @@ export async function GET(request: NextRequest) {
                p.is_on_sale, p.is_new, p.is_bestseller,
                p.created_at, p.updated_at
       ORDER BY
-        -- Prioritize exact matches
-        CASE
-          WHEN p.name ILIKE ${query.trim()} THEN 1
-          WHEN p.name ILIKE ${searchTerm} THEN 2
-          ELSE 3
-        END,
-        -- Then by relevance indicators
+        -- Prioritize bestsellers and new items first
         p.is_bestseller DESC,
         p.is_new DESC,
         p.rating DESC,
