@@ -201,6 +201,78 @@
   color: rgba(22, 1, 1, 0.6);
 }
 
+/* Suggestion sections */
+.suggestionsSection {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(22, 1, 1, 0.08);
+}
+
+.suggestionsSection:last-of-type {
+  border-bottom: none;
+}
+
+.suggestionsHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(22, 1, 1, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.suggestionsHeader svg {
+  color: rgba(22, 1, 1, 0.4);
+}
+
+.suggestionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suggestionItem {
+  margin: 0;
+  padding: 0;
+}
+
+.suggestionButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--foreground);
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.suggestionButton:hover {
+  background-color: rgba(244, 81, 69, 0.05);
+}
+
+.suggestionLabel {
+  flex: 1;
+  font-weight: 500;
+}
+
+.suggestionButton svg {
+  flex-shrink: 0;
+  color: rgba(22, 1, 1, 0.3);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.suggestionButton:hover svg {
+  color: var(--btn-color);
+  transform: translateX(2px);
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .searchContainer {

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { ProductWithImages } from '@/app/lib/definitions';
+import {
+  findCategorySuggestions,
+  findFilterSuggestions,
+  CategorySuggestion,
+  FilterSuggestion
+} from '@/app/lib/search-keywords';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -108,10 +114,18 @@ export async function GET(request: NextRequest) {
       specs: null,
     }));
 
+    // Find category and filter suggestions based on search query
+    const categorySuggestions = findCategorySuggestions(query.trim());
+    const filterSuggestions = findFilterSuggestions(query.trim());
+
     return NextResponse.json({
       results: products,
       count: products.length,
-      query: query.trim()
+      query: query.trim(),
+      suggestions: {
+        categories: categorySuggestions.slice(0, 3), // Limit to 3 category suggestions
+        filters: filterSuggestions.slice(0, 5) // Limit to 5 filter suggestions
+      }
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',

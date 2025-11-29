@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ProductWithImages } from '@/app/lib/definitions';
+import { CategorySuggestion, FilterSuggestion } from '@/app/lib/search-keywords';
 import styles from './search.module.css';
 
 interface SearchBarProps {
@@ -15,11 +16,17 @@ interface SearchResponse {
   results: ProductWithImages[];
   count: number;
   query: string;
+  suggestions: {
+    categories: CategorySuggestion[];
+    filters: FilterSuggestion[];
+  };
 }
 
 export default function SearchBar({ className }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductWithImages[]>([]);
+  const [categorySuggestions, setCategorySuggestions] = useState<CategorySuggestion[]>([]);
+  const [filterSuggestions, setFilterSuggestions] = useState<FilterSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -75,10 +82,17 @@ export default function SearchBar({ className }: SearchBarProps) {
 
       const data: SearchResponse = await response.json();
       setResults(data.results);
-      setIsOpen(data.results.length > 0);
+      setCategorySuggestions(data.suggestions?.categories || []);
+      setFilterSuggestions(data.suggestions?.filters || []);
+
+      // Show dropdown if there are results or suggestions
+      const hasSuggestions = (data.results.length > 0) ||
+                            (data.suggestions?.categories.length > 0) ||
+                            (data.suggestions?.filters.length > 0);
+      setIsOpen(hasSuggestions);
 
       // Track no results event
-      if (data.results.length === 0) {
+      if (data.results.length === 0 && !hasSuggestions) {
         trackEvent('search_no_results', {
           search_term: searchQuery
         });
@@ -139,6 +153,39 @@ export default function SearchBar({ className }: SearchBarProps) {
 
     setQuery('');
     setIsOpen(false);
+  };
+
+  // Handle category suggestion click
+  const handleCategorySuggestionClick = (category: CategorySuggestion) => {
+    // Track category suggestion clicked event
+    trackEvent('category_suggestion_clicked', {
+      search_term: query,
+      category_slug: category.slug,
+      category_name: category.name
+    });
+
+    setQuery('');
+    setIsOpen(false);
+    router.push(`/catalog?category=${category.slug}`);
+  };
+
+  // Handle filter suggestion click
+  const handleFilterSuggestionClick = (filter: FilterSuggestion) => {
+    // Track filter suggestion clicked event
+    trackEvent('filter_suggestion_clicked', {
+      search_term: query,
+      filter_type: filter.type,
+      filter_value: filter.value,
+      filter_label: filter.label
+    });
+
+    setQuery('');
+    setIsOpen(false);
+
+    // Build URL with the filter applied
+    const params = new URLSearchParams();
+    params.append(filter.type, filter.value);
+    router.push(`/catalog?${params.toString()}`);
   };
 
   // Handle keyboard navigation
@@ -230,54 +277,124 @@ export default function SearchBar({ className }: SearchBarProps) {
         )}
       </form>
 
-      {isOpen && results.length > 0 && (
+      {isOpen && (categorySuggestions.length > 0 || filterSuggestions.length > 0 || results.length > 0) && (
         <div
           id="search-results"
           className={styles.dropdown}
           role="listbox"
         >
-          <ul className={styles.resultsList}>
-            {results.map((product, index) => (
-              <li
-                key={product.id}
-                className={`${styles.resultItem} ${
-                  index === selectedIndex ? styles.selected : ''
-                }`}
-                role="option"
-                aria-selected={index === selectedIndex}
-              >
-                <Link
-                  href={`/catalog/${product.category}/${product.slug}`}
-                  onClick={() => handleSuggestionClick(product)}
-                  className={styles.resultLink}
-                >
-                  <div className={styles.productImage}>
-                    <Image
-                      src={getPrimaryImage(product)}
-                      alt={product.name}
-                      width={50}
-                      height={50}
-                      style={{ objectFit: 'cover' }}
-                    />
-                  </div>
-                  <div className={styles.productInfo}>
-                    <span className={styles.productName}>{product.name}</span>
-                    <div className={styles.productMeta}>
-                      <span className={styles.productPrice}>{product.price} ₴</span>
-                      {product.is_on_sale && (
-                        <span className={styles.salebadge}>Акція</span>
-                      )}
-                      {product.is_new && (
-                        <span className={styles.newBadge}>Новинка</span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* Category Suggestions */}
+          {categorySuggestions.length > 0 && (
+            <div className={styles.suggestionsSection}>
+              <div className={styles.suggestionsHeader}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 3C2 2.44772 2.44772 2 3 2H6C6.55228 2 7 2.44772 7 3V6C7 6.55228 6.55228 7 6 7H3C2.44772 7 2 6.55228 2 6V3Z" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M9 3C9 2.44772 9.44772 2 10 2H13C13.5523 2 14 2.44772 14 3V6C14 6.55228 13.5523 7 13 7H10C9.44772 7 9 6.55228 9 6V3Z" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M2 10C2 9.44772 2.44772 9 3 9H6C6.55228 9 7 9.44772 7 10V13C7 13.5523 6.55228 14 6 14H3C2.44772 14 2 13.5523 2 13V10Z" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M9 10C9 9.44772 9.44772 9 10 9H13C13.5523 9 14 9.44772 14 10V13C14 13.5523 13.5523 14 13 14H10C9.44772 14 9 13.5523 9 13V10Z" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+                <span>Категорії</span>
+              </div>
+              <ul className={styles.suggestionsList}>
+                {categorySuggestions.map((category, index) => (
+                  <li key={`cat-${index}`} className={styles.suggestionItem}>
+                    <button
+                      onClick={() => handleCategorySuggestionClick(category)}
+                      className={styles.suggestionButton}
+                    >
+                      <span className={styles.suggestionLabel}>{category.name}</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          {query.trim() && (
+          {/* Filter Suggestions */}
+          {filterSuggestions.length > 0 && (
+            <div className={styles.suggestionsSection}>
+              <div className={styles.suggestionsHeader}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 2L6 7V12L10 14V7L14 2H2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Фільтри</span>
+              </div>
+              <ul className={styles.suggestionsList}>
+                {filterSuggestions.map((filter, index) => (
+                  <li key={`filter-${index}`} className={styles.suggestionItem}>
+                    <button
+                      onClick={() => handleFilterSuggestionClick(filter)}
+                      className={styles.suggestionButton}
+                    >
+                      <span className={styles.suggestionLabel}>{filter.label}</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Product Results */}
+          {results.length > 0 && (
+            <>
+              {(categorySuggestions.length > 0 || filterSuggestions.length > 0) && (
+                <div className={styles.suggestionsHeader} style={{ marginTop: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 14L10 10M11.3333 6.66667C11.3333 9.244 9.244 11.3333 6.66667 11.3333C4.08934 11.3333 2 9.244 2 6.66667C2 4.08934 4.08934 2 6.66667 2C9.244 2 11.3333 4.08934 11.3333 6.66667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Товари</span>
+                </div>
+              )}
+              <ul className={styles.resultsList}>
+                {results.map((product, index) => (
+                  <li
+                    key={product.id}
+                    className={`${styles.resultItem} ${
+                      index === selectedIndex ? styles.selected : ''
+                    }`}
+                    role="option"
+                    aria-selected={index === selectedIndex}
+                  >
+                    <Link
+                      href={`/catalog/${product.category}/${product.slug}`}
+                      onClick={() => handleSuggestionClick(product)}
+                      className={styles.resultLink}
+                    >
+                      <div className={styles.productImage}>
+                        <Image
+                          src={getPrimaryImage(product)}
+                          alt={product.name}
+                          width={50}
+                          height={50}
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </div>
+                      <div className={styles.productInfo}>
+                        <span className={styles.productName}>{product.name}</span>
+                        <div className={styles.productMeta}>
+                          <span className={styles.productPrice}>{product.price} ₴</span>
+                          {product.is_on_sale && (
+                            <span className={styles.salebadge}>Акція</span>
+                          )}
+                          {product.is_new && (
+                            <span className={styles.newBadge}>Новинка</span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {query.trim() && results.length > 0 && (
             <Link
               href={`/catalog?search=${encodeURIComponent(query.trim())}`}
               className={styles.viewAllLink}
@@ -295,7 +412,7 @@ export default function SearchBar({ className }: SearchBarProps) {
         </div>
       )}
 
-      {isOpen && query.trim().length >= 3 && results.length === 0 && !isLoading && (
+      {isOpen && query.trim().length >= 3 && results.length === 0 && categorySuggestions.length === 0 && filterSuggestions.length === 0 && !isLoading && (
         <div className={styles.dropdown}>
           <div className={styles.noResults}>
             Нічого не знайдено за запитом "{query}"
