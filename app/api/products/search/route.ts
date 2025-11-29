@@ -17,15 +17,20 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q');
     const limit = parseInt(searchParams.get('limit') || '10');
 
+    console.log('[Search API] Request received:', { query, limit });
+
     if (!query || query.trim().length < 2) {
+      console.log('[Search API] Query too short:', query);
       return NextResponse.json({
         results: [],
         count: 0,
-        message: 'Query must be at least 2 characters'
+        message: 'Query must be at least 2 characters',
+        suggestions: { categories: [], filters: [] }
       });
     }
 
     const searchTerm = `%${query.trim()}%`;
+    console.log('[Search API] Searching for:', searchTerm);
 
     // Search products by name, description, or category
     const result = await sql`
@@ -86,6 +91,8 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit}
     `;
 
+    console.log('[Search API] Query executed, rows found:', result.rows.length);
+
     const products: ProductWithImages[] = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -106,11 +113,18 @@ export async function GET(request: NextRequest) {
       specs: null,
     }));
 
+    console.log('[Search API] Products mapped:', products.length);
+
     // Find category and filter suggestions based on search query
     const categorySuggestions = findCategorySuggestions(query.trim());
     const filterSuggestions = findFilterSuggestions(query.trim());
 
-    return NextResponse.json({
+    console.log('[Search API] Suggestions found:', {
+      categories: categorySuggestions.length,
+      filters: filterSuggestions.length
+    });
+
+    const response = {
       results: products,
       count: products.length,
       query: query.trim(),
@@ -118,19 +132,35 @@ export async function GET(request: NextRequest) {
         categories: categorySuggestions.slice(0, 3), // Limit to 3 category suggestions
         filters: filterSuggestions.slice(0, 5) // Limit to 5 filter suggestions
       }
-    }, {
+    };
+
+    console.log('[Search API] Returning response:', {
+      resultsCount: response.results.length,
+      categoriesCount: response.suggestions.categories.length,
+      filtersCount: response.suggestions.filters.length
+    });
+
+    return NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
       },
     });
 
   } catch (error) {
-    console.error('Search API error:', error);
+    console.error('[Search API] Error occurred:', error);
+    console.error('[Search API] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
+
     return NextResponse.json(
       {
         error: 'Failed to perform search',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
         results: [],
-        count: 0
+        count: 0,
+        suggestions: { categories: [], filters: [] }
       },
       { status: 500 }
     );

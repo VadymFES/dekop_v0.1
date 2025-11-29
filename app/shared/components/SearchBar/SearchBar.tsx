@@ -48,7 +48,10 @@ export default function SearchBar({ className }: SearchBarProps) {
 
   // Debounced search function
   const performSearch = useCallback(async (searchQuery: string) => {
+    console.log('[SearchBar] performSearch called with:', searchQuery);
+
     if (searchQuery.trim().length < 3) {
+      console.log('[SearchBar] Query too short, skipping search');
       setResults([]);
       setIsOpen(false);
       return;
@@ -56,6 +59,7 @@ export default function SearchBar({ className }: SearchBarProps) {
 
     // Cancel previous request
     if (abortControllerRef.current) {
+      console.log('[SearchBar] Aborting previous request');
       abortControllerRef.current.abort();
     }
 
@@ -63,6 +67,7 @@ export default function SearchBar({ className }: SearchBarProps) {
     abortControllerRef.current = new AbortController();
 
     setIsLoading(true);
+    console.log('[SearchBar] Starting search request');
 
     try {
       // Track search initiated event
@@ -71,16 +76,36 @@ export default function SearchBar({ className }: SearchBarProps) {
         search_length: searchQuery.length
       });
 
-      const response = await fetch(
-        `/api/products/search?q=${encodeURIComponent(searchQuery)}&limit=8`,
-        { signal: abortControllerRef.current.signal }
-      );
+      const url = `/api/products/search?q=${encodeURIComponent(searchQuery)}&limit=8`;
+      console.log('[SearchBar] Fetching:', url);
+
+      const response = await fetch(url, {
+        signal: abortControllerRef.current.signal
+      });
+
+      console.log('[SearchBar] Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
 
       if (!response.ok) {
-        throw new Error('Search failed');
+        const errorText = await response.text();
+        console.error('[SearchBar] Response not OK:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`Search failed: ${response.status} ${response.statusText}`);
       }
 
       const data: SearchResponse = await response.json();
+      console.log('[SearchBar] Response data:', {
+        resultsCount: data.results?.length || 0,
+        categoriesCount: data.suggestions?.categories?.length || 0,
+        filtersCount: data.suggestions?.filters?.length || 0,
+        query: data.query
+      });
       setResults(data.results);
       setCategorySuggestions(data.suggestions?.categories || []);
       setFilterSuggestions(data.suggestions?.filters || []);
@@ -98,18 +123,28 @@ export default function SearchBar({ className }: SearchBarProps) {
         });
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Search error:', error);
+      if (error.name === 'AbortError') {
+        console.log('[SearchBar] Request aborted');
+      } else {
+        console.error('[SearchBar] Search error:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
         setResults([]);
+        setCategorySuggestions([]);
+        setFilterSuggestions([]);
       }
     } finally {
       setIsLoading(false);
+      console.log('[SearchBar] Search request completed');
     }
   }, [trackEvent]);
 
   // Handle input change with debouncing
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log('[SearchBar] Input changed:', value);
     setQuery(value);
     setSelectedIndex(-1);
 
@@ -120,6 +155,7 @@ export default function SearchBar({ className }: SearchBarProps) {
 
     // Set new timer
     debounceTimerRef.current = setTimeout(() => {
+      console.log('[SearchBar] Debounce timer fired, performing search');
       performSearch(value);
     }, 300);
   };
