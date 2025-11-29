@@ -47,7 +47,7 @@ const Footer = () => {
         {/* For Client section */}
         <div className={styles.forClient}>
           <h3 className={styles.forClientTitle}>Клієнтам</h3>
-          <Link href="/delivery" className={styles.footerLink}>Політика користування та конфіденційності</Link>
+          <Link href="/privacy" className={styles.footerLink}>Політика конфіденційності</Link>
           <Link href="/payment" className={styles.footerLink}>Оплата та доставка</Link>
           <Link href="/return" className={styles.footerLink}>Повернення та обмін</Link>
         </div>

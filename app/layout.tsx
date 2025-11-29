@@ -54,7 +54,7 @@ export default async function RootLayout({
   const nonce = await getNonce();
 
  return (
-  <html lang="uk" nonce={nonce}> 
+  <html lang="uk">
    <body>
         {/* Pass nonce to GTM for script CSP compliance */}
     <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />

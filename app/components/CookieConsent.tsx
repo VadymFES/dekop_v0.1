@@ -186,11 +186,7 @@ export default function CookieConsent() {
               <p className={styles.legalText}>
                 Використовуючи сайт, ви погоджуєтесь з нашою{' '}
                 <a href="/privacy" className={styles.link}>
-                  Політикою конфіденційності
-                </a>
-                {' '}та{' '}
-                <a href="/cookies" className={styles.link}>
-                  Політикою cookie
+                  Політикою конфіденційності та Cookie-файлів
                 </a>
               </p>
             </>
