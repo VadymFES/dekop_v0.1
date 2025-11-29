@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Search products by name, description, or category
     const result = await sql`
-      SELECT DISTINCT
+      SELECT
         p.id,
         p.name,
         p.slug,
@@ -44,32 +44,24 @@ export async function GET(request: NextRequest) {
         p.is_bestseller,
         p.created_at,
         p.updated_at,
-        COALESCE(
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id', pi.id,
-              'url', pi.image_url,
-              'alt', pi.alt_text,
-              'is_primary', pi.is_primary
-            )
-            ORDER BY pi.is_primary DESC, pi.id
-          ) FILTER (WHERE pi.id IS NOT NULL),
-          '[]'
-        ) as images,
-        COALESCE(
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id', psc.id,
-              'name', psc.color_name,
-              'hex', psc.color_hex
-            )
-            ORDER BY psc.id
-          ) FILTER (WHERE psc.id IS NOT NULL),
-          '[]'
-        ) as colors
+        json_agg(
+          json_build_object(
+            'id', pi.id,
+            'image_url', pi.image_url,
+            'alt', pi.alt,
+            'is_primary', pi.is_primary
+          )
+        ) FILTER (WHERE pi.id IS NOT NULL) as images,
+        json_agg(
+          json_build_object(
+            'product_id', pc.product_id,
+            'color', pc.color,
+            'image_url', pc.image_url
+          )
+        ) FILTER (WHERE pc.product_id IS NOT NULL) AS colors
       FROM products p
       LEFT JOIN product_images pi ON p.id = pi.product_id
-      LEFT JOIN product_spec_colors psc ON p.id = psc.product_id
+      LEFT JOIN product_spec_colors pc ON p.id = pc.product_id
       WHERE
         (p.name ILIKE ${searchTerm} OR
          p.description ILIKE ${searchTerm} OR
