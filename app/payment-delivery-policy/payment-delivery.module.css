@@ -32,9 +32,22 @@
 
 .content h3 {
   color: #34495e;
-  font-size: 1.25rem;
-  margin-top: 1.5rem;
+  font-size: 1.35rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.content h4 {
+  color: #495057;
+  font-size: 1.1rem;
+  margin-top: 1.25rem;
   margin-bottom: 0.75rem;
+  font-weight: 600;
+  padding-left: 0.5rem;
+  border-left: 3px solid #007bff;
 }
 
 .intro {
@@ -113,7 +126,11 @@
   }
 
   .content h3 {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
+  }
+
+  .content h4 {
+    font-size: 1.05rem;
   }
 
   .intro {
@@ -129,5 +146,13 @@
 
   .content h2 {
     font-size: 1.35rem;
+  }
+
+  .content h3 {
+    font-size: 1.1rem;
+  }
+
+  .content h4 {
+    font-size: 1rem;
   }
 }
