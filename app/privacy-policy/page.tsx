@@ -128,7 +128,6 @@ export default function PrivacyPolicyPage() {
 
         <div className={styles.footer}>
           <p><strong>Останнє оновлення:</strong> 29 листопада 2025 року</p>
-          <p>Dekop Furniture Enterprise - Ваш надійний партнер у світі меблів</p>
         </div>
       </div>
     </div>
