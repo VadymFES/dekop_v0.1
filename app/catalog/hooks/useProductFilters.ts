@@ -66,6 +66,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
       priceMin: urlPriceMin ? Number(urlPriceMin) : priceRange.min,
       priceMax: urlPriceMax ? Number(urlPriceMax) : priceRange.max,
       status: searchParams?.getAll('status') || [],
+      search: searchParams?.get('search') || '',
     };
   }, [searchParams, priceRange]);
 
@@ -91,6 +92,9 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     const size = searchParams.get('size');
     if (size) params.set('size', size);
 
+    const search = searchParams.get('search');
+    if (search) params.set('search', search);
+
     // Explicitly exclude minPrice and maxPrice
 
     return params.toString();
@@ -104,6 +108,12 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     const category = searchParams?.get('category');
     if (category) {
       params.set('category', category);
+    }
+
+    // Always preserve search if it exists
+    const search = searchParams?.get('search');
+    if (search) {
+      params.set('search', search);
     }
 
     // Add new parameters
@@ -148,6 +158,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
         const materialFilters = searchParams?.getAll('material') || [];
         const featureFilters = searchParams?.getAll('feature') || [];
         const sizeFilter = searchParams?.get('size');
+        const searchQuery = searchParams?.get('search');
         // Note: Price filters NOT sent to API - applied client-side for instant filtering
 
         // Add filters to API params (excluding price)
@@ -156,6 +167,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
         materialFilters.forEach(material => params.append("material", material));
         featureFilters.forEach(feature => params.append("feature", feature));
         if (sizeFilter) params.append("size", sizeFilter);
+        if (searchQuery) params.append("search", searchQuery);
 
         // Fetch products from API
         const response = await fetch(`/api/products?${params.toString()}`, {

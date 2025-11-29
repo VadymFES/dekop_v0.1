@@ -1,0 +1,13 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#F5F5F5"/>
+
+  <!-- Image icon -->
+  <path d="M120 140C120 128.954 128.954 120 140 120H260C271.046 120 280 128.954 280 140V260C280 271.046 271.046 280 260 280H140C128.954 280 120 271.046 120 260V140Z" fill="#E0E0E0"/>
+
+  <!-- Mountain/landscape shape -->
+  <path d="M120 240L160 190L200 220L240 170L280 230V260C280 271.046 271.046 280 260 280H140C128.954 280 120 271.046 120 260V240Z" fill="#BDBDBD"/>
+
+  <!-- Sun/circle -->
+  <circle cx="220" cy="160" r="20" fill="#BDBDBD"/>
+</svg>

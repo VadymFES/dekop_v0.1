@@ -24,6 +24,7 @@ export interface FilterOptions {
   priceMin: number;
   priceMax: number;
   status: string[];
+  search: string;
 }
 
 export interface CatalogState {

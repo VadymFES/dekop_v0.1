@@ -29,6 +29,8 @@ export async function GET(request: Request) {
   const materials = searchParams.getAll("material");
   const features = searchParams.getAll("feature");
   const size = searchParams.get("size");
+  const statuses = searchParams.getAll("status");
+  const search = searchParams.get("search");
 
   try {
     let query = `
@@ -243,12 +245,39 @@ export async function GET(request: Request) {
     // Filter by size
     if (size) {
       const sizeParam = paramIndex++;
-      const widthCondition = size === "single" 
-        ? `ps.dimensions_sleeping_area_width <= $${sizeParam}` 
+      const widthCondition = size === "single"
+        ? `ps.dimensions_sleeping_area_width <= $${sizeParam}`
         : `ps.dimensions_sleeping_area_width >= $${sizeParam}`;
-      
+
       conditions.push(widthCondition);
       values.push(size === "single" ? 1000 : 1400);
+    }
+
+    // Filter by status (new, on_sale, bestseller)
+    if (statuses.length > 0) {
+      const statusConditions: string[] = [];
+
+      for (const status of statuses) {
+        if (status === "new") {
+          statusConditions.push("p.is_new = TRUE");
+        } else if (status === "on_sale") {
+          statusConditions.push("p.is_on_sale = TRUE");
+        } else if (status === "bestseller") {
+          statusConditions.push("p.is_bestseller = TRUE");
+        }
+      }
+
+      if (statusConditions.length > 0) {
+        conditions.push(`(${statusConditions.join(" OR ")})`);
+      }
+    }
+
+    // Filter by search query
+    if (search && search.trim().length > 0) {
+      const searchTerm = `%${search.trim()}%`;
+      conditions.push(`(p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex + 1} OR p.category ILIKE $${paramIndex + 2})`);
+      values.push(searchTerm, searchTerm, searchTerm);
+      paramIndex += 3;
     }
 
     // Combine conditions

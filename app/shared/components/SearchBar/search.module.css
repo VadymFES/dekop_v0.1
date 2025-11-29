@@ -1,0 +1,242 @@
+.searchContainer {
+  position: relative;
+  width: 100%;
+  max-width: 256px;
+}
+
+.searchForm {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  height: 24px;
+  padding: 4px 32px 4px 6px;
+  border-radius: 4px;
+  background: var(--background);
+  box-shadow: 0px 0px 3px 0px rgba(22, 1, 1, 0.54);
+  border: none;
+  font-size: 14px;
+  color: var(--foreground);
+  transition: box-shadow 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  box-shadow: 0px 0px 6px 0px rgba(22, 1, 1, 0.3);
+}
+
+.searchInput::placeholder {
+  color: rgba(22, 1, 1, 0.5);
+  font-size: 14px;
+}
+
+.loadingSpinner {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(22, 1, 1, 0.1);
+  border-top-color: var(--btn-color);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--background);
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(22, 1, 1, 0.15);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.resultsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.resultItem {
+  border-bottom: 1px solid rgba(22, 1, 1, 0.08);
+}
+
+.resultItem:last-child {
+  border-bottom: none;
+}
+
+.resultLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: background-color 0.2s ease;
+}
+
+.resultLink:hover,
+.resultItem.selected .resultLink {
+  background-color: rgba(244, 81, 69, 0.05);
+}
+
+.productImage {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: rgba(22, 1, 1, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.productName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.productPrice {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--btn-color);
+}
+
+.salebadge,
+.newBadge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.salebadge {
+  background-color: #FFE5E5;
+  color: #E2281B;
+}
+
+.newBadge {
+  background-color: #E5F5FF;
+  color: #1976D2;
+}
+
+.viewAllLink {
+  display: block;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--btn-color);
+  text-decoration: none;
+  border-top: 1px solid rgba(22, 1, 1, 0.08);
+  transition: background-color 0.2s ease;
+}
+
+.viewAllLink:hover {
+  background-color: rgba(244, 81, 69, 0.05);
+}
+
+.noResults {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(22, 1, 1, 0.6);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .searchContainer {
+    max-width: 100%;
+  }
+
+  .dropdown {
+    max-height: 300px;
+    left: -12px;
+    right: -12px;
+  }
+
+  .productName {
+    font-size: 13px;
+  }
+
+  .productPrice {
+    font-size: 13px;
+  }
+}
+
+/* Scrollbar styling for dropdown */
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: rgba(22, 1, 1, 0.05);
+  border-radius: 8px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: rgba(22, 1, 1, 0.2);
+  border-radius: 8px;
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(22, 1, 1, 0.3);
+}

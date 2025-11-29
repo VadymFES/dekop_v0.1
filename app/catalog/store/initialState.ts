@@ -20,6 +20,7 @@ export const initialState: CatalogState = {
     priceMin: 0,
     priceMax: 0,
     status: [],
+    search: '',
   },
   sortOption: "rating_desc",
   isFiltering: false
