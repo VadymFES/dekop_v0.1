@@ -2,31 +2,10 @@
  * Database Query Wrapper with Performance Monitoring
  *
  * This module wraps @vercel/postgres sql function with performance logging.
+ * Note: @vercel/postgres already handles connection pooling internally,
+ * so we don't need to implement it ourselves.
  *
- * CONNECTION POOLING:
- * ------------------
- * @vercel/postgres uses PgBouncer for automatic connection pooling.
- * Default configuration (optimized for most use cases):
- * - Pool mode: transaction (connections are pooled per transaction)
- * - Max connections: 100 (Pro plan) / 20 (Hobby plan)
- * - Default pool size: 20 connections per user/database pair
- * - Connection timeout: 30 seconds
- * - Idle transaction timeout: 600 seconds (10 minutes)
- *
- * For high-traffic scenarios, you can override these defaults via environment variables:
- * - PGBOUNCER_MAX_CLIENT_CONN: Maximum concurrent connections
- * - PGBOUNCER_POOL_MODE: Pool mode (transaction/session/statement)
- * - PGBOUNCER_DEFAULT_POOL_SIZE: Default pool size per user/database
- * - PGBOUNCER_MIN_POOL_SIZE: Minimum connections to maintain
- * - PGBOUNCER_CONNECT_TIMEOUT: Connection timeout in seconds
- * - PGBOUNCER_QUERY_TIMEOUT: Query timeout in seconds
- * - PGBOUNCER_IDLE_TRANSACTION_TIMEOUT: Idle timeout in seconds
- *
- * See .env.example for detailed configuration options.
- * See docs/DATABASE.md for production recommendations.
- *
- * PERFORMANCE MONITORING:
- * ----------------------
+ * Performance Benefits:
  * - Logs slow queries for monitoring (>100ms)
  * - Tracks query statistics
  * - Better error messages with query context
