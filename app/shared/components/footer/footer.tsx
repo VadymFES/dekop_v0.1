@@ -23,8 +23,8 @@ const Footer = () => {
             </p>
             <p className={styles.footerContactsText}>
               email:
-              <a href="mailto:decor.enterprise@gmail.com" className={styles.footerContactsLink}>
-                decor.enterprise@gmail.com
+              <a href="mailto:info@decop.com.ua" className={styles.footerContactsLink}>
+                info@decop.com.ua
               </a>
             </p>
           </address>
@@ -47,9 +47,9 @@ const Footer = () => {
         {/* For Client section */}
         <div className={styles.forClient}>
           <h3 className={styles.forClientTitle}>Клієнтам</h3>
-          <Link href="/privacy" className={styles.footerLink}>Політика конфіденційності</Link>
-          <Link href="/payment" className={styles.footerLink}>Оплата та доставка</Link>
-          <Link href="/return" className={styles.footerLink}>Повернення та обмін</Link>
+          <Link href="/privacy-policy" className={styles.footerLink}>Політика конфіденційності</Link>
+          <Link href="/payment-policy" className={styles.footerLink}>Оплата та доставка</Link>
+          <Link href="/return-policy" className={styles.footerLink}>Повернення та обмін</Link>
         </div>
       </div>
 
