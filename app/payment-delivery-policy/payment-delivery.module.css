@@ -1,7 +1,7 @@
 .container {
   min-height: 100vh;
   padding: 2rem 1rem;
-  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+  background: linear-gradient(to bottom, #FEFDFC, #ffffff);
 }
 
 .content {
@@ -10,19 +10,19 @@
   background: white;
   padding: 3rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(22, 1, 1, 0.1);
 }
 
 .content h1 {
-  color: #1a1a1a;
+  color: #160101;
   font-size: 2.5rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 3px solid #007bff;
+  border-bottom: 3px solid #F45145;
 }
 
 .content h2 {
-  color: #2c3e50;
+  color: #160101;
   font-size: 1.75rem;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
@@ -31,7 +31,7 @@
 }
 
 .content h3 {
-  color: #34495e;
+  color: #160101;
   font-size: 1.35rem;
   margin-top: 2rem;
   margin-bottom: 1rem;
@@ -41,29 +41,29 @@
 }
 
 .content h4 {
-  color: #495057;
+  color: #160101;
   font-size: 1.1rem;
   margin-top: 1.25rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
   padding-left: 0.5rem;
-  border-left: 3px solid #007bff;
+  border-left: 3px solid #F45145;
 }
 
 .intro {
   font-size: 1.1rem;
   line-height: 1.8;
-  color: #495057;
+  color: #160101;
   background: #f8f9fa;
   padding: 1.5rem;
-  border-left: 4px solid #007bff;
+  border-left: 4px solid #F45145;
   border-radius: 4px;
   margin-bottom: 2rem;
 }
 
 .content p {
   line-height: 1.8;
-  color: #495057;
+  color: #160101;
   margin-bottom: 1rem;
 }
 
@@ -75,17 +75,17 @@
 .content ul li {
   margin-bottom: 0.75rem;
   line-height: 1.8;
-  color: #495057;
+  color: #160101;
 }
 
 .content a {
-  color: #007bff;
+  color: #F45145;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .content a:hover {
-  color: #0056b3;
+  color: #E2281B;
   text-decoration: underline;
 }
 
