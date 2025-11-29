@@ -1,4 +1,5 @@
-import styles from '../privacy/privacy.module.css';
+import styles from '../privacy-policy/privacy.module.css';
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Політика обміну та повернення - Dekop',
@@ -124,7 +125,7 @@ export default function ReturnPolicyPage() {
 
           <h3>Обмін товару неналежної якості</h3>
           <p>
-            Обмін товару неналежної якості на товар належної якості провадиться протягом 14 днів.
+            Обмін товару неналежної якості на товар належної якості проводиться протягом 14 днів.
             За згодою споживача цей строк може бути продовжено, але не більше ніж до одного місяця.
           </p>
         </section>
@@ -137,7 +138,7 @@ export default function ReturnPolicyPage() {
             Зв'яжіться з нашою службою підтримки одним із способів:
           </p>
           <ul>
-            <li>Email: <strong>support@mail.com</strong></li>
+            <li>Email: <strong>support@dekop.com.ua</strong></li>
             <li>Телефон: <strong>+380 ХХХ ХХХ ХХХХ</strong></li>
             <li>Форма зворотного зв'язку на сайті</li>
           </ul>
@@ -189,7 +190,7 @@ export default function ReturnPolicyPage() {
           <h3>Умови гарантії</h3>
           <p>
             Всі товари підлягають гарантійному обслуговуванню відповідно до умов виробника.
-            Гарантійний термін вказаний в описі товару на сайті та в гарантійному талоні,
+            Гарантійний термін вказаний в гарантійному талоні,
             який надається разом з товаром при доставці.
           </p>
 
@@ -263,14 +264,14 @@ export default function ReturnPolicyPage() {
           <h3>Претензійний порядок</h3>
           <p>
             Всі спори вирішуються шляхом переговорів. Споживач має право надіслати письмову
-            претензію на email: <strong>support@mail.com</strong>
+            претензію на email: <strong>support@dekop.com.ua</strong>
           </p>
 
           <h3>Експертиза товару</h3>
           <p>
             У разі спору щодо причин виникнення недоліків продавець зобов'язаний провести
             незалежну експертизу товару за свій рахунок. Споживач може бути присутнім при
-            експертизі дистанційно (відео-зв'язок) або особисто.
+            експертизі особисто.
           </p>
 
           <h3>Захист прав споживачів</h3>
@@ -290,19 +291,15 @@ export default function ReturnPolicyPage() {
             З питань повернення та обміну товарів звертайтеся:
           </p>
           <ul>
-            <li><strong>Email:</strong> support@mail.com</li>
-            <li><strong>Телефон:</strong> +380 ХХХ ХХХ ХХХХ</li>
+            <li><strong>Email:</strong> support@dekop.com.ua</li>
+            <li><strong>Телефон:</strong> +380 (098) 220 85 69</li>
             <li><strong>Час роботи:</strong> Пн-Пт: 9:00-20:00, Сб-Нд: 10:00-18:00</li>
-            <li><strong>Форма зворотного зв'язку:</strong> доступна на сайті</li>
+            <li><strong>Форма зворотного зв'язку:</strong> <Link href="/contact">доступна на сайті</Link></li>
           </ul>
-          <p>
-            Середній час відповіді на запити: 24 години в робочі дні.
-          </p>
         </section>
 
         <div className={styles.footer}>
-          <p><strong>Останнє оновлення:</strong> 29 листопада 2024 року</p>
-          <p><strong>Версія:</strong> 3.0</p>
+          <p><strong>Останнє оновлення:</strong> 29 листопада 2025 року</p>
           <p>Dekop Furniture Enterprise - Ваш надійний партнер у світі меблів</p>
         </div>
       </div>
