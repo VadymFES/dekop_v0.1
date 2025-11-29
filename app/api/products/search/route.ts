@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         p.price,
         p.stock,
         p.rating,
-        p.reviews,
+        COUNT(r.id) AS reviews,
         p.is_on_sale,
         p.is_new,
         p.is_bestseller,
@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
           )
         ) FILTER (WHERE pc.product_id IS NOT NULL) AS colors
       FROM products p
+      LEFT JOIN reviews r ON p.id = r.product_id
       LEFT JOIN product_images pi ON p.id = pi.product_id
       LEFT JOIN product_spec_colors pc ON p.id = pc.product_id
       WHERE
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
          p.category ILIKE ${searchTerm})
         AND p.stock > 0
       GROUP BY p.id, p.name, p.slug, p.description, p.category,
-               p.price, p.stock, p.rating, p.reviews,
+               p.price, p.stock, p.rating,
                p.is_on_sale, p.is_new, p.is_bestseller,
                p.created_at, p.updated_at
       ORDER BY
