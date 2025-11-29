@@ -122,13 +122,8 @@ export default function PrivacyPolicyPage() {
         <section id="contact">
           <h2>Контакти</h2>
           <p>
-            Якщо у вас є питання щодо цієї Політики або ви хочете скористатися своїми правами, зв'яжіться з нами:
+            Якщо у вас є питання щодо цієї Політики або ви хочете скористатися своїми правами, зв'яжіться з нами через <strong>email:</strong> info@dekop.com.ua
           </p>
-          <ul>
-            <li><strong>Email:</strong> info@dekop.com.ua</li>
-            <li><strong>Телефон:</strong> +38 (098) 220 85 69</li>
-            <li><strong>Адреса:</strong> об'їзна м. Костопіль, с. Мала Любаша, вул. Кленова 1, м. Костопіль, Рівненська область, 35000</li>
-          </ul>
         </section>
 
         <div className={styles.footer}>
