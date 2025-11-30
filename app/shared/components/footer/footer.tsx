@@ -50,6 +50,7 @@ const Footer = () => {
           <Link href="/privacy-policy" className={styles.footerLink}>Політика конфіденційності</Link>
           <Link href="/payment-delivery-policy" className={styles.footerLink}>Оплата та доставка</Link>
           <Link href="/return-policy" className={styles.footerLink}>Повернення та обмін</Link>
+          <Link href="/user-agreement" className={styles.footerLink}>Угода користувача</Link>
         </div>
       </div>
 
