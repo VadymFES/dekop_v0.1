@@ -224,6 +224,23 @@ export default function SearchBar({ className }: SearchBarProps) {
     router.push(`/catalog?${params.toString()}`);
   };
 
+  // Handle input focus - reopen dropdown if there are existing results
+  const handleFocus = () => {
+    console.log('[SearchBar] Input focused');
+
+    // Reopen dropdown if there are existing results or suggestions and query is valid
+    if (query.trim().length >= 3) {
+      const hasSuggestions = (results.length > 0) ||
+                            (categorySuggestions.length > 0) ||
+                            (filterSuggestions.length > 0);
+
+      if (hasSuggestions) {
+        console.log('[SearchBar] Reopening dropdown with existing results');
+        setIsOpen(true);
+      }
+    }
+  };
+
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || results.length === 0) return;
@@ -299,6 +316,7 @@ export default function SearchBar({ className }: SearchBarProps) {
           placeholder="Пошук товарів..."
           value={query}
           onChange={handleInputChange}
+          onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           className={styles.searchInput}
           aria-label="Пошук товарів"
