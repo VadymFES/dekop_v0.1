@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ProductWithImages } from '@/app/lib/definitions';
@@ -31,6 +31,7 @@ export default function SearchBar({ className }: SearchBarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const router = useRouter();
+  const pathname = usePathname();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -173,6 +174,13 @@ export default function SearchBar({ className }: SearchBarProps) {
 
       setIsOpen(false);
       router.push(`/catalog?search=${encodeURIComponent(query.trim())}`);
+
+      // Clear search after navigation (pathname change will also clear it)
+      setQuery('');
+      setResults([]);
+      setCategorySuggestions([]);
+      setFilterSuggestions([]);
+      setSelectedIndex(-1);
     }
   };
 
@@ -187,8 +195,13 @@ export default function SearchBar({ className }: SearchBarProps) {
       position: results.findIndex(r => r.id === product.id) + 1
     });
 
+    // Clear all search state (pathname change will also clear it)
     setQuery('');
+    setResults([]);
+    setCategorySuggestions([]);
+    setFilterSuggestions([]);
     setIsOpen(false);
+    setSelectedIndex(-1);
   };
 
   // Handle category suggestion click
@@ -200,8 +213,13 @@ export default function SearchBar({ className }: SearchBarProps) {
       category_name: category.name
     });
 
+    // Clear all search state (pathname change will also clear it)
     setQuery('');
+    setResults([]);
+    setCategorySuggestions([]);
+    setFilterSuggestions([]);
     setIsOpen(false);
+    setSelectedIndex(-1);
     router.push(`/catalog?category=${category.slug}`);
   };
 
@@ -215,8 +233,13 @@ export default function SearchBar({ className }: SearchBarProps) {
       filter_label: filter.label
     });
 
+    // Clear all search state (pathname change will also clear it)
     setQuery('');
+    setResults([]);
+    setCategorySuggestions([]);
+    setFilterSuggestions([]);
     setIsOpen(false);
+    setSelectedIndex(-1);
 
     // Build URL with the filter applied
     const params = new URLSearchParams();
@@ -297,6 +320,17 @@ export default function SearchBar({ className }: SearchBarProps) {
       }
     };
   }, []);
+
+  // Clear search bar when navigating to a different page
+  useEffect(() => {
+    console.log('[SearchBar] Pathname changed, clearing search');
+    setQuery('');
+    setResults([]);
+    setCategorySuggestions([]);
+    setFilterSuggestions([]);
+    setIsOpen(false);
+    setSelectedIndex(-1);
+  }, [pathname]);
 
   // Get primary image or first image
   const getPrimaryImage = (product: ProductWithImages) => {
