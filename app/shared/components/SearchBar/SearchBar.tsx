@@ -158,7 +158,7 @@ export default function SearchBar({ className }: SearchBarProps) {
     debounceTimerRef.current = setTimeout(() => {
       console.log('[SearchBar] Debounce timer fired, performing search');
       performSearch(value);
-    }, 300);
+    }, 600);
   };
 
   // Handle form submission
