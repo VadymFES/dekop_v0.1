@@ -11,30 +11,32 @@
 
 .searchInput {
   width: 100%;
-  height: 24px;
-  padding: 4px 32px 4px 6px;
-  border-radius: 4px;
+  height: 40px;
+  padding: 10px 40px 10px 16px;
+  border-radius: 8px;
   background: var(--background);
-  box-shadow: 0px 0px 3px 0px rgba(22, 1, 1, 0.54);
-  border: none;
+  box-shadow: 0px 2px 8px rgba(22, 1, 1, 0.08);
+  border: 1px solid rgba(22, 1, 1, 0.12);
   font-size: 14px;
   color: var(--foreground);
-  transition: box-shadow 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .searchInput:focus {
   outline: none;
-  box-shadow: 0px 0px 6px 0px rgba(22, 1, 1, 0.3);
+  box-shadow: 0px 4px 16px rgba(244, 81, 69, 0.15);
+  border-color: rgba(244, 81, 69, 0.3);
+  transform: translateY(-1px);
 }
 
 .searchInput::placeholder {
-  color: rgba(22, 1, 1, 0.5);
+  color: rgba(22, 1, 1, 0.4);
   font-size: 14px;
 }
 
 .loadingSpinner {
   position: absolute;
-  right: 8px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -43,12 +45,12 @@
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(22, 1, 1, 0.1);
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(244, 81, 69, 0.1);
   border-top-color: var(--btn-color);
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: spin 0.7s ease-in-out infinite;
 }
 
 @keyframes spin {
@@ -59,26 +61,27 @@
 
 .dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 12px);
   left: 0;
   right: 0;
   background: var(--background);
-  border-radius: 8px;
-  box-shadow: 0px 4px 12px rgba(22, 1, 1, 0.15);
+  border-radius: 12px;
+  box-shadow: 0px 8px 24px rgba(22, 1, 1, 0.12), 0px 2px 8px rgba(22, 1, 1, 0.08);
+  border: 1px solid rgba(22, 1, 1, 0.08);
   z-index: 1000;
-  max-height: 400px;
+  max-height: 480px;
   overflow-y: auto;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -89,7 +92,7 @@
 }
 
 .resultItem {
-  border-bottom: 1px solid rgba(22, 1, 1, 0.08);
+  border-bottom: 1px solid rgba(22, 1, 1, 0.06);
 }
 
 .resultItem:last-child {
@@ -99,28 +102,37 @@
 .resultLink {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 16px;
+  padding: 14px 16px;
   text-decoration: none;
   color: var(--foreground);
-  transition: background-color 0.2s ease;
+  transition: all 0.25s ease;
+  border-radius: 8px;
+  margin: 4px 8px;
 }
 
 .resultLink:hover,
 .resultItem.selected .resultLink {
-  background-color: rgba(244, 81, 69, 0.05);
+  background-color: rgba(244, 81, 69, 0.08);
+  transform: translateX(4px);
 }
 
 .productImage {
   flex-shrink: 0;
-  width: 50px;
-  height: 50px;
-  border-radius: 4px;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: rgba(22, 1, 1, 0.05);
+  background-color: rgba(22, 1, 1, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(22, 1, 1, 0.08);
+  transition: transform 0.25s ease;
+}
+
+.resultLink:hover .productImage {
+  transform: scale(1.05);
 }
 
 .productImage img {
@@ -134,16 +146,17 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .productName {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .productMeta {
@@ -154,57 +167,67 @@
 }
 
 .productPrice {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--btn-color);
+  letter-spacing: 0.2px;
 }
 
 .salebadge,
 .newBadge {
   font-size: 10px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 3px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .salebadge {
-  background-color: #FFE5E5;
-  color: #E2281B;
+  background: linear-gradient(135deg, #FFE5E5 0%, #FFD0D0 100%);
+  color: #D32F2F;
+  box-shadow: 0px 2px 4px rgba(227, 40, 27, 0.15);
 }
 
 .newBadge {
-  background-color: #E5F5FF;
-  color: #1976D2;
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+  color: #1565C0;
+  box-shadow: 0px 2px 4px rgba(25, 118, 210, 0.15);
 }
 
 .viewAllLink {
   display: block;
-  padding: 12px;
+  padding: 14px 16px;
   text-align: center;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--btn-color);
   text-decoration: none;
   border-top: 1px solid rgba(22, 1, 1, 0.08);
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  background: linear-gradient(to bottom, transparent 0%, rgba(244, 81, 69, 0.02) 100%);
+  margin-top: 4px;
 }
 
 .viewAllLink:hover {
-  background-color: rgba(244, 81, 69, 0.05);
+  background: rgba(244, 81, 69, 0.08);
+  color: #D32F2F;
+  letter-spacing: 0.3px;
 }
 
 .noResults {
-  padding: 24px 12px;
+  padding: 32px 16px;
   text-align: center;
   font-size: 14px;
-  color: rgba(22, 1, 1, 0.6);
+  color: rgba(22, 1, 1, 0.5);
+  line-height: 1.6;
 }
 
 /* Suggestion sections */
 .suggestionsSection {
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(22, 1, 1, 0.08);
+  padding: 12px 8px;
+  border-bottom: 1px solid rgba(22, 1, 1, 0.06);
+  background: linear-gradient(to bottom, rgba(244, 81, 69, 0.01) 0%, transparent 100%);
 }
 
 .suggestionsSection:last-of-type {
@@ -214,17 +237,19 @@
 .suggestionsHeader {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(22, 1, 1, 0.5);
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(22, 1, 1, 0.6);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .suggestionsHeader svg {
-  color: rgba(22, 1, 1, 0.4);
+  color: rgba(244, 81, 69, 0.5);
+  width: 14px;
+  height: 14px;
 }
 
 .suggestionsList {
@@ -243,34 +268,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 12px 16px;
   border: none;
   background: none;
   cursor: pointer;
   font-size: 14px;
   color: var(--foreground);
-  transition: background-color 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
+  border-radius: 8px;
+  margin: 2px 8px;
 }
 
 .suggestionButton:hover {
-  background-color: rgba(244, 81, 69, 0.05);
+  background-color: rgba(244, 81, 69, 0.08);
+  transform: translateX(4px);
 }
 
 .suggestionLabel {
   flex: 1;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.1px;
 }
 
 .suggestionButton svg {
   flex-shrink: 0;
-  color: rgba(22, 1, 1, 0.3);
-  transition: color 0.2s ease, transform 0.2s ease;
+  color: rgba(22, 1, 1, 0.25);
+  transition: all 0.25s ease;
+  width: 16px;
+  height: 16px;
 }
 
 .suggestionButton:hover svg {
   color: var(--btn-color);
-  transform: translateX(2px);
+  transform: translateX(4px);
 }
 
 /* Mobile responsiveness */
@@ -279,10 +310,26 @@
     max-width: 100%;
   }
 
+  .searchInput {
+    height: 44px;
+    padding: 12px 40px 12px 16px;
+  }
+
   .dropdown {
-    max-height: 300px;
+    max-height: 350px;
     left: -12px;
     right: -12px;
+    border-radius: 16px;
+  }
+
+  .resultLink {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .productImage {
+    width: 56px;
+    height: 56px;
   }
 
   .productName {
@@ -290,25 +337,31 @@
   }
 
   .productPrice {
-    font-size: 13px;
+    font-size: 14px;
+  }
+
+  .suggestionButton {
+    padding: 10px 12px;
   }
 }
 
 /* Scrollbar styling for dropdown */
 .dropdown::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .dropdown::-webkit-scrollbar-track {
-  background: rgba(22, 1, 1, 0.05);
-  border-radius: 8px;
+  background: rgba(22, 1, 1, 0.04);
+  border-radius: 12px;
+  margin: 8px 0;
 }
 
 .dropdown::-webkit-scrollbar-thumb {
-  background: rgba(22, 1, 1, 0.2);
-  border-radius: 8px;
+  background: rgba(244, 81, 69, 0.2);
+  border-radius: 12px;
+  transition: background 0.3s ease;
 }
 
 .dropdown::-webkit-scrollbar-thumb:hover {
-  background: rgba(22, 1, 1, 0.3);
+  background: rgba(244, 81, 69, 0.35);
 }
