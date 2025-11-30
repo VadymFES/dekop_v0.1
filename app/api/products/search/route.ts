@@ -7,6 +7,7 @@ import {
   CategorySuggestion,
   FilterSuggestion
 } from '@/app/lib/search-keywords';
+import { generateLayoutVariations } from '@/app/lib/keyboard-layout';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -29,10 +30,23 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const searchTerm = `%${query.trim()}%`;
-    console.log('[Search API] Searching for:', searchTerm);
+    // Generate all keyboard layout variations
+    const variations = generateLayoutVariations(query.trim());
+    console.log('[Search API] Generated layout variations:', variations);
 
-    // Search products by name, description, or category
+    // Create search patterns for all variations
+    const searchPatterns = variations.map(v => `%${v}%`);
+
+    // Build the WHERE clause dynamically
+    const pattern1 = searchPatterns[0] || `%${query.trim()}%`;
+    const pattern2 = searchPatterns[1] || pattern1;
+    const pattern3 = searchPatterns[2] || pattern1;
+    const pattern4 = searchPatterns[3] || pattern1;
+    const pattern5 = searchPatterns[4] || pattern1;
+
+    console.log('[Search API] Searching with patterns:', searchPatterns);
+
+    // Search products by name, description, or category with multiple layout variations
     const result = await sql`
       SELECT
         p.id,
@@ -69,9 +83,13 @@ export async function GET(request: NextRequest) {
       LEFT JOIN product_images pi ON p.id = pi.product_id
       LEFT JOIN product_spec_colors pc ON p.id = pc.product_id
       WHERE
-        (p.name ILIKE ${searchTerm} OR
-         p.description ILIKE ${searchTerm} OR
-         p.category ILIKE ${searchTerm})
+        (
+          p.name ILIKE ${pattern1} OR p.description ILIKE ${pattern1} OR p.category ILIKE ${pattern1} OR
+          p.name ILIKE ${pattern2} OR p.description ILIKE ${pattern2} OR p.category ILIKE ${pattern2} OR
+          p.name ILIKE ${pattern3} OR p.description ILIKE ${pattern3} OR p.category ILIKE ${pattern3} OR
+          p.name ILIKE ${pattern4} OR p.description ILIKE ${pattern4} OR p.category ILIKE ${pattern4} OR
+          p.name ILIKE ${pattern5} OR p.description ILIKE ${pattern5} OR p.category ILIKE ${pattern5}
+        )
         AND p.stock > 0
       GROUP BY p.id, p.name, p.slug, p.description, p.category,
                p.price, p.stock, p.rating,
@@ -110,9 +128,23 @@ export async function GET(request: NextRequest) {
 
     console.log('[Search API] Products mapped:', products.length);
 
-    // Find category and filter suggestions based on search query
-    const categorySuggestions = findCategorySuggestions(query.trim());
-    const filterSuggestions = findFilterSuggestions(query.trim());
+    // Find category and filter suggestions based on all layout variations
+    const allSuggestions = {
+      categories: new Set<CategorySuggestion>(),
+      filters: new Set<FilterSuggestion>()
+    };
+
+    // Check suggestions for all variations
+    variations.forEach(variation => {
+      const catSuggestions = findCategorySuggestions(variation);
+      const filtSuggestions = findFilterSuggestions(variation);
+
+      catSuggestions.forEach(s => allSuggestions.categories.add(s));
+      filtSuggestions.forEach(s => allSuggestions.filters.add(s));
+    });
+
+    const categorySuggestions = Array.from(allSuggestions.categories);
+    const filterSuggestions = Array.from(allSuggestions.filters);
 
     console.log('[Search API] Suggestions found:', {
       categories: categorySuggestions.length,
