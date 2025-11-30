@@ -10,7 +10,7 @@
 }
 
 .searchInput {
-  width: 100%;
+  width: 300px;
   height: 40px;
   padding: 10px 40px 10px 16px;
   border-radius: 8px;
@@ -71,6 +71,8 @@
   z-index: 1000;
   max-height: 480px;
   overflow-y: auto;
+  overflow-x: hidden;
+  width: 300px;
   animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -277,7 +279,6 @@
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   border-radius: 8px;
-  margin: 2px 8px;
 }
 
 .suggestionButton:hover {
