@@ -5,7 +5,8 @@ import styles from "./header.module.css";
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from "@/app/context/CartContext";
-import { useFavorites } from "@/app/context/FavoritesContext"; 
+import { useFavorites } from "@/app/context/FavoritesContext";
+import SearchBar from "@/app/shared/components/SearchBar/SearchBar"; 
   
 
 interface HeaderProps {
@@ -20,7 +21,6 @@ interface CartItem {
 const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
   const { cart } = useCart();
   const { favoritesCount } = useFavorites();
-  const [searchQuery, setSearchQuery] = useState('');
   const [isCatalogView, setIsCatalogView] = useState(false);
   const catalogRef = useRef<HTMLDivElement>(null);
   const catalogButtonRef = useRef<HTMLSpanElement>(null);
@@ -28,10 +28,6 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
 
   const handleMouseEnter = () => {
     setIsCatalogView(true);
-  };
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
   };
 
   // Click handler for both mobile and desktop
@@ -137,13 +133,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
           <div className={styles.separatorLine}></div>
 
           {/* Search and Links */}
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={handleSearch}
-            className={styles.searchBar}
-          />
+          <SearchBar className={styles.searchBar} />
           <div className={styles.activityButtons}>
 
             <div 

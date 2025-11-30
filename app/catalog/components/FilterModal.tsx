@@ -176,7 +176,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       hardness: null,
       specifics: null,
       priceMin: priceRange.min,
-      priceMax: priceRange.max
+      priceMax: priceRange.max,
+      search: ''
     });
     setTempPriceMin(priceRange.min);
     setTempPriceMax(priceRange.max);
