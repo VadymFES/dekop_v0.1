@@ -37,12 +37,15 @@ export async function GET(request: NextRequest) {
     // Create search patterns for all variations
     const searchPatterns = variations.map(v => `%${v}%`);
 
-    // Build the WHERE clause dynamically
+    // Build the WHERE clause dynamically - handle up to 8 patterns
     const pattern1 = searchPatterns[0] || `%${query.trim()}%`;
     const pattern2 = searchPatterns[1] || pattern1;
     const pattern3 = searchPatterns[2] || pattern1;
     const pattern4 = searchPatterns[3] || pattern1;
     const pattern5 = searchPatterns[4] || pattern1;
+    const pattern6 = searchPatterns[5] || pattern1;
+    const pattern7 = searchPatterns[6] || pattern1;
+    const pattern8 = searchPatterns[7] || pattern1;
 
     console.log('[Search API] Searching with patterns:', searchPatterns);
 
@@ -88,7 +91,10 @@ export async function GET(request: NextRequest) {
           p.name ILIKE ${pattern2} OR p.description ILIKE ${pattern2} OR p.category ILIKE ${pattern2} OR
           p.name ILIKE ${pattern3} OR p.description ILIKE ${pattern3} OR p.category ILIKE ${pattern3} OR
           p.name ILIKE ${pattern4} OR p.description ILIKE ${pattern4} OR p.category ILIKE ${pattern4} OR
-          p.name ILIKE ${pattern5} OR p.description ILIKE ${pattern5} OR p.category ILIKE ${pattern5}
+          p.name ILIKE ${pattern5} OR p.description ILIKE ${pattern5} OR p.category ILIKE ${pattern5} OR
+          p.name ILIKE ${pattern6} OR p.description ILIKE ${pattern6} OR p.category ILIKE ${pattern6} OR
+          p.name ILIKE ${pattern7} OR p.description ILIKE ${pattern7} OR p.category ILIKE ${pattern7} OR
+          p.name ILIKE ${pattern8} OR p.description ILIKE ${pattern8} OR p.category ILIKE ${pattern8}
         )
         AND p.stock > 0
       GROUP BY p.id, p.name, p.slug, p.description, p.category,

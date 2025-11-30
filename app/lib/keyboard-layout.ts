@@ -125,16 +125,26 @@ export function generateLayoutVariations(query: string): string[] {
   variations.add(query.toLowerCase());
 
   // English to Russian layout
-  variations.add(convertLayout(query, 'en').toLowerCase());
+  const enToRu = convertLayout(query, 'en').toLowerCase();
+  variations.add(enToRu);
 
-  // English to Ukrainian layout
+  // English to Ukrainian layout (character by character)
   variations.add(convertToUkrainian(query).toLowerCase());
 
   // Russian to English layout
   variations.add(convertLayout(query, 'ru').toLowerCase());
 
-  // Russian to Ukrainian word conversion
+  // Russian to Ukrainian word conversion on original query
   variations.add(convertRussianToUkrainian(query).toLowerCase());
+
+  // IMPORTANT: Convert EN→RU result to Ukrainian
+  // Example: "irfa" → "шкаф" → "шафа"
+  const ruToUa = convertRussianToUkrainian(enToRu).toLowerCase();
+  variations.add(ruToUa);
+
+  // Also try converting query as if it's already Russian
+  const queryAsRussian = convertRussianToUkrainian(query.toLowerCase());
+  variations.add(queryAsRussian);
 
   return Array.from(variations);
 }
