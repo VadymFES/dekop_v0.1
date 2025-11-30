@@ -1,7 +1,7 @@
 import styles from '../privacy-policy/privacy.module.css';
 
 export const metadata = {
-  title: 'Угода користувача - Dekop',
+  title: 'Користувацька угода - Dekop Furniture Enterprise',
   description: 'Умови використання веб-сайту Dekop Furniture Enterprise. Права та обов\'язки користувачів.',
 };
 
@@ -9,20 +9,14 @@ export default function UserAgreementPage() {
   return (
     <div className={styles.container}>
       <div className={styles.content}>
-        <h1>Угода користувача</h1>
-
-        <p className={styles.intro}>
-          Ця угода визначає правила та умови взаємодії між відвідувачами веб-сайту
-          pavlyk.in.ua та його адміністрацією. Використовуючи наш сайт, ви приймаєте
-          всі положення цього документа.
-        </p>
+        <h1>Користувацька угода</h1>
 
         <section id="general-provisions">
           <h2>1. Загальні положення</h2>
 
           <p>
             Цей документ представляє собою публічну пропозицію (іменовану надалі Угода)
-            щодо використання веб-ресурсу https://pavlyk.in.ua/ (далі – Сайт). Угода
+            щодо використання веб-ресурсу https://dekop.com.ua/ (далі – Сайт). Угода
             укладається між власниками Сайту в особі його адміністрації (іменованої надалі
             Адміністрація) та кожним відвідувачем (іменованим надалі Користувач), який
             отримує доступ до платформи.
