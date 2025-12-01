@@ -47,29 +47,41 @@ export const metadata: Metadata = {
 const GTM_ID = "GTM-TVVGC6PQ"; 
 
 export default async function RootLayout({
- children,
+  children,
 }: Readonly<{
- children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-  const nonce = await getNonce();
+  const nonce = await getNonce(); // Get the CSP nonce
 
- return (
-  <html lang="uk">
-   <body>
-        {/* Pass nonce to GTM for script CSP compliance */}
-    <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />
+  return (
+    <html lang="uk">
+      <body>
+        {/* 1. DATA LAYER INITIALIZATION 
+            - CSP: Uses dangerouslySetInnerHTML and the 'nonce' for compliance.
+        */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];`,
+          }}
+        />
 
-    <QueryProvider>
-     <CartProvider>
-      <FavoritesProvider>
-       <ClientLayout>{children}</ClientLayout>
-       <CookieConsent />
-       <SpeedInsights />
-       <Analytics />
-      </FavoritesProvider>
-     </CartProvider>
-    </QueryProvider>
-   </body>
-  </html>
- );
+        {/* 2. GTM CONTAINER SCRIPT & NOSCRIPT IFRAME
+            - This component loads the main GTM script and the noscript fallback.
+        */}
+        <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />
+
+        <QueryProvider>
+          <CartProvider>
+            <FavoritesProvider>
+              <ClientLayout>{children}</ClientLayout>
+              <CookieConsent />
+              <SpeedInsights />
+              <Analytics />
+            </FavoritesProvider>
+          </CartProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
 }
