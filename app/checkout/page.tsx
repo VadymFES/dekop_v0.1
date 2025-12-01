@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomerInfoStep from './components/CustomerInfoStep';
 import DeliveryInfoStep from './components/DeliveryInfoStep';
@@ -13,6 +13,7 @@ import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
 import { useCart } from '@/app/context/CartContext';
+import { trackBeginCheckout, trackCheckoutProgress, trackPurchase } from '@/app/lib/gtm-analytics';
 import styles from './checkout.module.css';
 
 // LocalStorage key for checkout form data
@@ -95,6 +96,7 @@ export default function CheckoutPage() {
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const hasTrackedBeginCheckout = useRef(false);
 
   // Modal states
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -142,6 +144,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!isCartLoading && cart.length === 0) {
       router.push('/cart');
+    } else if (!isCartLoading && cart.length > 0 && !hasTrackedBeginCheckout.current) {
+      // Track begin checkout event
+      trackBeginCheckout(cart);
+      hasTrackedBeginCheckout.current = true;
     }
   }, [cart.length, isCartLoading, router]);
 
@@ -236,6 +242,18 @@ export default function CheckoutPage() {
   const handleNext = () => {
     if (validateStep(currentStep)) {
       if (currentStep < 4) {
+        // Track checkout progress
+        if (currentStep === 2) {
+          // Shipping info added
+          trackCheckoutProgress('shipping', cart, {
+            shipping_method: formData.deliveryInfo.method,
+          });
+        } else if (currentStep === 3) {
+          // Payment info added
+          trackCheckoutProgress('payment', cart, {
+            payment_method: formData.paymentInfo.method,
+          });
+        }
         setCurrentStep(currentStep + 1);
       } else {
         handleSubmitOrder();
@@ -337,6 +355,17 @@ export default function CheckoutPage() {
 
       // Save orderId->email mapping to persist through payment flow
       saveOrderEmailMapping(order.id, formData.customerInfo.email);
+
+      // Track purchase event
+      trackPurchase(
+        order.order_number || order.id.toString(),
+        cart,
+        cartTotal,
+        {
+          paymentMethod: formData.paymentInfo.method,
+          deliveryMethod: formData.deliveryInfo.method,
+        }
+      );
 
       // Handle different payment methods
       if (formData.paymentInfo.method === 'liqpay') {

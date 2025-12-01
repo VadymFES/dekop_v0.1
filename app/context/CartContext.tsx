@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
+import { trackAddToCart, trackRemoveFromCart } from '@/app/lib/gtm-analytics';
 
 // Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
@@ -154,10 +155,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     onMutate: async (newItem) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-      
+
       // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-      
+
       // Create an optimistic cart item (with a temporary ID)
       const optimisticItem: CartItem = {
         id: `temp-${Date.now()}`, // Temporary ID
@@ -170,7 +171,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         price: 0,
         image_url: ""
       };
-      
+
       // Optimistically update the cache
       if (previousCart) {
         queryClient.setQueryData(['cart'], {
@@ -178,8 +179,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           items: [...previousCart.items, optimisticItem]
         });
       }
-      
-      return { previousCart };
+
+      return { previousCart, newItem };
+    },
+    onSuccess: async (_data, variables) => {
+      // Fetch product details for tracking
+      try {
+        const productRes = await fetch(`/api/products/by-id/${variables.productId}`);
+        if (productRes.ok) {
+          const product = await productRes.json();
+          trackAddToCart(product, variables.quantity, variables.color);
+        }
+      } catch (error) {
+        console.error('Failed to track add to cart:', error);
+      }
     },
     onError: (error, _variables, context) => {
       // If there's an error, roll back to the previous state
@@ -236,6 +249,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
 
+      // Find the item being removed for tracking
+      const itemToRemove = previousCart?.items.find(item => item.id === id);
+
       if (previousCart) {
         const updatedItems = previousCart.items.filter(item => item.id !== id);
 
@@ -246,7 +262,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      return { previousCart };
+      return { previousCart, itemToRemove };
+    },
+    onSuccess: (_data, _variables, context) => {
+      // Track removal
+      if (context?.itemToRemove) {
+        trackRemoveFromCart(context.itemToRemove, context.itemToRemove.quantity);
+      }
     },
     onError: (error, _variables, context) => {
       if (context?.previousCart) {

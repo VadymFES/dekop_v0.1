@@ -1,6 +1,7 @@
 'use client';
 
 // app/product/[slug]/client-page.tsx
+import { useEffect } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -10,6 +11,7 @@ import Specifications from '../components/specs/specifications';
 import ProductActions from '../components/actions/actions';
 import ProductReviews from '../reviews/reviews';
 import SimilarProducts from '../components/similarProducts/similarProducts';
+import { trackViewItem } from '@/app/lib/gtm-analytics';
 
 // Define type for component props
 interface ClientProductPageProps {
@@ -20,12 +22,17 @@ interface ClientProductPageProps {
 }
 
 // Client Component that receives data from server component
-export default function ClientProductPage({ 
-  product, 
-  reviews, 
+export default function ClientProductPage({
+  product,
+  reviews,
   similarProducts,
-  categorySlugMap 
+  categorySlugMap
 }: ClientProductPageProps) {
+  // Track product view on mount
+  useEffect(() => {
+    trackViewItem(product);
+  }, [product.id]);
+
   return (
     <div className={styles.topContainer}>
       <div className={styles.secondaryContainer}>
