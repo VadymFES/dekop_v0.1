@@ -14,12 +14,18 @@ Quick reference for the GTM e-commerce tracking implementation in Dekop Furnitur
 
 | Event | Location | Trigger |
 |-------|----------|---------|
-| `view_item` | Product detail page | Page load |
-| `add_to_cart` | Cart context | Item added to cart |
+| `view_item` | Product detail page | Page load (fires once per page) |
+| `add_to_cart` | Product actions/cards | Item added to cart |
 | `begin_checkout` | Checkout page | Page load |
 | `add_shipping_info` | Checkout page | Shipping step completed |
 | `add_payment_info` | Checkout page | Payment step completed |
-| `purchase` | Checkout page | Order created successfully |
+| `purchase` | Order success page | **Only when payment_status = 'paid'** ✅ |
+
+### Payment Tracking Events
+
+| Event | Location | Trigger |
+|-------|----------|---------|
+| `payment_cancelled` | Payment cancelled page | User cancels/abandons payment |
 
 ### Events NOT Tracked (Disabled)
 
@@ -103,12 +109,13 @@ trackPurchase(orderId, cartItems, orderTotal, {
 
 ## Testing Checklist
 
-- [ ] Product view tracking fires on product pages
+- [ ] Product view tracking fires **once** on product pages (not twice)
 - [ ] Add to cart tracking fires when adding items
 - [ ] Begin checkout tracking fires on checkout page
 - [ ] Shipping info tracking fires at step 2
 - [ ] Payment info tracking fires at step 3
-- [ ] Purchase tracking fires after successful order
+- [ ] Purchase tracking fires on /order-success **only if payment is paid** ✅
+- [ ] Payment cancelled tracking fires on /payment-cancelled ❌
 
 ## GTM Preview Mode
 
@@ -129,6 +136,7 @@ trackPurchase(orderId, cartItems, orderTotal, {
 
 Create these in GTM → Variables → User-Defined Variables:
 
+**E-commerce Variables:**
 - `ecommerce`
 - `ecommerce.transaction_id`
 - `ecommerce.currency`
@@ -137,27 +145,45 @@ Create these in GTM → Variables → User-Defined Variables:
 - `payment_method`
 - `delivery_method`
 
+**Payment Tracking Variables:**
+- `order_id`
+- `order_number`
+- `order_value`
+
 ## Files Modified
 
 - ✅ `app/lib/gtm-analytics.ts` - Analytics utilities (NEW)
 - ✅ `app/components/GoogleTagManager.tsx` - GTM component (existing)
 - ✅ `app/layout.tsx` - GTM integration (existing)
-- ✅ `app/product/[slug]/client-page.tsx` - Product view tracking
-- ✅ `app/context/CartContext.tsx` - Add to cart tracking only
+- ✅ `app/product/[slug]/client-page.tsx` - Product view tracking (fires once)
+- ✅ `app/product/components/actions/actions.tsx` - Add to cart tracking
+- ✅ `app/shared/components/productCard/productCard.tsx` - Add to cart tracking
 - ✅ `app/cart/page.tsx` - No tracking (view_cart removed)
-- ✅ `app/checkout/page.tsx` - Checkout & purchase tracking
+- ✅ `app/checkout/page.tsx` - Checkout progress tracking only
+- ✅ `app/order-success/page.tsx` - Purchase tracking for paid orders ✅
+- ✅ `app/payment-cancelled/page.tsx` - Cancelled payment tracking ❌
 - ✅ `app/api/products/by-id/[productId]/route.ts` - Product fetch API (NEW)
 - ✅ `app/shared/components/SearchBar/SearchBar.tsx` - Search tracking disabled
 
 ## Next Steps for Full Implementation
 
 1. Complete GTM container configuration (see GTM_CONFIGURATION_GUIDE.md)
-2. Create GA4 event tags in GTM for the 6 active events
-3. Test in Preview mode
+2. Create GA4 event tags in GTM:
+   - 6 e-commerce events (view_item through purchase)
+   - 1 payment_cancelled event for abandoned checkouts
+3. Test in Preview mode:
+   - Verify view_item fires **once** per page
+   - Complete full purchase flow to test purchase event
+   - Cancel payment to test payment_cancelled event
 4. Publish GTM container
 5. Monitor in GA4 Realtime reports
-6. Set up conversions for key events
-7. Create custom reports and dashboards
+6. Set up conversions:
+   - Primary: `purchase` (only counts paid orders)
+   - Secondary: `begin_checkout`, `add_to_cart`
+7. Create funnel exploration:
+   - Steps: view_item → add_to_cart → begin_checkout → purchase
+   - Track drop-offs and payment_cancelled events
+8. Create custom reports and dashboards
 
 ## Additional Features Available (Not Currently Used)
 
