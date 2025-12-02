@@ -13,6 +13,7 @@ import {
 } from '@/app/lib/order-utils';
 import OrderSummary from '@/app/components/order/OrderSummary';
 import { useCart } from '@/app/context/CartContext';
+import { trackPurchase } from '@/app/lib/gtm-analytics';
 import styles from './page.module.css';
 
 // LocalStorage key for checkout form data (same as in checkout page)
@@ -34,6 +35,7 @@ function OrderSuccessContent() {
 
   // Use ref to track cleanup status to prevent infinite loops
   const cleanupInitiatedRef = useRef(false);
+  const purchaseTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -111,13 +113,43 @@ function OrderSuccessContent() {
     fetchOrder();
   }, [orderId, searchParams]); // Removed clearCart and cartCleared from dependencies
 
-  // Separate effect for cleanup - runs only once after order is loaded
+  // Separate effect for cleanup and tracking - runs only once after order is loaded
   useEffect(() => {
     if (order && !cleanupInitiatedRef.current) {
       // Set ref immediately to prevent re-runs (before any async operations)
       cleanupInitiatedRef.current = true;
 
       console.log('[Order Success] Starting cleanup...');
+
+      // Track successful purchase (only if paid)
+      if (!purchaseTrackedRef.current && order.payment_status === 'paid') {
+        try {
+          // Convert order items to format expected by tracking
+          const trackingItems = order.items.map(item => ({
+            id: item.product_id,
+            name: item.product_name,
+            price: parseFloat(item.price.toString()),
+            quantity: item.quantity,
+            category: '',
+            images: [],
+          }));
+
+          trackPurchase(
+            order.order_number || order.id.toString(),
+            trackingItems,
+            parseFloat(order.total_amount.toString()),
+            {
+              paymentMethod: order.payment_method,
+              deliveryMethod: order.delivery_method,
+            }
+          );
+
+          purchaseTrackedRef.current = true;
+          console.log('[Order Success] Purchase tracked successfully');
+        } catch (trackError) {
+          console.error('[Order Success] Failed to track purchase:', trackError);
+        }
+      }
 
       const performCleanup = async () => {
         // Clear cart

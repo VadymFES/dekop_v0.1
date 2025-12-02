@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import {
@@ -9,6 +9,7 @@ import {
   getDeliveryMethodName,
   getPaymentMethodName,
 } from '@/app/lib/order-utils';
+import { trackError } from '@/app/lib/gtm-analytics';
 import styles from './page.module.css';
 
 /**
@@ -23,6 +24,7 @@ function PaymentCancelledContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const cancelledTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -44,6 +46,35 @@ function PaymentCancelledContent() {
 
         if (data.success && data.order) {
           setOrder(data.order);
+
+          // Track payment cancellation
+          if (!cancelledTrackedRef.current) {
+            try {
+              trackError(
+                'payment_cancelled',
+                `Payment cancelled for order ${data.order.order_number}`,
+                'payment-cancelled-page'
+              );
+
+              // Also push a custom event for cancelled checkout
+              if (typeof window !== 'undefined' && (window as any).dataLayer) {
+                (window as any).dataLayer.push({
+                  event: 'payment_cancelled',
+                  order_id: data.order.id,
+                  order_number: data.order.order_number,
+                  payment_method: data.order.payment_method,
+                  order_value: parseFloat(data.order.total_amount.toString()),
+                  currency: 'UAH',
+                  timestamp: new Date().toISOString(),
+                });
+              }
+
+              cancelledTrackedRef.current = true;
+              console.log('[Payment Cancelled] Cancellation tracked successfully');
+            } catch (trackError) {
+              console.error('[Payment Cancelled] Failed to track:', trackError);
+            }
+          }
         } else {
           throw new Error('Замовлення не знайдено');
         }

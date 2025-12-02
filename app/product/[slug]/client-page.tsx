@@ -1,7 +1,7 @@
 'use client';
 
 // app/product/[slug]/client-page.tsx
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -28,9 +28,15 @@ export default function ClientProductPage({
   similarProducts,
   categorySlugMap
 }: ClientProductPageProps) {
-  // Track product view on mount
+  // Track product view only once
+  const hasTracked = useRef(false);
+
   useEffect(() => {
-    trackViewItem(product);
+    // Only track once per product page load
+    if (!hasTracked.current) {
+      trackViewItem(product);
+      hasTracked.current = true;
+    }
   }, [product.id]);
 
   return (

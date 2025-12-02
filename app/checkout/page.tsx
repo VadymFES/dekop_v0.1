@@ -13,7 +13,7 @@ import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
 import { useCart } from '@/app/context/CartContext';
-import { trackBeginCheckout, trackCheckoutProgress, trackPurchase } from '@/app/lib/gtm-analytics';
+import { trackBeginCheckout, trackCheckoutProgress } from '@/app/lib/gtm-analytics';
 import styles from './checkout.module.css';
 
 // LocalStorage key for checkout form data
@@ -356,16 +356,9 @@ export default function CheckoutPage() {
       // Save orderId->email mapping to persist through payment flow
       saveOrderEmailMapping(order.id, formData.customerInfo.email);
 
-      // Track purchase event
-      trackPurchase(
-        order.order_number || order.id.toString(),
-        cart,
-        cartTotal,
-        {
-          paymentMethod: formData.paymentInfo.method,
-          deliveryMethod: formData.deliveryInfo.method,
-        }
-      );
+      // Note: Purchase tracking moved to order-success page
+      // We track the purchase only after payment is confirmed as 'paid'
+      // This prevents duplicate or premature purchase events
 
       // Handle different payment methods
       if (formData.paymentInfo.method === 'liqpay') {
