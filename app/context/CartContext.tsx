@@ -3,7 +3,6 @@
 import { createContext, useContext, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
-import { trackAddToCart } from '@/app/lib/gtm-analytics';
 
 // Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
@@ -181,18 +180,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
 
       return { previousCart, newItem };
-    },
-    onSuccess: async (_data, variables) => {
-      // Fetch product details for tracking
-      try {
-        const productRes = await fetch(`/api/products/by-id/${variables.productId}`);
-        if (productRes.ok) {
-          const product = await productRes.json();
-          trackAddToCart(product, variables.quantity, variables.color);
-        }
-      } catch (error) {
-        console.error('Failed to track add to cart:', error);
-      }
     },
     onError: (error, _variables, context) => {
       // If there's an error, roll back to the previous state

@@ -13,6 +13,7 @@ import { PostponementIcon } from '@/app/ui/icons/delivery/postponementIcon';
 import Link from 'next/link';
 import ProductReviews from '../../reviews/reviews';
 import { useCart } from '@/app/context/CartContext';
+import { trackAddToCart } from '@/app/lib/gtm-analytics';
 
 interface ProductActionsProps {
   product?: ProductWithImages;
@@ -30,7 +31,12 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
 
   const handleAddToCart = () => {
     if (!product) return;
-    addToCart( { productId: product.id.toString(), quantity, color: selectedColor.color });
+
+    // Track add to cart event
+    trackAddToCart(product, quantity, selectedColor.color);
+
+    // Add to cart
+    addToCart({ productId: product.id.toString(), quantity, color: selectedColor.color });
   };
   
   useEffect(() => {

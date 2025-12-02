@@ -6,6 +6,7 @@ import styles from "./productCard.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 import { useCart } from "@/app/context/CartContext";
 import { useFavorites } from "@/app/context/FavoritesContext";
+import { trackAddToCart } from "@/app/lib/gtm-analytics";
 
 interface ProductCardProps {
   product: ProductWithImages;
@@ -23,12 +24,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     // If the product is out of stock, do nothing
     if (product.stock < 1) return;
 
+    const color = product.colors?.[0]?.color || "";
+
+    // Track add to cart event
+    trackAddToCart(product, 1, color);
+
     // Add the product to the cart with a default quantity of 1.
     // If the product has color options, default to the first one (or an empty string if not available)
     addToCart({
       productId: product.id.toString(),
       quantity: 1,
-      color: product.colors?.[0]?.color || "",
+      color: color,
     });
   };
 
