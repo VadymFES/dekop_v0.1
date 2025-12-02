@@ -154,10 +154,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     onMutate: async (newItem) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-      
+
       // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-      
+
       // Create an optimistic cart item (with a temporary ID)
       const optimisticItem: CartItem = {
         id: `temp-${Date.now()}`, // Temporary ID
@@ -170,7 +170,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         price: 0,
         image_url: ""
       };
-      
+
       // Optimistically update the cache
       if (previousCart) {
         queryClient.setQueryData(['cart'], {
@@ -178,8 +178,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           items: [...previousCart.items, optimisticItem]
         });
       }
-      
-      return { previousCart };
+
+      return { previousCart, newItem };
     },
     onError: (error, _variables, context) => {
       // If there's an error, roll back to the previous state

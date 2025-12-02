@@ -20,13 +20,13 @@ export default function Cart() {
       setIsLoading(false);
     } else {
       // Check if all required properties are loaded
-      const allDataLoaded = cart.every(item => 
-        item.productDetails?.name && 
+      const allDataLoaded = cart.every(item =>
+        item.productDetails?.name &&
         item.productDetails?.price &&
         // item.colors &&
         item.productDetails?.specs
       );
-      
+
       if (allDataLoaded) {
         setIsLoading(false);
         if (selectedIds.length === 0) {

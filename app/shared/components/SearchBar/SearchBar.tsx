@@ -37,14 +37,10 @@ export default function SearchBar({ className }: SearchBarProps) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Track analytics events
+  // Track analytics events (disabled - tracking not needed for search suggestions)
   const trackEvent = useCallback((eventName: string, eventData?: Record<string, any>) => {
-    if (typeof window !== 'undefined' && (window as any).dataLayer) {
-      (window as any).dataLayer.push({
-        event: eventName,
-        ...eventData
-      });
-    }
+    // Search suggestion tracking disabled per user request
+    // Events like search_initiated, suggestion_clicked, etc. are not tracked
   }, []);
 
   // Debounced search function
