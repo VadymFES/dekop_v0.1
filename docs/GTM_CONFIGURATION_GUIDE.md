@@ -1,6 +1,6 @@
 # Google Tag Manager Configuration Guide
 
-Complete step-by-step guide for configuring Google Tag Manager (GTM) with enhanced e-commerce tracking for Dekop Furniture Enterprise.
+Complete step-by-step guide for configuring Google Tag Manager (GTM) with e-commerce tracking for Dekop Furniture Enterprise.
 
 ## Table of Contents
 
@@ -8,12 +8,9 @@ Complete step-by-step guide for configuring Google Tag Manager (GTM) with enhanc
 2. [Install GTM Container](#2-install-gtm-container)
 3. [Configure GA4 Property](#3-configure-ga4-property)
 4. [E-commerce Data Layer Variables](#4-e-commerce-data-layer-variables)
-5. [Enhanced E-commerce Tags](#5-enhanced-e-commerce-tags)
-6. [Conversion Tracking](#6-conversion-tracking)
-7. [Search Analytics](#7-search-analytics)
-8. [User Behavior Tracking](#8-user-behavior-tracking)
-9. [Testing & Debugging](#9-testing--debugging)
-10. [Publishing Container](#10-publishing-container)
+5. [E-commerce Event Tags](#5-e-commerce-event-tags)
+6. [Testing & Debugging](#6-testing--debugging)
+7. [Publishing Container](#7-publishing-container)
 
 ---
 
@@ -92,9 +89,6 @@ The implementation includes:
    - ✅ Page URL
    - ✅ Page Path
    - ✅ Page Title
-   - ✅ Click Element
-   - ✅ Click Text
-   - ✅ Click URL
 
 ### Create Custom Data Layer Variables
 
@@ -110,11 +104,8 @@ Create the following custom variables (for each, click **Variables** → **New**
 | `DLV - Currency` | `ecommerce.currency` | `UAH` |
 | `DLV - Value` | `ecommerce.value` | `0` |
 | `DLV - Items` | `ecommerce.items` | `undefined` |
-| `DLV - Item List Name` | `ecommerce.item_list_name` | `undefined` |
-| `DLV - Search Term` | `search_term` | `undefined` |
-| `DLV - Results Count` | `results_count` | `0` |
 
-#### User Data Variables
+#### Checkout Data Variables
 
 | Variable Name | Data Layer Variable Name | Default Value |
 |--------------|--------------------------|---------------|
@@ -124,7 +115,9 @@ Create the following custom variables (for each, click **Variables** → **New**
 
 ---
 
-## 5. Enhanced E-commerce Tags
+## 5. E-commerce Event Tags
+
+The following 6 events are tracked in this implementation:
 
 ### 5.1 View Item (Product Detail Page)
 
@@ -174,35 +167,7 @@ Create the following custom variables (for each, click **Variables** → **New**
    - Event Name: `add_to_cart`
 6. Click **Save**
 
-### 5.3 Remove from Cart
-
-1. **Create Tag**: Tags → New
-2. **Name**: `GA4 - Remove from Cart`
-3. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `remove_from_cart`
-4. **Event Parameters**: Same as Add to Cart
-5. **Triggering**:
-   - Trigger Type: **Custom Event**
-   - Event Name: `remove_from_cart`
-6. Click **Save**
-
-### 5.4 View Cart
-
-1. **Create Tag**: Tags → New
-2. **Name**: `GA4 - View Cart`
-3. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `view_cart`
-4. **Event Parameters**: Same as above
-5. **Triggering**:
-   - Trigger Type: **Custom Event**
-   - Event Name: `view_cart`
-6. Click **Save**
-
-### 5.5 Begin Checkout
+### 5.3 Begin Checkout
 
 1. **Create Tag**: Tags → New
 2. **Name**: `GA4 - Begin Checkout`
@@ -210,13 +175,23 @@ Create the following custom variables (for each, click **Variables** → **New**
    - Tag Type: **Google Analytics: GA4 Event**
    - Configuration Tag: Select `GA4 Configuration`
    - Event Name: `begin_checkout`
-4. **Event Parameters**: Same as above
+4. **Event Parameters**:
+   ```
+   Parameter Name: currency
+   Value: {{DLV - Currency}}
+
+   Parameter Name: value
+   Value: {{DLV - Value}}
+
+   Parameter Name: items
+   Value: {{DLV - Items}}
+   ```
 5. **Triggering**:
    - Trigger Type: **Custom Event**
    - Event Name: `begin_checkout`
 6. Click **Save**
 
-### 5.6 Add Shipping Info
+### 5.4 Add Shipping Info
 
 1. **Create Tag**: Tags → New
 2. **Name**: `GA4 - Add Shipping Info`
@@ -243,7 +218,7 @@ Create the following custom variables (for each, click **Variables** → **New**
    - Event Name: `add_shipping_info`
 6. Click **Save**
 
-### 5.7 Add Payment Info
+### 5.5 Add Payment Info
 
 1. **Create Tag**: Tags → New
 2. **Name**: `GA4 - Add Payment Info`
@@ -270,7 +245,7 @@ Create the following custom variables (for each, click **Variables** → **New**
    - Event Name: `add_payment_info`
 6. Click **Save**
 
-### 5.8 Purchase (Most Important!)
+### 5.6 Purchase (Most Important!)
 
 1. **Create Tag**: Tags → New
 2. **Name**: `GA4 - Purchase`
@@ -305,194 +280,7 @@ Create the following custom variables (for each, click **Variables** → **New**
 
 ---
 
-## 6. Conversion Tracking
-
-### Set Up Purchase Conversion
-
-1. In GA4, go to **Admin** → **Conversions**
-2. Click **New Conversion Event**
-3. Enter event name: `purchase`
-4. Click **Save**
-
-### Optional: Set Up Micro-Conversions
-
-Create additional conversions for:
-- `add_to_cart` - Users adding items to cart
-- `begin_checkout` - Users starting checkout
-- `search` - Users performing searches
-
----
-
-## 7. Search Analytics
-
-### 7.1 Search Event Tag
-
-1. **Create Tag**: Tags → New
-2. **Name**: `GA4 - Search`
-3. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `search`
-4. **Event Parameters**:
-   ```
-   Parameter Name: search_term
-   Value: {{DLV - Search Term}}
-   ```
-5. **Triggering**:
-   - Trigger Type: **Custom Event**
-   - Event Name: `search_submitted`
-6. Click **Save**
-
-### 7.2 View Search Results Tag
-
-1. **Create Tag**: Tags → New
-2. **Name**: `GA4 - View Search Results`
-3. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `view_search_results`
-4. **Event Parameters**:
-   ```
-   Parameter Name: search_term
-   Value: {{DLV - Search Term}}
-
-   Parameter Name: results_count
-   Value: {{DLV - Results Count}}
-   ```
-5. **Triggering**:
-   - Trigger Type: **Custom Event**
-   - Event Name: `view_search_results`
-6. Click **Save**
-
----
-
-## 8. User Behavior Tracking
-
-### 8.1 Scroll Depth Tracking
-
-1. **Create Trigger**: Triggers → New
-2. **Name**: `Scroll Depth - 25%, 50%, 75%, 90%`
-3. **Trigger Configuration**:
-   - Trigger Type: **Scroll Depth**
-   - Vertical Scroll Depths: `25,50,75,90` (percentages)
-   - Fires On: **All Pages**
-4. Click **Save**
-
-5. **Create Tag**: Tags → New
-6. **Name**: `GA4 - Scroll Depth`
-7. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `scroll`
-8. **Event Parameters**:
-   ```
-   Parameter Name: percent_scrolled
-   Value: {{Scroll Depth Threshold}}
-   ```
-9. **Triggering**: Select `Scroll Depth - 25%, 50%, 75%, 90%`
-10. Click **Save**
-
-### 8.2 Outbound Link Tracking
-
-1. **Create Variable**: Variables → New
-2. **Name**: `Outbound Link Check`
-3. **Variable Configuration**:
-   - Variable Type: **Custom JavaScript**
-   - Custom JavaScript:
-   ```javascript
-   function() {
-     var url = {{Click URL}};
-     var hostname = {{Page Hostname}};
-     return url && url.indexOf(hostname) === -1;
-   }
-   ```
-4. Click **Save**
-
-5. **Create Trigger**: Triggers → New
-6. **Name**: `Outbound Link Click`
-7. **Trigger Configuration**:
-   - Trigger Type: **Click - All Elements**
-   - Fires On: **Some Clicks**
-   - Condition: `Outbound Link Check` equals `true`
-8. Click **Save**
-
-9. **Create Tag**: Tags → New
-10. **Name**: `GA4 - Outbound Click`
-11. **Tag Configuration**:
-    - Tag Type: **Google Analytics: GA4 Event**
-    - Configuration Tag: Select `GA4 Configuration`
-    - Event Name: `click`
-12. **Event Parameters**:
-    ```
-    Parameter Name: link_domain
-    Value: {{Click URL}}
-
-    Parameter Name: link_text
-    Value: {{Click Text}}
-
-    Parameter Name: outbound
-    Value: true
-    ```
-13. **Triggering**: Select `Outbound Link Click`
-14. Click **Save**
-
-### 8.3 File Download Tracking
-
-1. **Create Trigger**: Triggers → New
-2. **Name**: `File Download - PDF`
-3. **Trigger Configuration**:
-   - Trigger Type: **Click - All Elements**
-   - Fires On: **Some Clicks**
-   - Condition: `Click URL` matches RegEx `\.pdf$`
-4. Click **Save**
-
-5. **Create Tag**: Tags → New
-6. **Name**: `GA4 - File Download`
-7. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `file_download`
-8. **Event Parameters**:
-   ```
-   Parameter Name: file_name
-   Value: {{Click URL}}
-
-   Parameter Name: link_text
-   Value: {{Click Text}}
-   ```
-9. **Triggering**: Select `File Download - PDF`
-10. Click **Save**
-
-### 8.4 Form Tracking
-
-1. **Create Trigger**: Triggers → New
-2. **Name**: `Form Submission - All Forms`
-3. **Trigger Configuration**:
-   - Trigger Type: **Form Submission**
-   - Check validation: **False**
-   - Fires On: **All Forms**
-4. Click **Save**
-
-5. **Create Tag**: Tags → New
-6. **Name**: `GA4 - Form Submission`
-7. **Tag Configuration**:
-   - Tag Type: **Google Analytics: GA4 Event**
-   - Configuration Tag: Select `GA4 Configuration`
-   - Event Name: `form_submit`
-8. **Event Parameters**:
-   ```
-   Parameter Name: form_id
-   Value: {{Form ID}}
-
-   Parameter Name: form_classes
-   Value: {{Form Classes}}
-   ```
-9. **Triggering**: Select `Form Submission - All Forms`
-10. Click **Save**
-
----
-
-## 9. Testing & Debugging
+## 6. Testing & Debugging
 
 ### Enable GTM Preview Mode
 
@@ -503,31 +291,63 @@ Create additional conversions for:
 
 ### Test E-commerce Events
 
-1. **View Item**: Navigate to a product page
-   - Check if `view_item` event fires
-   - Verify product data in dataLayer
+Follow this purchase funnel to test all events:
 
-2. **Add to Cart**: Click "Add to Cart" button
-   - Check if `add_to_cart` event fires
-   - Verify item data and price
+#### 1. View Item
+- Navigate to any product page (e.g., `/product/sofa-modern-grey`)
+- **Check**: `view_item` event fires
+- **Verify**:
+  - Product data in dataLayer
+  - `ecommerce.items[0].item_id` exists
+  - `ecommerce.items[0].item_name` is correct
+  - `ecommerce.value` matches product price
 
-3. **View Cart**: Go to cart page
-   - Check if `view_cart` event fires
-   - Verify all cart items
+#### 2. Add to Cart
+- Click "Add to Cart" button
+- **Check**: `add_to_cart` event fires
+- **Verify**:
+  - Item data includes quantity
+  - `ecommerce.value` = price × quantity
+  - Color variant is included if selected
 
-4. **Begin Checkout**: Click "Proceed to Checkout"
-   - Check if `begin_checkout` event fires
+#### 3. Begin Checkout
+- Go to cart and click "Proceed to Checkout"
+- **Check**: `begin_checkout` event fires
+- **Verify**:
+  - All cart items are in `ecommerce.items` array
+  - Total value matches cart total
 
-5. **Purchase**: Complete a test order
-   - Check if `purchase` event fires
-   - Verify transaction_id and total value
+#### 4. Add Shipping Info
+- Complete Step 2 (Delivery Information)
+- Click "Next"
+- **Check**: `add_shipping_info` event fires
+- **Verify**:
+  - `shipping_method` parameter is set
+  - All items still present
+
+#### 5. Add Payment Info
+- Complete Step 3 (Payment Information)
+- Click "Next"
+- **Check**: `add_payment_info` event fires
+- **Verify**:
+  - `payment_method` parameter is set
+  - All items still present
+
+#### 6. Purchase
+- Review order and click "Place Order"
+- **Check**: `purchase` event fires
+- **Verify**:
+  - `transaction_id` is unique
+  - Total value is correct
+  - All items are included
+  - Payment and delivery methods are set
 
 ### Use GA4 DebugView
 
 1. In GA4, go to **Configure** → **DebugView**
 2. With Preview Mode enabled, perform actions on your site
 3. See events in real-time in DebugView
-4. Verify all parameters are correct
+4. Click on each event to verify parameters
 
 ### Common Issues & Fixes
 
@@ -537,68 +357,100 @@ Create additional conversions for:
 | Missing parameters | Verify data layer variable names match exactly |
 | Duplicate events | Ensure triggers fire only once per action |
 | Wrong values | Check number formatting (should be numeric, not string) |
+| Items array empty | Verify product data structure in tracking calls |
 
 ---
 
-## 10. Publishing Container
+## 7. Publishing Container
 
 ### Submit Changes
 
 1. In GTM, click **Submit** (top right)
-2. **Version Name**: `Enhanced E-commerce Setup v1.0`
+2. **Version Name**: `E-commerce Tracking v1.0`
 3. **Version Description**:
    ```
-   Initial setup with:
-   - GA4 configuration
-   - Enhanced e-commerce tracking (view_item, add_to_cart, purchase, etc.)
-   - Search analytics
-   - User behavior tracking (scroll, outbound links, file downloads)
+   Initial e-commerce tracking setup:
+   - GA4 configuration tag
+   - 6 e-commerce events (view_item, add_to_cart, begin_checkout, add_shipping_info, add_payment_info, purchase)
+   - Data layer variables for currency, value, items, payment/delivery methods
+   - Tested in Preview mode
    ```
 4. Click **Publish**
 
+### Set Up Conversions in GA4
+
+1. In GA4, go to **Admin** → **Conversions**
+2. Click **New Conversion Event**
+3. Enter event name: `purchase`
+4. Click **Save**
+
+**Optional Micro-Conversions:**
+- `add_to_cart` - Track cart additions
+- `begin_checkout` - Track checkout starts
+
 ### Monitor After Publishing
 
-1. In GA4, go to **Reports** → **Realtime**
-2. Perform test transactions on your live site
-3. Verify events appear in Realtime report
-4. Check **Monetization** → **Ecommerce purchases** report (data appears within 24-48 hours)
+1. **Realtime Report**:
+   - In GA4, go to **Reports** → **Realtime**
+   - Perform test transactions on your live site
+   - Verify events appear in Realtime report
+
+2. **E-commerce Report** (available after 24-48 hours):
+   - Go to **Monetization** → **Ecommerce purchases**
+   - View purchase data, revenue, and items sold
+   - Analyze conversion funnel
+
+3. **Debug Issues**:
+   - If events don't appear, re-enable Preview mode
+   - Check browser console for errors
+   - Verify GTM container is published
+   - Check that website is using correct GTM ID
 
 ---
 
 ## Summary of Events Tracked
 
-✅ **E-commerce Events**:
-- `view_item` - Product detail views
-- `view_item_list` - Product list views (catalog, category)
-- `select_item` - Product clicks from lists
-- `add_to_cart` - Items added to cart
-- `remove_from_cart` - Items removed from cart
-- `view_cart` - Cart page views
-- `begin_checkout` - Checkout initiated
-- `add_shipping_info` - Shipping method selected
-- `add_payment_info` - Payment method selected
-- `purchase` - Order completed
+✅ **6 E-commerce Events**:
+1. `view_item` - Product detail views
+2. `add_to_cart` - Items added to cart
+3. `begin_checkout` - Checkout initiated
+4. `add_shipping_info` - Shipping method selected
+5. `add_payment_info` - Payment method selected
+6. `purchase` - Order completed
 
-✅ **Search Events**:
-- `search` - Search performed
-- `view_search_results` - Search results viewed
+❌ **Events NOT Tracked** (intentionally disabled):
+- `remove_from_cart` - Not tracked per business requirements
+- `view_cart` - Not tracked per business requirements
+- Search events - Not tracked per business requirements
+- User behavior events (scroll, clicks, etc.) - Not implemented
 
-✅ **User Behavior Events**:
-- `scroll` - Scroll depth (25%, 50%, 75%, 90%)
-- `click` - Outbound link clicks
-- `file_download` - File downloads (PDF, etc.)
-- `form_submit` - Form submissions
+---
+
+## Purchase Funnel Overview
+
+```
+Product Page → Add to Cart → Begin Checkout → Shipping Info → Payment Info → Purchase
+   ↓              ↓              ↓                ↓              ↓             ↓
+view_item    add_to_cart   begin_checkout  add_shipping  add_payment    purchase
+                                              _info          _info
+```
+
+Each step tracks the cart value and items to help you understand where customers drop off.
 
 ---
 
 ## Next Steps
 
 1. ✅ Complete GTM setup following this guide
-2. ✅ Enable Enhanced E-commerce in GA4 (Admin → Data Display → Enable)
-3. ✅ Create custom reports in GA4 for e-commerce analysis
-4. ✅ Set up audiences based on user behavior
-5. ✅ Configure remarketing lists for Google Ads
-6. ✅ Set up automated alerts for conversion tracking
+2. ✅ Test all 6 events in Preview mode
+3. ✅ Publish GTM container
+4. ✅ Set up `purchase` conversion in GA4
+5. ✅ Monitor Realtime reports for live data
+6. ✅ After 24-48 hours, check E-commerce reports
+7. ✅ Create custom funnel exploration in GA4:
+   - Go to **Explore** → **Funnel exploration**
+   - Add steps: view_item → add_to_cart → begin_checkout → purchase
+   - Analyze drop-off rates
 
 ---
 
@@ -606,6 +458,6 @@ Create additional conversions for:
 
 - **GTM Documentation**: https://support.google.com/tagmanager
 - **GA4 E-commerce Guide**: https://developers.google.com/analytics/devguides/collection/ga4/ecommerce
-- **GTM Community**: https://www.en.advertisercommunity.com/t5/Google-Tag-Manager/ct-p/Google-Tag-Manager
+- **GA4 Debugging**: https://support.google.com/analytics/answer/7201382
 
-For technical support with this implementation, check the codebase documentation or consult with your development team.
+For technical support with this implementation, refer to `GTM_QUICK_REFERENCE.md` in the docs folder.
