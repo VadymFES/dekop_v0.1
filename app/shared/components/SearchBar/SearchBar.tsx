@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ProductWithImages } from '@/app/lib/definitions';
 import { CategorySuggestion, FilterSuggestion } from '@/app/lib/search-keywords';
-import { trackSearch, trackUserEngagement } from '@/app/lib/gtm-analytics';
 import styles from './search.module.css';
 
 interface SearchBarProps {
@@ -38,20 +37,10 @@ export default function SearchBar({ className }: SearchBarProps) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Legacy function - now uses centralized analytics
+  // Track analytics events (disabled - tracking not needed for search suggestions)
   const trackEvent = useCallback((eventName: string, eventData?: Record<string, any>) => {
-    // Use centralized analytics functions
-    if (eventName === 'search_submitted' && eventData?.search_term) {
-      trackSearch(eventData.search_term, eventData.results_count);
-    } else {
-      // For other events, use user engagement tracking
-      trackUserEngagement(
-        eventName,
-        'search',
-        eventData?.search_term || eventData?.product_name,
-        eventData?.results_count || eventData?.position
-      );
-    }
+    // Search suggestion tracking disabled per user request
+    // Events like search_initiated, suggestion_clicked, etc. are not tracked
   }, []);
 
   // Debounced search function

@@ -3,7 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
-import { trackAddToCart, trackRemoveFromCart } from '@/app/lib/gtm-analytics';
+import { trackAddToCart } from '@/app/lib/gtm-analytics';
 
 // Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
@@ -249,9 +249,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
 
-      // Find the item being removed for tracking
-      const itemToRemove = previousCart?.items.find(item => item.id === id);
-
       if (previousCart) {
         const updatedItems = previousCart.items.filter(item => item.id !== id);
 
@@ -262,13 +259,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      return { previousCart, itemToRemove };
-    },
-    onSuccess: (_data, _variables, context) => {
-      // Track removal
-      if (context?.itemToRemove) {
-        trackRemoveFromCart(context.itemToRemove, context.itemToRemove.quantity);
-      }
+      return { previousCart };
     },
     onError: (error, _variables, context) => {
       if (context?.previousCart) {

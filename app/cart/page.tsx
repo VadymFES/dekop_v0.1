@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import styles from "./cart.module.css";
 import Image from "next/image";
 import Head from "next/head";
@@ -9,13 +9,11 @@ import { useCart } from "@/app/context/CartContext";
 import { CartItem, ProductSpecs } from "@/app/lib/definitions";
 import { HomeIcon } from "@/app/ui/icons/breadcrumbs/homeIcon";
 import { CartLoading } from "./ui/cartSkeleton";
-import { trackViewCart } from "@/app/lib/gtm-analytics";
 
 export default function Cart() {
   const { cart, updateCart, removeFromCart } = useCart();
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const hasTrackedView = useRef(false);
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -33,11 +31,6 @@ export default function Cart() {
         setIsLoading(false);
         if (selectedIds.length === 0) {
           setSelectedIds(cart.map((item) => item.id));
-        }
-        // Track view cart event only once when cart is loaded
-        if (!hasTrackedView.current && cart.length > 0) {
-          trackViewCart(cart);
-          hasTrackedView.current = true;
         }
       }
     }
