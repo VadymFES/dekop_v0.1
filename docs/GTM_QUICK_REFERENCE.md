@@ -16,29 +16,19 @@ Quick reference for the GTM e-commerce tracking implementation in Dekop Furnitur
 |-------|----------|---------|
 | `view_item` | Product detail page | Page load |
 | `add_to_cart` | Cart context | Item added to cart |
-| `remove_from_cart` | Cart context | Item removed from cart |
-| `view_cart` | Cart page | Page load (cart has items) |
 | `begin_checkout` | Checkout page | Page load |
 | `add_shipping_info` | Checkout page | Shipping step completed |
 | `add_payment_info` | Checkout page | Payment step completed |
 | `purchase` | Checkout page | Order created successfully |
 
-### Search Events
+### Events NOT Tracked (Disabled)
 
-| Event | Location | Trigger |
-|-------|----------|---------|
-| `search_initiated` | SearchBar component | User starts typing (3+ chars) |
-| `search_submitted` | SearchBar component | User submits search |
-| `search_no_results` | SearchBar component | Search returns no results |
-| `view_all_results_clicked` | SearchBar component | "View all" link clicked |
-
-### User Engagement Events
-
-| Event | Location | Trigger |
-|-------|----------|---------|
-| `suggestion_clicked` | SearchBar component | Product suggestion clicked |
-| `category_suggestion_clicked` | SearchBar component | Category suggestion clicked |
-| `filter_suggestion_clicked` | SearchBar component | Filter suggestion clicked |
+The following events are available in the analytics module but **not actively tracked**:
+- ❌ `remove_from_cart` - Removed per user request
+- ❌ `view_cart` - Removed per user request
+- ❌ Search suggestion engagement - Removed per user request
+- ❌ Video interactions - Not implemented
+- ❌ File downloads - Not implemented
 
 ## Data Layer Structure
 
@@ -75,11 +65,9 @@ All e-commerce events follow the GA4 e-commerce specification:
 import {
   trackViewItem,
   trackAddToCart,
-  trackRemoveFromCart,
-  trackViewCart,
   trackBeginCheckout,
+  trackCheckoutProgress,
   trackPurchase,
-  trackSearch,
   // ... other functions
 } from '@/app/lib/gtm-analytics';
 ```
@@ -93,36 +81,34 @@ trackViewItem(product);
 // Track add to cart
 trackAddToCart(product, quantity, color);
 
-// Track remove from cart
-trackRemoveFromCart(cartItem, quantity);
-
-// Track cart view
-trackViewCart(cartItems);
-
 // Track checkout
 trackBeginCheckout(cartItems);
+
+// Track shipping info
+trackCheckoutProgress('shipping', cartItems, {
+  shipping_method: 'nova_poshta'
+});
+
+// Track payment info
+trackCheckoutProgress('payment', cartItems, {
+  payment_method: 'liqpay'
+});
 
 // Track purchase
 trackPurchase(orderId, cartItems, orderTotal, {
   paymentMethod: 'liqpay',
   deliveryMethod: 'nova_poshta'
 });
-
-// Track search
-trackSearch(searchTerm, resultsCount);
 ```
 
 ## Testing Checklist
 
 - [ ] Product view tracking fires on product pages
 - [ ] Add to cart tracking fires when adding items
-- [ ] Remove from cart tracking fires when removing items
-- [ ] Cart view tracking fires on cart page
 - [ ] Begin checkout tracking fires on checkout page
 - [ ] Shipping info tracking fires at step 2
 - [ ] Payment info tracking fires at step 3
 - [ ] Purchase tracking fires after successful order
-- [ ] Search tracking fires on search actions
 
 ## GTM Preview Mode
 
@@ -148,8 +134,6 @@ Create these in GTM → Variables → User-Defined Variables:
 - `ecommerce.currency`
 - `ecommerce.value`
 - `ecommerce.items`
-- `search_term`
-- `results_count`
 - `payment_method`
 - `delivery_method`
 
@@ -159,38 +143,36 @@ Create these in GTM → Variables → User-Defined Variables:
 - ✅ `app/components/GoogleTagManager.tsx` - GTM component (existing)
 - ✅ `app/layout.tsx` - GTM integration (existing)
 - ✅ `app/product/[slug]/client-page.tsx` - Product view tracking
-- ✅ `app/context/CartContext.tsx` - Cart operation tracking
-- ✅ `app/cart/page.tsx` - Cart view tracking
+- ✅ `app/context/CartContext.tsx` - Add to cart tracking only
+- ✅ `app/cart/page.tsx` - No tracking (view_cart removed)
 - ✅ `app/checkout/page.tsx` - Checkout & purchase tracking
 - ✅ `app/api/products/by-id/[productId]/route.ts` - Product fetch API (NEW)
-- ✅ `app/shared/components/SearchBar/SearchBar.tsx` - Search tracking (existing)
+- ✅ `app/shared/components/SearchBar/SearchBar.tsx` - Search tracking disabled
 
 ## Next Steps for Full Implementation
 
 1. Complete GTM container configuration (see GTM_CONFIGURATION_GUIDE.md)
-2. Create all GA4 event tags in GTM
+2. Create GA4 event tags in GTM for the 6 active events
 3. Test in Preview mode
 4. Publish GTM container
 5. Monitor in GA4 Realtime reports
 6. Set up conversions for key events
 7. Create custom reports and dashboards
 
-## Additional Features Available
+## Additional Features Available (Not Currently Used)
 
-The `gtm-analytics.ts` module includes functions for:
+The `gtm-analytics.ts` module includes functions for optional future use:
 
-- ✅ Product list views (`trackViewItemList`)
-- ✅ Item selection from lists (`trackSelectItem`)
-- ✅ Wishlist tracking (`trackAddToWishlist`, `trackRemoveFromWishlist`)
-- ✅ Form submissions (`trackFormSubmission`)
-- ✅ Newsletter signups (`trackNewsletterSignup`)
-- ✅ Filter usage (`trackFilterUsed`)
-- ✅ Sort usage (`trackSortUsed`)
-- ✅ Scroll depth (`trackScrollDepth`)
-- ✅ Video interactions (`trackVideoInteraction`)
-- ✅ File downloads (`trackFileDownload`)
-- ✅ Outbound clicks (`trackOutboundClick`)
-- ✅ Error tracking (`trackError`)
-- ✅ Custom conversions (`trackConversion`)
+- Product list views (`trackViewItemList`)
+- Item selection from lists (`trackSelectItem`)
+- Wishlist tracking (`trackAddToWishlist`, `trackRemoveFromWishlist`)
+- Form submissions (`trackFormSubmission`)
+- Newsletter signups (`trackNewsletterSignup`)
+- Filter usage (`trackFilterUsed`)
+- Sort usage (`trackSortUsed`)
+- Scroll depth (`trackScrollDepth`)
+- Outbound clicks (`trackOutboundClick`)
+- Error tracking (`trackError`)
+- Custom conversions (`trackConversion`)
 
-These can be integrated as needed throughout the application.
+These can be integrated as needed if requirements change.
