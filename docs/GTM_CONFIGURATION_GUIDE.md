@@ -2,6 +2,11 @@
 
 Complete step-by-step guide for configuring Google Tag Manager (GTM) with e-commerce tracking for Dekop Furniture Enterprise.
 
+> **📢 What's New?** Check out [GTM_WHATS_NEW.md](./GTM_WHATS_NEW.md) for the latest features including:
+> - ✅ Accurate purchase tracking (only paid orders)
+> - ❌ Payment cancellation tracking
+> - 🐛 Fixed view_item double-firing bug
+
 ## Table of Contents
 
 1. [GTM Account Setup](#1-gtm-account-setup)
@@ -117,7 +122,9 @@ Create the following custom variables (for each, click **Variables** → **New**
 
 ## 5. E-commerce Event Tags
 
-The following 6 events are tracked in this implementation:
+The following 7 events are tracked in this implementation (6 e-commerce + 1 payment tracking):
+
+### Core E-commerce Events (6)
 
 ### 5.1 View Item (Product Detail Page)
 
@@ -278,6 +285,51 @@ The following 6 events are tracked in this implementation:
    - Event Name: `purchase`
 6. Click **Save**
 
+### 5.7 Payment Cancelled (NEW) ❌
+
+**Important:** This is a new event for tracking abandoned checkouts.
+
+1. **Create Data Layer Variables** (if not already created):
+   - Variable Name: `DLV - Order ID`
+   - Data Layer Variable: `order_id`
+   - Default Value: `undefined`
+
+   - Variable Name: `DLV - Order Number`
+   - Data Layer Variable: `order_number`
+   - Default Value: `undefined`
+
+   - Variable Name: `DLV - Order Value`
+   - Data Layer Variable: `order_value`
+   - Default Value: `0`
+
+2. **Create Tag**: Tags → New
+3. **Name**: `GA4 - Payment Cancelled`
+4. **Tag Configuration**:
+   - Tag Type: **Google Analytics: GA4 Event**
+   - Configuration Tag: Select `GA4 Configuration`
+   - Event Name: `payment_cancelled`
+5. **Event Parameters**:
+   ```
+   Parameter Name: order_id
+   Value: {{DLV - Order ID}}
+
+   Parameter Name: order_number
+   Value: {{DLV - Order Number}}
+
+   Parameter Name: payment_method
+   Value: {{DLV - Payment Method}}
+
+   Parameter Name: order_value
+   Value: {{DLV - Order Value}}
+
+   Parameter Name: currency
+   Value: UAH
+   ```
+6. **Triggering**:
+   - Trigger Type: **Custom Event**
+   - Event Name: `payment_cancelled`
+7. Click **Save**
+
 ---
 
 ## 6. Testing & Debugging
@@ -333,14 +385,30 @@ Follow this purchase funnel to test all events:
   - `payment_method` parameter is set
   - All items still present
 
-#### 6. Purchase
+#### 6. Purchase (IMPORTANT: Only fires for paid orders!)
 - Review order and click "Place Order"
-- **Check**: `purchase` event fires
+- Complete payment successfully
+- **Redirects to**: `/order-success` page
+- **Check**: `purchase` event fires **on the success page**
 - **Verify**:
+  - Event fires on `/order-success` URL (not checkout)
   - `transaction_id` is unique
   - Total value is correct
   - All items are included
   - Payment and delivery methods are set
+  - `payment_status` should be 'paid'
+
+#### 7. Payment Cancelled (NEW)
+- Start checkout process
+- Click "Place Order"
+- On payment gateway, click "Cancel" or back button
+- **Redirects to**: `/payment-cancelled` page
+- **Check**: `payment_cancelled` event fires
+- **Verify**:
+  - Event fires on `/payment-cancelled` URL
+  - `order_id` and `order_number` are present
+  - `order_value` matches cart total
+  - `payment_method` is correct
 
 ### Use GA4 DebugView
 
@@ -355,9 +423,12 @@ Follow this purchase funnel to test all events:
 |-------|----------|
 | Events not firing | Check if dataLayer is initialized before GTM loads |
 | Missing parameters | Verify data layer variable names match exactly |
-| Duplicate events | Ensure triggers fire only once per action |
+| Duplicate events | Ensure triggers fire only once per action (already fixed for view_item) |
 | Wrong values | Check number formatting (should be numeric, not string) |
 | Items array empty | Verify product data structure in tracking calls |
+| view_item fires twice | Fixed in code - update from latest branch |
+| purchase fires for unpaid orders | Check code - should only fire on /order-success when paid |
+| payment_cancelled not firing | Verify payment gateway redirects to /payment-cancelled?orderId=X |
 
 ---
 
@@ -366,13 +437,17 @@ Follow this purchase funnel to test all events:
 ### Submit Changes
 
 1. In GTM, click **Submit** (top right)
-2. **Version Name**: `E-commerce Tracking v1.0`
+2. **Version Name**: `E-commerce Tracking v2.0`
 3. **Version Description**:
    ```
-   Initial e-commerce tracking setup:
+   Complete e-commerce tracking with purchase/cancellation:
    - GA4 configuration tag
    - 6 e-commerce events (view_item, add_to_cart, begin_checkout, add_shipping_info, add_payment_info, purchase)
-   - Data layer variables for currency, value, items, payment/delivery methods
+   - 1 payment tracking event (payment_cancelled)
+   - Purchase event fires ONLY for paid orders on /order-success page
+   - Payment cancellation tracking on /payment-cancelled page
+   - Fixed view_item double-firing bug
+   - Data layer variables for all parameters
    - Tested in Preview mode
    ```
 4. Click **Publish**
@@ -410,13 +485,19 @@ Follow this purchase funnel to test all events:
 
 ## Summary of Events Tracked
 
-✅ **6 E-commerce Events**:
-1. `view_item` - Product detail views
+✅ **7 Active Events**:
+
+**E-commerce Events (6):**
+1. `view_item` - Product detail views (fires once per page)
 2. `add_to_cart` - Items added to cart
 3. `begin_checkout` - Checkout initiated
-4. `add_shipping_info` - Shipping method selected
-5. `add_payment_info` - Payment method selected
-6. `purchase` - Order completed
+4. `begin_checkout` - Checkout initiated
+5. `add_shipping_info` - Shipping method selected
+6. `add_payment_info` - Payment method selected
+7. `purchase` - Order completed (**ONLY if payment_status = 'paid'**)
+
+**Payment Tracking (1):**
+8. `payment_cancelled` - Payment abandoned/cancelled
 
 ❌ **Events NOT Tracked** (intentionally disabled):
 - `remove_from_cart` - Not tracked per business requirements
@@ -429,13 +510,21 @@ Follow this purchase funnel to test all events:
 ## Purchase Funnel Overview
 
 ```
-Product Page → Add to Cart → Begin Checkout → Shipping Info → Payment Info → Purchase
-   ↓              ↓              ↓                ↓              ↓             ↓
-view_item    add_to_cart   begin_checkout  add_shipping  add_payment    purchase
-                                              _info          _info
+Product Page → Add to Cart → Begin Checkout → Shipping → Payment → Gateway → SUCCESS/CANCEL
+   ↓              ↓              ↓              ↓          ↓           ↓           ↓
+view_item    add_to_cart   begin_checkout     ↓     add_payment   User      SUCCESS?
+(once!)                                        ↓       _info      decides       ↓
+                                         add_shipping            YES → purchase ✅
+                                            _info                (paid only!)
+
+                                                                 NO → payment_cancelled ❌
 ```
 
-Each step tracks the cart value and items to help you understand where customers drop off.
+**Key Points:**
+- `view_item` fires **once** per product page (fixed double-firing bug)
+- `purchase` fires **ONLY** on `/order-success` when `payment_status = 'paid'`
+- `payment_cancelled` fires on `/payment-cancelled` when user abandons payment
+- Each step tracks cart value and items for drop-off analysis
 
 ---
 
