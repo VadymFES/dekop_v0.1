@@ -236,14 +236,34 @@ export function proxy(req: NextRequest) {
   response.headers.set('X-DNS-Prefetch-Control', 'on');
 
   // ==========================================
+  // ADMIN PANEL SECURITY
+  // ==========================================
+  const adminPath = '/admin-secret-2024';
+  const isAdminPath = requestUrl.pathname.startsWith(adminPath);
+
+  if (isAdminPath) {
+    // Add X-Robots-Tag to prevent indexing
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+
+    // Log admin panel access
+    console.log('[ADMIN ACCESS]', JSON.stringify({
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      path: requestUrl.pathname,
+      ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+      userAgent: req.headers.get('user-agent')?.substring(0, 100) || 'unknown',
+    }));
+  }
+
+  // ==========================================
   // SECURITY LOGGING (for sensitive endpoints)
   // ==========================================
-  const sensitivePatterns = ['/api/orders', '/api/webhooks', '/api/payments', '/api/gdpr'];
-  const isSensitivePath = sensitivePatterns.some(pattern => 
+  const sensitivePatterns = ['/api/orders', '/api/webhooks', '/api/payments', '/api/gdpr', adminPath];
+  const isSensitivePath = sensitivePatterns.some(pattern =>
     requestUrl.pathname.startsWith(pattern)
   );
 
-  if (isSensitivePath) {
+  if (isSensitivePath && !isAdminPath) {
     const userAgent = req.headers.get('user-agent') || '';
     const isBot = /bot|crawler|spider|scraper/i.test(userAgent);
 
