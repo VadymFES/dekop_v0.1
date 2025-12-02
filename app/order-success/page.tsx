@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import type { OrderWithItems } from '@/app/lib/definitions';
+import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import {
   formatUkrainianDate,
   formatUkrainianPrice,
@@ -124,14 +124,15 @@ function OrderSuccessContent() {
       // Track successful purchase (only if paid)
       if (!purchaseTrackedRef.current && order.payment_status === 'paid') {
         try {
-          // Convert order items to format expected by tracking
-          const trackingItems = order.items.map(item => ({
-            id: item.product_id,
+          // Convert order items to format expected by tracking (CartItem format)
+          const trackingItems: CartItem[] = order.items.map((item, index) => ({
+            id: `order-${order.id}-item-${index}`,
+            product_id: item.product_id,
             name: item.product_name,
-            price: parseFloat(item.price.toString()),
+            price: parseFloat(item.unit_price.toString()),
             quantity: item.quantity,
-            category: '',
-            images: [],
+            color: item.color,
+            image_url: item.product_image_url,
           }));
 
           trackPurchase(

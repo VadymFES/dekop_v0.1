@@ -50,14 +50,30 @@ function formatProductItem(product: ProductWithImages | CartItem, quantity?: num
   const isCartItem = 'productDetails' in product;
   const productData = isCartItem ? (product as CartItem).productDetails || product : product;
 
+  // Get category - CartItem doesn't have category, but ProductWithImages does
+  let itemCategory = '';
+  if ('category' in productData) {
+    itemCategory = productData.category;
+  } else if (isCartItem && (product as CartItem).productDetails) {
+    itemCategory = (product as CartItem).productDetails!.category;
+  }
+
+  // Get discount - only ProductWithImages has is_on_sale and sale_price
+  const discountData: { discount?: number } = {};
+  if ('is_on_sale' in productData && productData.is_on_sale && 'sale_price' in productData && productData.sale_price) {
+    const regularPrice = parseFloat(productData.price?.toString() || '0');
+    const salePrice = parseFloat((productData as any).sale_price?.toString() || '0');
+    discountData.discount = parseFloat((regularPrice - salePrice).toFixed(2));
+  }
+
   return {
     item_id: productData.id?.toString() || product.id?.toString(),
     item_name: productData.name || product.name,
-    item_category: productData.category || (product as any).category,
+    item_category: itemCategory,
     price: parseFloat(productData.price?.toString() || product.price?.toString() || '0'),
     quantity: quantity || (product as CartItem).quantity || 1,
     ...(index !== undefined && { index }),
-    ...(productData.is_on_sale && { discount: productData.sale_price ? parseFloat((productData.price - productData.sale_price).toFixed(2)) : 0 }),
+    ...discountData,
     ...((product as CartItem).color && { item_variant: (product as CartItem).color }),
   };
 }
