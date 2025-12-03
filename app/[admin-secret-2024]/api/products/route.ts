@@ -124,9 +124,11 @@ export async function POST(request: NextRequest) {
 
     const validation = safeValidateInput(productSchema, body);
     if (!validation.success) {
+      console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
       return NextResponse.json({
         error: 'Validation failed',
         errors: formatValidationErrors(validation.error),
+        details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
       }, { status: 400 });
     }
 

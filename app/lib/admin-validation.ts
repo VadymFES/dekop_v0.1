@@ -123,99 +123,107 @@ const productColorSchema = z.object({
 
 /**
  * Dimensions schema
+ * All fields are optional and allow 0 or positive values
  */
 const dimensionsSchema = z.object({
-  length: z.number().positive().optional(),
-  width: z.number().positive().optional(),
-  depth: z.number().positive().optional(),
-  height: z.number().positive().optional(),
+  length: z.number().min(0).optional().nullable(),
+  width: z.number().min(0).optional().nullable(),
+  depth: z.number().min(0).optional().nullable(),
+  height: z.number().min(0).optional().nullable(),
   sleeping_area: z.object({
-    width: z.number().positive(),
-    length: z.number().positive(),
-  }).optional(),
-}).optional();
+    width: z.number().min(0).optional().default(0),
+    length: z.number().min(0).optional().default(0),
+  }).optional().nullable(),
+}).optional().nullable();
 
 /**
  * Material schema for sofas
+ * All fields are optional to allow partial data
  */
 const sofaMaterialSchema = z.object({
-  type: z.string().max(100),
-  composition: z.string().max(255).optional(),
-  backrest_filling: z.string().max(255).optional(),
-  covers: z.string().max(255).optional(),
-});
+  type: z.string().max(100).optional().default(''),
+  composition: z.string().max(255).optional().nullable().default(''),
+  backrest_filling: z.string().max(255).optional().nullable().default(''),
+  covers: z.string().max(255).optional().nullable().default(''),
+}).optional().nullable();
 
 /**
  * Inner material schema
+ * All fields are optional to allow partial data
  */
 const innerMaterialSchema = z.object({
-  structure: z.string().max(255),
-  cushion_filling: z.string().max(255),
-}).optional();
+  structure: z.string().max(255).optional().nullable().default(''),
+  cushion_filling: z.string().max(255).optional().nullable().default(''),
+}).optional().nullable();
 
 /**
  * Product specs schema
+ * All fields are optional and lenient to allow partial product data
  */
 const productSpecsSchema = z.object({
   dimensions: dimensionsSchema,
-  material: z.union([z.string().max(100), sofaMaterialSchema]).optional(),
-  types: z.array(z.string().max(50)).optional(),
-  construction: z.string().max(255).optional(),
+  material: z.union([z.string().max(100), sofaMaterialSchema]).optional().nullable(),
+  types: z.array(z.string().max(50)).optional().nullable(),
+  construction: z.string().max(255).optional().nullable(),
   inner_material: innerMaterialSchema,
-  additional_features: z.string().max(1000).optional(),
-  has_shelves: z.boolean().optional(),
-  leg_height: z.string().max(50).optional(),
-  has_lift_mechanism: z.boolean().optional(),
-  armrest_type: z.string().max(100).optional(),
-  seat_height: z.number().positive().optional(),
-  headboard_type: z.string().max(100).optional(),
-  storage_options: z.string().max(255).optional(),
-  type: z.string().max(50).optional(),
-  firmness: z.string().max(50).optional(),
-  thickness: z.number().positive().optional(),
-  core_type: z.string().max(100).optional(),
-  hardness: z.string().max(50).optional(),
-  shape: z.string().max(50).optional(),
-  extendable: z.boolean().optional(),
-  upholstery: z.string().max(100).optional(),
-  weight_capacity: z.number().positive().optional(),
-  door_count: z.number().int().positive().optional(),
-  door_type: z.string().max(50).optional(),
-  internal_layout: z.string().max(500).optional(),
-  mounting_type: z.string().max(100).optional(),
-  shelf_count: z.number().int().min(0).optional(),
-}).optional();
+  additional_features: z.string().max(1000).optional().nullable(),
+  has_shelves: z.boolean().optional().nullable(),
+  leg_height: z.string().max(50).optional().nullable(),
+  has_lift_mechanism: z.boolean().optional().nullable(),
+  armrest_type: z.string().max(100).optional().nullable(),
+  seat_height: z.number().min(0).optional().nullable(),
+  headboard_type: z.string().max(100).optional().nullable(),
+  storage_options: z.string().max(255).optional().nullable(),
+  type: z.string().max(50).optional().nullable(),
+  firmness: z.string().max(50).optional().nullable(),
+  thickness: z.number().min(0).optional().nullable(),
+  core_type: z.string().max(100).optional().nullable(),
+  hardness: z.string().max(50).optional().nullable(),
+  shape: z.string().max(50).optional().nullable(),
+  extendable: z.boolean().optional().nullable(),
+  upholstery: z.string().max(100).optional().nullable(),
+  weight_capacity: z.number().min(0).optional().nullable(),
+  door_count: z.number().int().min(0).optional().nullable(),
+  door_type: z.string().max(50).optional().nullable(),
+  internal_layout: z.string().max(500).optional().nullable(),
+  mounting_type: z.string().max(100).optional().nullable(),
+  shelf_count: z.number().int().min(0).optional().nullable(),
+  // Allow any additional fields from the database
+  category: z.string().optional().nullable(),
+}).passthrough().optional().nullable();
 
 /**
  * Product creation/update schema
+ * Made more lenient to allow partial updates and empty values
  */
 export const productSchema = z.object({
   name: z.string()
     .min(1, 'Name is required')
     .max(255, 'Name too long')
-    .pipe(sanitizedString),
+    .transform((val) => val.trim().replace(/<[^>]*>/g, '').replace(/[<>]/g, '')),
   slug: z.string()
     .min(1, 'Slug is required')
     .max(255, 'Slug too long')
     .regex(/^[a-z0-9а-яіїєґ-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
   description: z.string()
     .max(5000, 'Description too long')
-    .pipe(sanitizedString)
+    .transform((val) => val.trim().replace(/<[^>]*>/g, '').replace(/[<>]/g, ''))
     .optional()
+    .nullable()
     .default(''),
   category: z.enum([
     'sofas', 'corner_sofas', 'sofa_beds', 'beds',
     'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
   ]),
-  price: positiveNumber.max(1000000, 'Price too high'),
-  sale_price: z.number().positive().max(1000000).nullable().optional(),
+  price: z.number().min(0.01, 'Price must be greater than 0').max(1000000, 'Price too high'),
+  sale_price: z.number().min(0).max(1000000).nullable().optional(),
   stock: nonNegativeNumber.max(99999, 'Stock too high').int(),
-  is_on_sale: z.boolean().optional().default(false),
-  is_new: z.boolean().optional().default(false),
-  is_bestseller: z.boolean().optional().default(false),
-  is_featured: z.boolean().optional().default(false),
-  images: z.array(productImageSchema).optional().default([]),
-  colors: z.array(productColorSchema).optional().default([]),
+  is_on_sale: z.boolean().optional().nullable().default(false),
+  is_new: z.boolean().optional().nullable().default(false),
+  is_bestseller: z.boolean().optional().nullable().default(false),
+  is_featured: z.boolean().optional().nullable().default(false),
+  images: z.array(productImageSchema).optional().nullable().default([]),
+  colors: z.array(productColorSchema).optional().nullable().default([]),
   specs: productSpecsSchema,
 });
 

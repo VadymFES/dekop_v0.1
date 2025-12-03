@@ -511,8 +511,17 @@ export default function ProductForm({ product }: ProductFormProps) {
       const data = await response.json();
       if (!response.ok) {
         if (data.errors) setErrors(data.errors);
+        // Show detailed validation errors if available
+        let errorMessage = data.error || 'Помилка збереження товару';
+        if (data.details && data.details.length > 0) {
+          const detailMessages = data.details.slice(0, 3).map((d: { path: string; message: string }) =>
+            `${d.path}: ${d.message}`
+          ).join('; ');
+          errorMessage = `${errorMessage}: ${detailMessages}`;
+          console.error('Validation details:', data.details);
+        }
         setToast({
-          message: data.error || 'Помилка збереження товару',
+          message: errorMessage,
           type: 'error',
         });
         setLoading(false);
