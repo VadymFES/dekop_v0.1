@@ -139,9 +139,39 @@ async function getProductSpecs(productId: number, category: string) {
   const specTable = SPEC_TABLES[category];
   if (!specTable) return null;
 
-  const result = await db.query(`
-    SELECT * FROM ${specTable} WHERE product_id = $1
-  `, [productId]);
+  // Use template literal based on specTable - need to use raw query for dynamic table name
+  let result;
+  switch (specTable) {
+    case 'sofa_specs':
+      result = await db.query`SELECT * FROM sofa_specs WHERE product_id = ${productId}`;
+      break;
+    case 'corner_sofa_specs':
+      result = await db.query`SELECT * FROM corner_sofa_specs WHERE product_id = ${productId}`;
+      break;
+    case 'sofa_bed_specs':
+      result = await db.query`SELECT * FROM sofa_bed_specs WHERE product_id = ${productId}`;
+      break;
+    case 'bed_specs':
+      result = await db.query`SELECT * FROM bed_specs WHERE product_id = ${productId}`;
+      break;
+    case 'table_specs':
+      result = await db.query`SELECT * FROM table_specs WHERE product_id = ${productId}`;
+      break;
+    case 'chair_specs':
+      result = await db.query`SELECT * FROM chair_specs WHERE product_id = ${productId}`;
+      break;
+    case 'mattress_specs':
+      result = await db.query`SELECT * FROM mattress_specs WHERE product_id = ${productId}`;
+      break;
+    case 'wardrobe_specs':
+      result = await db.query`SELECT * FROM wardrobe_specs WHERE product_id = ${productId}`;
+      break;
+    case 'accessory_specs':
+      result = await db.query`SELECT * FROM accessory_specs WHERE product_id = ${productId}`;
+      break;
+    default:
+      return null;
+  }
 
   if (result.rows.length === 0) return null;
 
