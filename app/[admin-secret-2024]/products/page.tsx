@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import DeleteButton from './components/DeleteButton';
 
 interface PageProps {
   searchParams: Promise<{
@@ -377,35 +378,6 @@ async function getProducts({
     total,
     categories: categoriesResult.rows.map((r: { category: string }) => r.category),
   };
-}
-
-function DeleteButton({ productId, productName }: { productId: number; productName: string }) {
-  return (
-    <form
-      action={`/admin-secret-2024/api/products/${productId}`}
-      method="POST"
-      style={{ display: 'inline' }}
-      onSubmit={(e) => {
-        if (!confirm(`Видалити "${productName}"?`)) {
-          e.preventDefault();
-        }
-      }}
-    >
-      <input type="hidden" name="_method" value="DELETE" />
-      <button
-        type="submit"
-        style={{
-          color: '#f44336',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          textDecoration: 'underline',
-        }}
-      >
-        Видалити
-      </button>
-    </form>
-  );
 }
 
 function formatCategory(category: string): string {
