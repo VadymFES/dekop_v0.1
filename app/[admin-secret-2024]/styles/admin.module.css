@@ -1,0 +1,253 @@
+/* =====================================================
+   ADMIN PANEL - Shared Styles
+   ===================================================== */
+
+/* Form Inputs */
+.input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+  background-color: #fff;
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.inputSmall {
+  composes: input;
+  font-size: 12px;
+  padding: 8px;
+}
+
+.textarea {
+  composes: input;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.select {
+  composes: input;
+  cursor: pointer;
+}
+
+/* Labels */
+.label {
+  display: block;
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.labelSmall {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 3px;
+  color: #555;
+}
+
+/* Sections */
+.section {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+/* Buttons */
+.button {
+  padding: 12px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.buttonPrimary {
+  composes: button;
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.buttonPrimary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.buttonSecondary {
+  composes: button;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.buttonSecondary:hover {
+  background-color: #e8e8e8;
+}
+
+.buttonDanger {
+  composes: button;
+  background-color: #f44336;
+  color: white;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.buttonDanger:hover {
+  background-color: #d32f2f;
+}
+
+.buttonAdd {
+  composes: button;
+  background-color: #4caf50;
+  color: white;
+  padding: 5px 15px;
+  font-size: 12px;
+  margin-left: 15px;
+}
+
+.buttonAdd:hover {
+  background-color: #45a049;
+}
+
+.buttonGenerate {
+  composes: button;
+  padding: 3px 10px;
+  font-size: 12px;
+  margin-left: 10px;
+  background-color: #e0e0e0;
+}
+
+.buttonGenerate:hover {
+  background-color: #d0d0d0;
+}
+
+/* Grid Layouts */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.grid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+/* Flex Layouts */
+.flexRow {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.flexCenter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Checkbox/Radio Labels */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Error Messages */
+.error {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid #ef9a9a;
+  border-radius: 4px;
+}
+
+.errorText {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Item Cards (for images, colors) */
+.itemCard {
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.itemCardGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 80px auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.colorCardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+/* Empty State */
+.emptyText {
+  color: #999;
+  font-style: italic;
+}
+
+/* Submit Section */
+.submitSection {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+/* Form Container */
+.formContainer {
+  max-width: 1000px;
+}
+
+/* Radio Label */
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}

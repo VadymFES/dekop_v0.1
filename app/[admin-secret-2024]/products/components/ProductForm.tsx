@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import styles from '../../styles/admin.module.css';
 
 // =====================================================
 // TYPES
@@ -221,31 +222,8 @@ const PRODUCT_TYPES: Record<string, { value: string; label: string }[]> = {
 };
 
 // =====================================================
-// STYLES
+// HELPERS
 // =====================================================
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px',
-  border: '1px solid #ccc',
-  fontSize: '14px',
-  boxSizing: 'border-box',
-};
-
-const sectionStyle: React.CSSProperties = {
-  backgroundColor: '#f9f9f9',
-  border: '1px solid #ddd',
-  padding: '20px',
-  marginBottom: '20px',
-};
-
-const sectionTitleStyle: React.CSSProperties = {
-  fontSize: '16px',
-  fontWeight: 'bold',
-  marginBottom: '15px',
-  paddingBottom: '10px',
-  borderBottom: '1px solid #ddd',
-};
 
 // Normalize images to ensure no null values
 const normalizeImages = (images: ProductImage[] | undefined): ProductImage[] => {
@@ -283,22 +261,24 @@ function Toast({ message, type, onClose }: ToastProps) {
     return () => clearTimeout(timer);
   }, [onClose]);
 
+  const toastStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    zIndex: 9999,
+    padding: '16px 24px',
+    borderRadius: '8px',
+    backgroundColor: type === 'success' ? '#4caf50' : '#f44336',
+    color: 'white',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    animation: 'slideIn 0.3s ease-out',
+  };
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      zIndex: 9999,
-      padding: '16px 24px',
-      borderRadius: '8px',
-      backgroundColor: type === 'success' ? '#4caf50' : '#f44336',
-      color: 'white',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      animation: 'slideIn 0.3s ease-out',
-    }}>
+    <div style={toastStyle}>
       <span style={{ fontSize: '20px' }}>{type === 'success' ? '✓' : '✕'}</span>
       <span style={{ fontSize: '14px', fontWeight: 500 }}>{message}</span>
       <button
@@ -509,7 +489,6 @@ export default function ProductForm({ product }: ProductFormProps) {
       const data = await response.json();
       if (!response.ok) {
         if (data.errors) setErrors(data.errors);
-        // Show detailed validation errors if available
         let errorMessage = data.error || 'Помилка збереження товару';
         if (data.details && data.details.length > 0) {
           const detailMessages = data.details.slice(0, 3).map((d: { path: string; message: string }) =>
@@ -518,15 +497,11 @@ export default function ProductForm({ product }: ProductFormProps) {
           errorMessage = `${errorMessage}: ${detailMessages}`;
           console.error('Validation details:', data.details);
         }
-        setToast({
-          message: errorMessage,
-          type: 'error',
-        });
+        setToast({ message: errorMessage, type: 'error' });
         setLoading(false);
         return;
       }
 
-      // Show success toast
       setToast({
         message: isEdit ? `Товар "${formData.name}" успішно оновлено` : `Товар "${formData.name}" успішно створено`,
         type: 'success',
@@ -534,21 +509,16 @@ export default function ProductForm({ product }: ProductFormProps) {
 
       setLoading(false);
 
-      // For new products, redirect to edit page; for edits, just refresh data
       if (!isEdit) {
         setTimeout(() => {
           router.push('/admin-secret-2024/products');
           router.refresh();
         }, 1500);
       } else {
-        // Refresh the page data without redirecting
         router.refresh();
       }
     } catch {
-      setToast({
-        message: 'Виникла помилка. Спробуйте ще раз.',
-        type: 'error',
-      });
+      setToast({ message: 'Виникла помилка. Спробуйте ще раз.', type: 'error' });
       setLoading(false);
     }
   };
@@ -558,167 +528,155 @@ export default function ProductForm({ product }: ProductFormProps) {
   // =====================================================
 
   return (
-    <div style={{ maxWidth: '1000px' }}>
-      {/* Toast Notification */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+    <div className={styles.formContainer}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Legacy error message (for field errors display) */}
-      {message && (
-        <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '15px', marginBottom: '20px', border: '1px solid #ef9a9a' }}>
-          {message}
-        </div>
-      )}
+      {message && <div className={styles.error}>{message}</div>}
 
       <form onSubmit={handleSubmit}>
         {/* BASIC INFO */}
-        <div style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>Основна інформація</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Основна інформація</h2>
+          <div className={styles.grid2}>
             <div>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>Назва *</label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} required style={inputStyle} />
-              {errors.name && <div style={{ color: '#f44336', fontSize: '12px' }}>{errors.name}</div>}
+              <label className={styles.label}>Назва *</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} required className={styles.input} />
+              {errors.name && <div className={styles.errorText}>{errors.name}</div>}
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>
+              <label className={styles.label}>
                 URL (slug) *
-                <button type="button" onClick={generateSlug} style={{ marginLeft: '10px', padding: '3px 10px', fontSize: '12px', cursor: 'pointer' }}>Згенерувати</button>
+                <button type="button" onClick={generateSlug} className={styles.buttonGenerate}>Згенерувати</button>
               </label>
-              <input type="text" name="slug" value={formData.slug} onChange={handleChange} required style={inputStyle} />
+              <input type="text" name="slug" value={formData.slug} onChange={handleChange} required className={styles.input} />
             </div>
           </div>
 
           <div style={{ marginTop: '15px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>Категорія *</label>
-            <select name="category" value={formData.category} onChange={handleChange} required style={inputStyle}>
+            <label className={styles.label}>Категорія *</label>
+            <select name="category" value={formData.category} onChange={handleChange} required className={styles.select}>
               {CATEGORIES.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
             </select>
           </div>
 
           <div style={{ marginTop: '15px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>Опис</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} rows={4} style={inputStyle} />
+            <label className={styles.label}>Опис</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className={styles.textarea} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginTop: '15px' }}>
+          <div className={styles.grid3} style={{ marginTop: '15px' }}>
             <div>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>Ціна (грн) *</label>
-              <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" style={inputStyle} />
+              <label className={styles.label}>Ціна (грн) *</label>
+              <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" className={styles.input} />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>Ціна зі знижкою</label>
-              <input type="number" name="sale_price" value={formData.sale_price || ''} onChange={handleChange} min="0" style={inputStyle} />
+              <label className={styles.label}>Ціна зі знижкою</label>
+              <input type="number" name="sale_price" value={formData.sale_price || ''} onChange={handleChange} min="0" className={styles.input} />
             </div>
             <div>
-              <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>Запас *</label>
-              <input type="number" name="stock" value={formData.stock} onChange={handleChange} required min="0" style={inputStyle} />
+              <label className={styles.label}>Запас *</label>
+              <input type="number" name="stock" value={formData.stock} onChange={handleChange} required min="0" className={styles.input} />
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', marginTop: '15px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <div className={styles.flexRow} style={{ marginTop: '15px' }}>
+            <label className={styles.checkboxLabel}>
               <input type="checkbox" name="is_on_sale" checked={formData.is_on_sale} onChange={handleChange} /> Акція
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <label className={styles.checkboxLabel}>
               <input type="checkbox" name="is_new" checked={formData.is_new} onChange={handleChange} /> Новинка
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <label className={styles.checkboxLabel}>
               <input type="checkbox" name="is_bestseller" checked={formData.is_bestseller} onChange={handleChange} /> Хіт продажів
             </label>
           </div>
         </div>
 
         {/* IMAGES */}
-        <div style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Зображення
-            <button type="button" onClick={addImage} style={{ marginLeft: '15px', padding: '5px 15px', fontSize: '12px', cursor: 'pointer', backgroundColor: '#4caf50', color: 'white', border: 'none' }}>+ Додати</button>
+            <button type="button" onClick={addImage} className={styles.buttonAdd}>+ Додати</button>
           </h2>
-          {formData.images.length === 0 && <p style={{ color: '#999', fontStyle: 'italic' }}>Немає зображень</p>}
+          {formData.images.length === 0 && <p className={styles.emptyText}>Немає зображень</p>}
           {formData.images.map((image, index) => (
-            <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 80px auto', gap: '10px', alignItems: 'end', marginBottom: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #eee' }}>
+            <div key={index} className={`${styles.itemCard} ${styles.itemCardGrid}`}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>URL (ImageKit)</label>
-                <input type="url" value={image.image_url} onChange={(e) => updateImage(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
+                <label className={styles.labelSmall}>URL (ImageKit)</label>
+                <input type="url" value={image.image_url} onChange={(e) => updateImage(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." className={styles.inputSmall} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Alt текст</label>
-                <input type="text" value={image.alt} onChange={(e) => updateImage(index, 'alt', e.target.value)} style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
+                <label className={styles.labelSmall}>Alt текст</label>
+                <input type="text" value={image.alt} onChange={(e) => updateImage(index, 'alt', e.target.value)} className={styles.inputSmall} />
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', cursor: 'pointer' }}>
+              <label className={styles.radioLabel}>
                 <input type="radio" checked={image.is_primary} onChange={() => updateImage(index, 'is_primary', true)} /> Головне
               </label>
-              <button type="button" onClick={() => removeImage(index)} style={{ padding: '8px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', cursor: 'pointer', fontSize: '12px' }}>×</button>
+              <button type="button" onClick={() => removeImage(index)} className={styles.buttonDanger}>×</button>
             </div>
           ))}
         </div>
 
         {/* COLORS */}
-        <div style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>
             Кольори
-            <button type="button" onClick={addColor} style={{ marginLeft: '15px', padding: '5px 15px', fontSize: '12px', cursor: 'pointer', backgroundColor: '#4caf50', color: 'white', border: 'none' }}>+ Додати</button>
+            <button type="button" onClick={addColor} className={styles.buttonAdd}>+ Додати</button>
           </h2>
-          {formData.colors.length === 0 && <p style={{ color: '#999', fontStyle: 'italic' }}>Немає кольорів</p>}
+          {formData.colors.length === 0 && <p className={styles.emptyText}>Немає кольорів</p>}
           {formData.colors.map((color, index) => (
-            <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #eee' }}>
+            <div key={index} className={`${styles.itemCard} ${styles.colorCardGrid}`}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Назва кольору</label>
-                <input type="text" value={color.color} onChange={(e) => updateColor(index, 'color', e.target.value)} placeholder="Сірий, Бежевий..." style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
+                <label className={styles.labelSmall}>Назва кольору</label>
+                <input type="text" value={color.color} onChange={(e) => updateColor(index, 'color', e.target.value)} placeholder="Сірий, Бежевий..." className={styles.inputSmall} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>URL зображення</label>
-                <input type="url" value={color.image_url} onChange={(e) => updateColor(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
+                <label className={styles.labelSmall}>URL зображення</label>
+                <input type="url" value={color.image_url} onChange={(e) => updateColor(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." className={styles.inputSmall} />
               </div>
-              <button type="button" onClick={() => removeColor(index)} style={{ padding: '8px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', cursor: 'pointer', fontSize: '12px' }}>×</button>
+              <button type="button" onClick={() => removeColor(index)} className={styles.buttonDanger}>×</button>
             </div>
           ))}
         </div>
 
         {/* DIMENSIONS */}
-        <div style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>Розміри (см)</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Розміри (см)</h2>
+          <div className={styles.grid4}>
             <div>
-              <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Довжина</label>
-              <input type="number" value={formData.specs.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+              <label className={styles.labelSmall}>Довжина</label>
+              <input type="number" value={formData.specs.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
             </div>
             {hasWidth && (
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Ширина</label>
-                <input type="number" value={formData.specs.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Ширина</label>
+                <input type="number" value={formData.specs.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
             )}
             {formData.category !== 'mattresses' && (
               <>
                 <div>
-                  <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Глибина</label>
-                  <input type="number" value={formData.specs.dimensions?.depth || ''} onChange={(e) => handleDimensionChange('depth', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                  <label className={styles.labelSmall}>Глибина</label>
+                  <input type="number" value={formData.specs.dimensions?.depth || ''} onChange={(e) => handleDimensionChange('depth', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Висота</label>
-                  <input type="number" value={formData.specs.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                  <label className={styles.labelSmall}>Висота</label>
+                  <input type="number" value={formData.specs.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
                 </div>
               </>
             )}
           </div>
           {hasSleepingArea && (
             <div style={{ marginTop: '15px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>Спальне місце</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', maxWidth: '400px' }}>
+              <label className={styles.label}>Спальне місце</label>
+              <div className={styles.grid2} style={{ maxWidth: '400px' }}>
                 <div>
-                  <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Ширина</label>
-                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.width || ''} onChange={(e) => handleSleepingAreaChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                  <label className={styles.labelSmall}>Ширина</label>
+                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.width || ''} onChange={(e) => handleSleepingAreaChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Довжина</label>
-                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.length || ''} onChange={(e) => handleSleepingAreaChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                  <label className={styles.labelSmall}>Довжина</label>
+                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.length || ''} onChange={(e) => handleSleepingAreaChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
                 </div>
               </div>
             </div>
@@ -726,11 +684,11 @@ export default function ProductForm({ product }: ProductFormProps) {
         </div>
 
         {/* TYPES */}
-        <div style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>Типи товару</h2>
-          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Типи товару</h2>
+          <div className={styles.flexRow}>
             {getTypeOptions().map(type => (
-              <label key={type.value} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <label key={type.value} className={styles.checkboxLabel}>
                 <input type="checkbox" checked={formData.specs.types?.includes(type.value) || false} onChange={(e) => handleTypesChange(type.value, e.target.checked)} />
                 {type.label}
               </label>
@@ -739,33 +697,33 @@ export default function ProductForm({ product }: ProductFormProps) {
         </div>
 
         {/* MATERIAL */}
-        <div style={sectionStyle}>
-          <h2 style={sectionTitleStyle}>Матеріал</h2>
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Матеріал</h2>
           {isSofaCategory ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div className={styles.grid2}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип матеріалу</label>
-                <select value={(formData.specs.material as Material)?.type || ''} onChange={(e) => handleMaterialChange('type', e.target.value)} style={inputStyle}>
+                <label className={styles.labelSmall}>Тип матеріалу</label>
+                <select value={(formData.specs.material as Material)?.type || ''} onChange={(e) => handleMaterialChange('type', e.target.value)} className={styles.select}>
                   <option value="">Оберіть...</option>
                   {getMaterialOptions().map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Склад</label>
-                <input type="text" value={(formData.specs.material as Material)?.composition || ''} onChange={(e) => handleMaterialChange('composition', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Склад</label>
+                <input type="text" value={(formData.specs.material as Material)?.composition || ''} onChange={(e) => handleMaterialChange('composition', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Наповнювач спинки</label>
-                <input type="text" value={(formData.specs.material as Material)?.backrest_filling || ''} onChange={(e) => handleMaterialChange('backrest_filling', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Наповнювач спинки</label>
+                <input type="text" value={(formData.specs.material as Material)?.backrest_filling || ''} onChange={(e) => handleMaterialChange('backrest_filling', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Чохли</label>
-                <input type="text" value={(formData.specs.material as Material)?.covers || ''} onChange={(e) => handleMaterialChange('covers', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Чохли</label>
+                <input type="text" value={(formData.specs.material as Material)?.covers || ''} onChange={(e) => handleMaterialChange('covers', e.target.value)} className={styles.input} />
               </div>
             </div>
           ) : (
             <div style={{ maxWidth: '300px' }}>
-              <select value={(formData.specs.material as string) || ''} onChange={(e) => handleSpecChange('material', e.target.value)} style={inputStyle}>
+              <select value={(formData.specs.material as string) || ''} onChange={(e) => handleSpecChange('material', e.target.value)} className={styles.select}>
                 <option value="">Оберіть матеріал...</option>
                 {getMaterialOptions().map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
@@ -775,48 +733,48 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* SOFA SPECS */}
         {isSofaCategory && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики дивану</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики дивану</h2>
+            <div className={styles.grid2}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Конструкція</label>
-                <input type="text" value={formData.specs.construction || ''} onChange={(e) => handleSpecChange('construction', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Конструкція</label>
+                <input type="text" value={formData.specs.construction || ''} onChange={(e) => handleSpecChange('construction', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип підлокітника</label>
-                <input type="text" value={formData.specs.armrest_type || ''} onChange={(e) => handleSpecChange('armrest_type', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Тип підлокітника</label>
+                <input type="text" value={formData.specs.armrest_type || ''} onChange={(e) => handleSpecChange('armrest_type', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Висота ніжок</label>
-                <input type="text" value={formData.specs.leg_height || ''} onChange={(e) => handleSpecChange('leg_height', e.target.value)} placeholder="високі, низькі" style={inputStyle} />
+                <label className={styles.labelSmall}>Висота ніжок</label>
+                <input type="text" value={formData.specs.leg_height || ''} onChange={(e) => handleSpecChange('leg_height', e.target.value)} placeholder="високі, низькі" className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Висота сидіння (см)</label>
-                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Висота сидіння (см)</label>
+                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
             </div>
             <div style={{ marginTop: '15px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>Внутрішній матеріал</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <label className={styles.label}>Внутрішній матеріал</label>
+              <div className={styles.grid2}>
                 <div>
-                  <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Структура</label>
-                  <input type="text" value={formData.specs.inner_material?.structure || ''} onChange={(e) => handleInnerMaterialChange('structure', e.target.value)} style={inputStyle} />
+                  <label className={styles.labelSmall}>Структура</label>
+                  <input type="text" value={formData.specs.inner_material?.structure || ''} onChange={(e) => handleInnerMaterialChange('structure', e.target.value)} className={styles.input} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Наповнювач подушок</label>
-                  <input type="text" value={formData.specs.inner_material?.cushion_filling || ''} onChange={(e) => handleInnerMaterialChange('cushion_filling', e.target.value)} style={inputStyle} />
+                  <label className={styles.labelSmall}>Наповнювач подушок</label>
+                  <input type="text" value={formData.specs.inner_material?.cushion_filling || ''} onChange={(e) => handleInnerMaterialChange('cushion_filling', e.target.value)} className={styles.input} />
                 </div>
               </div>
             </div>
             <div style={{ marginTop: '15px' }}>
-              <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Додаткові характеристики</label>
-              <textarea value={formData.specs.additional_features || ''} onChange={(e) => handleSpecChange('additional_features', e.target.value)} rows={2} style={inputStyle} />
+              <label className={styles.labelSmall}>Додаткові характеристики</label>
+              <textarea value={formData.specs.additional_features || ''} onChange={(e) => handleSpecChange('additional_features', e.target.value)} rows={2} className={styles.textarea} />
             </div>
-            <div style={{ display: 'flex', gap: '30px', marginTop: '15px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <div className={styles.flexRow} style={{ marginTop: '15px' }}>
+              <label className={styles.checkboxLabel}>
                 <input type="checkbox" checked={formData.specs.has_shelves || false} onChange={(e) => handleSpecChange('has_shelves', e.target.checked)} /> Є полички
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <label className={styles.checkboxLabel}>
                 <input type="checkbox" checked={formData.specs.has_lift_mechanism || false} onChange={(e) => handleSpecChange('has_lift_mechanism', e.target.checked)} /> Підйомний механізм
               </label>
             </div>
@@ -825,20 +783,20 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* BED SPECS */}
         {formData.category === 'beds' && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики ліжка</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики ліжка</h2>
+            <div className={styles.grid3}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Конструкція</label>
-                <input type="text" value={formData.specs.construction || ''} onChange={(e) => handleSpecChange('construction', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Конструкція</label>
+                <input type="text" value={formData.specs.construction || ''} onChange={(e) => handleSpecChange('construction', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип узголів&apos;я</label>
-                <input type="text" value={formData.specs.headboard_type || ''} onChange={(e) => handleSpecChange('headboard_type', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Тип узголів&apos;я</label>
+                <input type="text" value={formData.specs.headboard_type || ''} onChange={(e) => handleSpecChange('headboard_type', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Варіанти зберігання</label>
-                <input type="text" value={formData.specs.storage_options || ''} onChange={(e) => handleSpecChange('storage_options', e.target.value)} placeholder="ящики, підйомний механізм" style={inputStyle} />
+                <label className={styles.labelSmall}>Варіанти зберігання</label>
+                <input type="text" value={formData.specs.storage_options || ''} onChange={(e) => handleSpecChange('storage_options', e.target.value)} placeholder="ящики, підйомний механізм" className={styles.input} />
               </div>
             </div>
           </div>
@@ -846,12 +804,12 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* MATTRESS SPECS */}
         {formData.category === 'mattresses' && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики матраца</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики матраца</h2>
+            <div className={styles.grid3}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип</label>
-                <select value={formData.specs.type || ''} onChange={(e) => handleSpecChange('type', e.target.value)} style={inputStyle}>
+                <label className={styles.labelSmall}>Тип</label>
+                <select value={formData.specs.type || ''} onChange={(e) => handleSpecChange('type', e.target.value)} className={styles.select}>
                   <option value="">Оберіть...</option>
                   <option value="spring">Пружинний</option>
                   <option value="foam">Пінний</option>
@@ -860,8 +818,8 @@ export default function ProductForm({ product }: ProductFormProps) {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Жорсткість</label>
-                <select value={formData.specs.firmness || formData.specs.hardness || ''} onChange={(e) => { handleSpecChange('firmness', e.target.value); handleSpecChange('hardness', e.target.value); }} style={inputStyle}>
+                <label className={styles.labelSmall}>Жорсткість</label>
+                <select value={formData.specs.firmness || formData.specs.hardness || ''} onChange={(e) => { handleSpecChange('firmness', e.target.value); handleSpecChange('hardness', e.target.value); }} className={styles.select}>
                   <option value="">Оберіть...</option>
                   <option value="soft">М&apos;який</option>
                   <option value="medium">Середній</option>
@@ -870,12 +828,12 @@ export default function ProductForm({ product }: ProductFormProps) {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Товщина (см)</label>
-                <input type="number" value={formData.specs.thickness || ''} onChange={(e) => handleSpecChange('thickness', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Товщина (см)</label>
+                <input type="number" value={formData.specs.thickness || ''} onChange={(e) => handleSpecChange('thickness', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип основи</label>
-                <input type="text" value={formData.specs.core_type || ''} onChange={(e) => handleSpecChange('core_type', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Тип основи</label>
+                <input type="text" value={formData.specs.core_type || ''} onChange={(e) => handleSpecChange('core_type', e.target.value)} className={styles.input} />
               </div>
             </div>
           </div>
@@ -883,12 +841,12 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* TABLE SPECS */}
         {formData.category === 'tables' && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики столу</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики столу</h2>
+            <div className={styles.grid2}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Форма стільниці</label>
-                <select value={formData.specs.shape || ''} onChange={(e) => handleSpecChange('shape', e.target.value)} style={inputStyle}>
+                <label className={styles.labelSmall}>Форма стільниці</label>
+                <select value={formData.specs.shape || ''} onChange={(e) => handleSpecChange('shape', e.target.value)} className={styles.select}>
                   <option value="">Оберіть...</option>
                   <option value="round">Круглий</option>
                   <option value="oval">Овальний</option>
@@ -896,8 +854,8 @@ export default function ProductForm({ product }: ProductFormProps) {
                   <option value="rectangular">Прямокутний</option>
                 </select>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <div className={styles.flexCenter}>
+                <label className={styles.checkboxLabel}>
                   <input type="checkbox" checked={formData.specs.extendable || false} onChange={(e) => handleSpecChange('extendable', e.target.checked)} /> Розкладний
                 </label>
               </div>
@@ -907,20 +865,20 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* CHAIR SPECS */}
         {formData.category === 'chairs' && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики стільця</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики стільця</h2>
+            <div className={styles.grid3}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Оббивка</label>
-                <input type="text" value={formData.specs.upholstery || ''} onChange={(e) => handleSpecChange('upholstery', e.target.value)} style={inputStyle} />
+                <label className={styles.labelSmall}>Оббивка</label>
+                <input type="text" value={formData.specs.upholstery || ''} onChange={(e) => handleSpecChange('upholstery', e.target.value)} className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Висота сидіння (см)</label>
-                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Висота сидіння (см)</label>
+                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Макс. вага (кг)</label>
-                <input type="number" value={formData.specs.weight_capacity || ''} onChange={(e) => handleSpecChange('weight_capacity', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Макс. вага (кг)</label>
+                <input type="number" value={formData.specs.weight_capacity || ''} onChange={(e) => handleSpecChange('weight_capacity', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
             </div>
           </div>
@@ -928,16 +886,16 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* WARDROBE SPECS */}
         {formData.category === 'wardrobes' && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики шафи</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики шафи</h2>
+            <div className={styles.grid3}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Кількість дверей</label>
-                <input type="number" value={formData.specs.door_count || ''} onChange={(e) => handleSpecChange('door_count', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Кількість дверей</label>
+                <input type="number" value={formData.specs.door_count || ''} onChange={(e) => handleSpecChange('door_count', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип дверей</label>
-                <select value={formData.specs.door_type || ''} onChange={(e) => handleSpecChange('door_type', e.target.value)} style={inputStyle}>
+                <label className={styles.labelSmall}>Тип дверей</label>
+                <select value={formData.specs.door_type || ''} onChange={(e) => handleSpecChange('door_type', e.target.value)} className={styles.select}>
                   <option value="">Оберіть...</option>
                   <option value="sliding">Розсувні (купе)</option>
                   <option value="hinged">Розпашні</option>
@@ -945,8 +903,8 @@ export default function ProductForm({ product }: ProductFormProps) {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Внутрішнє наповнення</label>
-                <input type="text" value={formData.specs.internal_layout || ''} onChange={(e) => handleSpecChange('internal_layout', e.target.value)} placeholder="полиці, штанги, ящики..." style={inputStyle} />
+                <label className={styles.labelSmall}>Внутрішнє наповнення</label>
+                <input type="text" value={formData.specs.internal_layout || ''} onChange={(e) => handleSpecChange('internal_layout', e.target.value)} placeholder="полиці, штанги, ящики..." className={styles.input} />
               </div>
             </div>
           </div>
@@ -954,27 +912,27 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* ACCESSORY SPECS */}
         {formData.category === 'accessories' && (
-          <div style={sectionStyle}>
-            <h2 style={sectionTitleStyle}>Характеристики аксесуара</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Характеристики аксесуара</h2>
+            <div className={styles.grid2}>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Тип кріплення</label>
-                <input type="text" value={formData.specs.mounting_type || ''} onChange={(e) => handleSpecChange('mounting_type', e.target.value)} placeholder="настінний, підлоговий..." style={inputStyle} />
+                <label className={styles.labelSmall}>Тип кріплення</label>
+                <input type="text" value={formData.specs.mounting_type || ''} onChange={(e) => handleSpecChange('mounting_type', e.target.value)} placeholder="настінний, підлоговий..." className={styles.input} />
               </div>
               <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Кількість полиць</label>
-                <input type="number" value={formData.specs.shelf_count || ''} onChange={(e) => handleSpecChange('shelf_count', e.target.value ? Number(e.target.value) : undefined)} min="0" style={inputStyle} />
+                <label className={styles.labelSmall}>Кількість полиць</label>
+                <input type="number" value={formData.specs.shelf_count || ''} onChange={(e) => handleSpecChange('shelf_count', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
               </div>
             </div>
           </div>
         )}
 
         {/* SUBMIT */}
-        <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
-          <button type="submit" disabled={loading} style={{ padding: '15px 40px', backgroundColor: loading ? '#ccc' : '#4caf50', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '16px', fontWeight: 'bold' }}>
+        <div className={styles.submitSection}>
+          <button type="submit" disabled={loading} className={styles.buttonPrimary} style={{ padding: '15px 40px', fontSize: '16px' }}>
             {loading ? 'Збереження...' : isEdit ? 'Оновити товар' : 'Створити товар'}
           </button>
-          <button type="button" onClick={() => router.back()} style={{ padding: '15px 40px', backgroundColor: '#f5f5f5', color: '#333', border: '1px solid #ccc', cursor: 'pointer', fontSize: '16px' }}>
+          <button type="button" onClick={() => router.back()} className={styles.buttonSecondary} style={{ padding: '15px 40px', fontSize: '16px' }}>
             Скасувати
           </button>
         </div>

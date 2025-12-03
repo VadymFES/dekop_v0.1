@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import styles from '../styles/admin.module.css';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -50,39 +51,16 @@ export default function LoginForm() {
     }
   };
 
-  const inputStyle = {
-    width: '100%',
-    padding: '10px',
-    marginTop: '5px',
-    marginBottom: '15px',
-    border: '1px solid #ccc',
-    fontSize: '14px',
-    boxSizing: 'border-box' as const,
-  };
-
-  const labelStyle = {
-    display: 'block',
-    fontWeight: 'bold' as const,
-    color: '#333',
-    fontSize: '14px',
-  };
-
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <div style={{
-          backgroundColor: '#ffebee',
-          color: '#c62828',
-          padding: '10px',
-          marginBottom: '20px',
-          border: '1px solid #ef9a9a',
-        }}>
+        <div className={styles.error}>
           {error}
         </div>
       )}
 
       <div>
-        <label htmlFor="email" style={labelStyle}>Email</label>
+        <label htmlFor="email" className={styles.label}>Email</label>
         <input
           type="email"
           id="email"
@@ -91,12 +69,12 @@ export default function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
-          style={inputStyle}
+          className={styles.input}
         />
       </div>
 
-      <div>
-        <label htmlFor="password" style={labelStyle}>Пароль</label>
+      <div style={{ marginTop: '15px' }}>
+        <label htmlFor="password" className={styles.label}>Пароль</label>
         <input
           type="password"
           id="password"
@@ -105,23 +83,15 @@ export default function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
-          style={inputStyle}
+          className={styles.input}
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        style={{
-          width: '100%',
-          padding: '12px',
-          backgroundColor: loading ? '#ccc' : '#333',
-          color: 'white',
-          border: 'none',
-          fontSize: '16px',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          marginTop: '10px',
-        }}
+        className={styles.buttonPrimary}
+        style={{ width: '100%', marginTop: '20px', padding: '12px' }}
       >
         {loading ? 'Вхід...' : 'Увійти'}
       </button>
