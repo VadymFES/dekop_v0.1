@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import { checkLiqPayPaymentStatus, mapLiqPayStatus } from '@/app/lib/services/liqpay-service';
+import type { OrderWithItems } from '@/app/lib/definitions';
 
 /**
  * POST /api/payments/check-status
@@ -263,10 +264,10 @@ async function sendConfirmationEmail(orderId: string) {
 
   if (orderResult.rows.length > 0) {
     const orderRow = orderResult.rows[0];
-    const order = {
+    const order: OrderWithItems = {
       ...orderRow,
       items: orderRow.items || []
-    };
+    } as OrderWithItems;
 
     const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
     await sendOrderConfirmationEmail({
