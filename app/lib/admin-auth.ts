@@ -376,12 +376,16 @@ export async function logAdminAction(
  */
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
+  const isProduction = process.env.NODE_ENV === 'production';
+
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     sameSite: 'lax',
     path: '/',
     maxAge: SESSION_DURATION_HOURS * 60 * 60,
+    // Set domain for subdomain access in production
+    ...(isProduction && { domain: '.dekop.com.ua' }),
   });
 }
 
