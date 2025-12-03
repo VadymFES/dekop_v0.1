@@ -124,15 +124,16 @@ const productColorSchema = z.object({
 /**
  * Dimensions schema
  * All fields are optional and allow 0 or positive values
+ * Uses coerce to handle string inputs from forms
  */
 const dimensionsSchema = z.object({
-  length: z.number().min(0).optional().nullable(),
-  width: z.number().min(0).optional().nullable(),
-  depth: z.number().min(0).optional().nullable(),
-  height: z.number().min(0).optional().nullable(),
+  length: z.coerce.number().min(0).optional().nullable(),
+  width: z.coerce.number().min(0).optional().nullable(),
+  depth: z.coerce.number().min(0).optional().nullable(),
+  height: z.coerce.number().min(0).optional().nullable(),
   sleeping_area: z.object({
-    width: z.number().min(0).optional().default(0),
-    length: z.number().min(0).optional().default(0),
+    width: z.coerce.number().min(0).optional().default(0),
+    length: z.coerce.number().min(0).optional().default(0),
   }).optional().nullable(),
 }).optional().nullable();
 
@@ -159,6 +160,7 @@ const innerMaterialSchema = z.object({
 /**
  * Product specs schema
  * All fields are optional and lenient to allow partial product data
+ * Uses coerce for numeric fields to handle string inputs from forms
  */
 const productSpecsSchema = z.object({
   dimensions: dimensionsSchema,
@@ -171,23 +173,38 @@ const productSpecsSchema = z.object({
   leg_height: z.string().max(50).optional().nullable(),
   has_lift_mechanism: z.boolean().optional().nullable(),
   armrest_type: z.string().max(100).optional().nullable(),
-  seat_height: z.number().min(0).optional().nullable(),
+  seat_height: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : Number(val),
+    z.number().min(0).optional().nullable()
+  ),
   headboard_type: z.string().max(100).optional().nullable(),
   storage_options: z.string().max(255).optional().nullable(),
   type: z.string().max(50).optional().nullable(),
   firmness: z.string().max(50).optional().nullable(),
-  thickness: z.number().min(0).optional().nullable(),
+  thickness: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : Number(val),
+    z.number().min(0).optional().nullable()
+  ),
   core_type: z.string().max(100).optional().nullable(),
   hardness: z.string().max(50).optional().nullable(),
   shape: z.string().max(50).optional().nullable(),
   extendable: z.boolean().optional().nullable(),
   upholstery: z.string().max(100).optional().nullable(),
-  weight_capacity: z.number().min(0).optional().nullable(),
-  door_count: z.number().int().min(0).optional().nullable(),
+  weight_capacity: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : Number(val),
+    z.number().min(0).optional().nullable()
+  ),
+  door_count: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : Number(val),
+    z.number().int().min(0).optional().nullable()
+  ),
   door_type: z.string().max(50).optional().nullable(),
   internal_layout: z.string().max(500).optional().nullable(),
   mounting_type: z.string().max(100).optional().nullable(),
-  shelf_count: z.number().int().min(0).optional().nullable(),
+  shelf_count: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : Number(val),
+    z.number().int().min(0).optional().nullable()
+  ),
   // Allow any additional fields from the database
   category: z.string().optional().nullable(),
 }).passthrough().optional().nullable();
@@ -218,9 +235,12 @@ export const productSchema = z.object({
       'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
     ])
   ),
-  price: z.number().min(0.01, 'Price must be greater than 0').max(1000000, 'Price too high'),
-  sale_price: z.number().min(0).max(1000000).nullable().optional(),
-  stock: nonNegativeNumber.max(99999, 'Stock too high').int(),
+  price: z.coerce.number().min(0.01, 'Price must be greater than 0').max(1000000, 'Price too high'),
+  sale_price: z.preprocess(
+    (val) => val === '' || val === null || val === undefined ? null : Number(val),
+    z.number().min(0).max(1000000).nullable().optional()
+  ),
+  stock: z.coerce.number().min(0).max(99999, 'Stock too high').int(),
   is_on_sale: z.boolean().optional().nullable().default(false),
   is_new: z.boolean().optional().nullable().default(false),
   is_bestseller: z.boolean().optional().nullable().default(false),
