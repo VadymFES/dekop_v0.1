@@ -409,6 +409,10 @@ export async function GET(
       WHERE product_id = ${product.id}
     `;
 
+    // Debug: log images found
+    console.log(`[Product API] Product ${slug} (id: ${product.id}) - Found ${rawImageRows.length} images:`,
+      rawImageRows.map(r => r.image_url));
+
     // Перетворення результатів запиту в масив типу ProductImage[]
     const imageRows: ProductImage[] = rawImageRows.map(row => ({
       id: row.id,
