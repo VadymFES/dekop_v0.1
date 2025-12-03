@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
-import DeleteButton from './components/DeleteButton';
+import ProductsTable from './components/ProductsTable';
 import styles from '../styles/admin.module.css';
 
 interface PageProps {
@@ -146,67 +146,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       </div>
 
       {/* Таблиця товарів */}
-      <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={thStyle}>ID</th>
-              <th style={thStyle}>Назва</th>
-              <th style={thStyle}>Категорія</th>
-              <th style={thStyle}>Ціна</th>
-              <th style={thStyle}>Запас</th>
-              <th style={thStyle}>Мітки</th>
-              <th style={thStyle}>Дії</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product: Product) => (
-              <tr key={product.id}>
-                <td style={tdStyle}>{product.id}</td>
-                <td style={tdStyle}>
-                  <div>{product.name}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{product.slug}</div>
-                </td>
-                <td style={tdStyle}>{formatCategory(product.category)}</td>
-                <td style={tdStyle}>{formatCurrency(product.price)}</td>
-                <td style={{
-                  ...tdStyle,
-                  color: product.stock === 0 ? '#f44336' : product.stock < 10 ? '#ff9800' : '#333',
-                  fontWeight: product.stock < 10 ? 'bold' : 'normal',
-                }}>
-                  {product.stock}
-                </td>
-                <td style={tdStyle}>
-                  {product.is_on_sale && <span style={{ color: '#f44336', marginRight: '5px' }}>АКЦІЯ</span>}
-                  {product.is_new && <span style={{ color: '#4caf50', marginRight: '5px' }}>НОВИНКА</span>}
-                  {product.is_bestseller && <span style={{ color: '#ff9800' }}>ХІТ</span>}
-                </td>
-                <td style={tdStyle}>
-                  <Link
-                    href={`/admin-secret-2024/products/${product.id}/edit`}
-                    style={{ color: '#1976d2', marginRight: '10px' }}
-                  >
-                    Редагувати
-                  </Link>
-                  {admin.permissions.includes('products.delete') && (
-                    <DeleteButton productId={product.id} productName={product.name} />
-                  )}
-                </td>
-              </tr>
-            ))}
-            {products.length === 0 && (
-              <tr>
-                <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
-                  Товарів не знайдено
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ProductsTable
+        products={products}
+        canDelete={admin.permissions.includes('products.delete')}
+        formatCategory={formatCategory}
+        formatCurrency={formatCurrency}
+      />
 
       {/* Пагінація */}
       {totalPages > 1 && (
@@ -415,19 +360,6 @@ function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
 }
-
-const thStyle = {
-  padding: '12px 10px',
-  textAlign: 'left' as const,
-  borderBottom: '2px solid #ccc',
-  fontSize: '14px',
-};
-
-const tdStyle = {
-  padding: '10px',
-  borderBottom: '1px solid #eee',
-  fontSize: '14px',
-};
 
 const paginationLinkStyle = {
   padding: '8px 15px',

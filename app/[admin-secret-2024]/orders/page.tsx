@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import OrdersTable from './components/OrdersTable';
 import styles from '../styles/admin.module.css';
 
 interface PageProps {
@@ -182,61 +183,10 @@ export default async function OrdersPage({ searchParams }: PageProps) {
       </div>
 
       {/* Таблиця замовлень */}
-      <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={thStyle}>№ замовлення</th>
-              <th style={thStyle}>Клієнт</th>
-              <th style={thStyle}>Контакт</th>
-              <th style={thStyle}>Сума</th>
-              <th style={thStyle}>Статус</th>
-              <th style={thStyle}>Оплата</th>
-              <th style={thStyle}>Дата</th>
-              <th style={thStyle}>Дії</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order: Order) => (
-              <tr key={order.id}>
-                <td style={tdStyle}>
-                  <Link href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2', fontWeight: 'bold' }}>
-                    {order.order_number}
-                  </Link>
-                </td>
-                <td style={tdStyle}>{order.user_name} {order.user_surname}</td>
-                <td style={tdStyle}>
-                  <div>{order.user_email}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{order.user_phone}</div>
-                </td>
-                <td style={tdStyle}>{formatCurrency(order.total_amount)}</td>
-                <td style={tdStyle}>
-                  <StatusBadge status={order.order_status} />
-                </td>
-                <td style={tdStyle}>
-                  <PaymentBadge status={order.payment_status} />
-                </td>
-                <td style={tdStyle}>{formatDate(order.created_at)}</td>
-                <td style={tdStyle}>
-                  <Link href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2' }}>
-                    Переглянути
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {orders.length === 0 && (
-              <tr>
-                <td colSpan={8} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
-                  Замовлення не знайдено
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <OrdersTable
+        orders={orders}
+        canDelete={admin.permissions.includes('orders.delete')}
+      />
 
       {/* Пагінація */}
       {totalPages > 1 && (
@@ -453,40 +403,6 @@ async function getOrders({
   };
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    processing: 'В обробці',
-    confirmed: 'Підтверджено',
-    shipped: 'Відправлено',
-    delivered: 'Доставлено',
-    cancelled: 'Скасовано',
-  };
-  const colors: Record<string, string> = {
-    processing: '#ff9800',
-    confirmed: '#2196f3',
-    shipped: '#9c27b0',
-    delivered: '#4caf50',
-    cancelled: '#f44336',
-  };
-  return <span style={{ color: colors[status] || '#333', fontWeight: 'bold' }}>{labels[status] || status}</span>;
-}
-
-function PaymentBadge({ status }: { status: string }) {
-  const labels: Record<string, string> = {
-    pending: 'Очікує',
-    paid: 'Оплачено',
-    failed: 'Помилка',
-    refunded: 'Повернення',
-  };
-  const colors: Record<string, string> = {
-    pending: '#ff9800',
-    paid: '#4caf50',
-    failed: '#f44336',
-    refunded: '#9c27b0',
-  };
-  return <span style={{ color: colors[status] || '#333' }}>{labels[status] || status}</span>;
-}
-
 function buildPageUrl(page: number, params: Record<string, string>) {
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(page));
@@ -495,38 +411,6 @@ function buildPageUrl(page: number, params: Record<string, string>) {
   });
   return `/admin-secret-2024/orders?${searchParams.toString()}`;
 }
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-const thStyle = {
-  padding: '12px 10px',
-  textAlign: 'left' as const,
-  borderBottom: '2px solid #ccc',
-  fontSize: '14px',
-};
-
-const tdStyle = {
-  padding: '10px',
-  borderBottom: '1px solid #eee',
-  fontSize: '14px',
-};
 
 const paginationLinkStyle = {
   padding: '8px 15px',
