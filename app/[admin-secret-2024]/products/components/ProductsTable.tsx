@@ -43,12 +43,12 @@ function formatCategory(category: string): string {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
+  // Use a fixed format to avoid hydration mismatch between server/client
+  const formatted = new Intl.NumberFormat('uk-UA', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+  return `${formatted} грн`;
 }
 
 export default function ProductsTable({
