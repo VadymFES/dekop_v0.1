@@ -27,11 +27,10 @@ export async function GET(
         p.price,
         p.sale_price,
         p.category,
-        p.subcategory,
-        p.stock_quantity,
-        p.is_featured,
+        p.stock,
         p.is_on_sale,
         p.is_new,
+        p.is_bestseller,
         p.created_at,
         p.updated_at,
         COALESCE(
@@ -39,10 +38,9 @@ export async function GET(
             json_build_object(
               'id', pi.id,
               'image_url', pi.image_url,
-              'alt_text', pi.alt_text,
-              'is_primary', pi.is_primary,
-              'display_order', pi.display_order
-            ) ORDER BY pi.display_order, pi.is_primary DESC
+              'alt', pi.alt,
+              'is_primary', pi.is_primary
+            ) ORDER BY pi.is_primary DESC, pi.id ASC
           ) FILTER (WHERE pi.id IS NOT NULL),
           '[]'
         ) as images

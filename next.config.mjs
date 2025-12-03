@@ -27,6 +27,10 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'images.pexels.com', // Allow Pixabay images
             },
+            {
+                protocol: 'https',
+                hostname: 'ik.imagekit.io', // Allow ImageKit images
+            },
         ],
     },
 

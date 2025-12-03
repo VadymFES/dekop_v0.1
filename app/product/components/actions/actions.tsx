@@ -58,7 +58,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
   
   if (isLoading) return <div>Loading...</div>;
 
-  const { name, stock, rating, price, specs, colors } = product;
+  const { name, stock, rating, price, sale_price, is_on_sale, specs, colors } = product;
   
   // Check if we have specs and dimensions to display
   const showDimensions = specs && specs.dimensions;
@@ -109,7 +109,14 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
               {stock > 0 ? 'Є в наявності' : 'Немає в наявності'}
             </span>
             <span className={styles.productRating}>{rating}</span>
-            <span className={styles.productPrice}>{price} грн</span>
+            {is_on_sale && sale_price ? (
+              <div className={styles.priceContainer}>
+                <span className={styles.originalPrice}>{price} грн</span>
+                <span className={styles.salePrice}>{sale_price} грн</span>
+              </div>
+            ) : (
+              <span className={styles.productPrice}>{price} грн</span>
+            )}
           </div>
         </div>
       </div>

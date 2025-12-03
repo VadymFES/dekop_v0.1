@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import {
@@ -20,6 +20,10 @@ import styles from './page.module.css';
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
 
+// Polling configuration
+const POLLING_INTERVAL_MS = 3000; // Check every 3 seconds
+const POLLING_MAX_DURATION_MS = 90000; // Stop polling after 90 seconds
+
 /**
  * Order Success Page Content Component
  */
@@ -32,10 +36,151 @@ function OrderSuccessContent() {
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
   // Use ref to track cleanup status to prevent infinite loops
   const cleanupInitiatedRef = useRef(false);
   const purchaseTrackedRef = useRef(false);
+  const pollingStartTimeRef = useRef<number | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to get customer email
+  const getCustomerEmail = useCallback((): string | null => {
+    let customerEmail: string | null = null;
+
+    // 1. First, check order-email mapping (persists through payment flow)
+    try {
+      const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+      if (mappingData && orderId) {
+        const mapping = JSON.parse(mappingData);
+        const orderData = mapping[orderId];
+        customerEmail = orderData?.email || null;
+      }
+    } catch (error) {
+      console.error('Error reading order-email mapping:', error);
+    }
+
+    // 2. If not found, try URL params (from payment gateway redirect)
+    if (!customerEmail) {
+      customerEmail = searchParams.get('email');
+    }
+
+    // 3. If still not found, try checkout form data (for cash_on_delivery)
+    if (!customerEmail) {
+      try {
+        const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
+        if (checkoutData) {
+          const parsedData = JSON.parse(checkoutData);
+          customerEmail = parsedData.formData?.customerInfo?.email || null;
+        }
+      } catch (storageError) {
+        console.error('Error reading checkout data from localStorage:', storageError);
+      }
+    }
+
+    return customerEmail;
+  }, [orderId, searchParams]);
+
+  // Poll payment status for online payment methods
+  // This directly queries the payment provider (LiqPay/Monobank) to get real-time status
+  const pollPaymentStatus = useCallback(async () => {
+    if (!orderId) return;
+
+    const customerEmail = getCustomerEmail();
+    if (!customerEmail) {
+      console.error('[Payment Poll] No customer email found');
+      return;
+    }
+
+    try {
+      // First, call the direct status check endpoint
+      // This queries LiqPay/Monobank API directly and updates the database
+      console.log('[Payment Poll] Checking payment status directly with provider...');
+      const checkResponse = await fetch('/api/payments/check-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, email: customerEmail })
+      });
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        console.log('[Payment Poll] Direct status check result:', checkData);
+
+        // If payment confirmed or failed, stop polling and refresh order
+        if (checkData.status === 'paid' || checkData.status === 'failed') {
+          // Fetch updated order from database
+          const orderResponse = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
+          if (orderResponse.ok) {
+            const orderData = await orderResponse.json();
+            if (orderData.success && orderData.order) {
+              console.log('[Payment Poll] Payment status changed:', checkData.status);
+              setOrder(orderData.order);
+              setIsCheckingPayment(false);
+
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+              return;
+            }
+          }
+        }
+      }
+
+      // Fallback: Check order status from database
+      const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
+
+      if (!response.ok) {
+        console.error('[Payment Poll] Failed to fetch order:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.order) {
+        const updatedOrder = data.order as OrderWithItems;
+
+        // Check if payment status has changed from pending
+        if (updatedOrder.payment_status !== 'pending') {
+          console.log('[Payment Poll] Payment status changed:', updatedOrder.payment_status);
+          setOrder(updatedOrder);
+          setIsCheckingPayment(false);
+
+          // Clear the polling interval
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+
+        // Check if max polling duration exceeded
+        if (pollingStartTimeRef.current) {
+          const elapsed = Date.now() - pollingStartTimeRef.current;
+          if (elapsed >= POLLING_MAX_DURATION_MS) {
+            console.log('[Payment Poll] Max polling duration exceeded, stopping');
+            setOrder(updatedOrder);
+            setIsCheckingPayment(false);
+
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Payment Poll] Error polling payment status:', error);
+    }
+  }, [orderId, getCustomerEmail]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!orderId) {
@@ -47,39 +192,7 @@ function OrderSuccessContent() {
     // Fetch order details
     const fetchOrder = async () => {
       try {
-        // Get customer email - try multiple sources in order of preference
-        let customerEmail: string | null = null;
-
-        // 1. First, check order-email mapping (persists through payment flow)
-        try {
-          const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
-          if (mappingData) {
-            const mapping = JSON.parse(mappingData);
-            const orderData = mapping[orderId];
-            // Email is stored as an object with email and timestamp
-            customerEmail = orderData?.email || null;
-          }
-        } catch (error) {
-          console.error('Error reading order-email mapping:', error);
-        }
-
-        // 2. If not found, try URL params (from payment gateway redirect)
-        if (!customerEmail) {
-          customerEmail = searchParams.get('email');
-        }
-
-        // 3. If still not found, try checkout form data (for cash_on_delivery)
-        if (!customerEmail) {
-          try {
-            const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
-            if (checkoutData) {
-              const parsedData = JSON.parse(checkoutData);
-              customerEmail = parsedData.formData?.customerInfo?.email || null;
-            }
-          } catch (storageError) {
-            console.error('Error reading checkout data from localStorage:', storageError);
-          }
-        }
+        const customerEmail = getCustomerEmail();
 
         if (!customerEmail) {
           throw new Error('Не вдалося знайти email для перевірки замовлення');
@@ -98,7 +211,25 @@ function OrderSuccessContent() {
         const data = await response.json();
 
         if (data.success && data.order) {
-          setOrder(data.order);
+          const fetchedOrder = data.order as OrderWithItems;
+
+          // Check if we need to poll for payment status (online payments pending)
+          const isOnlinePayment = fetchedOrder.payment_method === 'liqpay' || fetchedOrder.payment_method === 'monobank';
+          const isPending = fetchedOrder.payment_status === 'pending';
+
+          if (isOnlinePayment && isPending) {
+            // Start polling for payment status
+            console.log('[Order Success] Payment pending, starting polling...');
+            setIsCheckingPayment(true);
+            pollingStartTimeRef.current = Date.now();
+
+            // Set up polling interval
+            pollingIntervalRef.current = setInterval(() => {
+              pollPaymentStatus();
+            }, POLLING_INTERVAL_MS);
+          }
+
+          setOrder(fetchedOrder);
         } else {
           throw new Error('Замовлення не знайдено');
         }
@@ -111,7 +242,7 @@ function OrderSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId, searchParams]); // Removed clearCart and cartCleared from dependencies
+  }, [orderId, getCustomerEmail, pollPaymentStatus]); // Removed clearCart and cartCleared from dependencies
 
   // Separate effect for cleanup and tracking - runs only once after order is loaded
   useEffect(() => {
@@ -219,6 +350,19 @@ function OrderSuccessContent() {
     );
   }
 
+  // Show payment checking state while polling
+  if (isCheckingPayment && order) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Перевіряємо оплату...</p>
+          <p className={styles.subText}>Це може зайняти до хвилини</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !order) {
     return (
       <div className={styles.container}>
@@ -245,13 +389,15 @@ function OrderSuccessContent() {
 
   // Determine success message based on payment status
   const getSuccessMessage = () => {
+    const isOnlinePayment = order.payment_method === 'liqpay' || order.payment_method === 'monobank';
+
     if (order.payment_status === 'paid') {
       return {
         icon: '✅',
         title: 'Оплата успішна!',
         subtitle: 'Дякуємо за Ваше замовлення. Оплату успішно отримано.'
       };
-    } else if (order.payment_status === 'pending' && order.payment_method === 'liqpay') {
+    } else if (order.payment_status === 'pending' && isOnlinePayment) {
       return {
         icon: '⏳',
         title: 'Очікуємо на оплату',
@@ -301,7 +447,7 @@ function OrderSuccessContent() {
           </section>
 
           {/* Payment Status Alert */}
-          {order.payment_status === 'pending' && order.payment_method === 'liqpay' && (
+          {order.payment_status === 'pending' && (order.payment_method === 'liqpay' || order.payment_method === 'monobank') && (
             <section className={styles.alertSection}>
               <div className={styles.alert}>
                 <div className={styles.alertIcon}>ℹ️</div>

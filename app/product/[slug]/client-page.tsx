@@ -1,7 +1,7 @@
 'use client';
 
 // app/product/[slug]/client-page.tsx
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -12,6 +12,19 @@ import ProductActions from '../components/actions/actions';
 import ProductReviews from '../reviews/reviews';
 import SimilarProducts from '../components/similarProducts/similarProducts';
 import { trackViewItem } from '@/app/lib/gtm-analytics';
+
+// Mapping from English DB category to URL slug
+const ENGLISH_TO_SLUG: Record<string, string> = {
+  'sofas': 'sofas',
+  'corner_sofas': 'cornerSofas',
+  'sofa_beds': 'sofaBeds',
+  'beds': 'beds',
+  'tables': 'tables',
+  'chairs': 'chairs',
+  'mattresses': 'mattresses',
+  'wardrobes': 'wardrobes',
+  'accessories': 'accessories',
+};
 
 // Define type for component props
 interface ClientProductPageProps {
@@ -30,6 +43,37 @@ export default function ClientProductPage({
 }: ClientProductPageProps) {
   // Track product view only once
   const hasTracked = useRef(false);
+
+  // Get category info (Ukrainian name and URL slug)
+  const categoryInfo = useMemo(() => {
+    const category = product.category?.toLowerCase() || '';
+
+    // Try to find by English category name first (e.g., "sofas", "corner_sofas")
+    const urlSlug = ENGLISH_TO_SLUG[category];
+    if (urlSlug && categorySlugMap[urlSlug]) {
+      return {
+        slug: urlSlug,
+        uaName: categorySlugMap[urlSlug].uaName,
+      };
+    }
+
+    // Try to find by Ukrainian dbValue (e.g., "Диван", "Кутовий Диван")
+    const entry = Object.entries(categorySlugMap).find(
+      ([, { dbValue }]) => dbValue.toLowerCase() === category
+    );
+    if (entry) {
+      return {
+        slug: entry[0],
+        uaName: entry[1].uaName,
+      };
+    }
+
+    // Fallback to original category
+    return {
+      slug: category,
+      uaName: product.category || 'Категорія',
+    };
+  }, [product.category, categorySlugMap]);
 
   useEffect(() => {
     // Only track once per product page load
@@ -55,8 +99,8 @@ export default function ClientProductPage({
           </li>
           <li className={styles.separator}>|</li>
           <li className={styles.breadcrumb_item}>
-            <Link href={`/category/${product.category}`}>
-              {product.category}
+            <Link href={`/catalog?category=${categoryInfo.slug}`}>
+              {categoryInfo.uaName}
             </Link>
           </li>
           <li className={styles.separator}>|</li>
@@ -113,10 +157,8 @@ export default function ClientProductPage({
       <section className={styles.similarCarousel}>
         <div className={styles.bodyContentHeader}>
           <h2 className={styles.bodyContentTitle}>Схожі товари</h2>
-          <Link 
-            href={`/catalog?category=${Object.entries(categorySlugMap).find(
-            ([, { dbValue }]) => dbValue === product.category
-            )?.[0] || ''}`}
+          <Link
+            href={`/catalog?category=${categoryInfo.slug}`}
             className={styles.bodyContentButton}
           >
             Переглянути всі

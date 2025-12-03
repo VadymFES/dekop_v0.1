@@ -6,8 +6,9 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  category: string; 
+  category: string;
   price: number;
+  sale_price?: number | null;
   stock: number;
   rating: number;
   reviews: number;

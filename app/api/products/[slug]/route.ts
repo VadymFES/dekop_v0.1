@@ -409,6 +409,10 @@ export async function GET(
       WHERE product_id = ${product.id}
     `;
 
+    // Debug: log images found
+    console.log(`[Product API] Product ${slug} (id: ${product.id}) - Found ${rawImageRows.length} images:`,
+      rawImageRows.map(r => r.image_url));
+
     // Перетворення результатів запиту в масив типу ProductImage[]
     const imageRows: ProductImage[] = rawImageRows.map(row => ({
       id: row.id,
@@ -497,8 +501,9 @@ export async function GET(
       slug: product.slug || '',
       description: product.description || '',
       category: product.category || '',
-      price: typeof product.price === 'number' ? product.price : 
+      price: typeof product.price === 'number' ? product.price :
              typeof product.price === 'string' ? parseFloat(product.price) : 0,
+      sale_price: product.sale_price ? (typeof product.sale_price === 'number' ? product.sale_price : parseFloat(product.sale_price)) : null,
       stock: typeof product.stock === 'number' ? product.stock : 0,
       // Використовуємо розрахований рейтинг з таблиці reviews
       rating: averageRating,

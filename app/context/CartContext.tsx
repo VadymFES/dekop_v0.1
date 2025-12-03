@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
 
@@ -107,8 +108,12 @@ const CartContext = createContext<CartContextType | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
 
-  // Fetch cart data
+  // Skip cart operations for admin routes
+  const isAdminRoute = pathname?.startsWith('/admin-secret-2024');
+
+  // Fetch cart data (disabled for admin routes)
   const { data: cartData, isLoading, error } = useQuery<Cart>({
     queryKey: ['cart'],
     queryFn: fetchCart,
@@ -117,6 +122,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     refetchOnWindowFocus: false, // Prevent refetch on focus
     refetchOnMount: true, // Enable refetch on mount to ensure fresh data on checkout reload
     refetchOnReconnect: false, // Prevent refetch on reconnect
+    enabled: !isAdminRoute, // Don't fetch cart on admin pages
   });
 
   // Memoize the queries array for product details
@@ -125,14 +131,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       (cartData?.items || []).map((item: CartItem) => ({
         queryKey: ['product', item.slug],
         queryFn: () => fetchProductDetails(item.slug!),
-        enabled: !!item.slug && !!cartData, // Only fetch if slug exists and cart is loaded
+        enabled: !!item.slug && !!cartData && !isAdminRoute, // Don't fetch on admin pages
         staleTime: 60 * 60 * 1000, // Cache for 1 hour
         gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour (formerly cacheTime)
         refetchOnWindowFocus: false, // Prevent refetch on focus
         refetchOnMount: false, // Prevent refetch on mount unless stale
         refetchOnReconnect: false, // Prevent refetch on reconnect
       })),
-    [cartData?.items] // Only re-compute when cart items change
+    [cartData?.items, isAdminRoute] // Only re-compute when cart items change or admin route changes
   );
 
   // Fetch product details for each cart item
@@ -302,8 +308,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// Default context value for SSR when provider isn't available yet
+const defaultCartContext: CartContextType = {
+  cart: [],
+  isLoading: true,
+  error: null,
+  addToCart: () => {},
+  updateCart: () => {},
+  removeFromCart: () => {},
+  clearCart: () => {},
+};
+
 export function useCart() {
   const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within a CartProvider');
+  // Return default context during SSR when provider isn't available yet
+  if (!context) {
+    // Only throw in development if we're definitely on the client
+    if (typeof window !== 'undefined') {
+      throw new Error('useCart must be used within a CartProvider');
+    }
+    return defaultCartContext;
+  }
   return context;
 }

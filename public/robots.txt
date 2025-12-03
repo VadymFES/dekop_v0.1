@@ -1,0 +1,17 @@
+# robots.txt for dekop.com.ua
+User-agent: *
+Allow: /
+
+# Disallow admin panel
+Disallow: /admin-secret-2024/
+Disallow: /admin-secret-2024
+
+# Disallow API routes
+Disallow: /api/
+
+# Disallow checkout process
+Disallow: /checkout/
+Disallow: /order-success/
+
+# Sitemap
+# Sitemap: https://dekop.com.ua/sitemap.xml

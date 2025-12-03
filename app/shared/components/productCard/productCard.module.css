@@ -107,6 +107,29 @@
     color: #2e1a18;
   }
 
+  /* Sale price styling */
+  .priceContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .originalPrice {
+    font-size: clamp(12px, 1.5vw, 14px);
+    font-weight: 400;
+    color: #888;
+    text-decoration: line-through;
+    margin: 0;
+  }
+
+  .salePrice {
+    font-size: clamp(16px, 2.5vw, 20px);
+    font-weight: 700;
+    color: #F45145;
+    margin: 0;
+  }
+
   .productType,
   .productRating {
     font-size: clamp(12px, 1.5vw, 14px); /* Responsive secondary text */

@@ -52,6 +52,12 @@
   100% { transform: rotate(360deg); }
 }
 
+.subText {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
 /* Error State */
 .errorState {
   text-align: center;
