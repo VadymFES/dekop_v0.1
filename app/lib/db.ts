@@ -36,9 +36,17 @@ export const db = {
 
     try {
       // Handle both template literal and string queries
-      const result = typeof strings === 'string'
-        ? await sql.query(strings, values)
-        : await sql(strings, ...values);
+      let result;
+      if (typeof strings === 'string') {
+        // For string queries, flatten the values array if needed
+        // This handles db.query(queryString, [param1, param2, ...])
+        const flatValues = values.length === 1 && Array.isArray(values[0])
+          ? values[0]
+          : values;
+        result = await sql.query(strings, flatValues);
+      } else {
+        result = await sql(strings, ...values);
+      }
 
       const duration = Date.now() - start;
       totalQueries++;
