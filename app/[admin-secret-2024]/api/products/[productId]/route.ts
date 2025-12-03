@@ -247,7 +247,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     await deleteSpecsByCategory(id, data.category);
 
     if (data.specs) {
+      console.log('Inserting specs for category:', data.category);
+      console.log('Specs data received:', JSON.stringify(data.specs, null, 2));
       await insertProductSpecs(id, data.category, data.specs);
+    } else {
+      console.log('No specs data provided for product update');
     }
 
     // Log action
@@ -464,15 +468,18 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   // Skip if category not in our known list
   if (!SPEC_TABLES[category]) return;
 
-  // Extract dimensions (could be object or individual fields)
+  // Log incoming specs for debugging
+  console.log('insertProductSpecs called with:', { productId, category, specsKeys: Object.keys(specs) });
+
+  // Extract dimensions (could be object or individual fields) - use 0 as default for NOT NULL columns
   const dimensions = specs.dimensions as Record<string, unknown> | undefined;
-  const dimLength = dimensions?.length ?? specs.dimensions_length ?? null;
-  const dimWidth = dimensions?.width ?? specs.dimensions_width ?? null;
-  const dimDepth = dimensions?.depth ?? specs.dimensions_depth ?? null;
-  const dimHeight = dimensions?.height ?? specs.dimensions_height ?? null;
+  const dimLength = Number(dimensions?.length ?? specs.dimensions_length ?? 0);
+  const dimWidth = Number(dimensions?.width ?? specs.dimensions_width ?? 0);
+  const dimDepth = Number(dimensions?.depth ?? specs.dimensions_depth ?? 0);
+  const dimHeight = Number(dimensions?.height ?? specs.dimensions_height ?? 0);
   const sleepingArea = dimensions?.sleeping_area as Record<string, unknown> | undefined;
-  const sleepingWidth = sleepingArea?.width ?? specs.dimensions_sleeping_area_width ?? null;
-  const sleepingLength = sleepingArea?.length ?? specs.dimensions_sleeping_area_length ?? null;
+  const sleepingWidth = Number(sleepingArea?.width ?? specs.dimensions_sleeping_area_width ?? 0);
+  const sleepingLength = Number(sleepingArea?.length ?? specs.dimensions_sleeping_area_length ?? 0);
 
   // Extract material (could be object or individual fields)
   const material = specs.material as Record<string, unknown> | string | undefined;
