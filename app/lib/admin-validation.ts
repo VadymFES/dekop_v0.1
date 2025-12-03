@@ -96,6 +96,90 @@ export const passwordResetSchema = z.object({
 // =====================================================
 
 /**
+ * Product image schema
+ */
+const productImageSchema = z.object({
+  id: z.number().optional(),
+  image_url: z.string().url('Invalid image URL').max(500),
+  alt: z.string().max(255).default(''),
+  is_primary: z.boolean().default(false),
+  display_order: z.number().int().min(0).default(0),
+});
+
+/**
+ * Product color schema
+ */
+const productColorSchema = z.object({
+  color: z.string().min(1).max(100),
+  image_url: z.string().url('Invalid image URL').max(500),
+});
+
+/**
+ * Dimensions schema
+ */
+const dimensionsSchema = z.object({
+  length: z.number().positive().optional(),
+  width: z.number().positive().optional(),
+  depth: z.number().positive().optional(),
+  height: z.number().positive().optional(),
+  sleeping_area: z.object({
+    width: z.number().positive(),
+    length: z.number().positive(),
+  }).optional(),
+}).optional();
+
+/**
+ * Material schema for sofas
+ */
+const sofaMaterialSchema = z.object({
+  type: z.string().max(100),
+  composition: z.string().max(255).optional(),
+  backrest_filling: z.string().max(255).optional(),
+  covers: z.string().max(255).optional(),
+});
+
+/**
+ * Inner material schema
+ */
+const innerMaterialSchema = z.object({
+  structure: z.string().max(255),
+  cushion_filling: z.string().max(255),
+}).optional();
+
+/**
+ * Product specs schema
+ */
+const productSpecsSchema = z.object({
+  dimensions: dimensionsSchema,
+  material: z.union([z.string().max(100), sofaMaterialSchema]).optional(),
+  types: z.array(z.string().max(50)).optional(),
+  construction: z.string().max(255).optional(),
+  inner_material: innerMaterialSchema,
+  additional_features: z.string().max(1000).optional(),
+  has_shelves: z.boolean().optional(),
+  leg_height: z.string().max(50).optional(),
+  has_lift_mechanism: z.boolean().optional(),
+  armrest_type: z.string().max(100).optional(),
+  seat_height: z.number().positive().optional(),
+  headboard_type: z.string().max(100).optional(),
+  storage_options: z.string().max(255).optional(),
+  type: z.string().max(50).optional(),
+  firmness: z.string().max(50).optional(),
+  thickness: z.number().positive().optional(),
+  core_type: z.string().max(100).optional(),
+  hardness: z.string().max(50).optional(),
+  shape: z.string().max(50).optional(),
+  extendable: z.boolean().optional(),
+  upholstery: z.string().max(100).optional(),
+  weight_capacity: z.number().positive().optional(),
+  door_count: z.number().int().positive().optional(),
+  door_type: z.string().max(50).optional(),
+  internal_layout: z.string().max(500).optional(),
+  mounting_type: z.string().max(100).optional(),
+  shelf_count: z.number().int().min(0).optional(),
+}).optional();
+
+/**
  * Product creation/update schema
  */
 export const productSchema = z.object({
@@ -106,20 +190,26 @@ export const productSchema = z.object({
   slug: z.string()
     .min(1, 'Slug is required')
     .max(255, 'Slug too long')
-    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
+    .regex(/^[a-z0-9а-яіїєґ-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
   description: z.string()
     .max(5000, 'Description too long')
     .pipe(sanitizedString)
     .optional()
     .default(''),
-  category: z.string()
-    .min(1, 'Category is required')
-    .max(100, 'Category too long'),
+  category: z.enum([
+    'sofas', 'corner_sofas', 'sofa_beds', 'beds',
+    'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
+  ]),
   price: positiveNumber.max(1000000, 'Price too high'),
+  sale_price: z.number().positive().max(1000000).nullable().optional(),
   stock: nonNegativeNumber.max(99999, 'Stock too high').int(),
   is_on_sale: z.boolean().optional().default(false),
   is_new: z.boolean().optional().default(false),
   is_bestseller: z.boolean().optional().default(false),
+  is_featured: z.boolean().optional().default(false),
+  images: z.array(productImageSchema).optional().default([]),
+  colors: z.array(productColorSchema).optional().default([]),
+  specs: productSpecsSchema,
 });
 
 /**

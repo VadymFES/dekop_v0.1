@@ -1,7 +1,7 @@
 /**
  * Admin Products API Route
  * GET - List products with filters
- * POST - Create new product
+ * POST - Create new product with images, colors, and specs
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,6 +14,19 @@ import {
   formatValidationErrors,
 } from '@/app/lib/admin-validation';
 import slugify from 'slugify';
+
+// Spec table names for each category
+const SPEC_TABLES: Record<string, string> = {
+  sofas: 'sofa_specs',
+  corner_sofas: 'corner_sofa_specs',
+  sofa_beds: 'sofa_bed_specs',
+  beds: 'bed_specs',
+  tables: 'table_specs',
+  chairs: 'chair_specs',
+  mattresses: 'mattress_specs',
+  wardrobes: 'wardrobe_specs',
+  accessories: 'accessory_specs',
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -132,12 +145,42 @@ export async function POST(request: NextRequest) {
 
     // Insert product
     const result = await db.query`
-      INSERT INTO products (name, slug, description, category, price, stock, is_on_sale, is_new, is_bestseller)
-      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.category}, ${data.price}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
+      INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller, is_featured)
+      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.category}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller}, ${data.is_featured || false})
       RETURNING id, name, slug, category, price, stock
     `;
 
     const newProduct = result.rows[0];
+    const productId = newProduct.id;
+
+    // Insert images
+    if (data.images && data.images.length > 0) {
+      for (const image of data.images) {
+        if (image.image_url) {
+          await db.query`
+            INSERT INTO product_images (product_id, image_url, alt, is_primary, display_order)
+            VALUES (${productId}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary}, ${image.display_order})
+          `;
+        }
+      }
+    }
+
+    // Insert colors
+    if (data.colors && data.colors.length > 0) {
+      for (const color of data.colors) {
+        if (color.color && color.image_url) {
+          await db.query`
+            INSERT INTO product_spec_colors (product_id, color, image_url)
+            VALUES (${productId}, ${color.color}, ${color.image_url})
+          `;
+        }
+      }
+    }
+
+    // Insert category-specific specs
+    if (data.specs) {
+      await insertProductSpecs(productId, data.category, data.specs);
+    }
 
     // Log action
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
@@ -160,5 +203,165 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Create product error:', error);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+  }
+}
+
+// Helper function to insert category-specific specs
+async function insertProductSpecs(productId: number, category: string, specs: Record<string, unknown>) {
+  const specTable = SPEC_TABLES[category];
+  if (!specTable) return;
+
+  const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(category);
+  const dimensions = specs.dimensions as Record<string, unknown> | undefined;
+  const material = specs.material;
+  const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
+  const types = specs.types as string[] | undefined;
+
+  // Build spec data based on category
+  switch (category) {
+    case 'sofas':
+    case 'corner_sofas':
+    case 'sofa_beds': {
+      await db.query(`
+        INSERT INTO ${specTable} (
+          product_id, category, construction, dimensions, material, inner_material,
+          additional_features, has_shelves, leg_height, has_lift_mechanism, types,
+          armrest_type, seat_height
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `, [
+        productId,
+        category,
+        specs.construction || null,
+        dimensions ? JSON.stringify(dimensions) : null,
+        typeof material === 'object' ? JSON.stringify(material) : null,
+        innerMaterial ? JSON.stringify(innerMaterial) : null,
+        specs.additional_features || null,
+        specs.has_shelves || false,
+        specs.leg_height || null,
+        specs.has_lift_mechanism || false,
+        types ? JSON.stringify(types) : null,
+        specs.armrest_type || null,
+        specs.seat_height || null
+      ]);
+      break;
+    }
+
+    case 'beds': {
+      await db.query`
+        INSERT INTO bed_specs (
+          product_id, category, construction, dimensions, material, headboard_type,
+          storage_options, types
+        )
+        VALUES (
+          ${productId},
+          ${category},
+          ${specs.construction || null},
+          ${dimensions ? JSON.stringify(dimensions) : null},
+          ${typeof material === 'string' ? material : null},
+          ${specs.headboard_type || null},
+          ${specs.storage_options || null},
+          ${types ? JSON.stringify(types) : null}
+        )
+      `;
+      break;
+    }
+
+    case 'mattresses': {
+      await db.query`
+        INSERT INTO mattress_specs (
+          product_id, category, type, firmness, thickness, core_type, hardness,
+          dimensions, types
+        )
+        VALUES (
+          ${productId},
+          ${category},
+          ${specs.type || null},
+          ${specs.firmness || null},
+          ${specs.thickness || null},
+          ${specs.core_type || null},
+          ${specs.hardness || null},
+          ${dimensions ? JSON.stringify(dimensions) : null},
+          ${types ? JSON.stringify(types) : null}
+        )
+      `;
+      break;
+    }
+
+    case 'tables': {
+      await db.query`
+        INSERT INTO table_specs (
+          product_id, category, shape, extendable, material, dimensions, types
+        )
+        VALUES (
+          ${productId},
+          ${category},
+          ${specs.shape || null},
+          ${specs.extendable || false},
+          ${typeof material === 'string' ? material : null},
+          ${dimensions ? JSON.stringify(dimensions) : null},
+          ${types ? JSON.stringify(types) : null}
+        )
+      `;
+      break;
+    }
+
+    case 'chairs': {
+      await db.query`
+        INSERT INTO chair_specs (
+          product_id, category, upholstery, seat_height, weight_capacity, material,
+          dimensions, types
+        )
+        VALUES (
+          ${productId},
+          ${category},
+          ${specs.upholstery || null},
+          ${specs.seat_height || null},
+          ${specs.weight_capacity || null},
+          ${typeof material === 'string' ? material : null},
+          ${dimensions ? JSON.stringify(dimensions) : null},
+          ${types ? JSON.stringify(types) : null}
+        )
+      `;
+      break;
+    }
+
+    case 'wardrobes': {
+      await db.query`
+        INSERT INTO wardrobe_specs (
+          product_id, category, door_count, door_type, internal_layout, material,
+          dimensions, types
+        )
+        VALUES (
+          ${productId},
+          ${category},
+          ${specs.door_count || null},
+          ${specs.door_type || null},
+          ${specs.internal_layout || null},
+          ${typeof material === 'string' ? material : null},
+          ${dimensions ? JSON.stringify(dimensions) : null},
+          ${types ? JSON.stringify(types) : null}
+        )
+      `;
+      break;
+    }
+
+    case 'accessories': {
+      await db.query`
+        INSERT INTO accessory_specs (
+          product_id, category, mounting_type, shelf_count, material, dimensions, types
+        )
+        VALUES (
+          ${productId},
+          ${category},
+          ${specs.mounting_type || null},
+          ${specs.shelf_count || null},
+          ${typeof material === 'string' ? material : null},
+          ${dimensions ? JSON.stringify(dimensions) : null},
+          ${types ? JSON.stringify(types) : null}
+        )
+      `;
+      break;
+    }
   }
 }
