@@ -68,9 +68,11 @@ export default async function RootLayout({
           <>
             {/* 1. DATA LAYER INITIALIZATION
                 - CSP: Uses dangerouslySetInnerHTML and the 'nonce' for compliance.
+                - suppressHydrationWarning: Browser clears nonce after CSP validation (expected behavior)
             */}
             <script
               nonce={nonce}
+              suppressHydrationWarning
               dangerouslySetInnerHTML={{
                 __html: `window.dataLayer = window.dataLayer || [];`,
               }}
