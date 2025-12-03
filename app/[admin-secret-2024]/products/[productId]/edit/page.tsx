@@ -56,10 +56,10 @@ export default async function EditProductPage({ params }: PageProps) {
 
   // Get images
   const imagesResult = await db.query`
-    SELECT id, image_url, alt, is_primary, display_order
+    SELECT id, image_url, alt, is_primary
     FROM product_images
     WHERE product_id = ${id}
-    ORDER BY display_order ASC
+    ORDER BY is_primary DESC, id ASC
   `;
 
   // Get colors

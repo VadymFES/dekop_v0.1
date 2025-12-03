@@ -16,7 +16,6 @@ interface ProductImage {
   image_url: string;
   alt: string;
   is_primary: boolean;
-  display_order: number;
 }
 
 interface ProductColor {
@@ -373,7 +372,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   const addImage = () => {
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, { image_url: '', alt: '', is_primary: prev.images.length === 0, display_order: prev.images.length }],
+      images: [...prev.images, { image_url: '', alt: '', is_primary: prev.images.length === 0 }],
     }));
   };
 
@@ -527,7 +526,7 @@ export default function ProductForm({ product }: ProductFormProps) {
           </h2>
           {formData.images.length === 0 && <p style={{ color: '#999', fontStyle: 'italic' }}>Немає зображень</p>}
           {formData.images.map((image, index) => (
-            <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px auto auto', gap: '10px', alignItems: 'end', marginBottom: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #eee' }}>
+            <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 80px auto', gap: '10px', alignItems: 'end', marginBottom: '10px', padding: '10px', backgroundColor: '#fff', border: '1px solid #eee' }}>
               <div>
                 <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>URL (ImageKit)</label>
                 <input type="url" value={image.image_url} onChange={(e) => updateImage(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
@@ -535,10 +534,6 @@ export default function ProductForm({ product }: ProductFormProps) {
               <div>
                 <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Alt текст</label>
                 <input type="text" value={image.alt} onChange={(e) => updateImage(index, 'alt', e.target.value)} style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', display: 'block', marginBottom: '3px' }}>Порядок</label>
-                <input type="number" value={image.display_order} onChange={(e) => updateImage(index, 'display_order', Number(e.target.value))} min="0" style={{ ...inputStyle, fontSize: '12px', padding: '8px' }} />
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', cursor: 'pointer' }}>
                 <input type="radio" checked={image.is_primary} onChange={() => updateImage(index, 'is_primary', true)} /> Головне

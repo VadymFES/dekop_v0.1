@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
       for (const image of data.images) {
         if (image.image_url) {
           await db.query`
-            INSERT INTO product_images (product_id, image_url, alt, is_primary, display_order)
-            VALUES (${productId}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary}, ${image.display_order})
+            INSERT INTO product_images (product_id, image_url, alt, is_primary)
+            VALUES (${productId}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary})
           `;
         }
       }

@@ -61,10 +61,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Get images
     const imagesResult = await db.query`
-      SELECT id, image_url, alt, is_primary, display_order
+      SELECT id, image_url, alt, is_primary
       FROM product_images
       WHERE product_id = ${id}
-      ORDER BY display_order ASC
+      ORDER BY is_primary DESC, id ASC
     `;
 
     // Get colors
@@ -175,8 +175,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       for (const image of data.images) {
         if (image.image_url) {
           await db.query`
-            INSERT INTO product_images (product_id, image_url, alt, is_primary, display_order)
-            VALUES (${id}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary}, ${image.display_order})
+            INSERT INTO product_images (product_id, image_url, alt, is_primary)
+            VALUES (${id}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary})
           `;
         }
       }

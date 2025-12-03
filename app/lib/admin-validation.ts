@@ -103,7 +103,6 @@ const productImageSchema = z.object({
   image_url: z.string().url('Invalid image URL').max(500),
   alt: z.string().max(255).default(''),
   is_primary: z.boolean().default(false),
-  display_order: z.number().int().min(0).default(0),
 });
 
 /**
