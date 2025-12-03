@@ -7,6 +7,7 @@
 import { getCurrentAdmin, AdminUserWithPermissions } from '@/app/lib/admin-auth';
 import AdminNav from './components/AdminNav';
 import LogoutButton from './components/LogoutButton';
+import SessionTimer from './components/SessionTimer';
 
 export const metadata = {
   title: 'Адмін-панель - DEKOP',
@@ -92,6 +93,7 @@ function AdminLayoutContent({
           padding: '0 20px',
           boxSizing: 'border-box',
         }}>
+          <SessionTimer />
           <LogoutButton />
         </div>
       </aside>

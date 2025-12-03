@@ -11,7 +11,7 @@ export default async function AdminDashboard() {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   // Fetch dashboard metrics
@@ -69,7 +69,7 @@ export default async function AdminDashboard() {
             {metrics.recentOrders.map((order) => (
               <tr key={order.id}>
                 <td style={tdStyle}>
-                  <a href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2' }}>
+                  <a href={`/admin-path-57fyg/orders/${order.id}`} style={{ color: '#1976d2' }}>
                     {order.order_number}
                   </a>
                 </td>
@@ -125,7 +125,7 @@ export default async function AdminDashboard() {
                     {product.stock}
                   </td>
                   <td style={tdStyle}>
-                    <a href={`/admin-secret-2024/products/${product.id}/edit`} style={{ color: '#1976d2' }}>
+                    <a href={`/admin-path-57fyg/products/${product.id}/edit`} style={{ color: '#1976d2' }}>
                       Редагувати
                     </a>
                   </td>

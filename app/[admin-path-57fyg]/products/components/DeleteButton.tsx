@@ -18,7 +18,7 @@ export default function DeleteButton({ productId, productName }: DeleteButtonPro
 
   return (
     <form
-      action={`/admin-secret-2024/api/products/${productId}`}
+      action={`/admin-path-57fyg/api/products/${productId}`}
       method="POST"
       style={{ display: 'inline' }}
       onSubmit={handleSubmit}

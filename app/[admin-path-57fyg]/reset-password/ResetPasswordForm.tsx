@@ -20,7 +20,7 @@ export default function ResetPasswordForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/admin-secret-2024/api/auth/reset-password', {
+      const response = await fetch('/admin-path-57fyg/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -56,7 +56,7 @@ export default function ResetPasswordForm() {
           Якщо email існує в системі, на нього буде відправлено посилання для скидання пароля.
         </div>
         <Link
-          href="/admin-secret-2024/login"
+          href="/admin-path-57fyg/login"
           style={{
             display: 'block',
             textAlign: 'center',
@@ -106,7 +106,7 @@ export default function ResetPasswordForm() {
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <Link
-          href="/admin-secret-2024/login"
+          href="/admin-path-57fyg/login"
           style={{ color: '#1976d2', fontSize: '14px' }}
         >
           Повернутися до входу

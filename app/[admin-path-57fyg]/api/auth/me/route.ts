@@ -1,6 +1,6 @@
 /**
  * Get Current Admin User API Route
- * GET /[admin-secret-2024]/api/auth/me
+ * GET /[admin-path-57fyg]/api/auth/me
  */
 
 import { NextResponse } from 'next/server';

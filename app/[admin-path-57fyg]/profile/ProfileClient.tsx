@@ -103,7 +103,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('/admin-secret-2024/api/profile/sessions');
+      const response = await fetch('/admin-path-57fyg/api/profile/sessions');
       const data = await response.json();
       if (data.success) {
         setSessions(data.sessions);
@@ -122,7 +122,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     setNameMessage('');
 
     try {
-      const response = await fetch('/admin-secret-2024/api/profile', {
+      const response = await fetch('/admin-path-57fyg/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ first_name: firstName, last_name: lastName }),
@@ -162,7 +162,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     }
 
     try {
-      const response = await fetch('/admin-secret-2024/api/profile/password', {
+      const response = await fetch('/admin-path-57fyg/api/profile/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,7 +197,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     setEndingSession(sessionId);
 
     try {
-      const response = await fetch(`/admin-secret-2024/api/profile/sessions/${sessionId}`, {
+      const response = await fetch(`/admin-path-57fyg/api/profile/sessions/${sessionId}`, {
         method: 'DELETE',
       });
 

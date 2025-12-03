@@ -22,7 +22,7 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/admin-secret-2024/api/auth/login', {
+      const response = await fetch('/admin-path-57fyg/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -42,8 +42,11 @@ export default function LoginForm() {
         return;
       }
 
+      // Store login timestamp for session timer
+      localStorage.setItem('admin_session_start', Date.now().toString());
+
       // Redirect to dashboard on success
-      router.push('/admin-secret-2024');
+      router.push('/admin-path-57fyg');
       router.refresh();
     } catch (err) {
       setError('Виникла помилка. Спробуйте ще раз.');
@@ -98,7 +101,7 @@ export default function LoginForm() {
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <Link
-          href="/admin-secret-2024/reset-password"
+          href="/admin-path-57fyg/reset-password"
           style={{ color: '#1976d2', fontSize: '14px' }}
         >
           Забули пароль?

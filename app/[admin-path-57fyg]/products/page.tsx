@@ -23,11 +23,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   if (!admin.permissions.includes('products.read')) {
-    redirect('/admin-secret-2024');
+    redirect('/admin-path-57fyg');
   }
 
   const params = await searchParams;
@@ -56,7 +56,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         <h1 style={{ fontSize: '24px', margin: 0 }}>Товари ({total})</h1>
         {admin.permissions.includes('products.create') && (
           <Link
-            href="/admin-secret-2024/products/add"
+            href="/admin-path-57fyg/products/add"
             style={{
               padding: '10px 20px',
               backgroundColor: '#4caf50',
@@ -131,7 +131,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </button>
 
           <Link
-            href="/admin-secret-2024/products"
+            href="/admin-path-57fyg/products"
             style={{
               padding: '8px 20px',
               backgroundColor: '#f5f5f5',
@@ -347,7 +347,7 @@ function buildPageUrl(page: number, params: Record<string, string>) {
   Object.entries(params).forEach(([key, value]) => {
     if (value) searchParams.set(key, value);
   });
-  return `/admin-secret-2024/products?${searchParams.toString()}`;
+  return `/admin-path-57fyg/products?${searchParams.toString()}`;
 }
 
 function formatCurrency(amount: number): string {

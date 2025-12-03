@@ -19,10 +19,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/admin-secret-2024', label: 'Головна' },
-  { href: '/admin-secret-2024/products', label: 'Товари', permission: 'products.read' },
-  { href: '/admin-secret-2024/orders', label: 'Замовлення', permission: 'orders.read' },
-  { href: '/admin-secret-2024/profile', label: 'Профіль' },
+  { href: '/admin-path-57fyg', label: 'Головна' },
+  { href: '/admin-path-57fyg/products', label: 'Товари', permission: 'products.read' },
+  { href: '/admin-path-57fyg/orders', label: 'Замовлення', permission: 'orders.read' },
+  { href: '/admin-path-57fyg/profile', label: 'Профіль' },
 ];
 
 export default function AdminNav({ permissions }: AdminNavProps) {
@@ -49,7 +49,7 @@ export default function AdminNav({ permissions }: AdminNavProps) {
         if (!hasPermission(item.permission)) return null;
 
         const isActive = pathname === item.href ||
-          (item.href !== '/admin-secret-2024' && pathname.startsWith(item.href));
+          (item.href !== '/admin-path-57fyg' && pathname.startsWith(item.href));
 
         return (
           <Link

@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   // Get full profile data
@@ -24,7 +24,7 @@ export default async function ProfilePage() {
   `;
 
   if (profileResult.rows.length === 0) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   const profile = {

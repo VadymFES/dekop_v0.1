@@ -15,7 +15,7 @@ import { cookies } from 'next/headers';
 
 // Constants
 const BCRYPT_ROUNDS = 12;
-const SESSION_DURATION_HOURS = 8;
+const SESSION_DURATION_HOURS = 12;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 30;
 const SESSION_COOKIE_NAME = 'admin_session';

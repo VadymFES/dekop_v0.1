@@ -3,8 +3,8 @@ User-agent: *
 Allow: /
 
 # Disallow admin panel
-Disallow: /admin-secret-2024/
-Disallow: /admin-secret-2024
+Disallow: /admin-path-57fyg/
+Disallow: /admin-path-57fyg
 
 # Disallow API routes
 Disallow: /api/

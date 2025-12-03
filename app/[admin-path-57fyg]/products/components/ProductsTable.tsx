@@ -89,7 +89,7 @@ export default function ProductsTable({
     setDeleteError(null);
 
     try {
-      const response = await fetch('/admin-secret-2024/api/products/bulk-delete', {
+      const response = await fetch('/admin-path-57fyg/api/products/bulk-delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
@@ -115,7 +115,7 @@ export default function ProductsTable({
     if (!confirm(`Видалити товар "${name}"?`)) return;
 
     try {
-      const response = await fetch(`/admin-secret-2024/api/products/${id}`, {
+      const response = await fetch(`/admin-path-57fyg/api/products/${id}`, {
         method: 'DELETE',
       });
 
@@ -240,7 +240,7 @@ export default function ProductsTable({
                 </td>
                 <td style={tdStyle}>
                   <Link
-                    href={`/admin-secret-2024/products/${product.id}/edit`}
+                    href={`/admin-path-57fyg/products/${product.id}/edit`}
                     style={{ color: '#1976d2', marginRight: '10px' }}
                   >
                     Редагувати

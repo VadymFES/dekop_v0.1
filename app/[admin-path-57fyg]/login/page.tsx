@@ -15,7 +15,7 @@ export default async function AdminLoginPage() {
   // Якщо вже авторизований - перенаправити на головну
   const admin = await getCurrentAdmin();
   if (admin) {
-    redirect('/admin-secret-2024');
+    redirect('/admin-path-57fyg');
   }
 
   return (

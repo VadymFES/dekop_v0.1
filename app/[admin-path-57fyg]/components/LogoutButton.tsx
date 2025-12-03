@@ -14,10 +14,12 @@ export default function LogoutButton() {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await fetch('/admin-secret-2024/api/auth/logout', {
+      await fetch('/admin-path-57fyg/api/auth/logout', {
         method: 'POST',
       });
-      router.push('/admin-secret-2024/login');
+      // Clear session timer
+      localStorage.removeItem('admin_session_start');
+      router.push('/admin-path-57fyg/login');
       router.refresh();
     } catch (error) {
       console.error('Logout error:', error);

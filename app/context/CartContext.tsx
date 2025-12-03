@@ -111,7 +111,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Skip cart operations for admin routes
-  const isAdminRoute = pathname?.startsWith('/admin-secret-2024');
+  const isAdminRoute = pathname?.startsWith('/admin-path-57fyg');
 
   // Fetch cart data (disabled for admin routes)
   const { data: cartData, isLoading, error } = useQuery<Cart>({

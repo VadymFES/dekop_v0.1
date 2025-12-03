@@ -479,7 +479,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     setToast(null);
 
     try {
-      const url = isEdit ? `/admin-secret-2024/api/products/${product!.id}` : '/admin-secret-2024/api/products';
+      const url = isEdit ? `/admin-path-57fyg/api/products/${product!.id}` : '/admin-path-57fyg/api/products';
       const response = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -511,7 +511,7 @@ export default function ProductForm({ product }: ProductFormProps) {
 
       if (!isEdit) {
         setTimeout(() => {
-          router.push('/admin-secret-2024/products');
+          router.push('/admin-path-57fyg/products');
           router.refresh();
         }, 1500);
       } else {
