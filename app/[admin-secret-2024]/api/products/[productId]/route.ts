@@ -127,9 +127,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       body.slug = slugify(body.name, { lower: true, strict: true });
     }
 
+    // Debug: log the incoming category value
+    console.log('Incoming product data - category:', body.category, 'type:', typeof body.category);
+
     const validation = safeValidateInput(productSchema, body);
     if (!validation.success) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
+      console.error('Received body.category:', body.category);
       return NextResponse.json({
         error: 'Validation failed',
         errors: formatValidationErrors(validation.error),

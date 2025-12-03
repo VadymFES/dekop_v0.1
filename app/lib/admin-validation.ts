@@ -211,10 +211,13 @@ export const productSchema = z.object({
     .optional()
     .nullable()
     .default(''),
-  category: z.enum([
-    'sofas', 'corner_sofas', 'sofa_beds', 'beds',
-    'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
-  ]),
+  category: z.preprocess(
+    (val) => typeof val === 'string' ? val.trim().toLowerCase() : val,
+    z.enum([
+      'sofas', 'corner_sofas', 'sofa_beds', 'beds',
+      'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
+    ])
+  ),
   price: z.number().min(0.01, 'Price must be greater than 0').max(1000000, 'Price too high'),
   sale_price: z.number().min(0).max(1000000).nullable().optional(),
   stock: nonNegativeNumber.max(99999, 'Stock too high').int(),
