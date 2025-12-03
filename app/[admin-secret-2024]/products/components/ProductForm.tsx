@@ -4,7 +4,7 @@
  * Повна форма товару з усіма полями для всіх категорій
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 // =====================================================
@@ -248,6 +248,84 @@ const sectionTitleStyle: React.CSSProperties = {
   borderBottom: '1px solid #ddd',
 };
 
+// Normalize images to ensure no null values
+const normalizeImages = (images: ProductImage[] | undefined): ProductImage[] => {
+  if (!images) return [];
+  return images.map(img => ({
+    id: img.id,
+    image_url: img.image_url || '',
+    alt: img.alt || '',
+    is_primary: img.is_primary || false,
+  }));
+};
+
+// Normalize colors to ensure no null values
+const normalizeColors = (colors: ProductColor[] | undefined): ProductColor[] => {
+  if (!colors) return [];
+  return colors.map(c => ({
+    color: c.color || '',
+    image_url: c.image_url || '',
+  }));
+};
+
+// =====================================================
+// TOAST NOTIFICATION COMPONENT
+// =====================================================
+
+interface ToastProps {
+  message: string;
+  type: 'success' | 'error';
+  onClose: () => void;
+}
+
+function Toast({ message, type, onClose }: ToastProps) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '20px',
+      right: '20px',
+      zIndex: 9999,
+      padding: '16px 24px',
+      borderRadius: '8px',
+      backgroundColor: type === 'success' ? '#4caf50' : '#f44336',
+      color: 'white',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      animation: 'slideIn 0.3s ease-out',
+    }}>
+      <span style={{ fontSize: '20px' }}>{type === 'success' ? '✓' : '✕'}</span>
+      <span style={{ fontSize: '14px', fontWeight: 500 }}>{message}</span>
+      <button
+        onClick={onClose}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'white',
+          cursor: 'pointer',
+          marginLeft: '8px',
+          fontSize: '18px',
+          opacity: 0.8,
+        }}
+      >
+        ×
+      </button>
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // =====================================================
 // MAIN COMPONENT
 // =====================================================
@@ -268,14 +346,15 @@ export default function ProductForm({ product }: ProductFormProps) {
     is_new: product?.is_new || false,
     is_bestseller: product?.is_bestseller || false,
     is_featured: product?.is_featured || false,
-    images: product?.images || [],
-    colors: product?.colors || [],
+    images: normalizeImages(product?.images),
+    colors: normalizeColors(product?.colors),
     specs: product?.specs || {},
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Helpers
   const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(formData.category);
@@ -419,6 +498,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     setLoading(true);
     setMessage('');
     setErrors({});
+    setToast(null);
 
     try {
       const url = isEdit ? `/admin-secret-2024/api/products/${product!.id}` : '/admin-secret-2024/api/products';
@@ -431,15 +511,30 @@ export default function ProductForm({ product }: ProductFormProps) {
       const data = await response.json();
       if (!response.ok) {
         if (data.errors) setErrors(data.errors);
-        else setMessage(data.error || 'Помилка збереження товару');
+        setToast({
+          message: data.error || 'Помилка збереження товару',
+          type: 'error',
+        });
         setLoading(false);
         return;
       }
 
-      router.push('/admin-secret-2024/products');
-      router.refresh();
+      // Show success toast
+      setToast({
+        message: isEdit ? `Товар "${formData.name}" успішно оновлено` : `Товар "${formData.name}" успішно створено`,
+        type: 'success',
+      });
+
+      // Redirect after short delay to show toast
+      setTimeout(() => {
+        router.push('/admin-secret-2024/products');
+        router.refresh();
+      }, 1500);
     } catch {
-      setMessage('Виникла помилка. Спробуйте ще раз.');
+      setToast({
+        message: 'Виникла помилка. Спробуйте ще раз.',
+        type: 'error',
+      });
       setLoading(false);
     }
   };
@@ -450,6 +545,16 @@ export default function ProductForm({ product }: ProductFormProps) {
 
   return (
     <div style={{ maxWidth: '1000px' }}>
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Legacy error message (for field errors display) */}
       {message && (
         <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '15px', marginBottom: '20px', border: '1px solid #ef9a9a' }}>
           {message}
