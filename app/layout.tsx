@@ -1,5 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { getNonce } from "@/app/lib/csp";
 import QueryProvider from "@/app/providers/QueryProvider";
 import ClientLayout from "./ClientLayout";
@@ -51,33 +52,44 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const nonce = await getNonce(); // Get the CSP nonce
+  // Check if this is an admin route to skip GTM/analytics
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
+  const isAdminRoute = pathname.includes('admin-secret-2024');
+
+  // Only get nonce for non-admin routes (avoids hydration mismatch)
+  const nonce = isAdminRoute ? '' : await getNonce();
 
   return (
     <html lang="uk">
       <body>
-        {/* 1. DATA LAYER INITIALIZATION 
-            - CSP: Uses dangerouslySetInnerHTML and the 'nonce' for compliance.
-        */}
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];`,
-          }}
-        />
+        {/* Skip GTM and analytics for admin routes */}
+        {!isAdminRoute && (
+          <>
+            {/* 1. DATA LAYER INITIALIZATION
+                - CSP: Uses dangerouslySetInnerHTML and the 'nonce' for compliance.
+            */}
+            <script
+              nonce={nonce}
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer = window.dataLayer || [];`,
+              }}
+            />
 
-        {/* 2. GTM CONTAINER SCRIPT & NOSCRIPT IFRAME
-            - This component loads the main GTM script and the noscript fallback.
-        */}
-        <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />
+            {/* 2. GTM CONTAINER SCRIPT & NOSCRIPT IFRAME
+                - This component loads the main GTM script and the noscript fallback.
+            */}
+            <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />
+          </>
+        )}
 
         <QueryProvider>
           <CartProvider>
             <FavoritesProvider>
               <ClientLayout>{children}</ClientLayout>
-              <CookieConsent />
-              <SpeedInsights />
-              <Analytics />
+              {!isAdminRoute && <CookieConsent />}
+              {!isAdminRoute && <SpeedInsights />}
+              {!isAdminRoute && <Analytics />}
             </FavoritesProvider>
           </CartProvider>
         </QueryProvider>

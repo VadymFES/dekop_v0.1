@@ -67,7 +67,8 @@ export function proxy(req: NextRequest) {
   // Create response with nonce header for downstream components
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set('x-nonce', nonce);
-  
+  requestHeaders.set('x-pathname', requestUrl.pathname); // For admin route detection
+
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
