@@ -74,10 +74,12 @@ async function getProductData(slug: string) {
       colors,
     };
 
-    console.log('Full product with specs:', {
+    console.log('Full product data:', {
       id: fullProduct.id,
       category: fullProduct.category,
-      hasSpecs: Boolean(fullProduct.specs)
+      hasSpecs: Boolean(fullProduct.specs),
+      imagesCount: fullProduct.images?.length || 0,
+      firstImageUrl: fullProduct.images?.[0]?.image_url || 'none'
     });
 
     return {
