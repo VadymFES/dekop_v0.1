@@ -1,5 +1,5 @@
 /**
- * Admin Add Product Page
+ * Сторінка додавання нового товару
  */
 
 import { redirect } from 'next/navigation';
@@ -19,7 +19,7 @@ export default async function AddProductPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Add New Product</h1>
+      <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Додати новий товар</h1>
       <ProductForm />
     </div>
   );

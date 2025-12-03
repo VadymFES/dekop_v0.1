@@ -1,6 +1,6 @@
 /**
- * Admin Products List Page
- * Shows all products with filtering and pagination
+ * Сторінка списку товарів адмін-панелі
+ * Показує всі товари з фільтрацією та пагінацією
  */
 
 import { redirect } from 'next/navigation';
@@ -51,7 +51,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', margin: 0 }}>Products ({total})</h1>
+        <h1 style={{ fontSize: '24px', margin: 0 }}>Товари ({total})</h1>
         {admin.permissions.includes('products.create') && (
           <Link
             href="/admin-secret-2024/products/add"
@@ -63,12 +63,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               border: 'none',
             }}
           >
-            Add Product
+            Додати товар
           </Link>
         )}
       </div>
 
-      {/* Filters */}
+      {/* Фільтри */}
       <div style={{
         backgroundColor: 'white',
         border: '1px solid #ccc',
@@ -77,26 +77,26 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       }}>
         <form method="GET" style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Search</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Пошук</label>
             <input
               type="text"
               name="search"
               defaultValue={search}
-              placeholder="Product name..."
+              placeholder="Назва товару..."
               style={{ padding: '8px', border: '1px solid #ccc', width: '200px' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Category</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Категорія</label>
             <select
               name="category"
               defaultValue={category}
               style={{ padding: '8px', border: '1px solid #ccc', width: '150px' }}
             >
-              <option value="">All categories</option>
+              <option value="">Всі категорії</option>
               {categories.map((cat: string) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>{formatCategory(cat)}</option>
               ))}
             </select>
           </div>
@@ -109,7 +109,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                 value="true"
                 defaultChecked={lowStock}
               />
-              Low stock only
+              Мало на складі
             </label>
           </div>
 
@@ -123,7 +123,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               cursor: 'pointer',
             }}
           >
-            Filter
+            Фільтрувати
           </button>
 
           <Link
@@ -136,12 +136,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               border: '1px solid #ccc',
             }}
           >
-            Clear
+            Очистити
           </Link>
         </form>
       </div>
 
-      {/* Products Table */}
+      {/* Таблиця товарів */}
       <div style={{
         backgroundColor: 'white',
         border: '1px solid #ccc',
@@ -150,12 +150,12 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           <thead>
             <tr style={{ backgroundColor: '#f5f5f5' }}>
               <th style={thStyle}>ID</th>
-              <th style={thStyle}>Name</th>
-              <th style={thStyle}>Category</th>
-              <th style={thStyle}>Price</th>
-              <th style={thStyle}>Stock</th>
-              <th style={thStyle}>Flags</th>
-              <th style={thStyle}>Actions</th>
+              <th style={thStyle}>Назва</th>
+              <th style={thStyle}>Категорія</th>
+              <th style={thStyle}>Ціна</th>
+              <th style={thStyle}>Запас</th>
+              <th style={thStyle}>Мітки</th>
+              <th style={thStyle}>Дії</th>
             </tr>
           </thead>
           <tbody>
@@ -166,7 +166,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                   <div>{product.name}</div>
                   <div style={{ fontSize: '12px', color: '#666' }}>{product.slug}</div>
                 </td>
-                <td style={tdStyle}>{product.category}</td>
+                <td style={tdStyle}>{formatCategory(product.category)}</td>
                 <td style={tdStyle}>{formatCurrency(product.price)}</td>
                 <td style={{
                   ...tdStyle,
@@ -176,16 +176,16 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                   {product.stock}
                 </td>
                 <td style={tdStyle}>
-                  {product.is_on_sale && <span style={{ color: '#f44336', marginRight: '5px' }}>SALE</span>}
-                  {product.is_new && <span style={{ color: '#4caf50', marginRight: '5px' }}>NEW</span>}
-                  {product.is_bestseller && <span style={{ color: '#ff9800' }}>BEST</span>}
+                  {product.is_on_sale && <span style={{ color: '#f44336', marginRight: '5px' }}>АКЦІЯ</span>}
+                  {product.is_new && <span style={{ color: '#4caf50', marginRight: '5px' }}>НОВИНКА</span>}
+                  {product.is_bestseller && <span style={{ color: '#ff9800' }}>ХІТ</span>}
                 </td>
                 <td style={tdStyle}>
                   <Link
                     href={`/admin-secret-2024/products/${product.id}/edit`}
                     style={{ color: '#1976d2', marginRight: '10px' }}
                   >
-                    Edit
+                    Редагувати
                   </Link>
                   {admin.permissions.includes('products.delete') && (
                     <DeleteButton productId={product.id} productName={product.name} />
@@ -196,7 +196,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             {products.length === 0 && (
               <tr>
                 <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
-                  No products found
+                  Товарів не знайдено
                 </td>
               </tr>
             )}
@@ -204,7 +204,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Пагінація */}
       {totalPages > 1 && (
         <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
           {page > 1 && (
@@ -212,18 +212,18 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               href={buildPageUrl(page - 1, { search, category, low_stock: lowStock ? 'true' : '' })}
               style={paginationLinkStyle}
             >
-              Previous
+              Попередня
             </Link>
           )}
           <span style={{ padding: '8px 15px' }}>
-            Page {page} of {totalPages}
+            Сторінка {page} з {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={buildPageUrl(page + 1, { search, category, low_stock: lowStock ? 'true' : '' })}
               style={paginationLinkStyle}
             >
-              Next
+              Наступна
             </Link>
           )}
         </div>
@@ -245,7 +245,6 @@ interface Product {
 }
 
 async function getProducts({
-  page,
   limit,
   offset,
   search,
@@ -259,41 +258,114 @@ async function getProducts({
   category: string;
   lowStock: boolean;
 }) {
-  // Build query
-  let whereClause = 'WHERE 1=1';
-  const values: unknown[] = [];
-  let paramIndex = 1;
+  let countResult;
+  let productsResult;
+  const searchPattern = `%${search}%`;
 
-  if (search) {
-    whereClause += ` AND (name ILIKE $${paramIndex} OR slug ILIKE $${paramIndex})`;
-    values.push(`%${search}%`);
-    paramIndex++;
+  // Using template literals to avoid prepared statement issues
+  // Different query branches based on active filters
+  if (search && category && lowStock) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+        AND category = ${category}
+        AND stock < 10
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+        AND category = ${category}
+        AND stock < 10
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (search && category) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+        AND category = ${category}
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+        AND category = ${category}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (search && lowStock) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+        AND stock < 10
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+        AND stock < 10
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (category && lowStock) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products
+      WHERE category = ${category} AND stock < 10
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE category = ${category} AND stock < 10
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (search) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (category) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products WHERE category = ${category}
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE category = ${category}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (lowStock) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM products WHERE stock < 10
+    `;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      WHERE stock < 10
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else {
+    // No filters
+    countResult = await db.query`SELECT COUNT(*) as total FROM products`;
+    productsResult = await db.query`
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      FROM products
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
   }
 
-  if (category) {
-    whereClause += ` AND category = $${paramIndex}`;
-    values.push(category);
-    paramIndex++;
-  }
-
-  if (lowStock) {
-    whereClause += ` AND stock < 10`;
-  }
-
-  // Get total count
-  const countQuery = `SELECT COUNT(*) as total FROM products ${whereClause}`;
-  const countResult = await db.query(countQuery, values);
   const total = Number(countResult.rows[0]?.total) || 0;
-
-  // Get products
-  const productsQuery = `
-    SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
-    FROM products
-    ${whereClause}
-    ORDER BY created_at DESC
-    LIMIT $${paramIndex++} OFFSET $${paramIndex}
-  `;
-  const productsResult = await db.query(productsQuery, [...values, limit, offset]);
 
   // Get categories for filter
   const categoriesResult = await db.query`
@@ -314,7 +386,7 @@ function DeleteButton({ productId, productName }: { productId: number; productNa
       method="POST"
       style={{ display: 'inline' }}
       onSubmit={(e) => {
-        if (!confirm(`Delete "${productName}"?`)) {
+        if (!confirm(`Видалити "${productName}"?`)) {
           e.preventDefault();
         }
       }}
@@ -330,10 +402,25 @@ function DeleteButton({ productId, productName }: { productId: number; productNa
           textDecoration: 'underline',
         }}
       >
-        Delete
+        Видалити
       </button>
     </form>
   );
+}
+
+function formatCategory(category: string): string {
+  const categories: Record<string, string> = {
+    sofas: 'Дивани',
+    corner_sofas: 'Кутові дивани',
+    sofa_beds: 'Дивани-ліжка',
+    beds: 'Ліжка',
+    tables: 'Столи',
+    chairs: 'Стільці',
+    mattresses: 'Матраци',
+    wardrobes: 'Шафи',
+    accessories: 'Аксесуари',
+  };
+  return categories[category] || category;
 }
 
 function buildPageUrl(page: number, params: Record<string, string>) {

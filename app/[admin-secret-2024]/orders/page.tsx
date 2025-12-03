@@ -1,5 +1,5 @@
 /**
- * Admin Orders List Page
+ * Сторінка списку замовлень адмін-панелі
  */
 
 import { redirect } from 'next/navigation';
@@ -39,9 +39,8 @@ export default async function OrdersPage({ searchParams }: PageProps) {
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  // Get orders
+  // Get orders using template literals for safe queries
   const { orders, total } = await getOrders({
-    page,
     limit,
     offset,
     search,
@@ -65,7 +64,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', margin: 0 }}>Orders ({total})</h1>
+        <h1 style={{ fontSize: '24px', margin: 0 }}>Замовлення ({total})</h1>
         <a
           href={exportUrl}
           style={{
@@ -76,11 +75,11 @@ export default async function OrdersPage({ searchParams }: PageProps) {
             border: 'none',
           }}
         >
-          Export CSV
+          Експорт CSV
         </a>
       </div>
 
-      {/* Filters */}
+      {/* Фільтри */}
       <div style={{
         backgroundColor: 'white',
         border: '1px solid #ccc',
@@ -89,49 +88,49 @@ export default async function OrdersPage({ searchParams }: PageProps) {
       }}>
         <form method="GET" style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Search</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Пошук</label>
             <input
               type="text"
               name="search"
               defaultValue={search}
-              placeholder="Order #, email, phone..."
+              placeholder="№ замовлення, email, телефон..."
               style={{ padding: '8px', border: '1px solid #ccc', width: '180px' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Status</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Статус</label>
             <select
               name="status"
               defaultValue={status}
               style={{ padding: '8px', border: '1px solid #ccc', width: '130px' }}
             >
-              <option value="">All</option>
-              <option value="processing">Processing</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="">Всі</option>
+              <option value="processing">В обробці</option>
+              <option value="confirmed">Підтверджено</option>
+              <option value="shipped">Відправлено</option>
+              <option value="delivered">Доставлено</option>
+              <option value="cancelled">Скасовано</option>
             </select>
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Payment</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Оплата</label>
             <select
               name="payment_status"
               defaultValue={paymentStatus}
               style={{ padding: '8px', border: '1px solid #ccc', width: '120px' }}
             >
-              <option value="">All</option>
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
+              <option value="">Всі</option>
+              <option value="pending">Очікує</option>
+              <option value="paid">Оплачено</option>
+              <option value="failed">Помилка</option>
+              <option value="refunded">Повернення</option>
             </select>
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>From</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Від</label>
             <input
               type="date"
               name="date_from"
@@ -141,7 +140,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>To</label>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>До</label>
             <input
               type="date"
               name="date_to"
@@ -160,7 +159,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
               cursor: 'pointer',
             }}
           >
-            Filter
+            Фільтрувати
           </button>
 
           <Link
@@ -173,12 +172,12 @@ export default async function OrdersPage({ searchParams }: PageProps) {
               border: '1px solid #ccc',
             }}
           >
-            Clear
+            Очистити
           </Link>
         </form>
       </div>
 
-      {/* Orders Table */}
+      {/* Таблиця замовлень */}
       <div style={{
         backgroundColor: 'white',
         border: '1px solid #ccc',
@@ -186,14 +185,14 @@ export default async function OrdersPage({ searchParams }: PageProps) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={thStyle}>Order #</th>
-              <th style={thStyle}>Customer</th>
-              <th style={thStyle}>Contact</th>
-              <th style={thStyle}>Total</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}>Payment</th>
-              <th style={thStyle}>Date</th>
-              <th style={thStyle}>Actions</th>
+              <th style={thStyle}>№ замовлення</th>
+              <th style={thStyle}>Клієнт</th>
+              <th style={thStyle}>Контакт</th>
+              <th style={thStyle}>Сума</th>
+              <th style={thStyle}>Статус</th>
+              <th style={thStyle}>Оплата</th>
+              <th style={thStyle}>Дата</th>
+              <th style={thStyle}>Дії</th>
             </tr>
           </thead>
           <tbody>
@@ -219,7 +218,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                 <td style={tdStyle}>{formatDate(order.created_at)}</td>
                 <td style={tdStyle}>
                   <Link href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2' }}>
-                    View
+                    Переглянути
                   </Link>
                 </td>
               </tr>
@@ -227,7 +226,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
             {orders.length === 0 && (
               <tr>
                 <td colSpan={8} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
-                  No orders found
+                  Замовлення не знайдено
                 </td>
               </tr>
             )}
@@ -235,7 +234,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Пагінація */}
       {totalPages > 1 && (
         <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
           {page > 1 && (
@@ -243,18 +242,18 @@ export default async function OrdersPage({ searchParams }: PageProps) {
               href={buildPageUrl(page - 1, { search, status, payment_status: paymentStatus, date_from: dateFrom, date_to: dateTo })}
               style={paginationLinkStyle}
             >
-              Previous
+              Попередня
             </Link>
           )}
           <span style={{ padding: '8px 15px' }}>
-            Page {page} of {totalPages}
+            Сторінка {page} з {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={buildPageUrl(page + 1, { search, status, payment_status: paymentStatus, date_from: dateFrom, date_to: dateTo })}
               style={paginationLinkStyle}
             >
-              Next
+              Наступна
             </Link>
           )}
         </div>
@@ -285,7 +284,6 @@ async function getOrders({
   dateFrom,
   dateTo,
 }: {
-  page: number;
   limit: number;
   offset: number;
   search: string;
@@ -294,61 +292,171 @@ async function getOrders({
   dateFrom: string;
   dateTo: string;
 }) {
-  let whereClause = 'WHERE 1=1';
-  const values: unknown[] = [];
-  let paramIndex = 1;
+  // Use separate queries based on filters to avoid dynamic SQL issues
+  const searchPattern = search ? `%${search}%` : null;
+  const dateToEnd = dateTo ? `${dateTo}T23:59:59` : null;
 
-  if (search) {
-    whereClause += ` AND (order_number ILIKE $${paramIndex} OR user_email ILIKE $${paramIndex} OR user_phone ILIKE $${paramIndex})`;
-    values.push(`%${search}%`);
-    paramIndex++;
+  // Build result based on which filters are active
+  let countResult;
+  let ordersResult;
+
+  if (searchPattern && status && paymentStatus && dateFrom && dateToEnd) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND order_status = ${status}
+        AND payment_status = ${paymentStatus}
+        AND created_at >= ${dateFrom}
+        AND created_at <= ${dateToEnd}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND order_status = ${status}
+        AND payment_status = ${paymentStatus}
+        AND created_at >= ${dateFrom}
+        AND created_at <= ${dateToEnd}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (searchPattern && status && paymentStatus) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND order_status = ${status}
+        AND payment_status = ${paymentStatus}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND order_status = ${status}
+        AND payment_status = ${paymentStatus}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (searchPattern && status) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND order_status = ${status}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND order_status = ${status}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (searchPattern && paymentStatus) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND payment_status = ${paymentStatus}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
+        AND payment_status = ${paymentStatus}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (status && paymentStatus) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE order_status = ${status} AND payment_status = ${paymentStatus}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE order_status = ${status} AND payment_status = ${paymentStatus}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (searchPattern) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (status) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders WHERE order_status = ${status}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE order_status = ${status}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (paymentStatus) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders WHERE payment_status = ${paymentStatus}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE payment_status = ${paymentStatus}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else if (dateFrom && dateToEnd) {
+    countResult = await db.query`
+      SELECT COUNT(*) as total FROM orders
+      WHERE created_at >= ${dateFrom} AND created_at <= ${dateToEnd}
+    `;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      WHERE created_at >= ${dateFrom} AND created_at <= ${dateToEnd}
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+  } else {
+    // No filters - get all orders
+    countResult = await db.query`SELECT COUNT(*) as total FROM orders`;
+    ordersResult = await db.query`
+      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+             total_amount, order_status, payment_status, created_at
+      FROM orders
+      ORDER BY created_at DESC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
   }
-
-  if (status) {
-    whereClause += ` AND order_status = $${paramIndex}`;
-    values.push(status);
-    paramIndex++;
-  }
-
-  if (paymentStatus) {
-    whereClause += ` AND payment_status = $${paramIndex}`;
-    values.push(paymentStatus);
-    paramIndex++;
-  }
-
-  if (dateFrom) {
-    whereClause += ` AND created_at >= $${paramIndex}`;
-    values.push(dateFrom);
-    paramIndex++;
-  }
-
-  if (dateTo) {
-    whereClause += ` AND created_at <= $${paramIndex}`;
-    values.push(dateTo + 'T23:59:59');
-    paramIndex++;
-  }
-
-  const countQuery = `SELECT COUNT(*) as total FROM orders ${whereClause}`;
-  const countResult = await db.query(countQuery, values);
-  const total = Number(countResult.rows[0]?.total) || 0;
-
-  const ordersQuery = `
-    SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-           total_amount, order_status, payment_status, created_at
-    FROM orders
-    ${whereClause}
-    ORDER BY created_at DESC
-    LIMIT $${paramIndex++} OFFSET $${paramIndex}
-  `;
-  const ordersResult = await db.query(ordersQuery, [...values, limit, offset]);
 
   return {
     orders: ordersResult.rows,
-    total,
+    total: Number(countResult.rows[0]?.total) || 0,
   };
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    processing: 'В обробці',
+    confirmed: 'Підтверджено',
+    shipped: 'Відправлено',
+    delivered: 'Доставлено',
+    cancelled: 'Скасовано',
+  };
   const colors: Record<string, string> = {
     processing: '#ff9800',
     confirmed: '#2196f3',
@@ -356,17 +464,23 @@ function StatusBadge({ status }: { status: string }) {
     delivered: '#4caf50',
     cancelled: '#f44336',
   };
-  return <span style={{ color: colors[status] || '#333', fontWeight: 'bold' }}>{status}</span>;
+  return <span style={{ color: colors[status] || '#333', fontWeight: 'bold' }}>{labels[status] || status}</span>;
 }
 
 function PaymentBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    pending: 'Очікує',
+    paid: 'Оплачено',
+    failed: 'Помилка',
+    refunded: 'Повернення',
+  };
   const colors: Record<string, string> = {
     pending: '#ff9800',
     paid: '#4caf50',
     failed: '#f44336',
     refunded: '#9c27b0',
   };
-  return <span style={{ color: colors[status] || '#333' }}>{status}</span>;
+  return <span style={{ color: colors[status] || '#333' }}>{labels[status] || status}</span>;
 }
 
 function buildPageUrl(page: number, params: Record<string, string>) {

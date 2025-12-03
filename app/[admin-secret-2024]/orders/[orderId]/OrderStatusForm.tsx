@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Order Status Update Form Component
+ * Компонент форми оновлення статусу замовлення
  */
 
 import { useState } from 'react';
@@ -15,18 +15,18 @@ interface OrderStatusFormProps {
 }
 
 const orderStatuses = [
-  { value: 'processing', label: 'Processing' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'shipped', label: 'Shipped' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'processing', label: 'В обробці' },
+  { value: 'confirmed', label: 'Підтверджено' },
+  { value: 'shipped', label: 'Відправлено' },
+  { value: 'delivered', label: 'Доставлено' },
+  { value: 'cancelled', label: 'Скасовано' },
 ];
 
 const paymentStatuses = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'refunded', label: 'Refunded' },
+  { value: 'pending', label: 'Очікує' },
+  { value: 'paid', label: 'Оплачено' },
+  { value: 'failed', label: 'Помилка' },
+  { value: 'refunded', label: 'Повернення' },
 ];
 
 export default function OrderStatusForm({
@@ -62,7 +62,7 @@ export default function OrderStatusForm({
       }
 
       if (Object.keys(updates).length === 0) {
-        setMessage('No changes to save');
+        setMessage('Немає змін для збереження');
         setMessageType('error');
         setLoading(false);
         return;
@@ -77,17 +77,17 @@ export default function OrderStatusForm({
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.error || 'Failed to update order');
+        setMessage(data.error || 'Помилка оновлення замовлення');
         setMessageType('error');
         setLoading(false);
         return;
       }
 
-      setMessage('Order updated successfully');
+      setMessage('Замовлення успішно оновлено');
       setMessageType('success');
       router.refresh();
     } catch (err) {
-      setMessage('An error occurred. Please try again.');
+      setMessage('Виникла помилка. Спробуйте ще раз.');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -124,7 +124,7 @@ export default function OrderStatusForm({
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
         <div>
-          <label htmlFor="order_status" style={labelStyle}>Order Status</label>
+          <label htmlFor="order_status" style={labelStyle}>Статус замовлення</label>
           <select
             id="order_status"
             value={orderStatus}
@@ -138,7 +138,7 @@ export default function OrderStatusForm({
         </div>
 
         <div>
-          <label htmlFor="payment_status" style={labelStyle}>Payment Status</label>
+          <label htmlFor="payment_status" style={labelStyle}>Статус оплати</label>
           <select
             id="payment_status"
             value={paymentStatus}
@@ -153,7 +153,7 @@ export default function OrderStatusForm({
       </div>
 
       <div style={{ marginBottom: '15px' }}>
-        <label htmlFor="admin_notes" style={labelStyle}>Admin Notes</label>
+        <label htmlFor="admin_notes" style={labelStyle}>Примітки адміністратора</label>
         <textarea
           id="admin_notes"
           value={adminNotes}
@@ -181,7 +181,7 @@ export default function OrderStatusForm({
           fontSize: '14px',
         }}
       >
-        {loading ? 'Saving...' : 'Save Changes'}
+        {loading ? 'Збереження...' : 'Зберегти зміни'}
       </button>
     </form>
   );

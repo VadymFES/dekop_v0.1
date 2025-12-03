@@ -1,6 +1,6 @@
 /**
- * Admin Dashboard Page
- * Shows key metrics and recent orders
+ * Головна сторінка адмін-панелі
+ * Показує ключові метрики та останні замовлення
  */
 
 import { redirect } from 'next/navigation';
@@ -19,19 +19,19 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Dashboard</h1>
+      <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Головна панель</h1>
 
-      {/* Stats Cards */}
+      {/* Картки статистики */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '20px',
         marginBottom: '30px',
       }}>
-        <StatCard label="Orders Today" value={metrics.ordersToday} />
-        <StatCard label="Orders This Week" value={metrics.ordersWeek} />
-        <StatCard label="Orders This Month" value={metrics.ordersMonth} />
-        <StatCard label="Pending Orders" value={metrics.pendingOrders} color="#ff9800" />
+        <StatCard label="Замовлень сьогодні" value={metrics.ordersToday} />
+        <StatCard label="Замовлень за тиждень" value={metrics.ordersWeek} />
+        <StatCard label="Замовлень за місяць" value={metrics.ordersMonth} />
+        <StatCard label="Очікують обробки" value={metrics.pendingOrders} color="#ff9800" />
       </div>
 
       <div style={{
@@ -40,29 +40,29 @@ export default async function AdminDashboard() {
         gap: '20px',
         marginBottom: '30px',
       }}>
-        <StatCard label="Revenue Today" value={formatCurrency(metrics.revenueToday)} />
-        <StatCard label="Revenue This Week" value={formatCurrency(metrics.revenueWeek)} />
-        <StatCard label="Revenue This Month" value={formatCurrency(metrics.revenueMonth)} />
-        <StatCard label="Low Stock Products" value={metrics.lowStockProducts} color="#f44336" />
+        <StatCard label="Дохід сьогодні" value={formatCurrency(metrics.revenueToday)} />
+        <StatCard label="Дохід за тиждень" value={formatCurrency(metrics.revenueWeek)} />
+        <StatCard label="Дохід за місяць" value={formatCurrency(metrics.revenueMonth)} />
+        <StatCard label="Мало на складі" value={metrics.lowStockProducts} color="#f44336" />
       </div>
 
-      {/* Recent Orders */}
+      {/* Останні замовлення */}
       <div style={{
         backgroundColor: 'white',
         border: '1px solid #ccc',
         padding: '20px',
         marginBottom: '30px',
       }}>
-        <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>Recent Orders</h2>
+        <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>Останні замовлення</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={thStyle}>Order #</th>
-              <th style={thStyle}>Customer</th>
-              <th style={thStyle}>Total</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}>Payment</th>
-              <th style={thStyle}>Date</th>
+              <th style={thStyle}>№ замовлення</th>
+              <th style={thStyle}>Клієнт</th>
+              <th style={thStyle}>Сума</th>
+              <th style={thStyle}>Статус</th>
+              <th style={thStyle}>Оплата</th>
+              <th style={thStyle}>Дата</th>
             </tr>
           </thead>
           <tbody>
@@ -87,7 +87,7 @@ export default async function AdminDashboard() {
             {metrics.recentOrders.length === 0 && (
               <tr>
                 <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
-                  No orders yet
+                  Замовлень ще немає
                 </td>
               </tr>
             )}
@@ -95,7 +95,7 @@ export default async function AdminDashboard() {
         </table>
       </div>
 
-      {/* Low Stock Products */}
+      {/* Товари з малим запасом */}
       {metrics.lowStockProductsList.length > 0 && (
         <div style={{
           backgroundColor: 'white',
@@ -103,16 +103,16 @@ export default async function AdminDashboard() {
           padding: '20px',
         }}>
           <h2 style={{ fontSize: '18px', marginBottom: '20px', color: '#f44336' }}>
-            Low Stock Products (less than 10)
+            Товари з малим запасом (менше 10)
           </h2>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#f5f5f5' }}>
                 <th style={thStyle}>ID</th>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>Category</th>
-                <th style={thStyle}>Stock</th>
-                <th style={thStyle}>Action</th>
+                <th style={thStyle}>Назва</th>
+                <th style={thStyle}>Категорія</th>
+                <th style={thStyle}>Запас</th>
+                <th style={thStyle}>Дія</th>
               </tr>
             </thead>
             <tbody>
@@ -126,7 +126,7 @@ export default async function AdminDashboard() {
                   </td>
                   <td style={tdStyle}>
                     <a href={`/admin-secret-2024/products/${product.id}/edit`} style={{ color: '#1976d2' }}>
-                      Edit
+                      Редагувати
                     </a>
                   </td>
                 </tr>
@@ -139,7 +139,7 @@ export default async function AdminDashboard() {
   );
 }
 
-// Helper components
+// Допоміжні компоненти
 function StatCard({ label, value, color = '#333' }: { label: string; value: string | number; color?: string }) {
   return (
     <div style={{
@@ -154,6 +154,13 @@ function StatCard({ label, value, color = '#333' }: { label: string; value: stri
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    processing: 'В обробці',
+    confirmed: 'Підтверджено',
+    shipped: 'Відправлено',
+    delivered: 'Доставлено',
+    cancelled: 'Скасовано',
+  };
   const colors: Record<string, string> = {
     processing: '#ff9800',
     confirmed: '#2196f3',
@@ -163,12 +170,18 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span style={{ color: colors[status] || '#333' }}>
-      {status}
+      {labels[status] || status}
     </span>
   );
 }
 
 function PaymentBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    pending: 'Очікує',
+    paid: 'Оплачено',
+    failed: 'Помилка',
+    refunded: 'Повернення',
+  };
   const colors: Record<string, string> = {
     pending: '#ff9800',
     paid: '#4caf50',
@@ -177,7 +190,7 @@ function PaymentBadge({ status }: { status: string }) {
   };
   return (
     <span style={{ color: colors[status] || '#333' }}>
-      {status}
+      {labels[status] || status}
     </span>
   );
 }
@@ -214,7 +227,7 @@ function formatDate(date: string): string {
   });
 }
 
-// Data fetching
+// Отримання метрик
 async function getDashboardMetrics() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -225,7 +238,7 @@ async function getDashboardMetrics() {
   const monthAgo = new Date(today);
   monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-  // Orders counts
+  // Статистика замовлень
   const ordersResult = await db.query`
     SELECT
       COUNT(*) FILTER (WHERE created_at >= ${today.toISOString()}) as orders_today,
@@ -238,12 +251,12 @@ async function getDashboardMetrics() {
     FROM orders
   `;
 
-  // Low stock products count
+  // Кількість товарів з малим запасом
   const lowStockResult = await db.query`
     SELECT COUNT(*) as count FROM products WHERE stock < 10
   `;
 
-  // Recent orders
+  // Останні замовлення
   const recentOrdersResult = await db.query`
     SELECT id, order_number, user_name, user_surname, total_amount, order_status, payment_status, created_at
     FROM orders
@@ -251,7 +264,7 @@ async function getDashboardMetrics() {
     LIMIT 10
   `;
 
-  // Low stock products list
+  // Список товарів з малим запасом
   const lowStockProductsResult = await db.query`
     SELECT id, name, category, stock
     FROM products

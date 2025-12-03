@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Product Form Component
- * Used for both adding and editing products
+ * Компонент форми товару
+ * Використовується для додавання та редагування товарів
  */
 
 import { useState } from 'react';
@@ -26,15 +26,15 @@ interface ProductFormProps {
 }
 
 const categories = [
-  'sofas',
-  'corner_sofas',
-  'sofa_beds',
-  'beds',
-  'tables',
-  'chairs',
-  'mattresses',
-  'wardrobes',
-  'accessories',
+  { value: 'sofas', label: 'Дивани' },
+  { value: 'corner_sofas', label: 'Кутові дивани' },
+  { value: 'sofa_beds', label: 'Дивани-ліжка' },
+  { value: 'beds', label: 'Ліжка' },
+  { value: 'tables', label: 'Столи' },
+  { value: 'chairs', label: 'Стільці' },
+  { value: 'mattresses', label: 'Матраци' },
+  { value: 'wardrobes', label: 'Шафи' },
+  { value: 'accessories', label: 'Аксесуари' },
 ];
 
 export default function ProductForm({ product }: ProductFormProps) {
@@ -75,7 +75,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   const generateSlug = () => {
     const slug = formData.name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/[^a-z0-9а-яіїєґ]+/gi, '-')
       .replace(/^-|-$/g, '');
     setFormData(prev => ({ ...prev, slug }));
   };
@@ -103,7 +103,7 @@ export default function ProductForm({ product }: ProductFormProps) {
         if (data.errors) {
           setErrors(data.errors);
         } else {
-          setMessage(data.error || 'Failed to save product');
+          setMessage(data.error || 'Помилка збереження товару');
         }
         setLoading(false);
         return;
@@ -113,7 +113,7 @@ export default function ProductForm({ product }: ProductFormProps) {
       router.push('/admin-secret-2024/products');
       router.refresh();
     } catch (err) {
-      setMessage('An error occurred. Please try again.');
+      setMessage('Виникла помилка. Спробуйте ще раз.');
       setLoading(false);
     }
   };
@@ -163,9 +163,9 @@ export default function ProductForm({ product }: ProductFormProps) {
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Name */}
+        {/* Назва */}
         <div style={fieldStyle}>
-          <label htmlFor="name" style={labelStyle}>Name *</label>
+          <label htmlFor="name" style={labelStyle}>Назва *</label>
           <input
             type="text"
             id="name"
@@ -181,7 +181,7 @@ export default function ProductForm({ product }: ProductFormProps) {
         {/* Slug */}
         <div style={fieldStyle}>
           <label htmlFor="slug" style={labelStyle}>
-            Slug *
+            URL-адреса (slug) *
             <button
               type="button"
               onClick={generateSlug}
@@ -192,7 +192,7 @@ export default function ProductForm({ product }: ProductFormProps) {
                 cursor: 'pointer',
               }}
             >
-              Generate from name
+              Згенерувати з назви
             </button>
           </label>
           <input
@@ -207,13 +207,13 @@ export default function ProductForm({ product }: ProductFormProps) {
           />
           {errors.slug && <div style={errorStyle}>{errors.slug}</div>}
           <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-            Only lowercase letters, numbers, and hyphens
+            Тільки малі літери, цифри та дефіси
           </div>
         </div>
 
-        {/* Category */}
+        {/* Категорія */}
         <div style={fieldStyle}>
-          <label htmlFor="category" style={labelStyle}>Category *</label>
+          <label htmlFor="category" style={labelStyle}>Категорія *</label>
           <select
             id="category"
             name="category"
@@ -223,16 +223,16 @@ export default function ProductForm({ product }: ProductFormProps) {
             style={inputStyle}
           >
             {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat.value} value={cat.value}>{cat.label}</option>
             ))}
           </select>
           {errors.category && <div style={errorStyle}>{errors.category}</div>}
         </div>
 
-        {/* Price and Stock */}
+        {/* Ціна та Запас */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div style={fieldStyle}>
-            <label htmlFor="price" style={labelStyle}>Price (UAH) *</label>
+            <label htmlFor="price" style={labelStyle}>Ціна (грн) *</label>
             <input
               type="number"
               id="price"
@@ -248,7 +248,7 @@ export default function ProductForm({ product }: ProductFormProps) {
           </div>
 
           <div style={fieldStyle}>
-            <label htmlFor="stock" style={labelStyle}>Stock *</label>
+            <label htmlFor="stock" style={labelStyle}>Запас *</label>
             <input
               type="number"
               id="stock"
@@ -264,9 +264,9 @@ export default function ProductForm({ product }: ProductFormProps) {
           </div>
         </div>
 
-        {/* Description */}
+        {/* Опис */}
         <div style={fieldStyle}>
-          <label htmlFor="description" style={labelStyle}>Description</label>
+          <label htmlFor="description" style={labelStyle}>Опис</label>
           <textarea
             id="description"
             name="description"
@@ -278,7 +278,7 @@ export default function ProductForm({ product }: ProductFormProps) {
           {errors.description && <div style={errorStyle}>{errors.description}</div>}
         </div>
 
-        {/* Flags */}
+        {/* Мітки */}
         <div style={{ ...fieldStyle, display: 'flex', gap: '30px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
             <input
@@ -287,7 +287,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               checked={formData.is_on_sale}
               onChange={handleChange}
             />
-            On Sale
+            Акція
           </label>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -297,7 +297,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               checked={formData.is_new}
               onChange={handleChange}
             />
-            New
+            Новинка
           </label>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -307,11 +307,11 @@ export default function ProductForm({ product }: ProductFormProps) {
               checked={formData.is_bestseller}
               onChange={handleChange}
             />
-            Bestseller
+            Хіт продажів
           </label>
         </div>
 
-        {/* Submit Buttons */}
+        {/* Кнопки */}
         <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
           <button
             type="submit"
@@ -325,7 +325,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               fontSize: '16px',
             }}
           >
-            {loading ? 'Saving...' : isEdit ? 'Update Product' : 'Add Product'}
+            {loading ? 'Збереження...' : isEdit ? 'Оновити товар' : 'Додати товар'}
           </button>
 
           <button
@@ -340,7 +340,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               fontSize: '16px',
             }}
           >
-            Cancel
+            Скасувати
           </button>
         </div>
       </form>

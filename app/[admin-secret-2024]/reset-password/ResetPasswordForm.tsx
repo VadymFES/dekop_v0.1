@@ -1,18 +1,16 @@
 'use client';
 
 /**
- * Форма входу в адмін-панель
+ * Форма скидання пароля
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginForm() {
-  const router = useRouter();
+export default function ResetPasswordForm() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,34 +19,54 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/admin-secret-2024/api/auth/login', {
+      const response = await fetch('/admin-secret-2024/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!data.success) {
-        // Translate common errors to Ukrainian
-        const errorMessages: Record<string, string> = {
-          'Invalid email or password': 'Невірний email або пароль',
-          'Account is locked. Please try again later.': 'Акаунт заблоковано. Спробуйте пізніше.',
-          'Account is inactive': 'Акаунт неактивний',
-        };
-        setError(errorMessages[data.error] || data.error || 'Помилка входу');
+        setError(data.error || 'Помилка скидання пароля');
         setLoading(false);
         return;
       }
 
-      // Redirect to dashboard on success
-      router.push('/admin-secret-2024');
-      router.refresh();
+      setSuccess(true);
     } catch (err) {
       setError('Виникла помилка. Спробуйте ще раз.');
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div>
+        <div style={{
+          backgroundColor: '#e8f5e9',
+          color: '#2e7d32',
+          padding: '15px',
+          marginBottom: '20px',
+          border: '1px solid #a5d6a7',
+          textAlign: 'center',
+        }}>
+          Якщо email існує в системі, на нього буде відправлено посилання для скидання пароля.
+        </div>
+        <Link
+          href="/admin-secret-2024/login"
+          style={{
+            display: 'block',
+            textAlign: 'center',
+            color: '#1976d2',
+            fontSize: '14px',
+          }}
+        >
+          Повернутися до входу
+        </Link>
+      </div>
+    );
+  }
 
   const inputStyle = {
     width: '100%',
@@ -95,20 +113,6 @@ export default function LoginForm() {
         />
       </div>
 
-      <div>
-        <label htmlFor="password" style={labelStyle}>Пароль</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-          style={inputStyle}
-        />
-      </div>
-
       <button
         type="submit"
         disabled={loading}
@@ -123,15 +127,15 @@ export default function LoginForm() {
           marginTop: '10px',
         }}
       >
-        {loading ? 'Вхід...' : 'Увійти'}
+        {loading ? 'Відправка...' : 'Скинути пароль'}
       </button>
 
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <Link
-          href="/admin-secret-2024/reset-password"
+          href="/admin-secret-2024/login"
           style={{ color: '#1976d2', fontSize: '14px' }}
         >
-          Забули пароль?
+          Повернутися до входу
         </Link>
       </div>
     </form>

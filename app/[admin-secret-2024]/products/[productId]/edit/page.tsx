@@ -1,5 +1,5 @@
 /**
- * Admin Edit Product Page
+ * Сторінка редагування товару
  */
 
 import { redirect, notFound } from 'next/navigation';
@@ -45,7 +45,7 @@ export default async function EditProductPage({ params }: PageProps) {
   return (
     <div>
       <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>
-        Edit Product: {product.name}
+        Редагування товару: {product.name}
       </h1>
       <ProductForm product={product} />
     </div>

@@ -1,17 +1,17 @@
 /**
- * Сторінка входу в адмін-панель
+ * Сторінка скидання пароля
  */
 
 import { redirect } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
-import LoginForm from './LoginForm';
+import ResetPasswordForm from './ResetPasswordForm';
 
 export const metadata = {
-  title: 'Вхід в адмін-панель',
+  title: 'Скидання пароля',
   robots: 'noindex, nofollow',
 };
 
-export default async function AdminLoginPage() {
+export default async function ResetPasswordPage() {
   // Якщо вже авторизований - перенаправити на головну
   const admin = await getCurrentAdmin();
   if (admin) {
@@ -35,14 +35,22 @@ export default async function AdminLoginPage() {
       }}>
         <h1 style={{
           fontSize: '24px',
-          marginBottom: '30px',
+          marginBottom: '10px',
           textAlign: 'center',
           color: '#333',
         }}>
-          Вхід в адмін-панель
+          Скидання пароля
         </h1>
+        <p style={{
+          fontSize: '14px',
+          color: '#666',
+          textAlign: 'center',
+          marginBottom: '30px',
+        }}>
+          Введіть email для отримання посилання на скидання пароля
+        </p>
 
-        <LoginForm />
+        <ResetPasswordForm />
       </div>
     </div>
   );

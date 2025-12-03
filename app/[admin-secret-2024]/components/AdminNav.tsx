@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Admin Navigation Component
- * Shows navigation links based on user permissions
+ * Компонент навігації адмін-панелі
+ * Показує посилання на основі дозволів користувача
  */
 
 import Link from 'next/link';
@@ -19,9 +19,9 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/admin-secret-2024', label: 'Dashboard' },
-  { href: '/admin-secret-2024/products', label: 'Products', permission: 'products.read' },
-  { href: '/admin-secret-2024/orders', label: 'Orders', permission: 'orders.read' },
+  { href: '/admin-secret-2024', label: 'Головна' },
+  { href: '/admin-secret-2024/products', label: 'Товари', permission: 'products.read' },
+  { href: '/admin-secret-2024/orders', label: 'Замовлення', permission: 'orders.read' },
 ];
 
 export default function AdminNav({ permissions }: AdminNavProps) {

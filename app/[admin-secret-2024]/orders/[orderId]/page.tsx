@@ -1,5 +1,5 @@
 /**
- * Admin Order Details Page
+ * Сторінка деталей замовлення
  */
 
 import { redirect, notFound } from 'next/navigation';
@@ -54,13 +54,13 @@ export default async function OrderDetailsPage({ params }: PageProps) {
     <div>
       <div style={{ marginBottom: '20px' }}>
         <Link href="/admin-secret-2024/orders" style={{ color: '#1976d2' }}>
-          &larr; Back to Orders
+          &larr; Назад до замовлень
         </Link>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', margin: 0 }}>Order {order.order_number}</h1>
+          <h1 style={{ fontSize: '24px', margin: 0 }}>Замовлення {order.order_number}</h1>
           <div style={{ color: '#666', marginTop: '5px' }}>{formatDate(order.created_at)}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -72,19 +72,19 @@ export default async function OrderDetailsPage({ params }: PageProps) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-        {/* Left Column */}
+        {/* Ліва колонка */}
         <div>
-          {/* Order Items */}
+          {/* Товари замовлення */}
           <div style={cardStyle}>
-            <h2 style={headingStyle}>Order Items</h2>
+            <h2 style={headingStyle}>Товари замовлення</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f5f5f5' }}>
-                  <th style={thStyle}>Product</th>
-                  <th style={thStyle}>Color</th>
-                  <th style={thStyle}>Qty</th>
-                  <th style={thStyle}>Price</th>
-                  <th style={thStyle}>Total</th>
+                  <th style={thStyle}>Товар</th>
+                  <th style={thStyle}>Колір</th>
+                  <th style={thStyle}>К-сть</th>
+                  <th style={thStyle}>Ціна</th>
+                  <th style={thStyle}>Сума</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,7 +93,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                     <td style={tdStyle}>
                       <div>{item.product_name}</div>
                       {item.product_article && (
-                        <div style={{ fontSize: '12px', color: '#666' }}>Art: {item.product_article}</div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>Арт: {item.product_article}</div>
                       )}
                     </td>
                     <td style={tdStyle}>{item.color || '-'}</td>
@@ -105,39 +105,39 @@ export default async function OrderDetailsPage({ params }: PageProps) {
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={4} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Subtotal:</td>
+                  <td colSpan={4} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Підсумок:</td>
                   <td style={tdStyle}>{formatCurrency(order.subtotal)}</td>
                 </tr>
                 {order.discount_amount > 0 && (
                   <tr>
-                    <td colSpan={4} style={{ ...tdStyle, textAlign: 'right' }}>Discount ({order.discount_percent}%):</td>
+                    <td colSpan={4} style={{ ...tdStyle, textAlign: 'right' }}>Знижка ({order.discount_percent}%):</td>
                     <td style={{ ...tdStyle, color: '#4caf50' }}>-{formatCurrency(order.discount_amount)}</td>
                   </tr>
                 )}
                 <tr>
-                  <td colSpan={4} style={{ ...tdStyle, textAlign: 'right' }}>Delivery:</td>
+                  <td colSpan={4} style={{ ...tdStyle, textAlign: 'right' }}>Доставка:</td>
                   <td style={tdStyle}>{formatCurrency(order.delivery_cost)}</td>
                 </tr>
                 <tr style={{ backgroundColor: '#f5f5f5' }}>
-                  <td colSpan={4} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', fontSize: '16px' }}>Total:</td>
+                  <td colSpan={4} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', fontSize: '16px' }}>Всього:</td>
                   <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>{formatCurrency(order.total_amount)}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
 
-          {/* Customer Notes */}
+          {/* Примітки клієнта */}
           {order.customer_notes && (
             <div style={{ ...cardStyle, marginTop: '20px' }}>
-              <h2 style={headingStyle}>Customer Notes</h2>
+              <h2 style={headingStyle}>Примітки клієнта</h2>
               <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{order.customer_notes}</p>
             </div>
           )}
 
-          {/* Update Status Form */}
+          {/* Форма оновлення статусу */}
           {canUpdate && (
             <div style={{ ...cardStyle, marginTop: '20px' }}>
-              <h2 style={headingStyle}>Update Order</h2>
+              <h2 style={headingStyle}>Оновити замовлення</h2>
               <OrderStatusForm
                 orderId={order.id}
                 currentStatus={order.order_status}
@@ -148,100 +148,100 @@ export default async function OrderDetailsPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Right Column */}
+        {/* Права колонка */}
         <div>
-          {/* Customer Info */}
+          {/* Інформація про клієнта */}
           <div style={cardStyle}>
-            <h2 style={headingStyle}>Customer</h2>
+            <h2 style={headingStyle}>Клієнт</h2>
             <div style={infoRow}>
-              <strong>Name:</strong> {order.user_name} {order.user_surname}
+              <strong>Ім'я:</strong> {order.user_name} {order.user_surname}
             </div>
             <div style={infoRow}>
               <strong>Email:</strong> <a href={`mailto:${order.user_email}`}>{order.user_email}</a>
             </div>
             <div style={infoRow}>
-              <strong>Phone:</strong> <a href={`tel:${order.user_phone}`}>{order.user_phone}</a>
+              <strong>Телефон:</strong> <a href={`tel:${order.user_phone}`}>{order.user_phone}</a>
             </div>
           </div>
 
-          {/* Delivery Info */}
+          {/* Інформація про доставку */}
           <div style={{ ...cardStyle, marginTop: '20px' }}>
-            <h2 style={headingStyle}>Delivery</h2>
+            <h2 style={headingStyle}>Доставка</h2>
             <div style={infoRow}>
-              <strong>Method:</strong> {formatDeliveryMethod(order.delivery_method)}
+              <strong>Спосіб:</strong> {formatDeliveryMethod(order.delivery_method)}
             </div>
             {order.delivery_city && (
               <div style={infoRow}>
-                <strong>City:</strong> {order.delivery_city}
+                <strong>Місто:</strong> {order.delivery_city}
               </div>
             )}
             {order.delivery_address && (
               <div style={infoRow}>
-                <strong>Address:</strong> {order.delivery_address}
+                <strong>Адреса:</strong> {order.delivery_address}
               </div>
             )}
             {order.delivery_street && (
               <div style={infoRow}>
-                <strong>Street:</strong> {order.delivery_street}
+                <strong>Вулиця:</strong> {order.delivery_street}
                 {order.delivery_building && `, ${order.delivery_building}`}
-                {order.delivery_apartment && `, apt. ${order.delivery_apartment}`}
+                {order.delivery_apartment && `, кв. ${order.delivery_apartment}`}
               </div>
             )}
             {order.store_location && (
               <div style={infoRow}>
-                <strong>Store:</strong> {order.store_location}
+                <strong>Магазин:</strong> {order.store_location}
               </div>
             )}
           </div>
 
-          {/* Payment Info */}
+          {/* Інформація про оплату */}
           <div style={{ ...cardStyle, marginTop: '20px' }}>
-            <h2 style={headingStyle}>Payment</h2>
+            <h2 style={headingStyle}>Оплата</h2>
             <div style={infoRow}>
-              <strong>Method:</strong> {formatPaymentMethod(order.payment_method)}
+              <strong>Спосіб:</strong> {formatPaymentMethod(order.payment_method)}
             </div>
             <div style={infoRow}>
-              <strong>Status:</strong> <PaymentBadge status={order.payment_status} />
+              <strong>Статус:</strong> <PaymentBadge status={order.payment_status} />
             </div>
             {order.prepayment_amount > 0 && (
               <div style={infoRow}>
-                <strong>Prepayment:</strong> {formatCurrency(order.prepayment_amount)}
+                <strong>Передоплата:</strong> {formatCurrency(order.prepayment_amount)}
               </div>
             )}
             {order.payment_deadline && (
               <div style={infoRow}>
-                <strong>Deadline:</strong> {formatDate(order.payment_deadline)}
+                <strong>Термін оплати:</strong> {formatDate(order.payment_deadline)}
               </div>
             )}
           </div>
 
-          {/* Timestamps */}
+          {/* Хронологія */}
           <div style={{ ...cardStyle, marginTop: '20px' }}>
-            <h2 style={headingStyle}>Timeline</h2>
+            <h2 style={headingStyle}>Хронологія</h2>
             <div style={infoRow}>
-              <strong>Created:</strong> {formatDate(order.created_at)}
+              <strong>Створено:</strong> {formatDate(order.created_at)}
             </div>
             {order.shipped_at && (
               <div style={infoRow}>
-                <strong>Shipped:</strong> {formatDate(order.shipped_at)}
+                <strong>Відправлено:</strong> {formatDate(order.shipped_at)}
               </div>
             )}
             {order.delivered_at && (
               <div style={infoRow}>
-                <strong>Delivered:</strong> {formatDate(order.delivered_at)}
+                <strong>Доставлено:</strong> {formatDate(order.delivered_at)}
               </div>
             )}
             {order.cancelled_at && (
               <div style={infoRow}>
-                <strong>Cancelled:</strong> {formatDate(order.cancelled_at)}
+                <strong>Скасовано:</strong> {formatDate(order.cancelled_at)}
               </div>
             )}
           </div>
 
-          {/* Admin Notes */}
+          {/* Примітки адміна */}
           {order.admin_notes && (
             <div style={{ ...cardStyle, marginTop: '20px' }}>
-              <h2 style={headingStyle}>Admin Notes</h2>
+              <h2 style={headingStyle}>Примітки адміністратора</h2>
               <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{order.admin_notes}</p>
             </div>
           )}
@@ -262,6 +262,13 @@ interface OrderItem {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    processing: 'В обробці',
+    confirmed: 'Підтверджено',
+    shipped: 'Відправлено',
+    delivered: 'Доставлено',
+    cancelled: 'Скасовано',
+  };
   const colors: Record<string, { bg: string; text: string }> = {
     processing: { bg: '#fff3e0', text: '#e65100' },
     confirmed: { bg: '#e3f2fd', text: '#1565c0' },
@@ -278,19 +285,25 @@ function StatusBadge({ status }: { status: string }) {
       fontWeight: 'bold',
       fontSize: '14px',
     }}>
-      {status.toUpperCase()}
+      {labels[status] || status}
     </span>
   );
 }
 
 function PaymentBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    pending: 'Очікує',
+    paid: 'Оплачено',
+    failed: 'Помилка',
+    refunded: 'Повернення',
+  };
   const colors: Record<string, string> = {
     pending: '#ff9800',
     paid: '#4caf50',
     failed: '#f44336',
     refunded: '#9c27b0',
   };
-  return <span style={{ color: colors[status] || '#333', fontWeight: 'bold' }}>{status}</span>;
+  return <span style={{ color: colors[status] || '#333', fontWeight: 'bold' }}>{labels[status] || status}</span>;
 }
 
 function formatCurrency(amount: number): string {
@@ -314,9 +327,9 @@ function formatDate(date: string): string {
 
 function formatDeliveryMethod(method: string): string {
   const methods: Record<string, string> = {
-    nova_poshta: 'Nova Poshta',
-    store_delivery: 'Store Delivery',
-    pickup: 'Pickup',
+    nova_poshta: 'Нова Пошта',
+    store_delivery: 'Доставка з магазину',
+    pickup: 'Самовивіз',
   };
   return methods[method] || method;
 }
@@ -325,7 +338,7 @@ function formatPaymentMethod(method: string): string {
   const methods: Record<string, string> = {
     liqpay: 'LiqPay',
     monobank: 'Monobank',
-    cash_on_delivery: 'Cash on Delivery',
+    cash_on_delivery: 'Післяплата',
   };
   return methods[method] || method;
 }
