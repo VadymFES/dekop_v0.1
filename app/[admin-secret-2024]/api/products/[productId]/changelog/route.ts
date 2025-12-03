@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/app/lib/db';
-import { verifyAdmin } from '@/app/lib/admin-auth';
+import { validateSession } from '@/app/lib/admin-auth';
 import { cookies } from 'next/headers';
 
 export async function GET(
@@ -17,7 +17,7 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const admin = await verifyAdmin(sessionToken);
+  const admin = await validateSession(sessionToken);
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
