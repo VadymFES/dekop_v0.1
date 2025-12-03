@@ -240,17 +240,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Update specs - delete old specs if category changed
     if (oldCategory !== data.category) {
-      const oldSpecTable = SPEC_TABLES[oldCategory];
-      if (oldSpecTable) {
-        await db.query(`DELETE FROM ${oldSpecTable} WHERE product_id = $1`, [id]);
-      }
+      await deleteSpecsByCategory(id, oldCategory);
     }
 
     // Delete existing specs for current category and insert new
-    const specTable = SPEC_TABLES[data.category];
-    if (specTable) {
-      await db.query(`DELETE FROM ${specTable} WHERE product_id = $1`, [id]);
-    }
+    await deleteSpecsByCategory(id, data.category);
 
     if (data.specs) {
       await insertProductSpecs(id, data.category, data.specs);
@@ -318,10 +312,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await db.query`DELETE FROM product_spec_colors WHERE product_id = ${id}`;
 
     // Delete specs
-    const specTable = SPEC_TABLES[product.category];
-    if (specTable) {
-      await db.query(`DELETE FROM ${specTable} WHERE product_id = $1`, [id]);
-    }
+    await deleteSpecsByCategory(id, product.category);
 
     // Delete product
     await db.query`DELETE FROM products WHERE id = ${id}`;
@@ -362,16 +353,76 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }
 
+// Helper function to delete specs by category using template literals
+async function deleteSpecsByCategory(productId: number, category: string) {
+  switch (category) {
+    case 'sofas':
+      await db.query`DELETE FROM sofa_specs WHERE product_id = ${productId}`;
+      break;
+    case 'corner_sofas':
+      await db.query`DELETE FROM corner_sofa_specs WHERE product_id = ${productId}`;
+      break;
+    case 'sofa_beds':
+      await db.query`DELETE FROM sofa_bed_specs WHERE product_id = ${productId}`;
+      break;
+    case 'beds':
+      await db.query`DELETE FROM bed_specs WHERE product_id = ${productId}`;
+      break;
+    case 'tables':
+      await db.query`DELETE FROM table_specs WHERE product_id = ${productId}`;
+      break;
+    case 'chairs':
+      await db.query`DELETE FROM chair_specs WHERE product_id = ${productId}`;
+      break;
+    case 'mattresses':
+      await db.query`DELETE FROM mattress_specs WHERE product_id = ${productId}`;
+      break;
+    case 'wardrobes':
+      await db.query`DELETE FROM wardrobe_specs WHERE product_id = ${productId}`;
+      break;
+    case 'accessories':
+      await db.query`DELETE FROM accessory_specs WHERE product_id = ${productId}`;
+      break;
+  }
+}
+
 // Helper function to get category-specific specs
 async function getProductSpecs(productId: number, category: string) {
-  const specTable = SPEC_TABLES[category];
-  if (!specTable) return null;
+  let result;
 
-  const result = await db.query(`
-    SELECT * FROM ${specTable} WHERE product_id = $1
-  `, [productId]);
+  switch (category) {
+    case 'sofas':
+      result = await db.query`SELECT * FROM sofa_specs WHERE product_id = ${productId}`;
+      break;
+    case 'corner_sofas':
+      result = await db.query`SELECT * FROM corner_sofa_specs WHERE product_id = ${productId}`;
+      break;
+    case 'sofa_beds':
+      result = await db.query`SELECT * FROM sofa_bed_specs WHERE product_id = ${productId}`;
+      break;
+    case 'beds':
+      result = await db.query`SELECT * FROM bed_specs WHERE product_id = ${productId}`;
+      break;
+    case 'tables':
+      result = await db.query`SELECT * FROM table_specs WHERE product_id = ${productId}`;
+      break;
+    case 'chairs':
+      result = await db.query`SELECT * FROM chair_specs WHERE product_id = ${productId}`;
+      break;
+    case 'mattresses':
+      result = await db.query`SELECT * FROM mattress_specs WHERE product_id = ${productId}`;
+      break;
+    case 'wardrobes':
+      result = await db.query`SELECT * FROM wardrobe_specs WHERE product_id = ${productId}`;
+      break;
+    case 'accessories':
+      result = await db.query`SELECT * FROM accessory_specs WHERE product_id = ${productId}`;
+      break;
+    default:
+      return null;
+  }
 
-  if (result.rows.length === 0) return null;
+  if (!result || result.rows.length === 0) return null;
 
   const row = result.rows[0];
 
@@ -409,40 +460,73 @@ async function getProductSpecs(productId: number, category: string) {
 
 // Helper function to insert category-specific specs
 async function insertProductSpecs(productId: number, category: string, specs: Record<string, unknown>) {
-  const specTable = SPEC_TABLES[category];
-  if (!specTable) return;
+  // Skip if category not in our known list
+  if (!SPEC_TABLES[category]) return;
 
   const dimensions = specs.dimensions as Record<string, unknown> | undefined;
   const material = specs.material;
   const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
   const types = specs.types as string[] | undefined;
 
+  // Prepare common values for sofa-type specs
+  const constructionVal = (specs.construction as string) || null;
+  const dimensionsVal = dimensions ? JSON.stringify(dimensions) : null;
+  const materialVal = typeof material === 'object' ? JSON.stringify(material) : null;
+  const innerMaterialVal = innerMaterial ? JSON.stringify(innerMaterial) : null;
+  const additionalFeaturesVal = (specs.additional_features as string) || null;
+  const hasShelvesVal = (specs.has_shelves as boolean) || false;
+  const legHeightVal = (specs.leg_height as string) || null;
+  const hasLiftMechanismVal = (specs.has_lift_mechanism as boolean) || false;
+  const typesVal = types ? JSON.stringify(types) : null;
+  const armrestTypeVal = (specs.armrest_type as string) || null;
+  const seatHeightVal = (specs.seat_height as number) || null;
+
   switch (category) {
-    case 'sofas':
-    case 'corner_sofas':
-    case 'sofa_beds': {
-      await db.query(`
-        INSERT INTO ${specTable} (
+    case 'sofas': {
+      await db.query`
+        INSERT INTO sofa_specs (
           product_id, category, construction, dimensions, material, inner_material,
           additional_features, has_shelves, leg_height, has_lift_mechanism, types,
           armrest_type, seat_height
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      `, [
-        productId,
-        category,
-        specs.construction || null,
-        dimensions ? JSON.stringify(dimensions) : null,
-        typeof material === 'object' ? JSON.stringify(material) : null,
-        innerMaterial ? JSON.stringify(innerMaterial) : null,
-        specs.additional_features || null,
-        specs.has_shelves || false,
-        specs.leg_height || null,
-        specs.has_lift_mechanism || false,
-        types ? JSON.stringify(types) : null,
-        specs.armrest_type || null,
-        specs.seat_height || null
-      ]);
+        VALUES (
+          ${productId}, ${category}, ${constructionVal}, ${dimensionsVal}, ${materialVal}, ${innerMaterialVal},
+          ${additionalFeaturesVal}, ${hasShelvesVal}, ${legHeightVal}, ${hasLiftMechanismVal}, ${typesVal},
+          ${armrestTypeVal}, ${seatHeightVal}
+        )
+      `;
+      break;
+    }
+
+    case 'corner_sofas': {
+      await db.query`
+        INSERT INTO corner_sofa_specs (
+          product_id, category, construction, dimensions, material, inner_material,
+          additional_features, has_shelves, leg_height, has_lift_mechanism, types,
+          armrest_type, seat_height
+        )
+        VALUES (
+          ${productId}, ${category}, ${constructionVal}, ${dimensionsVal}, ${materialVal}, ${innerMaterialVal},
+          ${additionalFeaturesVal}, ${hasShelvesVal}, ${legHeightVal}, ${hasLiftMechanismVal}, ${typesVal},
+          ${armrestTypeVal}, ${seatHeightVal}
+        )
+      `;
+      break;
+    }
+
+    case 'sofa_beds': {
+      await db.query`
+        INSERT INTO sofa_bed_specs (
+          product_id, category, construction, dimensions, material, inner_material,
+          additional_features, has_shelves, leg_height, has_lift_mechanism, types,
+          armrest_type, seat_height
+        )
+        VALUES (
+          ${productId}, ${category}, ${constructionVal}, ${dimensionsVal}, ${materialVal}, ${innerMaterialVal},
+          ${additionalFeaturesVal}, ${hasShelvesVal}, ${legHeightVal}, ${hasLiftMechanismVal}, ${typesVal},
+          ${armrestTypeVal}, ${seatHeightVal}
+        )
+      `;
       break;
     }
 
