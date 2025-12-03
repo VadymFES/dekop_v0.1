@@ -497,8 +497,9 @@ export async function GET(
       slug: product.slug || '',
       description: product.description || '',
       category: product.category || '',
-      price: typeof product.price === 'number' ? product.price : 
+      price: typeof product.price === 'number' ? product.price :
              typeof product.price === 'string' ? parseFloat(product.price) : 0,
+      sale_price: product.sale_price ? (typeof product.sale_price === 'number' ? product.sale_price : parseFloat(product.sale_price)) : null,
       stock: typeof product.stock === 'number' ? product.stock : 0,
       // Використовуємо розрахований рейтинг з таблиці reviews
       rating: averageRating,

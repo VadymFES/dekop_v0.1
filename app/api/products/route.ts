@@ -34,8 +34,8 @@ export async function GET(request: Request) {
 
   try {
     let query = `
-      SELECT 
-        p.id, p.name, p.slug, p.description, p.category, p.price, p.stock, 
+      SELECT
+        p.id, p.name, p.slug, p.description, p.category, p.price, p.sale_price, p.stock,
         p.rating, COUNT(r.id) AS reviews,
         p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
         ps.specs_id, ps.construction, ps.dimensions_length, ps.dimensions_width, 
@@ -286,8 +286,8 @@ export async function GET(request: Request) {
     }
 
     // Group by product and specs to aggregate images and colors
-    query += ` 
-      GROUP BY p.id, ps.specs_id, p.name, p.slug, p.description, p.category, p.price, p.stock, 
+    query += `
+      GROUP BY p.id, ps.specs_id, p.name, p.slug, p.description, p.category, p.price, p.sale_price, p.stock,
         p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
         ps.construction, ps.dimensions_length, ps.dimensions_width, ps.dimensions_depth, ps.dimensions_height, 
         ps.dimensions_sleeping_area_width, ps.dimensions_sleeping_area_length, ps.material_type, ps.material_composition, 
@@ -315,6 +315,7 @@ export async function GET(request: Request) {
         description: row.description,
         category: row.category,
         price: row.price,
+        sale_price: row.sale_price || null,
         stock: row.stock,
         // Використовуємо розрахований рейтинг і кількість відгуків
         rating: parseFloat(row.rating) || 0,
