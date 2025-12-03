@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { href: '/admin-secret-2024', label: 'Головна' },
   { href: '/admin-secret-2024/products', label: 'Товари', permission: 'products.read' },
   { href: '/admin-secret-2024/orders', label: 'Замовлення', permission: 'orders.read' },
+  { href: '/admin-secret-2024/profile', label: 'Профіль' },
 ];
 
 export default function AdminNav({ permissions }: AdminNavProps) {
