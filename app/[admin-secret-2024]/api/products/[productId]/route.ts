@@ -149,9 +149,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
     }
 
-    // Check if product exists
+    // Check if product exists - fetch all fields we want to track for changelog
     const existingProduct = await db.query`
-      SELECT id, category, name, slug FROM products WHERE id = ${id}
+      SELECT id, category, name, slug, description, price, sale_price,
+             stock, is_on_sale, is_new, is_bestseller
+      FROM products WHERE id = ${id}
     `;
 
     if (existingProduct.rows.length === 0) {
@@ -683,6 +685,37 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   }
 }
 
+// Helper function to normalize values for comparison
+function normalizeValue(value: unknown, field: string): unknown {
+  // Handle null/undefined
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  // Numeric fields - convert to number for comparison
+  const numericFields = ['price', 'sale_price', 'stock'];
+  if (numericFields.includes(field)) {
+    const num = Number(value);
+    return isNaN(num) ? null : num;
+  }
+
+  // Boolean fields
+  const booleanFields = ['is_on_sale', 'is_new', 'is_bestseller'];
+  if (booleanFields.includes(field)) {
+    if (typeof value === 'boolean') return value;
+    if (value === 'true' || value === 1 || value === '1') return true;
+    if (value === 'false' || value === 0 || value === '0') return false;
+    return Boolean(value);
+  }
+
+  // String fields - trim whitespace
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  return value;
+}
+
 // Helper function to calculate changes between old and new product data
 function calculateChanges(
   oldProduct: Record<string, unknown>,
@@ -700,15 +733,26 @@ function calculateChanges(
     const oldValue = oldProduct[field];
     const newValue = newData[field];
 
-    // Compare values (handle null/undefined)
-    const oldNormalized = oldValue === undefined ? null : oldValue;
-    const newNormalized = newValue === undefined ? null : newValue;
+    // Normalize values for proper comparison
+    const oldNormalized = normalizeValue(oldValue, field);
+    const newNormalized = normalizeValue(newValue, field);
 
-    if (JSON.stringify(oldNormalized) !== JSON.stringify(newNormalized)) {
-      changes[field] = {
-        old: oldNormalized,
-        new: newNormalized
-      };
+    // Only add to changes if values are actually different
+    if (oldNormalized !== newNormalized) {
+      // For objects/arrays, use JSON comparison
+      if (typeof oldNormalized === 'object' || typeof newNormalized === 'object') {
+        if (JSON.stringify(oldNormalized) !== JSON.stringify(newNormalized)) {
+          changes[field] = {
+            old: oldNormalized,
+            new: newNormalized
+          };
+        }
+      } else {
+        changes[field] = {
+          old: oldNormalized,
+          new: newNormalized
+        };
+      }
     }
   }
 
