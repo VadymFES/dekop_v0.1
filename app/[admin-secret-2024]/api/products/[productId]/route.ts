@@ -16,6 +16,42 @@ import {
 } from '@/app/lib/admin-validation';
 import slugify from 'slugify';
 
+// Mapping from Ukrainian category names to English enum values
+const CATEGORY_MAP: Record<string, string> = {
+  'диван': 'sofas',
+  'кутовий диван': 'corner_sofas',
+  'диван-ліжко': 'sofa_beds',
+  'ліжко': 'beds',
+  'стіл': 'tables',
+  'стілець': 'chairs',
+  'матрац': 'mattresses',
+  'шафа': 'wardrobes',
+  'аксесуар': 'accessories',
+  'дивани': 'sofas',
+  'кутові дивани': 'corner_sofas',
+  'дивани-ліжка': 'sofa_beds',
+  'ліжка': 'beds',
+  'столи': 'tables',
+  'стільці': 'chairs',
+  'матраци': 'mattresses',
+  'шафи': 'wardrobes',
+  'аксесуари': 'accessories',
+  'sofas': 'sofas',
+  'corner_sofas': 'corner_sofas',
+  'sofa_beds': 'sofa_beds',
+  'beds': 'beds',
+  'tables': 'tables',
+  'chairs': 'chairs',
+  'mattresses': 'mattresses',
+  'wardrobes': 'wardrobes',
+  'accessories': 'accessories',
+};
+
+function normalizeCategory(category: string): string {
+  const normalized = category?.toLowerCase().trim();
+  return CATEGORY_MAP[normalized] || category;
+}
+
 // Spec table names for each category
 const SPEC_TABLES: Record<string, string> = {
   sofas: 'sofa_specs',
@@ -74,13 +110,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       WHERE product_id = ${id}
     `;
 
-    // Get specs based on category
-    const specs = await getProductSpecs(id, product.category);
+    // Normalize category and get specs
+    const normalizedCategory = normalizeCategory(product.category);
+    const specs = await getProductSpecs(id, normalizedCategory);
 
     return NextResponse.json({
       success: true,
       product: {
         ...product,
+        category: normalizedCategory,
         images: imagesResult.rows,
         colors: colorsResult.rows,
         specs,
