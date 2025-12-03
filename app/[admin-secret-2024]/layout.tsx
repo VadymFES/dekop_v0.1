@@ -1,6 +1,7 @@
 /**
  * Лейаут адмін-панелі
  * Повністю незалежний від основного сайту - без хедера/футера
+ * ClientLayout тепер пропускає header/footer для admin routes
  */
 
 import { getCurrentAdmin, AdminUserWithPermissions } from '@/app/lib/admin-auth';
@@ -20,24 +21,9 @@ export default async function AdminLayout({ children }: LayoutProps) {
   const admin = await getCurrentAdmin();
 
   return (
-    <html lang="uk">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex, nofollow" />
-      </head>
-      <body style={{
-        margin: 0,
-        padding: 0,
-        fontFamily: 'Arial, sans-serif',
-        backgroundColor: '#f5f5f5',
-        color: '#333',
-      }}>
-        <AdminLayoutContent admin={admin}>
-          {children}
-        </AdminLayoutContent>
-      </body>
-    </html>
+    <AdminLayoutContent admin={admin}>
+      {children}
+    </AdminLayoutContent>
   );
 }
 
@@ -50,11 +36,24 @@ function AdminLayoutContent({
 }) {
   // Якщо не авторизовано - показуємо тільки дочірній контент (сторінка входу)
   if (!admin) {
-    return <>{children}</>;
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        fontFamily: 'Arial, sans-serif',
+      }}>
+        {children}
+      </div>
+    );
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      fontFamily: 'Arial, sans-serif',
+      backgroundColor: '#f5f5f5',
+    }}>
       {/* Бічна панель навігації */}
       <aside style={{
         width: '220px',
