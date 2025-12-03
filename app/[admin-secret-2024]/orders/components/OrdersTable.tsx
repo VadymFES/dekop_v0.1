@@ -4,7 +4,7 @@
  * Orders table with multi-select and bulk delete functionality
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -37,6 +37,11 @@ export default function OrdersTable({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const allSelected = orders.length > 0 && selectedIds.size === orders.length;
   const someSelected = selectedIds.size > 0 && selectedIds.size < orders.length;
@@ -195,7 +200,7 @@ export default function OrdersTable({
                 <td style={tdStyle}>
                   <PaymentBadge status={order.payment_status} />
                 </td>
-                <td style={tdStyle}>{formatDate(order.created_at)}</td>
+                <td style={tdStyle}>{isClient ? formatDate(order.created_at) : '...'}</td>
                 <td style={tdStyle}>
                   <Link href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2' }}>
                     Переглянути
@@ -284,15 +289,16 @@ function PaymentBadge({ status }: { status: string }) {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
+  // Use a fixed format to avoid hydration mismatch between server/client
+  const formatted = new Intl.NumberFormat('uk-UA', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+  return `${formatted} грн`;
 }
 
 function formatDate(dateString: string): string {
+  // Only called on client side, safe to use local time
   return new Date(dateString).toLocaleDateString('uk-UA', {
     day: '2-digit',
     month: '2-digit',
