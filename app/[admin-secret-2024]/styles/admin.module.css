@@ -5,70 +5,153 @@
 /* Form Inputs */
 .input {
   width: 100%;
-  padding: 10px;
+  padding: 12px 14px;
   border: 1px solid #ccc;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.4;
   box-sizing: border-box;
-  background-color: #fff;
+  background-color: #ffffff;
+  color: #000000;
   border-radius: 4px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input::placeholder {
+  color: #999;
 }
 
 .input:focus {
   outline: none;
   border-color: #4caf50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+}
+
+/* Hide number input spinners/arrows */
+.input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.input[type="number"]::-webkit-outer-spin-button,
+.input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .inputSmall {
-  composes: input;
-  font-size: 12px;
-  padding: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  line-height: 1.4;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputSmall::placeholder {
+  color: #999;
+}
+
+.inputSmall:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+}
+
+/* Hide number input spinners for small inputs */
+.inputSmall[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.inputSmall[type="number"]::-webkit-outer-spin-button,
+.inputSmall[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .textarea {
-  composes: input;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.textarea::placeholder {
+  color: #999;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
 }
 
 .select {
-  composes: input;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  line-height: 1.4;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
 }
 
 /* Labels */
 .label {
   display: block;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #222;
   font-size: 14px;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 
 .labelSmall {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   display: block;
-  margin-bottom: 3px;
-  color: #555;
+  margin-bottom: 4px;
+  color: #333;
 }
 
 /* Sections */
 .section {
-  background-color: #f9f9f9;
+  background-color: #f5f5f5;
   border: 1px solid #ddd;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
   border-radius: 8px;
 }
 
 .sectionTitle {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ddd;
-  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #ddd;
+  color: #222;
 }
 
 /* Buttons */
@@ -82,7 +165,12 @@
 }
 
 .buttonPrimary {
-  composes: button;
+  padding: 12px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
   background-color: #4caf50;
   color: white;
   font-weight: bold;
@@ -98,7 +186,11 @@
 }
 
 .buttonSecondary {
-  composes: button;
+  padding: 12px 24px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
   background-color: #f5f5f5;
   color: #333;
   border: 1px solid #ccc;
@@ -109,11 +201,14 @@
 }
 
 .buttonDanger {
-  composes: button;
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
   background-color: #f44336;
   color: white;
-  padding: 8px 12px;
-  font-size: 12px;
 }
 
 .buttonDanger:hover {
@@ -121,11 +216,14 @@
 }
 
 .buttonAdd {
-  composes: button;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
   background-color: #4caf50;
   color: white;
-  padding: 5px 15px;
-  font-size: 12px;
   margin-left: 15px;
 }
 
@@ -134,11 +232,15 @@
 }
 
 .buttonGenerate {
-  composes: button;
-  padding: 3px 10px;
+  padding: 4px 12px;
   font-size: 12px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
   margin-left: 10px;
   background-color: #e0e0e0;
+  color: #333;
 }
 
 .buttonGenerate:hover {
@@ -161,7 +263,7 @@
 .grid4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
+  gap: 16px;
 }
 
 /* Flex Layouts */
@@ -184,58 +286,67 @@
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
+  color: #222;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 /* Error Messages */
 .error {
   background-color: #ffebee;
   color: #c62828;
-  padding: 15px;
+  padding: 16px;
   margin-bottom: 20px;
   border: 1px solid #ef9a9a;
   border-radius: 4px;
+  font-size: 14px;
 }
 
 .errorText {
-  color: #f44336;
+  color: #d32f2f;
   font-size: 12px;
   margin-top: 4px;
 }
 
 /* Item Cards (for images, colors) */
 .itemCard {
-  padding: 10px;
-  background-color: #fff;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  margin-bottom: 10px;
+  padding: 14px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 12px;
 }
 
 .itemCardGrid {
   display: grid;
   grid-template-columns: 2fr 1fr 80px auto;
-  gap: 10px;
+  gap: 12px;
   align-items: end;
 }
 
 .colorCardGrid {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
-  gap: 10px;
+  gap: 12px;
   align-items: end;
 }
 
 /* Empty State */
 .emptyText {
-  color: #999;
+  color: #777;
   font-style: italic;
+  font-size: 14px;
 }
 
 /* Submit Section */
 .submitSection {
   display: flex;
-  gap: 15px;
-  margin-top: 30px;
+  gap: 16px;
+  margin-top: 32px;
 }
 
 /* Form Container */
@@ -247,7 +358,14 @@
 .radioLabel {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #222;
+}
+
+.radioLabel input[type="radio"] {
+  width: 16px;
+  height: 16px;
   cursor: pointer;
 }

@@ -567,15 +567,15 @@ export default function ProductForm({ product }: ProductFormProps) {
           <div className={styles.grid3} style={{ marginTop: '15px' }}>
             <div>
               <label className={styles.label}>Ціна (грн) *</label>
-              <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" className={styles.input} />
+              <input type="number" name="price" value={formData.price} onChange={handleChange} required min="0" step="1" className={styles.input} />
             </div>
             <div>
               <label className={styles.label}>Ціна зі знижкою</label>
-              <input type="number" name="sale_price" value={formData.sale_price || ''} onChange={handleChange} min="0" className={styles.input} />
+              <input type="number" name="sale_price" value={formData.sale_price || ''} onChange={handleChange} min="0" step="1" className={styles.input} />
             </div>
             <div>
               <label className={styles.label}>Запас *</label>
-              <input type="number" name="stock" value={formData.stock} onChange={handleChange} required min="0" className={styles.input} />
+              <input type="number" name="stock" value={formData.stock} onChange={handleChange} required min="0" step="1" className={styles.input} />
             </div>
           </div>
 
@@ -645,23 +645,23 @@ export default function ProductForm({ product }: ProductFormProps) {
           <div className={styles.grid4}>
             <div>
               <label className={styles.labelSmall}>Довжина</label>
-              <input type="number" value={formData.specs.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+              <input type="number" value={formData.specs.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
             </div>
             {hasWidth && (
               <div>
                 <label className={styles.labelSmall}>Ширина</label>
-                <input type="number" value={formData.specs.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
             )}
             {formData.category !== 'mattresses' && (
               <>
                 <div>
                   <label className={styles.labelSmall}>Глибина</label>
-                  <input type="number" value={formData.specs.dimensions?.depth || ''} onChange={(e) => handleDimensionChange('depth', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                  <input type="number" value={formData.specs.dimensions?.depth || ''} onChange={(e) => handleDimensionChange('depth', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
                 </div>
                 <div>
                   <label className={styles.labelSmall}>Висота</label>
-                  <input type="number" value={formData.specs.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                  <input type="number" value={formData.specs.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
                 </div>
               </>
             )}
@@ -672,11 +672,11 @@ export default function ProductForm({ product }: ProductFormProps) {
               <div className={styles.grid2} style={{ maxWidth: '400px' }}>
                 <div>
                   <label className={styles.labelSmall}>Ширина</label>
-                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.width || ''} onChange={(e) => handleSleepingAreaChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.width || ''} onChange={(e) => handleSleepingAreaChange('width', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
                 </div>
                 <div>
                   <label className={styles.labelSmall}>Довжина</label>
-                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.length || ''} onChange={(e) => handleSleepingAreaChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                  <input type="number" value={formData.specs.dimensions?.sleeping_area?.length || ''} onChange={(e) => handleSleepingAreaChange('length', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
                 </div>
               </div>
             </div>
@@ -750,7 +750,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               </div>
               <div>
                 <label className={styles.labelSmall}>Висота сидіння (см)</label>
-                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
             </div>
             <div style={{ marginTop: '15px' }}>
@@ -829,7 +829,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               </div>
               <div>
                 <label className={styles.labelSmall}>Товщина (см)</label>
-                <input type="number" value={formData.specs.thickness || ''} onChange={(e) => handleSpecChange('thickness', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.thickness || ''} onChange={(e) => handleSpecChange('thickness', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
               <div>
                 <label className={styles.labelSmall}>Тип основи</label>
@@ -874,11 +874,11 @@ export default function ProductForm({ product }: ProductFormProps) {
               </div>
               <div>
                 <label className={styles.labelSmall}>Висота сидіння (см)</label>
-                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.seat_height || ''} onChange={(e) => handleSpecChange('seat_height', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
               <div>
                 <label className={styles.labelSmall}>Макс. вага (кг)</label>
-                <input type="number" value={formData.specs.weight_capacity || ''} onChange={(e) => handleSpecChange('weight_capacity', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.weight_capacity || ''} onChange={(e) => handleSpecChange('weight_capacity', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
             </div>
           </div>
@@ -891,7 +891,7 @@ export default function ProductForm({ product }: ProductFormProps) {
             <div className={styles.grid3}>
               <div>
                 <label className={styles.labelSmall}>Кількість дверей</label>
-                <input type="number" value={formData.specs.door_count || ''} onChange={(e) => handleSpecChange('door_count', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.door_count || ''} onChange={(e) => handleSpecChange('door_count', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
               <div>
                 <label className={styles.labelSmall}>Тип дверей</label>
@@ -921,7 +921,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               </div>
               <div>
                 <label className={styles.labelSmall}>Кількість полиць</label>
-                <input type="number" value={formData.specs.shelf_count || ''} onChange={(e) => handleSpecChange('shelf_count', e.target.value ? Number(e.target.value) : undefined)} min="0" className={styles.input} />
+                <input type="number" value={formData.specs.shelf_count || ''} onChange={(e) => handleSpecChange('shelf_count', e.target.value ? Number(e.target.value) : undefined)} min="0" step="1" className={styles.input} />
               </div>
             </div>
           </div>
