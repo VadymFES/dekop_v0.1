@@ -6,12 +6,20 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import styles from '../../styles/admin.module.css';
+
+interface AdminNote {
+  text: string;
+  author: string;
+  timestamp: string;
+}
 
 interface OrderStatusFormProps {
   orderId: string;
   currentStatus: string;
   currentPaymentStatus: string;
-  currentNotes: string;
+  currentNotes: string; // JSON string or plain text
+  adminEmail: string;
 }
 
 const orderStatuses = [
@@ -29,16 +37,52 @@ const paymentStatuses = [
   { value: 'refunded', label: 'Повернення' },
 ];
 
+// Parse notes - handle both old format (plain text) and new format (JSON array)
+function parseNotes(notesString: string): AdminNote[] {
+  if (!notesString) return [];
+
+  try {
+    const parsed = JSON.parse(notesString);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    // If it's not an array, it might be old format
+    return [];
+  } catch {
+    // Old format: plain text - convert to new format with unknown author
+    if (notesString.trim()) {
+      return [{
+        text: notesString,
+        author: 'Невідомо',
+        timestamp: new Date().toISOString()
+      }];
+    }
+    return [];
+  }
+}
+
+function formatNoteDate(timestamp: string): string {
+  return new Date(timestamp).toLocaleDateString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function OrderStatusForm({
   orderId,
   currentStatus,
   currentPaymentStatus,
   currentNotes,
+  adminEmail,
 }: OrderStatusFormProps) {
   const router = useRouter();
   const [orderStatus, setOrderStatus] = useState(currentStatus);
   const [paymentStatus, setPaymentStatus] = useState(currentPaymentStatus);
-  const [adminNotes, setAdminNotes] = useState(currentNotes);
+  const [existingNotes] = useState<AdminNote[]>(parseNotes(currentNotes));
+  const [newNote, setNewNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
@@ -57,8 +101,18 @@ export default function OrderStatusForm({
       if (paymentStatus !== currentPaymentStatus) {
         updates.payment_status = paymentStatus;
       }
-      if (adminNotes !== currentNotes) {
-        updates.admin_notes = adminNotes;
+
+      // If there's a new note, add it to the existing notes
+      if (newNote.trim()) {
+        const allNotes: AdminNote[] = [
+          ...existingNotes,
+          {
+            text: newNote.trim(),
+            author: adminEmail,
+            timestamp: new Date().toISOString()
+          }
+        ];
+        updates.admin_notes = JSON.stringify(allNotes);
       }
 
       if (Object.keys(updates).length === 0) {
@@ -85,6 +139,7 @@ export default function OrderStatusForm({
 
       setMessage('Замовлення успішно оновлено');
       setMessageType('success');
+      setNewNote(''); // Clear the new note field
       router.refresh();
     } catch (err) {
       setMessage('Виникла помилка. Спробуйте ще раз.');
@@ -92,20 +147,6 @@ export default function OrderStatusForm({
     } finally {
       setLoading(false);
     }
-  };
-
-  const selectStyle = {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    fontSize: '14px',
-  };
-
-  const labelStyle = {
-    display: 'block',
-    fontWeight: 'bold' as const,
-    marginBottom: '5px',
-    fontSize: '14px',
   };
 
   return (
@@ -117,19 +158,20 @@ export default function OrderStatusForm({
           padding: '10px',
           marginBottom: '15px',
           border: `1px solid ${messageType === 'success' ? '#a5d6a7' : '#ef9a9a'}`,
+          borderRadius: '4px',
         }}>
           {message}
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+      <div className={styles.grid2} style={{ marginBottom: '15px' }}>
         <div>
-          <label htmlFor="order_status" style={labelStyle}>Статус замовлення</label>
+          <label htmlFor="order_status" className={styles.label}>Статус замовлення</label>
           <select
             id="order_status"
             value={orderStatus}
             onChange={(e) => setOrderStatus(e.target.value)}
-            style={selectStyle}
+            className={styles.select}
           >
             {orderStatuses.map((status) => (
               <option key={status.value} value={status.value}>{status.label}</option>
@@ -138,12 +180,12 @@ export default function OrderStatusForm({
         </div>
 
         <div>
-          <label htmlFor="payment_status" style={labelStyle}>Статус оплати</label>
+          <label htmlFor="payment_status" className={styles.label}>Статус оплати</label>
           <select
             id="payment_status"
             value={paymentStatus}
             onChange={(e) => setPaymentStatus(e.target.value)}
-            style={selectStyle}
+            className={styles.select}
           >
             {paymentStatuses.map((status) => (
               <option key={status.value} value={status.value}>{status.label}</option>
@@ -153,33 +195,65 @@ export default function OrderStatusForm({
       </div>
 
       <div style={{ marginBottom: '15px' }}>
-        <label htmlFor="admin_notes" style={labelStyle}>Примітки адміністратора</label>
+        <label className={styles.label}>Примітки адміністратора</label>
+
+        {/* Display existing notes */}
+        {existingNotes.length > 0 && (
+          <div style={{
+            marginBottom: '12px',
+            maxHeight: '200px',
+            overflowY: 'auto',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            backgroundColor: '#fafafa'
+          }}>
+            {existingNotes.map((note, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: '10px 12px',
+                  borderBottom: index < existingNotes.length - 1 ? '1px solid #e0e0e0' : 'none',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '4px',
+                  fontSize: '12px',
+                  color: '#666'
+                }}>
+                  <span style={{ fontWeight: '500' }}>{note.author}</span>
+                  <span>{formatNoteDate(note.timestamp)}</span>
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#333',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: '1.4'
+                }}>
+                  {note.text}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* New note input */}
         <textarea
           id="admin_notes"
-          value={adminNotes}
-          onChange={(e) => setAdminNotes(e.target.value)}
+          value={newNote}
+          onChange={(e) => setNewNote(e.target.value)}
           rows={3}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            fontSize: '14px',
-            boxSizing: 'border-box',
-          }}
+          placeholder="Додати нову примітку..."
+          className={styles.textarea}
+          style={{ minHeight: '80px' }}
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        style={{
-          padding: '10px 25px',
-          backgroundColor: loading ? '#ccc' : '#4caf50',
-          color: 'white',
-          border: 'none',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          fontSize: '14px',
-        }}
+        className={styles.buttonPrimary}
       >
         {loading ? 'Збереження...' : 'Зберегти зміни'}
       </button>

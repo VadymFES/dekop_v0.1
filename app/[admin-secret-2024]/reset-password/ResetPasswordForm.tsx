@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import styles from '../styles/admin.module.css';
 
 export default function ResetPasswordForm() {
   const [email, setEmail] = useState('');
@@ -49,6 +50,7 @@ export default function ResetPasswordForm() {
           padding: '15px',
           marginBottom: '20px',
           border: '1px solid #a5d6a7',
+          borderRadius: '4px',
           textAlign: 'center',
         }}>
           Якщо email існує в системі, на нього буде відправлено посилання для скидання пароля.
@@ -68,39 +70,16 @@ export default function ResetPasswordForm() {
     );
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '10px',
-    marginTop: '5px',
-    marginBottom: '15px',
-    border: '1px solid #ccc',
-    fontSize: '14px',
-    boxSizing: 'border-box' as const,
-  };
-
-  const labelStyle = {
-    display: 'block',
-    fontWeight: 'bold' as const,
-    color: '#333',
-    fontSize: '14px',
-  };
-
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <div style={{
-          backgroundColor: '#ffebee',
-          color: '#c62828',
-          padding: '10px',
-          marginBottom: '20px',
-          border: '1px solid #ef9a9a',
-        }}>
+        <div className={styles.error}>
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="email" style={labelStyle}>Email</label>
+      <div style={{ marginBottom: '15px' }}>
+        <label htmlFor="email" className={styles.label}>Email</label>
         <input
           type="email"
           id="email"
@@ -109,22 +88,17 @@ export default function ResetPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
-          style={inputStyle}
+          className={styles.input}
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
+        className={styles.buttonPrimary}
         style={{
           width: '100%',
-          padding: '12px',
           backgroundColor: loading ? '#ccc' : '#333',
-          color: 'white',
-          border: 'none',
-          fontSize: '16px',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          marginTop: '10px',
         }}
       >
         {loading ? 'Відправка...' : 'Скинути пароль'}

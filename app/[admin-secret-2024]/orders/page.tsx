@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import styles from '../styles/admin.module.css';
 
 interface PageProps {
   searchParams: Promise<{
@@ -88,22 +89,24 @@ export default async function OrdersPage({ searchParams }: PageProps) {
       }}>
         <form method="GET" style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Пошук</label>
+            <label className={styles.labelSmall}>Пошук</label>
             <input
               type="text"
               name="search"
               defaultValue={search}
               placeholder="№ замовлення, email, телефон..."
-              style={{ padding: '8px', border: '1px solid #ccc', width: '180px' }}
+              className={styles.inputSmall}
+              style={{ width: '180px' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Статус</label>
+            <label className={styles.labelSmall}>Статус</label>
             <select
               name="status"
               defaultValue={status}
-              style={{ padding: '8px', border: '1px solid #ccc', width: '130px' }}
+              className={styles.select}
+              style={{ width: '130px', padding: '10px 12px' }}
             >
               <option value="">Всі</option>
               <option value="processing">В обробці</option>
@@ -115,11 +118,12 @@ export default async function OrdersPage({ searchParams }: PageProps) {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Оплата</label>
+            <label className={styles.labelSmall}>Оплата</label>
             <select
               name="payment_status"
               defaultValue={paymentStatus}
-              style={{ padding: '8px', border: '1px solid #ccc', width: '120px' }}
+              className={styles.select}
+              style={{ width: '120px', padding: '10px 12px' }}
             >
               <option value="">Всі</option>
               <option value="pending">Очікує</option>
@@ -130,22 +134,22 @@ export default async function OrdersPage({ searchParams }: PageProps) {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Від</label>
+            <label className={styles.labelSmall}>Від</label>
             <input
               type="date"
               name="date_from"
               defaultValue={dateFrom}
-              style={{ padding: '8px', border: '1px solid #ccc' }}
+              className={styles.inputSmall}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>До</label>
+            <label className={styles.labelSmall}>До</label>
             <input
               type="date"
               name="date_to"
               defaultValue={dateTo}
-              style={{ padding: '8px', border: '1px solid #ccc' }}
+              className={styles.inputSmall}
             />
           </div>
 
