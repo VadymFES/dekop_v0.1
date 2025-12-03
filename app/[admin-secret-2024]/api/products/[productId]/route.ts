@@ -486,9 +486,9 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? null;
   const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? null;
 
-  // Other common fields
-  const constructionVal = (specs.construction as string) || null;
-  const additionalFeaturesVal = (specs.additional_features as string) || null;
+  // Other common fields - use empty string for NOT NULL columns
+  const constructionVal = (specs.construction as string) || '';
+  const additionalFeaturesVal = (specs.additional_features as string) || '';
   const hasShelvesVal = Boolean(specs.has_shelves);
   const legHeightVal = (specs.leg_height as string) || null;
   const hasLiftMechanismVal = Boolean(specs.has_lift_mechanism);
