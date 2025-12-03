@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ProductWithImages } from '@/app/lib/definitions';
 import styles from './ProductPage.module.css';
@@ -10,6 +10,13 @@ interface ProductImagesProps {
 const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
   // Use optional chaining to safely initialize the state.
   const [selectedImage, setSelectedImage] = useState(product?.images?.[0]);
+
+  // Sync selectedImage with product.images when product changes
+  useEffect(() => {
+    if (product?.images?.[0] && !selectedImage) {
+      setSelectedImage(product.images[0]);
+    }
+  }, [product?.images, selectedImage]);
 
   // Early return if product or its images are missing.
   if (!product || !product.images || product.images.length === 0) {
