@@ -254,6 +254,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       console.log('No specs data provided for product update');
     }
 
+    // Calculate and log changes to changelog
+    const changes = calculateChanges(oldProduct, data);
+    if (Object.keys(changes).length > 0) {
+      await db.query`
+        INSERT INTO product_changelog (product_id, admin_id, admin_email, action, changes)
+        VALUES (${id}, ${admin.id}, ${admin.email}, 'updated', ${JSON.stringify(changes)})
+      `;
+    }
+
     // Log action
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
     const userAgent = request.headers.get('user-agent');
@@ -672,4 +681,36 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
       break;
     }
   }
+}
+
+// Helper function to calculate changes between old and new product data
+function calculateChanges(
+  oldProduct: Record<string, unknown>,
+  newData: Record<string, unknown>
+): Record<string, { old: unknown; new: unknown }> {
+  const changes: Record<string, { old: unknown; new: unknown }> = {};
+
+  // Fields to track for changes
+  const fieldsToTrack = [
+    'name', 'slug', 'description', 'category', 'price', 'sale_price',
+    'stock', 'is_on_sale', 'is_new', 'is_bestseller'
+  ];
+
+  for (const field of fieldsToTrack) {
+    const oldValue = oldProduct[field];
+    const newValue = newData[field];
+
+    // Compare values (handle null/undefined)
+    const oldNormalized = oldValue === undefined ? null : oldValue;
+    const newNormalized = newValue === undefined ? null : newValue;
+
+    if (JSON.stringify(oldNormalized) !== JSON.stringify(newNormalized)) {
+      changes[field] = {
+        old: oldNormalized,
+        new: newNormalized
+      };
+    }
+  }
+
+  return changes;
 }

@@ -532,11 +532,18 @@ export default function ProductForm({ product }: ProductFormProps) {
         type: 'success',
       });
 
-      // Redirect after short delay to show toast
-      setTimeout(() => {
-        router.push('/admin-secret-2024/products');
+      setLoading(false);
+
+      // For new products, redirect to edit page; for edits, just refresh data
+      if (!isEdit) {
+        setTimeout(() => {
+          router.push('/admin-secret-2024/products');
+          router.refresh();
+        }, 1500);
+      } else {
+        // Refresh the page data without redirecting
         router.refresh();
-      }, 1500);
+      }
     } catch {
       setToast({
         message: 'Виникла помилка. Спробуйте ще раз.',

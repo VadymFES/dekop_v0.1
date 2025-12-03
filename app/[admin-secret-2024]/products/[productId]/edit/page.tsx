@@ -7,6 +7,7 @@ import { redirect, notFound } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
 import ProductForm from '../../components/ProductForm';
+import ProductChangelog from '../../components/ProductChangelog';
 
 // Mapping from Ukrainian category names to English enum values
 const CATEGORY_MAP: Record<string, string> = {
@@ -130,6 +131,7 @@ export default async function EditProductPage({ params }: PageProps) {
         Редагування товару: {product.name}
       </h1>
       <ProductForm product={fullProduct} />
+      <ProductChangelog productId={id} />
     </div>
   );
 }
