@@ -7,6 +7,7 @@ import { ProductWithImages } from "@/app/lib/definitions";
 import { useCart } from "@/app/context/CartContext";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { trackAddToCart } from "@/app/lib/gtm-analytics";
+import { getCategoryDisplayName } from "@/app/lib/category-utils";
 
 interface ProductCardProps {
   product: ProductWithImages;
@@ -109,7 +110,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className={styles.productDetails}>
             <div className={styles.productInfo}>
               <p className={styles.productName}>{product.name}</p>
-              <p className={styles.productType}>{product.category}</p>
+              <p className={styles.productType}>{getCategoryDisplayName(product.category)}</p>
             </div>
             <div className={styles.productMeta}>
               <p className={styles.productRating}>{product.rating}</p>

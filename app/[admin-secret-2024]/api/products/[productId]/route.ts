@@ -197,6 +197,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const oldCategory = existingProduct.rows[0].category;
     const oldProduct = existingProduct.rows[0];
 
+    // Fetch old images for changelog comparison
+    const oldImagesResult = await db.query`
+      SELECT image_url, alt, is_primary FROM product_images WHERE product_id = ${id}
+    `;
+    const oldImages = oldImagesResult.rows;
+
     // Update product
     await db.query`
       UPDATE products SET
@@ -258,6 +264,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Calculate and log changes to changelog
     const changes = calculateChanges(oldProduct, data);
+
+    // Calculate image changes
+    const imageChanges = calculateImageChanges(oldImages, data.images || []);
+    if (imageChanges) {
+      changes.images = imageChanges;
+    }
+
     if (Object.keys(changes).length > 0) {
       await db.query`
         INSERT INTO product_changelog (product_id, admin_id, admin_email, action, changes)
@@ -723,9 +736,9 @@ function calculateChanges(
 ): Record<string, { old: unknown; new: unknown }> {
   const changes: Record<string, { old: unknown; new: unknown }> = {};
 
-  // Fields to track for changes
+  // Fields to track for changes (excluding category which needs special handling)
   const fieldsToTrack = [
-    'name', 'slug', 'description', 'category', 'price', 'sale_price',
+    'name', 'slug', 'description', 'price', 'sale_price',
     'stock', 'is_on_sale', 'is_new', 'is_bestseller'
   ];
 
@@ -756,5 +769,42 @@ function calculateChanges(
     }
   }
 
+  // Special handling for category - compare normalized versions
+  // to avoid logging changes that are just normalization (e.g., "Диван" -> "sofas")
+  const oldCategoryNormalized = normalizeCategory(String(oldProduct.category || ''));
+  const newCategoryNormalized = normalizeCategory(String(newData.category || ''));
+  if (oldCategoryNormalized !== newCategoryNormalized) {
+    changes.category = {
+      old: oldProduct.category,
+      new: newData.category
+    };
+  }
+
   return changes;
+}
+
+// Helper function to calculate image changes
+interface ImageData {
+  image_url: string;
+  alt?: string;
+  is_primary?: boolean;
+}
+
+function calculateImageChanges(
+  oldImages: ImageData[],
+  newImages: ImageData[]
+): { old: string[]; new: string[] } | null {
+  // Extract just the URLs for comparison
+  const oldUrls = oldImages.map(img => img.image_url).sort();
+  const newUrls = newImages.filter(img => img.image_url).map(img => img.image_url).sort();
+
+  // Check if images changed
+  if (JSON.stringify(oldUrls) !== JSON.stringify(newUrls)) {
+    return {
+      old: oldUrls,
+      new: newUrls
+    };
+  }
+
+  return null;
 }
