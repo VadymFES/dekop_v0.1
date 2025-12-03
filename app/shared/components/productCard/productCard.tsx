@@ -113,7 +113,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
             <div className={styles.productMeta}>
               <p className={styles.productRating}>{product.rating}</p>
-              <p className={styles.productPrice}>{product.price} грн</p>
+              {product.is_on_sale && product.sale_price ? (
+                <div className={styles.priceContainer}>
+                  <p className={styles.originalPrice}>{product.price} грн</p>
+                  <p className={styles.salePrice}>{product.sale_price} грн</p>
+                </div>
+              ) : (
+                <p className={styles.productPrice}>{product.price} грн</p>
+              )}
             </div>
           </div>
         </div>
