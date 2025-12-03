@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
 import DeleteButton from './components/DeleteButton';
+import styles from '../styles/admin.module.css';
 
 interface PageProps {
   searchParams: Promise<{
@@ -78,22 +79,24 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       }}>
         <form method="GET" style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Пошук</label>
+            <label className={styles.labelSmall}>Пошук</label>
             <input
               type="text"
               name="search"
               defaultValue={search}
               placeholder="Назва товару..."
-              style={{ padding: '8px', border: '1px solid #ccc', width: '200px' }}
+              className={styles.inputSmall}
+              style={{ width: '200px' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Категорія</label>
+            <label className={styles.labelSmall}>Категорія</label>
             <select
               name="category"
               defaultValue={category}
-              style={{ padding: '8px', border: '1px solid #ccc', width: '150px' }}
+              className={styles.select}
+              style={{ width: '150px', padding: '10px 12px' }}
             >
               <option value="">Всі категорії</option>
               {categories.map((cat: string) => (
@@ -103,7 +106,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </div>
 
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
+            <label className={styles.checkboxLabel}>
               <input
                 type="checkbox"
                 name="low_stock"

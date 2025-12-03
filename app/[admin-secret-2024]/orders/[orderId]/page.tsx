@@ -143,6 +143,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
                 currentStatus={order.order_status}
                 currentPaymentStatus={order.payment_status}
                 currentNotes={order.admin_notes || ''}
+                adminEmail={admin.email}
               />
             </div>
           )}
@@ -242,7 +243,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
           {order.admin_notes && (
             <div style={{ ...cardStyle, marginTop: '20px' }}>
               <h2 style={headingStyle}>Примітки адміністратора</h2>
-              <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{order.admin_notes}</p>
+              <AdminNotesDisplay notes={order.admin_notes} />
             </div>
           )}
         </div>
@@ -259,6 +260,66 @@ interface OrderItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+}
+
+interface AdminNote {
+  text: string;
+  author: string;
+  timestamp: string;
+}
+
+function AdminNotesDisplay({ notes }: { notes: string }) {
+  let parsedNotes: AdminNote[] = [];
+
+  try {
+    const parsed = JSON.parse(notes);
+    if (Array.isArray(parsed)) {
+      parsedNotes = parsed;
+    }
+  } catch {
+    // Old format: plain text
+    if (notes.trim()) {
+      return <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{notes}</p>;
+    }
+    return null;
+  }
+
+  if (parsedNotes.length === 0) {
+    return <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{notes}</p>;
+  }
+
+  return (
+    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+      {parsedNotes.map((note, index) => (
+        <div
+          key={index}
+          style={{
+            padding: '10px 0',
+            borderBottom: index < parsedNotes.length - 1 ? '1px solid #eee' : 'none',
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '4px',
+            fontSize: '12px',
+            color: '#666'
+          }}>
+            <span style={{ fontWeight: '500' }}>{note.author}</span>
+            <span>{formatDate(note.timestamp)}</span>
+          </div>
+          <div style={{
+            fontSize: '14px',
+            color: '#333',
+            whiteSpace: 'pre-wrap',
+            lineHeight: '1.4'
+          }}>
+            {note.text}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function StatusBadge({ status }: { status: string }) {
