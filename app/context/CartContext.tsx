@@ -308,8 +308,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// Default context value for SSR when provider isn't available yet
+const defaultCartContext: CartContextType = {
+  cart: [],
+  isLoading: true,
+  error: null,
+  addToCart: () => {},
+  updateCart: () => {},
+  removeFromCart: () => {},
+  clearCart: () => {},
+};
+
 export function useCart() {
   const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within a CartProvider');
+  // Return default context during SSR when provider isn't available yet
+  if (!context) {
+    // Only throw in development if we're definitely on the client
+    if (typeof window !== 'undefined') {
+      throw new Error('useCart must be used within a CartProvider');
+    }
+    return defaultCartContext;
+  }
   return context;
 }

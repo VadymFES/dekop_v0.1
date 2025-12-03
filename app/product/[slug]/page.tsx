@@ -39,7 +39,7 @@ async function getProductData(slug: string) {
     const [specsRes, colorsRes, similarProductsRes, reviewsRes] = await Promise.all([
       fetch(`${baseUrl}/api/products/product-specs/${product.id}`, { next: { revalidate: 3600 } }),
       fetch(`${baseUrl}/api/products/product-colors/${product.id}`, { next: { revalidate: 3600 } }),
-      fetch(`${baseUrl}/api/products/similarRecommendations/${slug}`, { next: { revalidate: 3600 } }),
+      fetch(`${baseUrl}/product/api/similarRecommendations/${slug}`, { next: { revalidate: 3600 } }),
       fetch(`${baseUrl}/api/products/reviews/${product.id}`, { next: { revalidate: 3600 } })
     ]);
 
