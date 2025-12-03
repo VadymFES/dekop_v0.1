@@ -82,6 +82,7 @@ function OrderSuccessContent() {
   }, [orderId, searchParams]);
 
   // Poll payment status for online payment methods
+  // This directly queries the payment provider (LiqPay/Monobank) to get real-time status
   const pollPaymentStatus = useCallback(async () => {
     if (!orderId) return;
 
@@ -92,6 +93,41 @@ function OrderSuccessContent() {
     }
 
     try {
+      // First, call the direct status check endpoint
+      // This queries LiqPay/Monobank API directly and updates the database
+      console.log('[Payment Poll] Checking payment status directly with provider...');
+      const checkResponse = await fetch('/api/payments/check-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, email: customerEmail })
+      });
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        console.log('[Payment Poll] Direct status check result:', checkData);
+
+        // If payment confirmed or failed, stop polling and refresh order
+        if (checkData.status === 'paid' || checkData.status === 'failed') {
+          // Fetch updated order from database
+          const orderResponse = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
+          if (orderResponse.ok) {
+            const orderData = await orderResponse.json();
+            if (orderData.success && orderData.order) {
+              console.log('[Payment Poll] Payment status changed:', checkData.status);
+              setOrder(orderData.order);
+              setIsCheckingPayment(false);
+
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+              return;
+            }
+          }
+        }
+      }
+
+      // Fallback: Check order status from database
       const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
 
       if (!response.ok) {
