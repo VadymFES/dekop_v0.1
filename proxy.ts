@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Admin subdomain configuration
 const ADMIN_SUBDOMAIN = 'admin';
-const ADMIN_PATH = '/admin-secret-2024';
+const ADMIN_PATH = '/admin-path-57fyg';
 const MAIN_DOMAIN = 'dekop.com.ua';
 
 /**
