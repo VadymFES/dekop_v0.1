@@ -149,8 +149,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <ProductsTable
         products={products}
         canDelete={admin.permissions.includes('products.delete')}
-        formatCategory={formatCategory}
-        formatCurrency={formatCurrency}
       />
 
       {/* Пагінація */}

@@ -92,8 +92,12 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [endingSession, setEndingSession] = useState<string | null>(null);
 
-  // Fetch sessions on mount
+  // Hydration state - only render dates on client
+  const [isClient, setIsClient] = useState(false);
+
+  // Fetch sessions on mount and set client flag
   useEffect(() => {
+    setIsClient(true);
     fetchSessions();
   }, []);
 
@@ -210,9 +214,10 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     }
   };
 
-  // Format date for display
+  // Format date for display - only on client to avoid hydration mismatch
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Невідомо';
+    if (!isClient) return '...'; // Placeholder during SSR
     const date = new Date(dateString);
     return date.toLocaleString('uk-UA', {
       day: '2-digit',

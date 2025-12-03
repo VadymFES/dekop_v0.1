@@ -25,15 +25,35 @@ interface Product {
 interface ProductsTableProps {
   products: Product[];
   canDelete: boolean;
-  formatCategory: (category: string) => string;
-  formatCurrency: (amount: number) => string;
+}
+
+function formatCategory(category: string): string {
+  const categories: Record<string, string> = {
+    sofas: 'Дивани',
+    corner_sofas: 'Кутові дивани',
+    sofa_beds: 'Дивани-ліжка',
+    beds: 'Ліжка',
+    tables: 'Столи',
+    chairs: 'Стільці',
+    mattresses: 'Матраци',
+    wardrobes: 'Шафи',
+    accessories: 'Аксесуари',
+  };
+  return categories[category] || category;
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('uk-UA', {
+    style: 'currency',
+    currency: 'UAH',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 export default function ProductsTable({
   products,
   canDelete,
-  formatCategory,
-  formatCurrency,
 }: ProductsTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
