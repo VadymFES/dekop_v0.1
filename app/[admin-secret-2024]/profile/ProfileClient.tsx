@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import styles from '../styles/admin.module.css';
 
 interface Profile {
   id: string;
@@ -38,6 +39,7 @@ const sectionStyle: React.CSSProperties = {
   border: '1px solid #ddd',
   padding: '25px',
   marginBottom: '25px',
+  borderRadius: '8px',
 };
 
 const sectionTitleStyle: React.CSSProperties = {
@@ -46,21 +48,6 @@ const sectionTitleStyle: React.CSSProperties = {
   marginBottom: '20px',
   paddingBottom: '10px',
   borderBottom: '1px solid #eee',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '10px',
-  border: '1px solid #ccc',
-  fontSize: '14px',
-  boxSizing: 'border-box',
-};
-
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontWeight: 'bold',
-  marginBottom: '5px',
-  fontSize: '14px',
 };
 
 const infoRowStyle: React.CSSProperties = {
@@ -81,30 +68,6 @@ const infoLabelStyle: React.CSSProperties = {
 const infoValueStyle: React.CSSProperties = {
   flex: 1,
   fontSize: '14px',
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: '10px 25px',
-  backgroundColor: '#4caf50',
-  color: 'white',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: '14px',
-};
-
-const buttonDisabledStyle: React.CSSProperties = {
-  ...buttonStyle,
-  backgroundColor: '#ccc',
-  cursor: 'not-allowed',
-};
-
-const dangerButtonStyle: React.CSSProperties = {
-  padding: '6px 12px',
-  backgroundColor: '#f44336',
-  color: 'white',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: '12px',
 };
 
 export default function ProfileClient({ profile }: ProfileClientProps) {
@@ -311,24 +274,24 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
         <h2 style={sectionTitleStyle}>Редагувати ім&apos;я</h2>
 
         <form onSubmit={handleUpdateName}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div className={styles.grid2} style={{ marginBottom: '20px' }}>
             <div>
-              <label style={labelStyle}>Ім&apos;я</label>
+              <label className={styles.label}>Ім&apos;я</label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                style={inputStyle}
+                className={styles.input}
                 placeholder="Введіть ім'я"
               />
             </div>
             <div>
-              <label style={labelStyle}>Прізвище</label>
+              <label className={styles.label}>Прізвище</label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                style={inputStyle}
+                className={styles.input}
                 placeholder="Введіть прізвище"
               />
             </div>
@@ -340,6 +303,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
               marginBottom: '15px',
               backgroundColor: nameMessage.includes('оновлено') ? '#e8f5e9' : '#ffebee',
               color: nameMessage.includes('оновлено') ? '#2e7d32' : '#c62828',
+              borderRadius: '4px',
             }}>
               {nameMessage}
             </div>
@@ -348,7 +312,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
           <button
             type="submit"
             disabled={nameLoading}
-            style={nameLoading ? buttonDisabledStyle : buttonStyle}
+            className={styles.buttonPrimary}
           >
             {nameLoading ? 'Збереження...' : 'Зберегти'}
           </button>
@@ -361,47 +325,42 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 
         <form onSubmit={handleChangePassword}>
           <div style={{ marginBottom: '15px' }}>
-            <label style={labelStyle}>Поточний пароль</label>
+            <label className={styles.label}>Поточний пароль</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              style={inputStyle}
+              className={styles.input}
               required
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div className={styles.grid2} style={{ marginBottom: '20px' }}>
             <div>
-              <label style={labelStyle}>Новий пароль</label>
+              <label className={styles.label}>Новий пароль</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                style={inputStyle}
+                className={styles.input}
                 required
                 minLength={8}
               />
             </div>
             <div>
-              <label style={labelStyle}>Підтвердіть пароль</label>
+              <label className={styles.label}>Підтвердіть пароль</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                style={inputStyle}
+                className={styles.input}
                 required
               />
             </div>
           </div>
 
           {passwordError && (
-            <div style={{
-              padding: '10px',
-              marginBottom: '15px',
-              backgroundColor: '#ffebee',
-              color: '#c62828',
-            }}>
+            <div className={styles.error}>
               {passwordError}
             </div>
           )}
@@ -412,6 +371,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
               marginBottom: '15px',
               backgroundColor: '#e8f5e9',
               color: '#2e7d32',
+              borderRadius: '4px',
             }}>
               {passwordMessage}
             </div>
@@ -420,7 +380,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
           <button
             type="submit"
             disabled={passwordLoading}
-            style={passwordLoading ? buttonDisabledStyle : buttonStyle}
+            className={styles.buttonPrimary}
           >
             {passwordLoading ? 'Зміна...' : 'Змінити пароль'}
           </button>
@@ -477,8 +437,8 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
                         <button
                           onClick={() => handleEndSession(session.id)}
                           disabled={endingSession === session.id}
+                          className={styles.buttonDanger}
                           style={{
-                            ...dangerButtonStyle,
                             opacity: endingSession === session.id ? 0.5 : 1,
                           }}
                         >
