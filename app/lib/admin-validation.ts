@@ -97,20 +97,28 @@ export const passwordResetSchema = z.object({
 
 /**
  * Product image schema
+ * Note: image_url can be empty string (will be filtered out during insert)
  */
 const productImageSchema = z.object({
   id: z.number().optional(),
-  image_url: z.string().url('Invalid image URL').max(500),
+  image_url: z.string().max(500).refine(
+    (val) => val === '' || /^https?:\/\/.+/.test(val),
+    { message: 'Має бути порожнім або дійсною URL-адресою' }
+  ),
   alt: z.string().max(255).default(''),
   is_primary: z.boolean().default(false),
 });
 
 /**
  * Product color schema
+ * Note: Both fields required for valid color entry
  */
 const productColorSchema = z.object({
-  color: z.string().min(1).max(100),
-  image_url: z.string().url('Invalid image URL').max(500),
+  color: z.string().max(100).default(''),
+  image_url: z.string().max(500).refine(
+    (val) => val === '' || /^https?:\/\/.+/.test(val),
+    { message: 'Має бути порожнім або дійсною URL-адресою' }
+  ),
 });
 
 /**
