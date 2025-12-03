@@ -147,8 +147,8 @@ export async function POST(request: NextRequest) {
 
     // Insert product
     const result = await db.query`
-      INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller, is_featured)
-      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.category}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller}, ${data.is_featured || false})
+      INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller)
+      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.category}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
       RETURNING id, name, slug, category, price, stock
     `;
 

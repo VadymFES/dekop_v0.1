@@ -224,7 +224,6 @@ export const productSchema = z.object({
   is_on_sale: z.boolean().optional().nullable().default(false),
   is_new: z.boolean().optional().nullable().default(false),
   is_bestseller: z.boolean().optional().nullable().default(false),
-  is_featured: z.boolean().optional().nullable().default(false),
   images: z.array(productImageSchema).optional().nullable().default([]),
   colors: z.array(productColorSchema).optional().nullable().default([]),
   specs: productSpecsSchema,

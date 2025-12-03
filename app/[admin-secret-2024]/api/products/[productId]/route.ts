@@ -208,7 +208,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         is_on_sale = ${data.is_on_sale},
         is_new = ${data.is_new},
         is_bestseller = ${data.is_bestseller},
-        is_featured = ${data.is_featured || false},
         updated_at = NOW()
       WHERE id = ${id}
     `;

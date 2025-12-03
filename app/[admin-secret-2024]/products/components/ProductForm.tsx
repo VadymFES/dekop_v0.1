@@ -88,7 +88,6 @@ interface Product {
   is_on_sale: boolean;
   is_new: boolean;
   is_bestseller: boolean;
-  is_featured?: boolean;
   images: ProductImage[];
   colors: ProductColor[];
   specs: ProductSpecs;
@@ -345,7 +344,6 @@ export default function ProductForm({ product }: ProductFormProps) {
     is_on_sale: product?.is_on_sale || false,
     is_new: product?.is_new || false,
     is_bestseller: product?.is_bestseller || false,
-    is_featured: product?.is_featured || false,
     images: normalizeImages(product?.images),
     colors: normalizeColors(product?.colors),
     specs: product?.specs || {},
@@ -625,9 +623,6 @@ export default function ProductForm({ product }: ProductFormProps) {
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input type="checkbox" name="is_bestseller" checked={formData.is_bestseller} onChange={handleChange} /> Хіт продажів
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <input type="checkbox" name="is_featured" checked={formData.is_featured || false} onChange={handleChange} /> Рекомендований
             </label>
           </div>
         </div>
