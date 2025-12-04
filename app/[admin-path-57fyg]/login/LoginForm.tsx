@@ -76,7 +76,7 @@ export default function LoginForm() {
         />
       </div>
 
-      <div style={{ marginTop: '15px' }}>
+      <div className={styles.mt15}>
         <label htmlFor="password" className={styles.label}>Пароль</label>
         <input
           type="password"
@@ -93,16 +93,15 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className={styles.buttonPrimary}
-        style={{ width: '100%', marginTop: '20px', padding: '12px' }}
+        className={`${styles.buttonPrimary} ${styles.buttonFullWidth} ${styles.mt20}`}
       >
         {loading ? 'Вхід...' : 'Увійти'}
       </button>
 
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+      <div className={`${styles.mt20} ${styles.textCenter}`}>
         <Link
           href="/admin-path-57fyg/reset-password"
-          style={{ color: '#1976d2', fontSize: '14px' }}
+          className={styles.loginForgotLink}
         >
           Забули пароль?
         </Link>

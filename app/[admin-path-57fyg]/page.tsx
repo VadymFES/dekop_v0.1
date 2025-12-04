@@ -4,8 +4,10 @@
  */
 
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import styles from './styles/admin.module.css';
 
 export default async function AdminDashboard() {
   const admin = await getCurrentAdmin();
@@ -19,74 +21,59 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Головна панель</h1>
+      <h1 className={`${styles.pageTitle} ${styles.mb30}`}>Головна панель</h1>
 
       {/* Картки статистики */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '20px',
-        marginBottom: '30px',
-      }}>
+      <div className={styles.statsGrid}>
         <StatCard label="Замовлень сьогодні" value={metrics.ordersToday} />
         <StatCard label="Замовлень за тиждень" value={metrics.ordersWeek} />
         <StatCard label="Замовлень за місяць" value={metrics.ordersMonth} />
-        <StatCard label="Очікують обробки" value={metrics.pendingOrders} color="#ff9800" />
+        <StatCard label="Очікують обробки" value={metrics.pendingOrders} variant="warning" />
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '20px',
-        marginBottom: '30px',
-      }}>
+      <div className={styles.statsGrid}>
         <StatCard label="Дохід сьогодні" value={formatCurrency(metrics.revenueToday)} />
         <StatCard label="Дохід за тиждень" value={formatCurrency(metrics.revenueWeek)} />
         <StatCard label="Дохід за місяць" value={formatCurrency(metrics.revenueMonth)} />
-        <StatCard label="Мало на складі" value={metrics.lowStockProducts} color="#f44336" />
+        <StatCard label="Мало на складі" value={metrics.lowStockProducts} variant="danger" />
       </div>
 
       {/* Останні замовлення */}
-      <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-        padding: '20px',
-        marginBottom: '30px',
-      }}>
-        <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>Останні замовлення</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className={`${styles.card} ${styles.mb30}`}>
+        <h2 className={styles.pageTitleSmall}>Останні замовлення</h2>
+        <table className={styles.table}>
           <thead>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
-              <th style={thStyle}>№ замовлення</th>
-              <th style={thStyle}>Клієнт</th>
-              <th style={thStyle}>Сума</th>
-              <th style={thStyle}>Статус</th>
-              <th style={thStyle}>Оплата</th>
-              <th style={thStyle}>Дата</th>
+            <tr className={styles.tableHeader}>
+              <th className={styles.th}>№ замовлення</th>
+              <th className={styles.th}>Клієнт</th>
+              <th className={styles.th}>Сума</th>
+              <th className={styles.th}>Статус</th>
+              <th className={styles.th}>Оплата</th>
+              <th className={styles.th}>Дата</th>
             </tr>
           </thead>
           <tbody>
             {metrics.recentOrders.map((order) => (
               <tr key={order.id}>
-                <td style={tdStyle}>
-                  <a href={`/admin-path-57fyg/orders/${order.id}`} style={{ color: '#1976d2' }}>
+                <td className={styles.td}>
+                  <Link href={`/admin-path-57fyg/orders/${order.id}`} className={styles.link}>
                     {order.order_number}
-                  </a>
+                  </Link>
                 </td>
-                <td style={tdStyle}>{order.user_name} {order.user_surname}</td>
-                <td style={tdStyle}>{formatCurrency(order.total_amount)}</td>
-                <td style={tdStyle}>
+                <td className={styles.td}>{order.user_name} {order.user_surname}</td>
+                <td className={styles.td}>{formatCurrency(order.total_amount)}</td>
+                <td className={styles.td}>
                   <StatusBadge status={order.order_status} />
                 </td>
-                <td style={tdStyle}>
+                <td className={styles.td}>
                   <PaymentBadge status={order.payment_status} />
                 </td>
-                <td style={tdStyle}>{formatDate(order.created_at)}</td>
+                <td className={styles.td}>{formatDate(order.created_at)}</td>
               </tr>
             ))}
             {metrics.recentOrders.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
+                <td colSpan={6} className={styles.tdEmpty}>
                   Замовлень ще немає
                 </td>
               </tr>
@@ -97,37 +84,33 @@ export default async function AdminDashboard() {
 
       {/* Товари з малим запасом */}
       {metrics.lowStockProductsList.length > 0 && (
-        <div style={{
-          backgroundColor: 'white',
-          border: '1px solid #ccc',
-          padding: '20px',
-        }}>
-          <h2 style={{ fontSize: '18px', marginBottom: '20px', color: '#f44336' }}>
+        <div className={styles.card}>
+          <h2 className={`${styles.pageTitleSmall} ${styles.statusCancelled}`}>
             Товари з малим запасом (менше 10)
           </h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className={styles.table}>
             <thead>
-              <tr style={{ backgroundColor: '#f5f5f5' }}>
-                <th style={thStyle}>ID</th>
-                <th style={thStyle}>Назва</th>
-                <th style={thStyle}>Категорія</th>
-                <th style={thStyle}>Запас</th>
-                <th style={thStyle}>Дія</th>
+              <tr className={styles.tableHeader}>
+                <th className={styles.th}>ID</th>
+                <th className={styles.th}>Назва</th>
+                <th className={styles.th}>Категорія</th>
+                <th className={styles.th}>Запас</th>
+                <th className={styles.th}>Дія</th>
               </tr>
             </thead>
             <tbody>
               {metrics.lowStockProductsList.map((product) => (
                 <tr key={product.id}>
-                  <td style={tdStyle}>{product.id}</td>
-                  <td style={tdStyle}>{product.name}</td>
-                  <td style={tdStyle}>{product.category}</td>
-                  <td style={{ ...tdStyle, color: product.stock === 0 ? '#f44336' : '#ff9800', fontWeight: 'bold' }}>
+                  <td className={styles.td}>{product.id}</td>
+                  <td className={styles.td}>{product.name}</td>
+                  <td className={styles.td}>{product.category}</td>
+                  <td className={product.stock === 0 ? styles.stockOut : styles.stockLow}>
                     {product.stock}
                   </td>
-                  <td style={tdStyle}>
-                    <a href={`/admin-path-57fyg/products/${product.id}/edit`} style={{ color: '#1976d2' }}>
+                  <td className={styles.td}>
+                    <Link href={`/admin-path-57fyg/products/${product.id}/edit`} className={styles.link}>
                       Редагувати
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -140,15 +123,17 @@ export default async function AdminDashboard() {
 }
 
 // Допоміжні компоненти
-function StatCard({ label, value, color = '#333' }: { label: string; value: string | number; color?: string }) {
+function StatCard({ label, value, variant }: { label: string; value: string | number; variant?: 'warning' | 'danger' }) {
+  const valueClass = variant === 'warning'
+    ? styles.statValueWarning
+    : variant === 'danger'
+    ? styles.statValueDanger
+    : styles.statValue;
+
   return (
-    <div style={{
-      backgroundColor: 'white',
-      border: '1px solid #ccc',
-      padding: '20px',
-    }}>
-      <div style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>{label}</div>
-      <div style={{ fontSize: '28px', fontWeight: 'bold', color }}>{value}</div>
+    <div className={styles.statCard}>
+      <div className={styles.statLabel}>{label}</div>
+      <div className={valueClass}>{value}</div>
     </div>
   );
 }
@@ -161,15 +146,15 @@ function StatusBadge({ status }: { status: string }) {
     delivered: 'Доставлено',
     cancelled: 'Скасовано',
   };
-  const colors: Record<string, string> = {
-    processing: '#ff9800',
-    confirmed: '#2196f3',
-    shipped: '#9c27b0',
-    delivered: '#4caf50',
-    cancelled: '#f44336',
+  const statusClasses: Record<string, string> = {
+    processing: styles.statusProcessing,
+    confirmed: styles.statusConfirmed,
+    shipped: styles.statusShipped,
+    delivered: styles.statusDelivered,
+    cancelled: styles.statusCancelled,
   };
   return (
-    <span style={{ color: colors[status] || '#333' }}>
+    <span className={statusClasses[status] || ''}>
       {labels[status] || status}
     </span>
   );
@@ -182,31 +167,18 @@ function PaymentBadge({ status }: { status: string }) {
     failed: 'Помилка',
     refunded: 'Повернення',
   };
-  const colors: Record<string, string> = {
-    pending: '#ff9800',
-    paid: '#4caf50',
-    failed: '#f44336',
-    refunded: '#9c27b0',
+  const statusClasses: Record<string, string> = {
+    pending: styles.paymentPending,
+    paid: styles.paymentPaid,
+    failed: styles.paymentFailed,
+    refunded: styles.paymentRefunded,
   };
   return (
-    <span style={{ color: colors[status] || '#333' }}>
+    <span className={statusClasses[status] || ''}>
       {labels[status] || status}
     </span>
   );
 }
-
-const thStyle = {
-  padding: '10px',
-  textAlign: 'left' as const,
-  borderBottom: '2px solid #ccc',
-  fontSize: '14px',
-};
-
-const tdStyle = {
-  padding: '10px',
-  borderBottom: '1px solid #eee',
-  fontSize: '14px',
-};
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('uk-UA', {

@@ -52,32 +52,18 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', margin: 0 }}>Товари ({total})</h1>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>Товари ({total})</h1>
         {admin.permissions.includes('products.create') && (
-          <Link
-            href="/admin-path-57fyg/products/add"
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#4caf50',
-              color: 'white',
-              textDecoration: 'none',
-              border: 'none',
-            }}
-          >
+          <Link href="/admin-path-57fyg/products/add" className={styles.buttonAddLarge}>
             Додати товар
           </Link>
         )}
       </div>
 
       {/* Фільтри */}
-      <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-        padding: '20px',
-        marginBottom: '20px',
-      }}>
-        <form method="GET" style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+      <div className={styles.card}>
+        <form method="GET" className={styles.filtersForm}>
           <div>
             <label className={styles.labelSmall}>Пошук</label>
             <input
@@ -85,8 +71,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               name="search"
               defaultValue={search}
               placeholder="Назва товару..."
-              className={styles.inputSmall}
-              style={{ width: '200px' }}
+              className={`${styles.inputSmall} ${styles.filterInputWide}`}
             />
           </div>
 
@@ -95,8 +80,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             <select
               name="category"
               defaultValue={category}
-              className={styles.select}
-              style={{ width: '150px', padding: '10px 12px' }}
+              className={`${styles.select} ${styles.filterSelectMedium}`}
             >
               <option value="">Всі категорії</option>
               {categories.map((cat: string) => (
@@ -117,29 +101,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </label>
           </div>
 
-          <button
-            type="submit"
-            style={{
-              padding: '8px 20px',
-              backgroundColor: '#333',
-              color: 'white',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
+          <button type="submit" className={styles.buttonFilter}>
             Фільтрувати
           </button>
 
-          <Link
-            href="/admin-path-57fyg/products"
-            style={{
-              padding: '8px 20px',
-              backgroundColor: '#f5f5f5',
-              color: '#333',
-              textDecoration: 'none',
-              border: '1px solid #ccc',
-            }}
-          >
+          <Link href="/admin-path-57fyg/products" className={styles.buttonClear}>
             Очистити
           </Link>
         </form>
@@ -153,22 +119,22 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
       {/* Пагінація */}
       {totalPages > 1 && (
-        <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <div className={styles.pagination}>
           {page > 1 && (
             <Link
               href={buildPageUrl(page - 1, { search, category, low_stock: lowStock ? 'true' : '' })}
-              style={paginationLinkStyle}
+              className={styles.paginationLink}
             >
               Попередня
             </Link>
           )}
-          <span style={{ padding: '8px 15px' }}>
+          <span className={styles.paginationText}>
             Сторінка {page} з {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={buildPageUrl(page + 1, { search, category, low_stock: lowStock ? 'true' : '' })}
-              style={paginationLinkStyle}
+              className={styles.paginationLink}
             >
               Наступна
             </Link>
@@ -351,19 +317,3 @@ function buildPageUrl(page: number, params: Record<string, string>) {
   });
   return `/admin-path-57fyg/products?${searchParams.toString()}`;
 }
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-const paginationLinkStyle = {
-  padding: '8px 15px',
-  backgroundColor: '#333',
-  color: 'white',
-  textDecoration: 'none',
-};

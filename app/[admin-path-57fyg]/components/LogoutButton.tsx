@@ -6,6 +6,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import styles from '../styles/admin.module.css';
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -31,15 +32,7 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={loading}
-      style={{
-        width: '100%',
-        padding: '10px',
-        backgroundColor: 'transparent',
-        color: '#aaa',
-        border: '1px solid #555',
-        cursor: loading ? 'not-allowed' : 'pointer',
-        fontSize: '14px',
-      }}
+      className={styles.logoutButton}
     >
       {loading ? 'Вихід...' : 'Вийти'}
     </button>

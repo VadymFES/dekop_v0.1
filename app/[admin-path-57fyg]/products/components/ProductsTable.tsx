@@ -63,6 +63,12 @@ function formatDate(dateString: string): string {
   });
 }
 
+function getStockClass(stock: number): string {
+  if (stock === 0) return styles.stockOut;
+  if (stock < 10) return styles.stockLow;
+  return styles.stockNormal;
+}
+
 export default function ProductsTable({
   products,
   canDelete,
@@ -146,24 +152,14 @@ export default function ProductsTable({
     <>
       {/* Bulk actions bar */}
       {canDelete && selectedIds.size > 0 && (
-        <div style={{
-          backgroundColor: '#fff3e0',
-          border: '1px solid #ffcc80',
-          borderRadius: '4px',
-          padding: '12px 16px',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <span style={{ fontSize: '14px', color: '#e65100' }}>
+        <div className={styles.bulkActionsBar}>
+          <span className={styles.bulkActionsText}>
             Вибрано: <strong>{selectedIds.size}</strong> {getItemWord(selectedIds.size)}
           </span>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className={styles.bulkActionsButtons}>
             <button
               onClick={() => setSelectedIds(new Set())}
               className={styles.buttonSecondary}
-              style={{ padding: '8px 16px' }}
             >
               Скасувати вибір
             </button>
@@ -178,21 +174,18 @@ export default function ProductsTable({
       )}
 
       {deleteError && (
-        <div className={styles.error} style={{ marginBottom: '16px' }}>
+        <div className={`${styles.error} ${styles.mb15}`}>
           {deleteError}
         </div>
       )}
 
       {/* Table */}
-      <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className={styles.cardNoPadding}>
+        <table className={styles.table}>
           <thead>
-            <tr style={{ backgroundColor: '#f5f5f5' }}>
+            <tr className={styles.tableHeader}>
               {canDelete && (
-                <th style={{ ...thStyle, width: '40px', textAlign: 'center' }}>
+                <th className={styles.thCenter}>
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -200,82 +193,69 @@ export default function ProductsTable({
                       if (el) el.indeterminate = someSelected;
                     }}
                     onChange={handleSelectAll}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    className={styles.checkbox}
                   />
                 </th>
               )}
-              <th style={thStyle}>ID</th>
-              <th style={thStyle}>Назва</th>
-              <th style={thStyle}>Категорія</th>
-              <th style={thStyle}>Ціна</th>
-              <th style={thStyle}>Запас</th>
-              <th style={thStyle}>Мітки</th>
-              <th style={thStyle}>Створено</th>
-              <th style={thStyle}>Змінено</th>
-              <th style={thStyle}>Дії</th>
+              <th className={styles.th}>ID</th>
+              <th className={styles.th}>Назва</th>
+              <th className={styles.th}>Категорія</th>
+              <th className={styles.th}>Ціна</th>
+              <th className={styles.th}>Запас</th>
+              <th className={styles.th}>Мітки</th>
+              <th className={styles.th}>Створено</th>
+              <th className={styles.th}>Змінено</th>
+              <th className={styles.th}>Дії</th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr
                 key={product.id}
-                style={{
-                  backgroundColor: selectedIds.has(product.id) ? '#e3f2fd' : 'transparent',
-                }}
+                className={selectedIds.has(product.id) ? styles.rowSelected : ''}
               >
                 {canDelete && (
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td className={styles.tdCenter}>
                     <input
                       type="checkbox"
                       checked={selectedIds.has(product.id)}
                       onChange={() => handleSelectOne(product.id)}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                      className={styles.checkbox}
                     />
                   </td>
                 )}
-                <td style={tdStyle}>{product.id}</td>
-                <td style={tdStyle}>
+                <td className={styles.td}>{product.id}</td>
+                <td className={styles.td}>
                   <div>{product.name}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{product.slug}</div>
+                  <div className={styles.slugText}>{product.slug}</div>
                 </td>
-                <td style={tdStyle}>{formatCategory(product.category)}</td>
-                <td style={tdStyle}>{formatCurrency(product.price)}</td>
-                <td style={{
-                  ...tdStyle,
-                  color: product.stock === 0 ? '#f44336' : product.stock < 10 ? '#ff9800' : '#333',
-                  fontWeight: product.stock < 10 ? 'bold' : 'normal',
-                }}>
+                <td className={styles.td}>{formatCategory(product.category)}</td>
+                <td className={styles.td}>{formatCurrency(product.price)}</td>
+                <td className={`${styles.td} ${getStockClass(product.stock)}`}>
                   {product.stock}
                 </td>
-                <td style={tdStyle}>
-                  {product.is_on_sale && <span style={{ color: '#f44336', marginRight: '5px' }}>АКЦІЯ</span>}
-                  {product.is_new && <span style={{ color: '#4caf50', marginRight: '5px' }}>НОВИНКА</span>}
-                  {product.is_bestseller && <span style={{ color: '#ff9800' }}>ХІТ</span>}
+                <td className={styles.td}>
+                  {product.is_on_sale && <span className={styles.badgeSale}>АКЦІЯ</span>}
+                  {product.is_new && <span className={styles.badgeNew}>НОВИНКА</span>}
+                  {product.is_bestseller && <span className={styles.badgeBestseller}>ХІТ</span>}
                 </td>
-                <td style={{ ...tdStyle, fontSize: '12px', color: '#666' }}>
+                <td className={styles.tdSmall}>
                   {formatDate(product.created_at)}
                 </td>
-                <td style={{ ...tdStyle, fontSize: '12px', color: '#666' }}>
+                <td className={styles.tdSmall}>
                   {formatDate(product.updated_at)}
                 </td>
-                <td style={tdStyle}>
+                <td className={styles.td}>
                   <Link
                     href={`/admin-path-57fyg/products/${product.id}/edit`}
-                    style={{ color: '#1976d2', marginRight: '10px' }}
+                    className={`${styles.link} ${styles.mr10}`}
                   >
                     Редагувати
                   </Link>
                   {canDelete && (
                     <button
                       onClick={() => handleSingleDelete(product.id, product.name)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#f44336',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        padding: 0,
-                      }}
+                      className={styles.linkDanger}
                     >
                       Видалити
                     </button>
@@ -285,7 +265,7 @@ export default function ProductsTable({
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={canDelete ? 10 : 9} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
+                <td colSpan={canDelete ? 10 : 9} className={styles.tdEmpty}>
                   Товарів не знайдено
                 </td>
               </tr>
@@ -316,16 +296,3 @@ function getItemWord(count: number): string {
   if (count >= 2 && count <= 4) return 'товари';
   return 'товарів';
 }
-
-const thStyle = {
-  padding: '12px 10px',
-  textAlign: 'left' as const,
-  borderBottom: '2px solid #ccc',
-  fontSize: '14px',
-};
-
-const tdStyle = {
-  padding: '10px',
-  borderBottom: '1px solid #eee',
-  fontSize: '14px',
-};

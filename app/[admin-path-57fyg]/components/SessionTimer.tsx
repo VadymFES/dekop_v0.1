@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import styles from '../styles/admin.module.css';
 
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 const CHECK_INTERVAL_MS = 60 * 1000; // Check every minute
@@ -70,12 +71,7 @@ export default function SessionTimer() {
 
   // Show remaining session time in the sidebar
   return (
-    <div style={{
-      fontSize: '11px',
-      color: '#888',
-      marginTop: '10px',
-      textAlign: 'center',
-    }}>
+    <div className={styles.sessionTimer}>
       Сесія: {timeRemaining}
     </div>
   );

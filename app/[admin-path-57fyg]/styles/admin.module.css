@@ -2,6 +2,608 @@
    ADMIN PANEL - Shared Styles
    ===================================================== */
 
+/* =====================================================
+   LAYOUT
+   ===================================================== */
+
+.adminWrapper {
+  display: flex;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+}
+
+.adminWrapperUnauth {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: #333;
+  color: white;
+  padding: 20px 0;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.sidebarHeader {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid #555;
+  margin-bottom: 20px;
+}
+
+.sidebarTitle {
+  font-size: 18px;
+  margin: 0;
+}
+
+.sidebarEmail {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 5px;
+}
+
+.sidebarRole {
+  font-size: 11px;
+  color: #888;
+  margin-top: 3px;
+}
+
+.sidebarFooter {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 220px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* Main Content */
+.mainContent {
+  flex: 1;
+  margin-left: 220px;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+
+.navLink {
+  display: block;
+  padding: 12px 20px;
+  color: #ccc;
+  background-color: transparent;
+  text-decoration: none;
+  font-size: 14px;
+  border-left: 3px solid transparent;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navLink:hover {
+  background-color: #444;
+  color: white;
+}
+
+.navLinkActive {
+  display: block;
+  padding: 12px 20px;
+  color: white;
+  background-color: #555;
+  text-decoration: none;
+  font-size: 14px;
+  border-left: 3px solid white;
+}
+
+/* =====================================================
+   LOGIN PAGE
+   ===================================================== */
+
+.loginWrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+}
+
+.loginCard {
+  background-color: white;
+  padding: 40px;
+  border: 1px solid #ccc;
+  width: 400px;
+}
+
+.loginTitle {
+  font-size: 24px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #333;
+}
+
+.loginForgotLink {
+  color: #1976d2;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.loginForgotLink:hover {
+  text-decoration: underline;
+}
+
+/* =====================================================
+   PAGE HEADERS
+   ===================================================== */
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  margin: 0;
+}
+
+.pageTitleSmall {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* =====================================================
+   CARDS & PANELS
+   ===================================================== */
+
+.card {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.cardNoPadding {
+  background-color: white;
+  border: 1px solid #ccc;
+}
+
+/* Stat Cards */
+.statCard {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 20px;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+}
+
+.statValueWarning {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff9800;
+}
+
+.statValueDanger {
+  font-size: 28px;
+  font-weight: bold;
+  color: #f44336;
+}
+
+/* =====================================================
+   TABLES
+   ===================================================== */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader {
+  background-color: #f5f5f5;
+}
+
+.th {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 2px solid #ccc;
+  font-size: 14px;
+}
+
+.thCenter {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 2px solid #ccc;
+  font-size: 14px;
+  width: 40px;
+}
+
+.td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.tdCenter {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  text-align: center;
+}
+
+.tdSmall {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 12px;
+  color: #666;
+}
+
+.tdEmpty {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  text-align: center;
+  color: #999;
+}
+
+.rowSelected {
+  background-color: #e3f2fd;
+}
+
+/* Stock status */
+.stockNormal {
+  color: #333;
+}
+
+.stockLow {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+.stockOut {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* =====================================================
+   BADGES & TAGS
+   ===================================================== */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badgeSale {
+  color: #f44336;
+  margin-right: 5px;
+}
+
+.badgeNew {
+  color: #4caf50;
+  margin-right: 5px;
+}
+
+.badgeBestseller {
+  color: #ff9800;
+}
+
+/* Status Colors */
+.statusProcessing {
+  color: #ff9800;
+}
+
+.statusConfirmed {
+  color: #2196f3;
+}
+
+.statusShipped {
+  color: #9c27b0;
+}
+
+.statusDelivered {
+  color: #4caf50;
+}
+
+.statusCancelled {
+  color: #f44336;
+}
+
+.paymentPending {
+  color: #ff9800;
+}
+
+.paymentPaid {
+  color: #4caf50;
+}
+
+.paymentFailed {
+  color: #f44336;
+}
+
+.paymentRefunded {
+  color: #9c27b0;
+}
+
+/* =====================================================
+   LINKS & ACTIONS
+   ===================================================== */
+
+.link {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.linkDanger {
+  color: #f44336;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.linkDanger:hover {
+  text-decoration: underline;
+}
+
+/* =====================================================
+   BULK ACTIONS BAR
+   ===================================================== */
+
+.bulkActionsBar {
+  background-color: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bulkActionsText {
+  font-size: 14px;
+  color: #e65100;
+}
+
+.bulkActionsButtons {
+  display: flex;
+  gap: 10px;
+}
+
+/* =====================================================
+   PAGINATION
+   ===================================================== */
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.paginationLink {
+  padding: 8px 15px;
+  background-color: #333;
+  color: white;
+  text-decoration: none;
+}
+
+.paginationLink:hover {
+  background-color: #555;
+}
+
+.paginationText {
+  padding: 8px 15px;
+}
+
+/* =====================================================
+   LOGOUT BUTTON
+   ===================================================== */
+
+.logoutButton {
+  width: 100%;
+  padding: 10px;
+  background-color: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: #444;
+}
+
+.logoutButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* =====================================================
+   SESSION TIMER
+   ===================================================== */
+
+.sessionTimer {
+  font-size: 11px;
+  color: #888;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* =====================================================
+   CHECKBOX
+   ===================================================== */
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* =====================================================
+   FILTERS
+   ===================================================== */
+
+.filtersForm {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+/* =====================================================
+   SPACING UTILITIES
+   ===================================================== */
+
+.mt0 { margin-top: 0; }
+.mt5 { margin-top: 5px; }
+.mt10 { margin-top: 10px; }
+.mt15 { margin-top: 15px; }
+.mt20 { margin-top: 20px; }
+.mt30 { margin-top: 30px; }
+
+.mb0 { margin-bottom: 0; }
+.mb5 { margin-bottom: 5px; }
+.mb10 { margin-bottom: 10px; }
+.mb15 { margin-bottom: 15px; }
+.mb20 { margin-bottom: 20px; }
+.mb30 { margin-bottom: 30px; }
+
+.mr5 { margin-right: 5px; }
+.mr10 { margin-right: 10px; }
+
+.textCenter { text-align: center; }
+.textRight { text-align: right; }
+
+/* =====================================================
+   RESPONSIVE GRIDS
+   ===================================================== */
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+/* =====================================================
+   SLUG DISPLAY
+   ===================================================== */
+
+.slugText {
+  font-size: 12px;
+  color: #666;
+}
+
+/* =====================================================
+   SUCCESS MESSAGE
+   ===================================================== */
+
+.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* =====================================================
+   BUTTON FULL WIDTH
+   ===================================================== */
+
+.buttonFullWidth {
+  width: 100%;
+}
+
+/* =====================================================
+   ADD BUTTON (GREEN)
+   ===================================================== */
+
+.buttonAddLarge {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  text-decoration: none;
+  border: none;
+  display: inline-block;
+}
+
+.buttonAddLarge:hover {
+  background-color: #45a049;
+}
+
+/* Filter Button (Dark) */
+.buttonFilter {
+  padding: 8px 20px;
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.buttonFilter:hover {
+  background-color: #555;
+}
+
+/* Clear Button (Light) */
+.buttonClear {
+  padding: 8px 20px;
+  background-color: #f5f5f5;
+  color: #333;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  display: inline-block;
+  font-size: 14px;
+}
+
+.buttonClear:hover {
+  background-color: #e8e8e8;
+}
+
+/* Fixed width for filter inputs */
+.filterInputWide {
+  width: 200px;
+}
+
+.filterSelectMedium {
+  width: 150px;
+  padding: 10px 12px;
+}
+
 /* Form Inputs */
 .input {
   width: 100%;
