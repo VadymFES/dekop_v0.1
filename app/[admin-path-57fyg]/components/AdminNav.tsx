@@ -7,6 +7,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import styles from '../styles/admin.module.css';
 
 interface AdminNavProps {
   permissions: string[];
@@ -19,10 +20,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/admin-secret-2024', label: 'Головна' },
-  { href: '/admin-secret-2024/products', label: 'Товари', permission: 'products.read' },
-  { href: '/admin-secret-2024/orders', label: 'Замовлення', permission: 'orders.read' },
-  { href: '/admin-secret-2024/profile', label: 'Профіль' },
+  { href: '/admin-path-57fyg', label: 'Головна' },
+  { href: '/admin-path-57fyg/products', label: 'Товари', permission: 'products.read' },
+  { href: '/admin-path-57fyg/orders', label: 'Замовлення', permission: 'orders.read' },
+  { href: '/admin-path-57fyg/profile', label: 'Профіль' },
 ];
 
 export default function AdminNav({ permissions }: AdminNavProps) {
@@ -33,29 +34,19 @@ export default function AdminNav({ permissions }: AdminNavProps) {
     return permissions.includes(permission);
   };
 
-  const linkStyle = (isActive: boolean) => ({
-    display: 'block',
-    padding: '12px 20px',
-    color: isActive ? 'white' : '#ccc',
-    backgroundColor: isActive ? '#555' : 'transparent',
-    textDecoration: 'none',
-    fontSize: '14px',
-    borderLeft: isActive ? '3px solid white' : '3px solid transparent',
-  });
-
   return (
     <nav>
       {navItems.map((item) => {
         if (!hasPermission(item.permission)) return null;
 
         const isActive = pathname === item.href ||
-          (item.href !== '/admin-secret-2024' && pathname.startsWith(item.href));
+          (item.href !== '/admin-path-57fyg' && pathname.startsWith(item.href));
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            style={linkStyle(isActive)}
+            className={isActive ? styles.navLinkActive : styles.navLink}
           >
             {item.label}
           </Link>

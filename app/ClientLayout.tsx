@@ -16,7 +16,7 @@ export default function ClientLayout({
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Skip header/footer for admin routes
-  const isAdminRoute = pathname?.startsWith('/admin-secret-2024');
+  const isAdminRoute = pathname?.startsWith('/admin-path-57fyg');
 
   const handleMenuToggle = () => {
     setMenuOpen((prev) => !prev);

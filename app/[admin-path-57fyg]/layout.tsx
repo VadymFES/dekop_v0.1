@@ -7,6 +7,8 @@
 import { getCurrentAdmin, AdminUserWithPermissions } from '@/app/lib/admin-auth';
 import AdminNav from './components/AdminNav';
 import LogoutButton from './components/LogoutButton';
+import SessionTimer from './components/SessionTimer';
+import styles from './styles/admin.module.css';
 
 export const metadata = {
   title: 'Адмін-панель - DEKOP',
@@ -37,73 +39,36 @@ function AdminLayoutContent({
   // Якщо не авторизовано - показуємо тільки дочірній контент (сторінка входу)
   if (!admin) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
-        fontFamily: 'Arial, sans-serif',
-      }}>
+      <div className={styles.adminWrapperUnauth}>
         {children}
       </div>
     );
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#f5f5f5',
-    }}>
+    <div className={styles.adminWrapper}>
       {/* Бічна панель навігації */}
-      <aside style={{
-        width: '220px',
-        backgroundColor: '#333',
-        color: 'white',
-        padding: '20px 0',
-        flexShrink: 0,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        height: '100vh',
-        overflowY: 'auto',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{
-          padding: '0 20px 20px',
-          borderBottom: '1px solid #555',
-          marginBottom: '20px',
-        }}>
-          <h1 style={{ fontSize: '18px', margin: 0 }}>DEKOP Адмін</h1>
-          <div style={{ fontSize: '12px', color: '#aaa', marginTop: '5px' }}>
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <h1 className={styles.sidebarTitle}>DEKOP Адмін</h1>
+          <div className={styles.sidebarEmail}>
             {admin.email}
           </div>
-          <div style={{ fontSize: '11px', color: '#888', marginTop: '3px' }}>
+          <div className={styles.sidebarRole}>
             {admin.roles.map(r => r === 'admin' ? 'Адміністратор' : r === 'manager' ? 'Менеджер' : r).join(', ')}
           </div>
         </div>
 
         <AdminNav permissions={admin.permissions} />
 
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '0',
-          width: '220px',
-          padding: '0 20px',
-          boxSizing: 'border-box',
-        }}>
+        <div className={styles.sidebarFooter}>
+          <SessionTimer />
           <LogoutButton />
         </div>
       </aside>
 
       {/* Основний контент */}
-      <main style={{
-        flex: 1,
-        marginLeft: '220px',
-        padding: '20px',
-        minHeight: '100vh',
-        boxSizing: 'border-box',
-      }}>
+      <main className={styles.mainContent}>
         {children}
       </main>
     </div>

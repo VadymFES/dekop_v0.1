@@ -73,7 +73,7 @@ export default function ProductChangelog({ productId }: ProductChangelogProps) {
   useEffect(() => {
     async function fetchChangelog() {
       try {
-        const response = await fetch(`/admin-secret-2024/api/products/${productId}/changelog`);
+        const response = await fetch(`/admin-path-57fyg/api/products/${productId}/changelog`);
         if (!response.ok) {
           throw new Error('Failed to fetch changelog');
         }

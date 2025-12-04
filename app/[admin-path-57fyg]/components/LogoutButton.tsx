@@ -6,6 +6,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import styles from '../styles/admin.module.css';
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -14,10 +15,12 @@ export default function LogoutButton() {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await fetch('/admin-secret-2024/api/auth/logout', {
+      await fetch('/admin-path-57fyg/api/auth/logout', {
         method: 'POST',
       });
-      router.push('/admin-secret-2024/login');
+      // Clear session timer
+      localStorage.removeItem('admin_session_start');
+      router.push('/admin-path-57fyg/login');
       router.refresh();
     } catch (error) {
       console.error('Logout error:', error);
@@ -29,15 +32,7 @@ export default function LogoutButton() {
     <button
       onClick={handleLogout}
       disabled={loading}
-      style={{
-        width: '100%',
-        padding: '10px',
-        backgroundColor: 'transparent',
-        color: '#aaa',
-        border: '1px solid #555',
-        cursor: loading ? 'not-allowed' : 'pointer',
-        fontSize: '14px',
-      }}
+      className={styles.logoutButton}
     >
       {loading ? 'Вихід...' : 'Вийти'}
     </button>

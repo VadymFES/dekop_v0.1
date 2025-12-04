@@ -23,11 +23,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   if (!admin.permissions.includes('products.read')) {
-    redirect('/admin-secret-2024');
+    redirect('/admin-path-57fyg');
   }
 
   const params = await searchParams;
@@ -52,32 +52,18 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '24px', margin: 0 }}>Товари ({total})</h1>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>Товари ({total})</h1>
         {admin.permissions.includes('products.create') && (
-          <Link
-            href="/admin-secret-2024/products/add"
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#4caf50',
-              color: 'white',
-              textDecoration: 'none',
-              border: 'none',
-            }}
-          >
+          <Link href="/admin-path-57fyg/products/add" className={styles.buttonAddLarge}>
             Додати товар
           </Link>
         )}
       </div>
 
       {/* Фільтри */}
-      <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #ccc',
-        padding: '20px',
-        marginBottom: '20px',
-      }}>
-        <form method="GET" style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+      <div className={styles.card}>
+        <form method="GET" className={styles.filtersForm}>
           <div>
             <label className={styles.labelSmall}>Пошук</label>
             <input
@@ -85,8 +71,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               name="search"
               defaultValue={search}
               placeholder="Назва товару..."
-              className={styles.inputSmall}
-              style={{ width: '200px' }}
+              className={`${styles.inputSmall} ${styles.filterInputWide}`}
             />
           </div>
 
@@ -95,8 +80,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             <select
               name="category"
               defaultValue={category}
-              className={styles.select}
-              style={{ width: '150px', padding: '10px 12px' }}
+              className={`${styles.select} ${styles.filterSelectMedium}`}
             >
               <option value="">Всі категорії</option>
               {categories.map((cat: string) => (
@@ -117,29 +101,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </label>
           </div>
 
-          <button
-            type="submit"
-            style={{
-              padding: '8px 20px',
-              backgroundColor: '#333',
-              color: 'white',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
+          <button type="submit" className={styles.buttonFilter}>
             Фільтрувати
           </button>
 
-          <Link
-            href="/admin-secret-2024/products"
-            style={{
-              padding: '8px 20px',
-              backgroundColor: '#f5f5f5',
-              color: '#333',
-              textDecoration: 'none',
-              border: '1px solid #ccc',
-            }}
-          >
+          <Link href="/admin-path-57fyg/products" className={styles.buttonClear}>
             Очистити
           </Link>
         </form>
@@ -153,22 +119,22 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
       {/* Пагінація */}
       {totalPages > 1 && (
-        <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <div className={styles.pagination}>
           {page > 1 && (
             <Link
               href={buildPageUrl(page - 1, { search, category, low_stock: lowStock ? 'true' : '' })}
-              style={paginationLinkStyle}
+              className={styles.paginationLink}
             >
               Попередня
             </Link>
           )}
-          <span style={{ padding: '8px 15px' }}>
+          <span className={styles.paginationText}>
             Сторінка {page} з {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={buildPageUrl(page + 1, { search, category, low_stock: lowStock ? 'true' : '' })}
-              style={paginationLinkStyle}
+              className={styles.paginationLink}
             >
               Наступна
             </Link>
@@ -189,6 +155,8 @@ interface Product {
   is_on_sale: boolean;
   is_new: boolean;
   is_bestseller: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 async function getProducts({
@@ -219,7 +187,7 @@ async function getProducts({
         AND stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
         AND category = ${category}
@@ -234,7 +202,7 @@ async function getProducts({
         AND category = ${category}
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
         AND category = ${category}
@@ -248,7 +216,7 @@ async function getProducts({
         AND stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
         AND stock < 10
@@ -261,7 +229,7 @@ async function getProducts({
       WHERE category = ${category} AND stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE category = ${category} AND stock < 10
       ORDER BY created_at DESC
@@ -273,7 +241,7 @@ async function getProducts({
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
       ORDER BY created_at DESC
@@ -284,7 +252,7 @@ async function getProducts({
       SELECT COUNT(*) as total FROM products WHERE category = ${category}
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE category = ${category}
       ORDER BY created_at DESC
@@ -295,7 +263,7 @@ async function getProducts({
       SELECT COUNT(*) as total FROM products WHERE stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE stock < 10
       ORDER BY created_at DESC
@@ -305,7 +273,7 @@ async function getProducts({
     // No filters
     countResult = await db.query`SELECT COUNT(*) as total FROM products`;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
@@ -347,21 +315,5 @@ function buildPageUrl(page: number, params: Record<string, string>) {
   Object.entries(params).forEach(([key, value]) => {
     if (value) searchParams.set(key, value);
   });
-  return `/admin-secret-2024/products?${searchParams.toString()}`;
+  return `/admin-path-57fyg/products?${searchParams.toString()}`;
 }
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-const paginationLinkStyle = {
-  padding: '8px 15px',
-  backgroundColor: '#333',
-  color: 'white',
-  textDecoration: 'none',
-};

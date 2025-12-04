@@ -1,6 +1,6 @@
 /**
  * API скидання пароля
- * POST /[admin-secret-2024]/api/auth/reset-password
+ * POST /[admin-path-57fyg]/api/auth/reset-password
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     // In production, you would send an email here with the reset link
     // For now, we'll just log the token for testing purposes
     console.log(`[PASSWORD RESET] Token for ${normalizedEmail}: ${token}`);
-    console.log(`[PASSWORD RESET] Reset URL: /admin-secret-2024/reset-password/confirm?token=${token}`);
+    console.log(`[PASSWORD RESET] Reset URL: /admin-path-57fyg/reset-password/confirm?token=${token}`);
 
     return NextResponse.json({ success: true });
   } catch (error) {

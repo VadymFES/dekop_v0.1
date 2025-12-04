@@ -71,7 +71,7 @@ export default function OrdersTable({
     setDeleteError(null);
 
     try {
-      const response = await fetch('/admin-secret-2024/api/orders/bulk-delete', {
+      const response = await fetch('/admin-path-57fyg/api/orders/bulk-delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
@@ -184,7 +184,7 @@ export default function OrdersTable({
                   </td>
                 )}
                 <td style={tdStyle}>
-                  <Link href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                  <Link href={`/admin-path-57fyg/orders/${order.id}`} style={{ color: '#1976d2', fontWeight: 'bold' }}>
                     #{order.order_number}
                   </Link>
                 </td>
@@ -202,7 +202,7 @@ export default function OrdersTable({
                 </td>
                 <td style={tdStyle}>{isClient ? formatDate(order.created_at) : '...'}</td>
                 <td style={tdStyle}>
-                  <Link href={`/admin-secret-2024/orders/${order.id}`} style={{ color: '#1976d2' }}>
+                  <Link href={`/admin-path-57fyg/orders/${order.id}`} style={{ color: '#1976d2' }}>
                     Переглянути
                   </Link>
                 </td>

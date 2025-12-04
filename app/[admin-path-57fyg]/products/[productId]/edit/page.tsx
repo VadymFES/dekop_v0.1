@@ -70,11 +70,11 @@ export default async function EditProductPage({ params }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   if (!admin.permissions.includes('products.update')) {
-    redirect('/admin-secret-2024/products');
+    redirect('/admin-path-57fyg/products');
   }
 
   const { productId } = await params;

@@ -1,6 +1,6 @@
 /**
  * Admin Logout API Route
- * POST /[admin-secret-2024]/api/auth/logout
+ * POST /[admin-path-57fyg]/api/auth/logout
  */
 
 import { NextResponse } from 'next/server';

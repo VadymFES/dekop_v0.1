@@ -87,7 +87,7 @@ async function createAdmin(email: string, password: string, roleName: string = '
     console.log(`Role: ${roleName}`);
     console.log(`User ID: ${userId}`);
     console.log('================================');
-    console.log('\nYou can now login at: /admin-secret-2024/login');
+    console.log('\nYou can now login at: /admin-path-57fyg/login');
 
   } catch (error) {
     console.error('\n❌ Error creating admin user:');

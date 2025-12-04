@@ -1,6 +1,6 @@
 /**
  * Admin Login API Route
- * POST /[admin-secret-2024]/api/auth/login
+ * POST /[admin-path-57fyg]/api/auth/login
  */
 
 import { NextRequest, NextResponse } from 'next/server';

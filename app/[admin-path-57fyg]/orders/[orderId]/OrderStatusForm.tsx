@@ -122,7 +122,7 @@ export default function OrderStatusForm({
         return;
       }
 
-      const response = await fetch(`/admin-secret-2024/api/orders/${orderId}`, {
+      const response = await fetch(`/admin-path-57fyg/api/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),

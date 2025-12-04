@@ -22,7 +22,7 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/admin-secret-2024/api/auth/login', {
+      const response = await fetch('/admin-path-57fyg/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -42,8 +42,11 @@ export default function LoginForm() {
         return;
       }
 
+      // Store login timestamp for session timer
+      localStorage.setItem('admin_session_start', Date.now().toString());
+
       // Redirect to dashboard on success
-      router.push('/admin-secret-2024');
+      router.push('/admin-path-57fyg');
       router.refresh();
     } catch (err) {
       setError('Виникла помилка. Спробуйте ще раз.');
@@ -73,7 +76,7 @@ export default function LoginForm() {
         />
       </div>
 
-      <div style={{ marginTop: '15px' }}>
+      <div className={styles.mt15}>
         <label htmlFor="password" className={styles.label}>Пароль</label>
         <input
           type="password"
@@ -90,16 +93,15 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className={styles.buttonPrimary}
-        style={{ width: '100%', marginTop: '20px', padding: '12px' }}
+        className={`${styles.buttonPrimary} ${styles.buttonFullWidth} ${styles.mt20}`}
       >
         {loading ? 'Вхід...' : 'Увійти'}
       </button>
 
-      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+      <div className={`${styles.mt20} ${styles.textCenter}`}>
         <Link
-          href="/admin-secret-2024/reset-password"
-          style={{ color: '#1976d2', fontSize: '14px' }}
+          href="/admin-path-57fyg/reset-password"
+          className={styles.loginForgotLink}
         >
           Забули пароль?
         </Link>

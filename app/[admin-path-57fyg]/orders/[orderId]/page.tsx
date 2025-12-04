@@ -16,11 +16,11 @@ export default async function OrderDetailsPage({ params }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-secret-2024/login');
+    redirect('/admin-path-57fyg/login');
   }
 
   if (!admin.permissions.includes('orders.read')) {
-    redirect('/admin-secret-2024');
+    redirect('/admin-path-57fyg');
   }
 
   const { orderId } = await params;
@@ -53,7 +53,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
   return (
     <div>
       <div style={{ marginBottom: '20px' }}>
-        <Link href="/admin-secret-2024/orders" style={{ color: '#1976d2' }}>
+        <Link href="/admin-path-57fyg/orders" style={{ color: '#1976d2' }}>
           &larr; Назад до замовлень
         </Link>
       </div>

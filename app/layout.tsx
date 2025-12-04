@@ -55,7 +55,7 @@ export default async function RootLayout({
   // Check if this is an admin route to skip GTM/analytics
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
-  const isAdminRoute = pathname.includes('admin-secret-2024');
+  const isAdminRoute = pathname.includes('admin-path-57fyg');
 
   // Only get nonce for non-admin routes (avoids hydration mismatch)
   const nonce = isAdminRoute ? '' : await getNonce();

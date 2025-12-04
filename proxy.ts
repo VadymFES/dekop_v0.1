@@ -18,7 +18,7 @@ function generateNonce(): string {
  * Next.js Proxy - Security Headers, CSP & Subdomain Routing
  *
  * FEATURES:
- * - Subdomain routing: admin.dekop.com.ua -> /admin-secret-2024/
+ * - Subdomain routing: admin.dekop.com.ua -> /admin-path-57fyg/
  * - Content Security Policy with dynamic nonce
  * - CORS configuration for allowed origins
  * - HSTS, X-Frame-Options, and other security headers
@@ -65,7 +65,7 @@ export function proxy(req: NextRequest) {
   if (isAdminPath && !isAdminSubdomain && !isDev) {
     const adminUrl = new URL(req.url);
     adminUrl.hostname = `${ADMIN_SUBDOMAIN}.${MAIN_DOMAIN}`;
-    // Remove the /admin-secret-2024 prefix from path
+    // Remove the /admin-path-57fyg prefix from path
     adminUrl.pathname = requestUrl.pathname.replace(ADMIN_PATH, '') || '/';
 
     return NextResponse.redirect(adminUrl);
