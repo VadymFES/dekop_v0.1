@@ -20,6 +20,8 @@ interface Product {
   is_on_sale: boolean;
   is_new: boolean;
   is_bestseller: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ProductsTableProps {
@@ -49,6 +51,16 @@ function formatCurrency(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount);
   return `${formatted} грн`;
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 export default function ProductsTable({
@@ -198,6 +210,8 @@ export default function ProductsTable({
               <th style={thStyle}>Ціна</th>
               <th style={thStyle}>Запас</th>
               <th style={thStyle}>Мітки</th>
+              <th style={thStyle}>Створено</th>
+              <th style={thStyle}>Змінено</th>
               <th style={thStyle}>Дії</th>
             </tr>
           </thead>
@@ -238,6 +252,12 @@ export default function ProductsTable({
                   {product.is_new && <span style={{ color: '#4caf50', marginRight: '5px' }}>НОВИНКА</span>}
                   {product.is_bestseller && <span style={{ color: '#ff9800' }}>ХІТ</span>}
                 </td>
+                <td style={{ ...tdStyle, fontSize: '12px', color: '#666' }}>
+                  {formatDate(product.created_at)}
+                </td>
+                <td style={{ ...tdStyle, fontSize: '12px', color: '#666' }}>
+                  {formatDate(product.updated_at)}
+                </td>
                 <td style={tdStyle}>
                   <Link
                     href={`/admin-path-57fyg/products/${product.id}/edit`}
@@ -265,7 +285,7 @@ export default function ProductsTable({
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={canDelete ? 8 : 7} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
+                <td colSpan={canDelete ? 10 : 9} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
                   Товарів не знайдено
                 </td>
               </tr>

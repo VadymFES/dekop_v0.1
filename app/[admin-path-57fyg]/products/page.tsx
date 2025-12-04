@@ -189,6 +189,8 @@ interface Product {
   is_on_sale: boolean;
   is_new: boolean;
   is_bestseller: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 async function getProducts({
@@ -219,7 +221,7 @@ async function getProducts({
         AND stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
         AND category = ${category}
@@ -234,7 +236,7 @@ async function getProducts({
         AND category = ${category}
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
         AND category = ${category}
@@ -248,7 +250,7 @@ async function getProducts({
         AND stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
         AND stock < 10
@@ -261,7 +263,7 @@ async function getProducts({
       WHERE category = ${category} AND stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE category = ${category} AND stock < 10
       ORDER BY created_at DESC
@@ -273,7 +275,7 @@ async function getProducts({
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
       ORDER BY created_at DESC
@@ -284,7 +286,7 @@ async function getProducts({
       SELECT COUNT(*) as total FROM products WHERE category = ${category}
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE category = ${category}
       ORDER BY created_at DESC
@@ -295,7 +297,7 @@ async function getProducts({
       SELECT COUNT(*) as total FROM products WHERE stock < 10
     `;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       WHERE stock < 10
       ORDER BY created_at DESC
@@ -305,7 +307,7 @@ async function getProducts({
     // No filters
     countResult = await db.query`SELECT COUNT(*) as total FROM products`;
     productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller
+      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
       FROM products
       ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
