@@ -15,7 +15,14 @@ import { NextRequest, NextResponse } from 'next/server';
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
+// Log that this route is loaded
+console.log('[Upload API] Route loaded successfully');
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  console.log('[Upload API] POST request received');
+  console.log('[Upload API] URL:', request.url);
+  console.log('[Upload API] Method:', request.method);
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -70,8 +77,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
+// GET endpoint for testing if route is accessible
+export async function GET(): Promise<NextResponse> {
+  console.log('[Upload API] GET request received - route is working');
+  return NextResponse.json({
+    status: 'ok',
+    message: 'Upload API is working',
+    timestamp: new Date().toISOString()
+  });
+}
+
 // DELETE endpoint for removing images from Blob storage
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  console.log('[Upload API] DELETE request received');
   try {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
