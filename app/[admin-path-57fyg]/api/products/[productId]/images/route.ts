@@ -53,7 +53,7 @@ export async function PUT(
     if (!validationResult.success) {
       return NextResponse.json({
         error: 'Validation error',
-        details: validationResult.error.errors.map(e => ({
+        details: validationResult.error.issues.map(e => ({
           path: e.path.join('.'),
           message: e.message,
         })),
