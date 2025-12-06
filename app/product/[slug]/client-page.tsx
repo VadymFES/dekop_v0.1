@@ -1,7 +1,7 @@
 'use client';
 
 // app/product/[slug]/client-page.tsx
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -43,6 +43,11 @@ export default function ClientProductPage({
 }: ClientProductPageProps) {
   // Track product view only once
   const hasTracked = useRef(false);
+
+  // Color state - lifted up to share between ProductImages and ProductActions
+  const [selectedColor, setSelectedColor] = useState<{ color: string; image_url: string } | null>(
+    product?.colors?.[0] || null
+  );
 
   // Get category info (Ukrainian name and URL slug)
   const categoryInfo = useMemo(() => {
@@ -120,7 +125,7 @@ export default function ClientProductPage({
                   <span className={styles.productRating}>★★★★★</span>
                 </div>
               </div>
-              <ProductImages product={product} />
+              <ProductImages product={product} selectedColor={selectedColor?.color} />
             </div>
 
             {/* Product Specifications */}
@@ -143,7 +148,12 @@ export default function ClientProductPage({
           <div className={styles.rightColumn}>
             {/* Product Actions */}
             <div className={styles.actionsSection}>
-              <ProductActions product={product} reviews={reviews} />
+              <ProductActions
+                product={product}
+                reviews={reviews}
+                selectedColor={selectedColor}
+                onColorChange={setSelectedColor}
+              />
             </div>
             {/* Reviews Section */}
             <div className={styles.reviewsSection}>

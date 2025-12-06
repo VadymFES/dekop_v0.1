@@ -18,13 +18,27 @@ import { trackAddToCart } from '@/app/lib/gtm-analytics';
 interface ProductActionsProps {
   product?: ProductWithImages;
   reviews: Review[];
+  selectedColor?: { color: string; image_url: string } | null;
+  onColorChange?: (color: { color: string; image_url: string }) => void;
 }
 
-const ProductActions = ({ product, reviews }: ProductActionsProps) => {
+const ProductActions = ({ product, reviews, selectedColor: externalSelectedColor, onColorChange }: ProductActionsProps) => {
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(
+  // Use external color state if provided, otherwise manage internally
+  const [internalSelectedColor, setInternalSelectedColor] = useState(
     product?.colors?.[0] || { color: 'No Color', image_url: '' }
   );
+
+  // Use external state if provided, otherwise use internal
+  const selectedColor = externalSelectedColor ?? internalSelectedColor;
+  const setSelectedColor = (color: { color: string; image_url: string }) => {
+    if (onColorChange) {
+      onColorChange(color);
+    } else {
+      setInternalSelectedColor(color);
+    }
+  };
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isLoading, addToCart } = useCart();

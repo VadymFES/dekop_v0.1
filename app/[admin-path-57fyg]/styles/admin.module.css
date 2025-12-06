@@ -802,6 +802,27 @@
   background-color: #e8e8e8;
 }
 
+.buttonSuccess {
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  background-color: #28a745;
+  color: white;
+  font-weight: 500;
+}
+
+.buttonSuccess:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.buttonSuccess:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 .buttonDanger {
   padding: 10px 14px;
   font-size: 14px;

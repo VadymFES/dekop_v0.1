@@ -25,6 +25,7 @@ export interface ProductImage {
   image_url: string;
   alt: string;
   is_primary: boolean;
+  color?: string | null; // Links image to a specific color variant (null = general image)
 }
 
 // Base interface for common specification fields across categories

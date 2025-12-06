@@ -31,6 +31,10 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'ik.imagekit.io', // Allow ImageKit images
             },
+            {
+                protocol: 'https',
+                hostname: '*.blob.vercel-storage.com', // Vercel Blob Storage
+            },
         ],
     },
 

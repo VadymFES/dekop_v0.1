@@ -226,8 +226,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       for (const image of data.images) {
         if (image.image_url) {
           await db.query`
-            INSERT INTO product_images (product_id, image_url, alt, is_primary)
-            VALUES (${id}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary})
+            INSERT INTO product_images (product_id, image_url, alt, is_primary, color)
+            VALUES (${id}, ${image.image_url}, ${image.alt || ''}, ${image.is_primary}, ${image.color || null})
           `;
         }
       }

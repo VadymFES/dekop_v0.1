@@ -7,6 +7,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/admin.module.css';
+import ImageUpload from './ImageUpload';
+import ColorImageUpload from './ColorImageUpload';
 
 // =====================================================
 // TYPES
@@ -17,6 +19,7 @@ interface ProductImage {
   image_url: string;
   alt: string;
   is_primary: boolean;
+  color?: string | null; // Links image to a specific color variant
 }
 
 interface ProductColor {
@@ -233,6 +236,7 @@ const normalizeImages = (images: ProductImage[] | undefined): ProductImage[] => 
     image_url: img.image_url || '',
     alt: img.alt || '',
     is_primary: img.is_primary || false,
+    color: img.color || null,
   }));
 };
 
@@ -523,6 +527,82 @@ export default function ProductForm({ product }: ProductFormProps) {
     }
   };
 
+  // Save Product Images Only (for existing products)
+  const [savingProductImages, setSavingProductImages] = useState(false);
+
+  const handleSaveProductImages = async () => {
+    if (!isEdit || !product) {
+      setToast({ message: 'Збереження зображень доступне тільки для існуючих товарів', type: 'error' });
+      return;
+    }
+
+    setSavingProductImages(true);
+    setToast(null);
+
+    try {
+      const response = await fetch(`/admin-path-57fyg/api/products/${product.id}/images`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'images',
+          images: formData.images,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setToast({ message: data.error || 'Помилка збереження зображень', type: 'error' });
+        setSavingProductImages(false);
+        return;
+      }
+
+      setToast({ message: 'Зображення товару успішно збережено', type: 'success' });
+      router.refresh();
+    } catch {
+      setToast({ message: 'Виникла помилка при збереженні зображень', type: 'error' });
+    } finally {
+      setSavingProductImages(false);
+    }
+  };
+
+  // Save Colors Only (for existing products)
+  const [savingColors, setSavingColors] = useState(false);
+
+  const handleSaveColors = async () => {
+    if (!isEdit || !product) {
+      setToast({ message: 'Збереження кольорів доступне тільки для існуючих товарів', type: 'error' });
+      return;
+    }
+
+    setSavingColors(true);
+    setToast(null);
+
+    try {
+      const response = await fetch(`/admin-path-57fyg/api/products/${product.id}/images`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'colors',
+          colors: formData.colors,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setToast({ message: data.error || 'Помилка збереження кольорів', type: 'error' });
+        setSavingColors(false);
+        return;
+      }
+
+      setToast({ message: 'Кольори успішно збережено', type: 'success' });
+      router.refresh();
+    } catch {
+      setToast({ message: 'Виникла помилка при збереженні кольорів', type: 'error' });
+    } finally {
+      setSavingColors(false);
+    }
+  };
+
   // =====================================================
   // RENDER
   // =====================================================
@@ -594,27 +674,75 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* IMAGES */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            Зображення
-            <button type="button" onClick={addImage} className={styles.buttonAdd}>+ Додати</button>
-          </h2>
-          {formData.images.length === 0 && <p className={styles.emptyText}>Немає зображень</p>}
-          {formData.images.map((image, index) => (
-            <div key={index} className={`${styles.itemCard} ${styles.itemCardGrid}`}>
-              <div>
-                <label className={styles.labelSmall}>URL (ImageKit)</label>
-                <input type="url" value={image.image_url} onChange={(e) => updateImage(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." className={styles.inputSmall} />
-              </div>
-              <div>
-                <label className={styles.labelSmall}>Alt текст</label>
-                <input type="text" value={image.alt} onChange={(e) => updateImage(index, 'alt', e.target.value)} className={styles.inputSmall} />
-              </div>
-              <label className={styles.radioLabel}>
-                <input type="radio" checked={image.is_primary} onChange={() => updateImage(index, 'is_primary', true)} /> Головне
-              </label>
-              <button type="button" onClick={() => removeImage(index)} className={styles.buttonDanger}>×</button>
+          <h2 className={styles.sectionTitle}>Зображення</h2>
+          <ImageUpload
+            images={formData.images.map(img => ({
+              url: img.image_url,
+              alt: img.alt,
+              is_primary: img.is_primary,
+              color: img.color,
+            }))}
+            onImagesChange={(uploadedImages) => {
+              setFormData(prev => ({
+                ...prev,
+                images: uploadedImages.map((img, index) => ({
+                  id: prev.images[index]?.id,
+                  image_url: img.url,
+                  alt: img.alt,
+                  is_primary: img.is_primary,
+                  color: img.color,
+                })),
+              }));
+            }}
+            maxImages={10}
+            availableColors={formData.colors.map(c => c.color).filter(Boolean)}
+          />
+
+          {/* Save Product Images Button */}
+          {isEdit && (
+            <div style={{ marginTop: '16px' }}>
+              <button
+                type="button"
+                onClick={handleSaveProductImages}
+                disabled={savingProductImages}
+                className={styles.buttonSuccess}
+                style={{ padding: '10px 20px' }}
+              >
+                {savingProductImages ? 'Збереження...' : 'Зберегти зображення'}
+              </button>
             </div>
-          ))}
+          )}
+
+          {/* Manual URL input (fallback) */}
+          <details style={{ marginTop: '16px' }}>
+            <summary style={{ cursor: 'pointer', fontSize: '13px', color: '#666' }}>
+              Або додати за URL (для зовнішніх зображень)
+            </summary>
+            <div style={{ marginTop: '12px' }}>
+              <button type="button" onClick={addImage} className={styles.buttonAdd} style={{ marginBottom: '12px' }}>
+                + Додати URL
+              </button>
+              {formData.images.filter(img => !img.image_url.includes('blob.vercel-storage.com')).map((image, index) => {
+                const originalIndex = formData.images.findIndex(img => img === image);
+                return (
+                  <div key={originalIndex} className={`${styles.itemCard} ${styles.itemCardGrid}`}>
+                    <div>
+                      <label className={styles.labelSmall}>URL зображення</label>
+                      <input type="url" value={image.image_url} onChange={(e) => updateImage(originalIndex, 'image_url', e.target.value)} placeholder="https://..." className={styles.inputSmall} />
+                    </div>
+                    <div>
+                      <label className={styles.labelSmall}>Alt текст</label>
+                      <input type="text" value={image.alt} onChange={(e) => updateImage(originalIndex, 'alt', e.target.value)} className={styles.inputSmall} />
+                    </div>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" checked={image.is_primary} onChange={() => updateImage(originalIndex, 'is_primary', true)} /> Головне
+                    </label>
+                    <button type="button" onClick={() => removeImage(originalIndex)} className={styles.buttonDanger}>×</button>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
         </div>
 
         {/* COLORS */}
@@ -631,12 +759,31 @@ export default function ProductForm({ product }: ProductFormProps) {
                 <input type="text" value={color.color} onChange={(e) => updateColor(index, 'color', e.target.value)} placeholder="Сірий, Бежевий..." className={styles.inputSmall} />
               </div>
               <div>
-                <label className={styles.labelSmall}>URL зображення</label>
-                <input type="url" value={color.image_url} onChange={(e) => updateColor(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." className={styles.inputSmall} />
+                <label className={styles.labelSmall}>Зображення кольору</label>
+                <ColorImageUpload
+                  imageUrl={color.image_url}
+                  onImageChange={(url) => updateColor(index, 'image_url', url)}
+                  colorName={color.color || `Колір ${index + 1}`}
+                />
               </div>
               <button type="button" onClick={() => removeColor(index)} className={styles.buttonDanger}>×</button>
             </div>
           ))}
+
+          {/* Save Colors Button */}
+          {isEdit && formData.colors.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <button
+                type="button"
+                onClick={handleSaveColors}
+                disabled={savingColors}
+                className={styles.buttonSuccess}
+                style={{ padding: '10px 20px' }}
+              >
+                {savingColors ? 'Збереження...' : 'Зберегти кольори'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* DIMENSIONS */}
