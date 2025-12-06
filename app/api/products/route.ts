@@ -33,6 +33,23 @@ export async function GET(request: Request) {
   const search = searchParams.get("search");
 
   try {
+    // Check if color column exists in product_images table
+    let hasColorColumn = false;
+    try {
+      const colCheck = await sql.query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'product_images' AND column_name = 'color'
+      `);
+      hasColorColumn = colCheck.rows.length > 0;
+    } catch {
+      hasColorColumn = false;
+    }
+
+    // Build image JSON dynamically based on column existence
+    const imageJsonFields = hasColorColumn
+      ? `'id', pi.id, 'image_url', pi.image_url, 'alt', pi.alt, 'is_primary', pi.is_primary, 'color', pi.color`
+      : `'id', pi.id, 'image_url', pi.image_url, 'alt', pi.alt, 'is_primary', pi.is_primary, 'color', NULL`;
+
     let query = `
       SELECT
         p.id, p.name, p.slug, p.description, p.category, p.price, p.sale_price, p.stock,
@@ -48,11 +65,7 @@ export async function GET(request: Request) {
         ps.has_shelves, ps.leg_height, ps.has_lift_mechanism, ps.types,
         json_agg(
           json_build_object(
-            'id', pi.id,
-            'image_url', pi.image_url,
-            'alt', pi.alt,
-            'is_primary', pi.is_primary,
-            'color', pi.color
+            ${imageJsonFields}
           )
         ) FILTER (WHERE pi.id IS NOT NULL) AS images,
         json_agg(

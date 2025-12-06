@@ -403,11 +403,24 @@ export async function GET(
     }));
 
     // Query to get product images with явним приведенням типів
-    const { rows: rawImageRows } = await db.query`
-      SELECT id, image_url, alt, is_primary, color
-      FROM product_images
-      WHERE product_id = ${product.id}
-    `;
+    // Note: color column may not exist if migration hasn't been run yet
+    let rawImageRows;
+    try {
+      const result = await db.query`
+        SELECT id, image_url, alt, is_primary, color
+        FROM product_images
+        WHERE product_id = ${product.id}
+      `;
+      rawImageRows = result.rows;
+    } catch {
+      // Fallback: color column doesn't exist yet
+      const result = await db.query`
+        SELECT id, image_url, alt, is_primary, NULL as color
+        FROM product_images
+        WHERE product_id = ${product.id}
+      `;
+      rawImageRows = result.rows;
+    }
 
     // Debug: log images found
     console.log(`[Product API] Product ${slug} (id: ${product.id}) - Found ${rawImageRows.length} images:`,

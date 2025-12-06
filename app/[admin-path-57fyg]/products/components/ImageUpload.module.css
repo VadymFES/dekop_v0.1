@@ -178,21 +178,57 @@
   border-color: #007bff;
 }
 
+.colorSelectWrapper {
+  margin-bottom: 8px;
+}
+
+.colorSelectLabel {
+  display: block;
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
 .colorSelect {
   width: 100%;
   padding: 6px 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 12px;
-  margin-bottom: 8px;
   box-sizing: border-box;
   background-color: white;
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
 }
 
 .colorSelect:focus {
   outline: none;
   border-color: #007bff;
+}
+
+.colorSelect:hover {
+  border-color: #999;
+}
+
+.colorBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .imageButtons {

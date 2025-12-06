@@ -370,6 +370,9 @@ export default function ImageUpload({
                 {image.is_primary && (
                   <span className={styles.primaryBadge}>Головне</span>
                 )}
+                {image.color && (
+                  <span className={styles.colorBadge}>{image.color}</span>
+                )}
               </div>
               <div className={styles.imageActions}>
                 <input
@@ -380,17 +383,20 @@ export default function ImageUpload({
                   className={styles.altInput}
                 />
                 {availableColors.length > 0 && (
-                  <select
-                    value={image.color || ''}
-                    onChange={(e) => handleColorChange(index, e.target.value || null)}
-                    className={styles.colorSelect}
-                    title="Призначити колір"
-                  >
-                    <option value="">Всі кольори</option>
-                    {availableColors.map((color) => (
-                      <option key={color} value={color}>{color}</option>
-                    ))}
-                  </select>
+                  <div className={styles.colorSelectWrapper}>
+                    <label className={styles.colorSelectLabel}>Колір:</label>
+                    <select
+                      value={image.color || ''}
+                      onChange={(e) => handleColorChange(index, e.target.value || null)}
+                      className={styles.colorSelect}
+                      title="Призначити колір"
+                    >
+                      <option value="">Загальне (всі кольори)</option>
+                      {availableColors.map((color) => (
+                        <option key={color} value={color}>{color}</option>
+                      ))}
+                    </select>
+                  </div>
                 )}
                 <div className={styles.imageButtons}>
                   {!image.is_primary && (
