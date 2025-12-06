@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/admin.module.css';
 import ImageUpload from './ImageUpload';
+import ColorImageUpload from './ColorImageUpload';
 
 // =====================================================
 // TYPES
@@ -526,6 +527,44 @@ export default function ProductForm({ product }: ProductFormProps) {
     }
   };
 
+  // Save Images Only (for existing products)
+  const [savingImages, setSavingImages] = useState(false);
+
+  const handleSaveImages = async () => {
+    if (!isEdit || !product) {
+      setToast({ message: 'Збереження зображень доступне тільки для існуючих товарів', type: 'error' });
+      return;
+    }
+
+    setSavingImages(true);
+    setToast(null);
+
+    try {
+      const response = await fetch(`/admin-path-57fyg/api/products/${product.id}/images`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          images: formData.images,
+          colors: formData.colors,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setToast({ message: data.error || 'Помилка збереження зображень', type: 'error' });
+        setSavingImages(false);
+        return;
+      }
+
+      setToast({ message: 'Зображення та кольори успішно збережено', type: 'success' });
+      router.refresh();
+    } catch {
+      setToast({ message: 'Виникла помилка при збереженні зображень', type: 'error' });
+    } finally {
+      setSavingImages(false);
+    }
+  };
+
   // =====================================================
   // RENDER
   // =====================================================
@@ -621,6 +660,21 @@ export default function ProductForm({ product }: ProductFormProps) {
             availableColors={formData.colors.map(c => c.color).filter(Boolean)}
           />
 
+          {/* Save Images Button */}
+          {isEdit && (
+            <div style={{ marginTop: '16px' }}>
+              <button
+                type="button"
+                onClick={handleSaveImages}
+                disabled={savingImages}
+                className={styles.buttonSuccess}
+                style={{ padding: '10px 20px' }}
+              >
+                {savingImages ? 'Збереження...' : 'Зберегти зображення та кольори'}
+              </button>
+            </div>
+          )}
+
           {/* Manual URL input (fallback) */}
           <details style={{ marginTop: '16px' }}>
             <summary style={{ cursor: 'pointer', fontSize: '13px', color: '#666' }}>
@@ -667,8 +721,12 @@ export default function ProductForm({ product }: ProductFormProps) {
                 <input type="text" value={color.color} onChange={(e) => updateColor(index, 'color', e.target.value)} placeholder="Сірий, Бежевий..." className={styles.inputSmall} />
               </div>
               <div>
-                <label className={styles.labelSmall}>URL зображення</label>
-                <input type="url" value={color.image_url} onChange={(e) => updateColor(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." className={styles.inputSmall} />
+                <label className={styles.labelSmall}>Зображення кольору</label>
+                <ColorImageUpload
+                  imageUrl={color.image_url}
+                  onImageChange={(url) => updateColor(index, 'image_url', url)}
+                  colorName={color.color || `Колір ${index + 1}`}
+                />
               </div>
               <button type="button" onClick={() => removeColor(index)} className={styles.buttonDanger}>×</button>
             </div>
