@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/admin.module.css';
+import ImageUpload from './ImageUpload';
 
 // =====================================================
 // TYPES
@@ -594,27 +595,57 @@ export default function ProductForm({ product }: ProductFormProps) {
 
         {/* IMAGES */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>
-            Зображення
-            <button type="button" onClick={addImage} className={styles.buttonAdd}>+ Додати</button>
-          </h2>
-          {formData.images.length === 0 && <p className={styles.emptyText}>Немає зображень</p>}
-          {formData.images.map((image, index) => (
-            <div key={index} className={`${styles.itemCard} ${styles.itemCardGrid}`}>
-              <div>
-                <label className={styles.labelSmall}>URL (ImageKit)</label>
-                <input type="url" value={image.image_url} onChange={(e) => updateImage(index, 'image_url', e.target.value)} placeholder="https://ik.imagekit.io/..." className={styles.inputSmall} />
-              </div>
-              <div>
-                <label className={styles.labelSmall}>Alt текст</label>
-                <input type="text" value={image.alt} onChange={(e) => updateImage(index, 'alt', e.target.value)} className={styles.inputSmall} />
-              </div>
-              <label className={styles.radioLabel}>
-                <input type="radio" checked={image.is_primary} onChange={() => updateImage(index, 'is_primary', true)} /> Головне
-              </label>
-              <button type="button" onClick={() => removeImage(index)} className={styles.buttonDanger}>×</button>
+          <h2 className={styles.sectionTitle}>Зображення</h2>
+          <ImageUpload
+            images={formData.images.map(img => ({
+              url: img.image_url,
+              alt: img.alt,
+              is_primary: img.is_primary,
+            }))}
+            onImagesChange={(uploadedImages) => {
+              setFormData(prev => ({
+                ...prev,
+                images: uploadedImages.map((img, index) => ({
+                  id: prev.images[index]?.id,
+                  image_url: img.url,
+                  alt: img.alt,
+                  is_primary: img.is_primary,
+                })),
+              }));
+            }}
+            maxImages={10}
+          />
+
+          {/* Manual URL input (fallback) */}
+          <details style={{ marginTop: '16px' }}>
+            <summary style={{ cursor: 'pointer', fontSize: '13px', color: '#666' }}>
+              Або додати за URL (для зовнішніх зображень)
+            </summary>
+            <div style={{ marginTop: '12px' }}>
+              <button type="button" onClick={addImage} className={styles.buttonAdd} style={{ marginBottom: '12px' }}>
+                + Додати URL
+              </button>
+              {formData.images.filter(img => !img.image_url.includes('blob.vercel-storage.com')).map((image, index) => {
+                const originalIndex = formData.images.findIndex(img => img === image);
+                return (
+                  <div key={originalIndex} className={`${styles.itemCard} ${styles.itemCardGrid}`}>
+                    <div>
+                      <label className={styles.labelSmall}>URL зображення</label>
+                      <input type="url" value={image.image_url} onChange={(e) => updateImage(originalIndex, 'image_url', e.target.value)} placeholder="https://..." className={styles.inputSmall} />
+                    </div>
+                    <div>
+                      <label className={styles.labelSmall}>Alt текст</label>
+                      <input type="text" value={image.alt} onChange={(e) => updateImage(originalIndex, 'alt', e.target.value)} className={styles.inputSmall} />
+                    </div>
+                    <label className={styles.radioLabel}>
+                      <input type="radio" checked={image.is_primary} onChange={() => updateImage(originalIndex, 'is_primary', true)} /> Головне
+                    </label>
+                    <button type="button" onClick={() => removeImage(originalIndex)} className={styles.buttonDanger}>×</button>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          </details>
         </div>
 
         {/* COLORS */}
