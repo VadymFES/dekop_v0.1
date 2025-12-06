@@ -92,7 +92,11 @@ export default function ImageUpload({
           reject(new Error('Network error'));
         });
 
-        xhr.open('POST', '/api/upload');
+        // Use absolute URL to handle admin subdomain
+        const baseUrl = window.location.hostname.startsWith('admin.')
+          ? window.location.origin.replace('admin.', '')
+          : window.location.origin;
+        xhr.open('POST', `${baseUrl}/api/upload`);
         xhr.send(formData);
       });
     } catch (error) {
@@ -229,7 +233,10 @@ export default function ImageUpload({
       // Try to delete from Blob storage if it's a Vercel Blob URL
       if (imageToRemove.url.includes('blob.vercel-storage.com')) {
         try {
-          await fetch(`/api/upload?url=${encodeURIComponent(imageToRemove.url)}`, {
+          const baseUrl = window.location.hostname.startsWith('admin.')
+            ? window.location.origin.replace('admin.', '')
+            : window.location.origin;
+          await fetch(`${baseUrl}/api/upload?url=${encodeURIComponent(imageToRemove.url)}`, {
             method: 'DELETE',
           });
         } catch (error) {
