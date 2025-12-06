@@ -527,16 +527,16 @@ export default function ProductForm({ product }: ProductFormProps) {
     }
   };
 
-  // Save Images Only (for existing products)
-  const [savingImages, setSavingImages] = useState(false);
+  // Save Product Images Only (for existing products)
+  const [savingProductImages, setSavingProductImages] = useState(false);
 
-  const handleSaveImages = async () => {
+  const handleSaveProductImages = async () => {
     if (!isEdit || !product) {
       setToast({ message: 'Збереження зображень доступне тільки для існуючих товарів', type: 'error' });
       return;
     }
 
-    setSavingImages(true);
+    setSavingProductImages(true);
     setToast(null);
 
     try {
@@ -544,24 +544,62 @@ export default function ProductForm({ product }: ProductFormProps) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          type: 'images',
           images: formData.images,
-          colors: formData.colors,
         }),
       });
 
       const data = await response.json();
       if (!response.ok) {
         setToast({ message: data.error || 'Помилка збереження зображень', type: 'error' });
-        setSavingImages(false);
+        setSavingProductImages(false);
         return;
       }
 
-      setToast({ message: 'Зображення та кольори успішно збережено', type: 'success' });
+      setToast({ message: 'Зображення товару успішно збережено', type: 'success' });
       router.refresh();
     } catch {
       setToast({ message: 'Виникла помилка при збереженні зображень', type: 'error' });
     } finally {
-      setSavingImages(false);
+      setSavingProductImages(false);
+    }
+  };
+
+  // Save Colors Only (for existing products)
+  const [savingColors, setSavingColors] = useState(false);
+
+  const handleSaveColors = async () => {
+    if (!isEdit || !product) {
+      setToast({ message: 'Збереження кольорів доступне тільки для існуючих товарів', type: 'error' });
+      return;
+    }
+
+    setSavingColors(true);
+    setToast(null);
+
+    try {
+      const response = await fetch(`/admin-path-57fyg/api/products/${product.id}/images`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'colors',
+          colors: formData.colors,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setToast({ message: data.error || 'Помилка збереження кольорів', type: 'error' });
+        setSavingColors(false);
+        return;
+      }
+
+      setToast({ message: 'Кольори успішно збережено', type: 'success' });
+      router.refresh();
+    } catch {
+      setToast({ message: 'Виникла помилка при збереженні кольорів', type: 'error' });
+    } finally {
+      setSavingColors(false);
     }
   };
 
@@ -660,17 +698,17 @@ export default function ProductForm({ product }: ProductFormProps) {
             availableColors={formData.colors.map(c => c.color).filter(Boolean)}
           />
 
-          {/* Save Images Button */}
+          {/* Save Product Images Button */}
           {isEdit && (
             <div style={{ marginTop: '16px' }}>
               <button
                 type="button"
-                onClick={handleSaveImages}
-                disabled={savingImages}
+                onClick={handleSaveProductImages}
+                disabled={savingProductImages}
                 className={styles.buttonSuccess}
                 style={{ padding: '10px 20px' }}
               >
-                {savingImages ? 'Збереження...' : 'Зберегти зображення та кольори'}
+                {savingProductImages ? 'Збереження...' : 'Зберегти зображення'}
               </button>
             </div>
           )}
@@ -731,6 +769,21 @@ export default function ProductForm({ product }: ProductFormProps) {
               <button type="button" onClick={() => removeColor(index)} className={styles.buttonDanger}>×</button>
             </div>
           ))}
+
+          {/* Save Colors Button */}
+          {isEdit && formData.colors.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <button
+                type="button"
+                onClick={handleSaveColors}
+                disabled={savingColors}
+                className={styles.buttonSuccess}
+                style={{ padding: '10px 20px' }}
+              >
+                {savingColors ? 'Збереження...' : 'Зберегти кольори'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* DIMENSIONS */}
