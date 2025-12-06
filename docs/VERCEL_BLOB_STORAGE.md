@@ -9,7 +9,7 @@ The system now supports direct image uploads using Vercel Blob Storage, replacin
 ### Features
 
 - **Drag-and-drop upload**: Intuitive UI for uploading multiple images
-- **Upload progress indicator**: Real-time progress feedback
+- **Upload progress indicator**: Real-time progress feedback via XMLHttpRequest
 - **Image validation**: Automatic validation of file type and size
 - **Preview & management**: View, reorder, and delete uploaded images
 - **Hybrid support**: Still supports external URL input for legacy images
@@ -27,17 +27,17 @@ The system now supports direct image uploads using Vercel Blob Storage, replacin
 │                    └──────┬──────┘                              │
 └───────────────────────────┼─────────────────────────────────────┘
                             │
-                            │ Client Upload
-                            │ (Direct to Blob)
+                            │ FormData + XMLHttpRequest
+                            │ (with progress tracking)
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      /api/upload                                 │
 │                                                                  │
-│  1. handleUpload() generates secure token                        │
-│  2. Validates file type & size                                   │
-│  3. Returns token to client                                      │
-│  4. Client uploads directly to Vercel Blob                       │
-│  5. onUploadCompleted callback confirms success                  │
+│  1. Receives FormData with file                                  │
+│  2. Validates file type (JPEG, PNG, WebP, GIF)                  │
+│  3. Validates file size (max 4MB)                               │
+│  4. Uploads to Vercel Blob via put()                            │
+│  5. Returns public URL                                          │
 └─────────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -47,7 +47,7 @@ The system now supports direct image uploads using Vercel Blob Storage, replacin
 │  - Globally distributed CDN                                      │
 │  - Automatic optimization                                        │
 │  - Public access URLs                                            │
-│  - Up to 5TB per file (limited to 4MB for images)               │
+│  - Files stored at: products/{timestamp}-{random}.{ext}         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -110,24 +110,25 @@ The following files should be configured:
 
 ### POST /api/upload
 
-Handles the client upload token generation.
+Handles file uploads using FormData.
 
-**Request Body:**
+**Request:**
+- Content-Type: `multipart/form-data`
+- Body: FormData with `file` field
+
+**Response (Success):**
 ```json
 {
-  "type": "blob.generate-client-token",
-  "payload": {
-    "pathname": "products/image.jpg",
-    "callbackUrl": "https://yoursite.com/api/upload"
-  }
+  "success": true,
+  "url": "https://abc123.blob.vercel-storage.com/products/1234567890-abc123.jpg",
+  "pathname": "products/1234567890-abc123.jpg"
 }
 ```
 
-**Response:**
+**Response (Error):**
 ```json
 {
-  "type": "blob.client-token",
-  "clientToken": "vercel_blob_client_..."
+  "error": "Файл занадто великий. Максимальний розмір: 4MB"
 }
 ```
 

@@ -3,7 +3,7 @@
 /**
  * ImageUpload Component
  *
- * Drag-and-drop image upload using Vercel Blob client uploads.
+ * Drag-and-drop image upload using Vercel Blob server uploads.
  * Features:
  * - Drag and drop support
  * - Upload progress indicator
@@ -11,11 +11,10 @@
  * - File validation (type, size)
  * - Delete functionality
  *
- * @see https://vercel.com/docs/vercel-blob/client-upload
+ * @see https://vercel.com/docs/vercel-blob/server-upload
  */
 
 import { useState, useRef, useCallback } from 'react';
-import { upload } from '@vercel/blob/client';
 import styles from './ImageUpload.module.css';
 
 interface UploadedImage {
@@ -46,6 +45,60 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = async (file: File, uploadId: string): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      // Use XMLHttpRequest for progress tracking
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percentage = Math.round((event.loaded / event.total) * 100);
+            setUploading((prev) =>
+              prev.map((u) =>
+                u.id === uploadId ? { ...u, progress: percentage } : u
+              )
+            );
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              if (response.success && response.url) {
+                resolve(response.url);
+              } else {
+                reject(new Error(response.error || 'Upload failed'));
+              }
+            } catch {
+              reject(new Error('Invalid response'));
+            }
+          } else {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              reject(new Error(response.error || `Upload failed with status ${xhr.status}`));
+            } catch {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error'));
+        });
+
+        xhr.open('POST', '/api/upload');
+        xhr.send(formData);
+      });
+    } catch (error) {
+      throw error;
+    }
+  };
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -92,17 +145,7 @@ export default function ImageUpload({
         const uploadId = uploadingFiles[index].id;
 
         try {
-          const blob = await upload(file.name, file, {
-            access: 'public',
-            handleUploadUrl: '/api/upload',
-            onUploadProgress: ({ percentage }) => {
-              setUploading((prev) =>
-                prev.map((u) =>
-                  u.id === uploadId ? { ...u, progress: percentage } : u
-                )
-              );
-            },
-          });
+          const url = await uploadFile(file, uploadId);
 
           // Mark as completed
           setUploading((prev) =>
@@ -112,7 +155,7 @@ export default function ImageUpload({
           );
 
           return {
-            url: blob.url,
+            url: url!,
             alt: file.name.replace(/\.[^/.]+$/, ''), // Remove extension for alt
             is_primary: images.length === 0 && index === 0, // First image is primary if no images exist
           };
