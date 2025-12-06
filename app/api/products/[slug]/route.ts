@@ -404,7 +404,7 @@ export async function GET(
 
     // Query to get product images with явним приведенням типів
     const { rows: rawImageRows } = await db.query`
-      SELECT id, image_url, alt, is_primary
+      SELECT id, image_url, alt, is_primary, color
       FROM product_images
       WHERE product_id = ${product.id}
     `;
@@ -418,7 +418,8 @@ export async function GET(
       id: row.id,
       image_url: row.image_url || '',
       alt: row.alt || '',
-      is_primary: Boolean(row.is_primary)
+      is_primary: Boolean(row.is_primary),
+      color: row.color || null
     }));
 
     // Query to get product colors with явним приведенням типів

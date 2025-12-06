@@ -1,22 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { ProductWithImages } from '@/app/lib/definitions';
 import styles from './ProductPage.module.css';
 
 interface ProductImagesProps {
   product?: ProductWithImages; // Allow product to be optional if it might be undefined
+  selectedColor?: string | null; // Color selected by user (from ProductActions)
 }
 
-const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
-  // Use optional chaining to safely initialize the state.
-  const [selectedImage, setSelectedImage] = useState(product?.images?.[0]);
+const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor }) => {
+  // Filter images based on selected color
+  // Show images where color matches selectedColor OR color is null (general images)
+  const filteredImages = useMemo(() => {
+    if (!product?.images || product.images.length === 0) return [];
 
-  // Sync selectedImage with product.images when product changes
-  useEffect(() => {
-    if (product?.images?.[0] && !selectedImage) {
-      setSelectedImage(product.images[0]);
+    // If no color is selected, show all images
+    if (!selectedColor) {
+      return product.images;
     }
-  }, [product?.images, selectedImage]);
+
+    // Filter images: show color-specific images + general images (color is null)
+    const colorFiltered = product.images.filter(
+      img => img.color === selectedColor || img.color === null || img.color === undefined
+    );
+
+    // If no images match, fall back to all images
+    return colorFiltered.length > 0 ? colorFiltered : product.images;
+  }, [product?.images, selectedColor]);
+
+  // Use optional chaining to safely initialize the state.
+  const [selectedImage, setSelectedImage] = useState(filteredImages[0]);
+
+  // Sync selectedImage when filtered images change (e.g., when color changes)
+  useEffect(() => {
+    if (filteredImages.length > 0) {
+      // Select the first primary image or first image in the filtered list
+      const primaryImage = filteredImages.find(img => img.is_primary);
+      setSelectedImage(primaryImage || filteredImages[0]);
+    }
+  }, [filteredImages]);
 
   // Early return if product or its images are missing.
   if (!product || !product.images || product.images.length === 0) {
@@ -45,9 +67,9 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
         )}
       </div>
 
-      {/* Carousel (thumbnails) */}
+      {/* Carousel (thumbnails) - shows filtered images based on selected color */}
       <div className={styles.carouselContainer}>
-        {product.images.map((image) => (
+        {filteredImages.map((image) => (
           <div
             key={image.id}
             className={
@@ -60,8 +82,8 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product }) => {
             <Image
               src={image.image_url}
               alt={image.alt || product.name}
-              width={80} 
-              height={80} 
+              width={80}
+              height={80}
               sizes="(max-width: 768px) 100vw, 80px"
             />
           </div>

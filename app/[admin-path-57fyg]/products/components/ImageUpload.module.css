@@ -178,6 +178,23 @@
   border-color: #007bff;
 }
 
+.colorSelect {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  background-color: white;
+  cursor: pointer;
+}
+
+.colorSelect:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
 .imageButtons {
   display: flex;
   justify-content: flex-end;

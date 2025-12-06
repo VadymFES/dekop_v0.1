@@ -18,6 +18,7 @@ interface ProductImage {
   image_url: string;
   alt: string;
   is_primary: boolean;
+  color?: string | null; // Links image to a specific color variant
 }
 
 interface ProductColor {
@@ -234,6 +235,7 @@ const normalizeImages = (images: ProductImage[] | undefined): ProductImage[] => 
     image_url: img.image_url || '',
     alt: img.alt || '',
     is_primary: img.is_primary || false,
+    color: img.color || null,
   }));
 };
 
@@ -601,6 +603,7 @@ export default function ProductForm({ product }: ProductFormProps) {
               url: img.image_url,
               alt: img.alt,
               is_primary: img.is_primary,
+              color: img.color,
             }))}
             onImagesChange={(uploadedImages) => {
               setFormData(prev => ({
@@ -610,10 +613,12 @@ export default function ProductForm({ product }: ProductFormProps) {
                   image_url: img.url,
                   alt: img.alt,
                   is_primary: img.is_primary,
+                  color: img.color,
                 })),
               }));
             }}
             maxImages={10}
+            availableColors={formData.colors.map(c => c.color).filter(Boolean)}
           />
 
           {/* Manual URL input (fallback) */}

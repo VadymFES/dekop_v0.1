@@ -48,10 +48,11 @@ export async function GET(request: Request) {
         ps.has_shelves, ps.leg_height, ps.has_lift_mechanism, ps.types,
         json_agg(
           json_build_object(
-            'id', pi.id, 
-            'image_url', pi.image_url, 
-            'alt', pi.alt, 
-            'is_primary', pi.is_primary
+            'id', pi.id,
+            'image_url', pi.image_url,
+            'alt', pi.alt,
+            'is_primary', pi.is_primary,
+            'color', pi.color
           )
         ) FILTER (WHERE pi.id IS NOT NULL) AS images,
         json_agg(

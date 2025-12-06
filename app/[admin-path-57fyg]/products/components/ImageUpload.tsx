@@ -21,12 +21,14 @@ interface UploadedImage {
   url: string;
   alt: string;
   is_primary: boolean;
+  color?: string | null; // Links image to a specific color variant
 }
 
 interface ImageUploadProps {
   images: UploadedImage[];
   onImagesChange: (images: UploadedImage[]) => void;
   maxImages?: number;
+  availableColors?: string[]; // List of color names from product colors
 }
 
 interface UploadingFile {
@@ -41,6 +43,7 @@ export default function ImageUpload({
   images,
   onImagesChange,
   maxImages = 10,
+  availableColors = [],
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -158,11 +161,13 @@ export default function ImageUpload({
             )
           );
 
-          return {
+          const newImage: UploadedImage = {
             url: url!,
             alt: file.name.replace(/\.[^/.]+$/, ''), // Remove extension for alt
             is_primary: images.length === 0 && index === 0, // First image is primary if no images exist
+            color: null, // No color assigned by default (general image)
           };
+          return newImage;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Помилка завантаження';
           setUploading((prev) =>
@@ -175,7 +180,7 @@ export default function ImageUpload({
       });
 
       const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter((r): r is UploadedImage => r !== null);
+      const successfulUploads = results.filter((r): r is UploadedImage => r !== null) as UploadedImage[];
 
       if (successfulUploads.length > 0) {
         onImagesChange([...images, ...successfulUploads]);
@@ -276,6 +281,15 @@ export default function ImageUpload({
     [images, onImagesChange]
   );
 
+  const handleColorChange = useCallback(
+    (index: number, color: string | null) => {
+      const newImages = [...images];
+      newImages[index] = { ...newImages[index], color };
+      onImagesChange(newImages);
+    },
+    [images, onImagesChange]
+  );
+
   return (
     <div className={styles.container}>
       {/* Drop Zone */}
@@ -365,6 +379,19 @@ export default function ImageUpload({
                   placeholder="Alt текст"
                   className={styles.altInput}
                 />
+                {availableColors.length > 0 && (
+                  <select
+                    value={image.color || ''}
+                    onChange={(e) => handleColorChange(index, e.target.value || null)}
+                    className={styles.colorSelect}
+                    title="Призначити колір"
+                  >
+                    <option value="">Всі кольори</option>
+                    {availableColors.map((color) => (
+                      <option key={color} value={color}>{color}</option>
+                    ))}
+                  </select>
+                )}
                 <div className={styles.imageButtons}>
                   {!image.is_primary && (
                     <button

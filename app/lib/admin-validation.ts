@@ -98,6 +98,7 @@ export const passwordResetSchema = z.object({
 /**
  * Product image schema
  * Note: image_url can be empty string (will be filtered out during insert)
+ * color: Links image to a specific product color variant (null = general image for all colors)
  */
 const productImageSchema = z.object({
   id: z.number().optional(),
@@ -107,6 +108,7 @@ const productImageSchema = z.object({
   ),
   alt: z.string().max(255).default(''),
   is_primary: z.boolean().default(false),
+  color: z.string().max(100).nullable().optional(),
 });
 
 /**
