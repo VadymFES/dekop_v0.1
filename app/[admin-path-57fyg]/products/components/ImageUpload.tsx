@@ -10,6 +10,7 @@
  * - Image preview
  * - File validation (type, size)
  * - Delete functionality
+ * - Confirmation modal before upload
  *
  * @see https://vercel.com/docs/vercel-blob/server-upload
  */
@@ -39,6 +40,11 @@ interface UploadingFile {
   error?: string;
 }
 
+interface PendingFile {
+  file: File;
+  previewUrl: string;
+}
+
 export default function ImageUpload({
   images,
   onImagesChange,
@@ -47,6 +53,8 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = async (file: File, uploadId: string): Promise<string | null> => {
@@ -107,8 +115,9 @@ export default function ImageUpload({
     }
   };
 
+  // Prepare files for confirmation modal (validates and creates previews)
   const handleFiles = useCallback(
-    async (files: FileList | File[]) => {
+    (files: FileList | File[]) => {
       const fileArray = Array.from(files);
 
       // Check max images limit
@@ -137,62 +146,87 @@ export default function ImageUpload({
 
       if (validFiles.length === 0) return;
 
-      // Create uploading state for each file
-      const uploadingFiles: UploadingFile[] = validFiles.map((file) => ({
-        id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        name: file.name,
-        progress: 0,
-        status: 'uploading' as const,
+      // Create preview URLs for confirmation modal
+      const newPendingFiles: PendingFile[] = validFiles.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
       }));
 
-      setUploading((prev) => [...prev, ...uploadingFiles]);
-
-      // Upload files
-      const uploadPromises = validFiles.map(async (file, index) => {
-        const uploadId = uploadingFiles[index].id;
-
-        try {
-          const url = await uploadFile(file, uploadId);
-
-          // Mark as completed
-          setUploading((prev) =>
-            prev.map((u) =>
-              u.id === uploadId ? { ...u, status: 'completed', progress: 100 } : u
-            )
-          );
-
-          const newImage: UploadedImage = {
-            url: url!,
-            alt: file.name.replace(/\.[^/.]+$/, ''), // Remove extension for alt
-            is_primary: images.length === 0 && index === 0, // First image is primary if no images exist
-            color: null, // No color assigned by default (general image)
-          };
-          return newImage;
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Помилка завантаження';
-          setUploading((prev) =>
-            prev.map((u) =>
-              u.id === uploadId ? { ...u, status: 'error', error: errorMessage } : u
-            )
-          );
-          return null;
-        }
-      });
-
-      const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter((r): r is UploadedImage => r !== null) as UploadedImage[];
-
-      if (successfulUploads.length > 0) {
-        onImagesChange([...images, ...successfulUploads]);
-      }
-
-      // Clear completed uploads after a delay
-      setTimeout(() => {
-        setUploading((prev) => prev.filter((u) => u.status === 'uploading'));
-      }, 2000);
+      setPendingFiles(newPendingFiles);
+      setShowConfirmModal(true);
     },
-    [images, onImagesChange, maxImages]
+    [images.length, maxImages]
   );
+
+  // Cancel upload and clean up preview URLs
+  const handleCancelUpload = useCallback(() => {
+    pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.previewUrl));
+    setPendingFiles([]);
+    setShowConfirmModal(false);
+  }, [pendingFiles]);
+
+  // Confirm and perform the actual upload
+  const handleConfirmUpload = useCallback(async () => {
+    setShowConfirmModal(false);
+
+    // Create uploading state for each file
+    const uploadingFiles: UploadingFile[] = pendingFiles.map((pf) => ({
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      name: pf.file.name,
+      progress: 0,
+      status: 'uploading' as const,
+    }));
+
+    setUploading((prev) => [...prev, ...uploadingFiles]);
+
+    // Upload files
+    const uploadPromises = pendingFiles.map(async (pf, index) => {
+      const uploadId = uploadingFiles[index].id;
+
+      try {
+        const url = await uploadFile(pf.file, uploadId);
+
+        // Mark as completed
+        setUploading((prev) =>
+          prev.map((u) =>
+            u.id === uploadId ? { ...u, status: 'completed', progress: 100 } : u
+          )
+        );
+
+        const newImage: UploadedImage = {
+          url: url!,
+          alt: pf.file.name.replace(/\.[^/.]+$/, ''), // Remove extension for alt
+          is_primary: images.length === 0 && index === 0, // First image is primary if no images exist
+          color: null, // No color assigned by default (general image)
+        };
+        return newImage;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Помилка завантаження';
+        setUploading((prev) =>
+          prev.map((u) =>
+            u.id === uploadId ? { ...u, status: 'error', error: errorMessage } : u
+          )
+        );
+        return null;
+      }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    const successfulUploads = results.filter((r): r is UploadedImage => r !== null) as UploadedImage[];
+
+    if (successfulUploads.length > 0) {
+      onImagesChange([...images, ...successfulUploads]);
+    }
+
+    // Clean up preview URLs
+    pendingFiles.forEach((pf) => URL.revokeObjectURL(pf.previewUrl));
+    setPendingFiles([]);
+
+    // Clear completed uploads after a delay
+    setTimeout(() => {
+      setUploading((prev) => prev.filter((u) => u.status === 'uploading'));
+    }, 2000);
+  }, [pendingFiles, images, onImagesChange]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -431,6 +465,45 @@ export default function ImageUpload({
 
       {images.length === 0 && uploading.length === 0 && (
         <p className={styles.noImages}>Немає зображень</p>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className={styles.modalOverlay} onClick={handleCancelUpload}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Підтвердження завантаження</h3>
+
+            <div className={styles.modalPreviewGrid}>
+              {pendingFiles.map((pf, index) => (
+                <div key={index} className={styles.modalPreviewItem}>
+                  <img src={pf.previewUrl} alt={pf.file.name} />
+                </div>
+              ))}
+            </div>
+
+            <p className={styles.modalInfo}>
+              Ви збираєтесь завантажити {pendingFiles.length} {pendingFiles.length === 1 ? 'зображення' : 'зображень'}.
+              Переконайтесь, що зображення відповідають вимогам якості.
+            </p>
+
+            <div className={styles.modalButtons}>
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={handleCancelUpload}
+              >
+                Скасувати
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={handleConfirmUpload}
+              >
+                Завантажити
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
