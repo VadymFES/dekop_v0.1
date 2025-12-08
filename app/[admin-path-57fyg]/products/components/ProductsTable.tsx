@@ -108,6 +108,7 @@ export default function ProductsTable({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [singleDeleteProduct, setSingleDeleteProduct] = useState<{ id: number; name: string } | null>(null);
 
   // Read sort state from URL params
   const validSortColumns: SortColumn[] = ['category', 'price', 'stock', 'is_on_sale', 'updated_at'];
@@ -197,11 +198,18 @@ export default function ProductsTable({
     }
   };
 
-  const handleSingleDelete = async (id: number, name: string) => {
-    if (!confirm(`Видалити товар "${name}"?`)) return;
+  const handleSingleDelete = (id: number, name: string) => {
+    setSingleDeleteProduct({ id, name });
+  };
+
+  const confirmSingleDelete = async () => {
+    if (!singleDeleteProduct) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
 
     try {
-      const response = await fetch(`/admin-path-57fyg/api/products/${id}`, {
+      const response = await fetch(`/admin-path-57fyg/api/products/${singleDeleteProduct.id}`, {
         method: 'DELETE',
       });
 
@@ -210,9 +218,12 @@ export default function ProductsTable({
         throw new Error(data.error || 'Помилка видалення');
       }
 
+      setSingleDeleteProduct(null);
       router.refresh();
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Помилка видалення');
+      setDeleteError(error instanceof Error ? error.message : 'Помилка видалення');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -382,7 +393,7 @@ export default function ProductsTable({
         </table>
       </div>
 
-      {/* Confirm Modal */}
+      {/* Bulk Delete Modal */}
       <ConfirmModal
         isOpen={isModalOpen}
         title="Видалити вибрані товари?"
@@ -393,6 +404,19 @@ export default function ProductsTable({
         variant="danger"
         onConfirm={handleDeleteSelected}
         onCancel={() => setIsModalOpen(false)}
+        isLoading={isDeleting}
+      />
+
+      {/* Single Delete Modal */}
+      <ConfirmModal
+        isOpen={!!singleDeleteProduct}
+        title="Видалити товар?"
+        message={`Ви впевнені, що хочете видалити "${singleDeleteProduct?.name}"?`}
+        confirmText="Видалити"
+        cancelText="Скасувати"
+        variant="danger"
+        onConfirm={confirmSingleDelete}
+        onCancel={() => setSingleDeleteProduct(null)}
         isLoading={isDeleting}
       />
     </>
