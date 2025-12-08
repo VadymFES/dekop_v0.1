@@ -232,7 +232,6 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   const specTable = SPEC_TABLES[category];
   if (!specTable) return;
 
-  const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(category);
   const dimensions = specs.dimensions as Record<string, unknown> | undefined;
   const material = specs.material;
   const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
@@ -245,14 +244,13 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'sofa_beds': {
       await db.query(`
         INSERT INTO ${specTable} (
-          product_id, category, construction, dimensions, material, inner_material,
+          product_id, construction, dimensions, material, inner_material,
           additional_features, has_shelves, leg_height, has_lift_mechanism, types,
           armrest_type, seat_height
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `, [
         productId,
-        category,
         specs.construction || null,
         dimensions ? JSON.stringify(dimensions) : null,
         typeof material === 'object' ? JSON.stringify(material) : null,
