@@ -230,8 +230,8 @@ export default function ProductsTable({
     <>
       {/* Sort info bar */}
       {isCustomSort && (
-        <div className={styles.bulkActionsBar} style={{ backgroundColor: '#e3f2fd', borderColor: '#90caf9' }}>
-          <span style={{ color: '#1565c0', fontSize: '14px' }}>
+        <div className={styles.sortInfoBar}>
+          <span className={styles.sortInfoText}>
             Сортування: <strong>{getSortLabel(currentSort)}</strong> ({currentOrder === 'asc' ? 'за зростанням' : 'за спаданням'})
           </span>
           <Link href={buildResetUrl(searchParams)} className={styles.sortResetButton}>
