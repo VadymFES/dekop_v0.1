@@ -52,6 +52,23 @@ function normalizeCategory(category: string): string {
   return CATEGORY_MAP[normalized] || category;
 }
 
+// Map English category to Ukrainian for database storage
+const CATEGORY_TO_UKRAINIAN: Record<string, string> = {
+  sofas: 'Диван',
+  corner_sofas: 'Кутовий Диван',
+  sofa_beds: 'Диван-Ліжко',
+  beds: 'Ліжко',
+  tables: 'Стіл',
+  chairs: 'Стілець',
+  mattresses: 'Матрац',
+  wardrobes: 'Шафа',
+  accessories: 'Аксесуар',
+};
+
+function getCategoryUkrainian(englishCategory: string): string {
+  return CATEGORY_TO_UKRAINIAN[englishCategory] || englishCategory;
+}
+
 // Spec table names for each category
 const SPEC_TABLES: Record<string, string> = {
   sofas: 'sofa_specs',
@@ -203,13 +220,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     `;
     const oldImages = oldImagesResult.rows;
 
-    // Update product
+    // Update product (save category in Ukrainian)
+    const categoryUkr = getCategoryUkrainian(data.category);
     await db.query`
       UPDATE products SET
         name = ${data.name},
         slug = ${data.slug},
         description = ${data.description},
-        category = ${data.category},
+        category = ${categoryUkr},
         price = ${data.price},
         sale_price = ${data.sale_price || null},
         stock = ${data.stock},

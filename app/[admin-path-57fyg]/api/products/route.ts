@@ -28,6 +28,23 @@ const SPEC_TABLES: Record<string, string> = {
   accessories: 'accessory_specs',
 };
 
+// Map English category to Ukrainian for database storage
+const CATEGORY_TO_UKRAINIAN: Record<string, string> = {
+  sofas: 'Диван',
+  corner_sofas: 'Кутовий Диван',
+  sofa_beds: 'Диван-Ліжко',
+  beds: 'Ліжко',
+  tables: 'Стіл',
+  chairs: 'Стілець',
+  mattresses: 'Матрац',
+  wardrobes: 'Шафа',
+  accessories: 'Аксесуар',
+};
+
+function getCategoryUkrainian(englishCategory: string): string {
+  return CATEGORY_TO_UKRAINIAN[englishCategory] || englishCategory;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
@@ -146,10 +163,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Insert product
+    // Insert product (save category in Ukrainian)
+    const categoryUkr = getCategoryUkrainian(data.category);
     const result = await db.query`
       INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller)
-      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.category}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
+      VALUES (${data.name}, ${data.slug}, ${data.description}, ${categoryUkr}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
       RETURNING id, name, slug, category, price, stock
     `;
 
@@ -210,158 +228,207 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to insert category-specific specs
+// Uses the actual database column structure: individual columns for dimensions/materials, not JSON
 async function insertProductSpecs(productId: number, category: string, specs: Record<string, unknown>) {
-  const specTable = SPEC_TABLES[category];
-  if (!specTable) return;
+  // Skip if category not in our known list
+  if (!SPEC_TABLES[category]) return;
 
-  const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(category);
+  // Extract dimensions (could be object or individual fields) - use 0 as default for NOT NULL columns
   const dimensions = specs.dimensions as Record<string, unknown> | undefined;
-  const material = specs.material;
-  const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
-  const types = specs.types as string[] | undefined;
+  const dimLength = Number(dimensions?.length ?? specs.dimensions_length ?? 0);
+  const dimWidth = Number(dimensions?.width ?? specs.dimensions_width ?? 0);
+  const dimDepth = Number(dimensions?.depth ?? specs.dimensions_depth ?? 0);
+  const dimHeight = Number(dimensions?.height ?? specs.dimensions_height ?? 0);
+  const sleepingArea = dimensions?.sleeping_area as Record<string, unknown> | undefined;
+  const sleepingWidth = Number(sleepingArea?.width ?? specs.dimensions_sleeping_area_width ?? 0);
+  const sleepingLength = Number(sleepingArea?.length ?? specs.dimensions_sleeping_area_length ?? 0);
 
-  // Build spec data based on category
+  // Extract material (could be object or individual fields)
+  const material = specs.material as Record<string, unknown> | string | undefined;
+  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? null;
+  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? null;
+  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? null;
+  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? null;
+
+  // Extract inner_material (could be object or individual fields)
+  const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
+  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? null;
+  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? null;
+
+  // Other common fields - use empty string for NOT NULL columns
+  const constructionVal = (specs.construction as string) || '';
+  const additionalFeaturesVal = (specs.additional_features as string) || '';
+  const hasShelvesVal = Boolean(specs.has_shelves);
+  const legHeightVal = (specs.leg_height as string) || null;
+  const hasLiftMechanismVal = Boolean(specs.has_lift_mechanism);
+  const types = specs.types as string[] | undefined;
+  const typesVal = types && types.length > 0 ? `{${types.join(',')}}` : null;
+  const armrestTypeVal = (specs.armrest_type as string) || null;
+  const seatHeightVal = specs.seat_height ? Number(specs.seat_height) : null;
+
   switch (category) {
-    case 'sofas':
-    case 'corner_sofas':
-    case 'sofa_beds': {
-      await db.query(`
-        INSERT INTO ${specTable} (
-          product_id, category, construction, dimensions, material, inner_material,
+    case 'sofas': {
+      await db.query`
+        INSERT INTO sofa_specs (
+          product_id, construction, dimensions_length, dimensions_depth, dimensions_height,
+          dimensions_sleeping_area_width, dimensions_sleeping_area_length,
+          material_type, material_composition, material_covers, material_backrest_filling,
+          inner_material_structure, inner_material_cushion_filling,
           additional_features, has_shelves, leg_height, has_lift_mechanism, types,
           armrest_type, seat_height
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      `, [
-        productId,
-        category,
-        specs.construction || null,
-        dimensions ? JSON.stringify(dimensions) : null,
-        typeof material === 'object' ? JSON.stringify(material) : null,
-        innerMaterial ? JSON.stringify(innerMaterial) : null,
-        specs.additional_features || null,
-        specs.has_shelves || false,
-        specs.leg_height || null,
-        specs.has_lift_mechanism || false,
-        types ? JSON.stringify(types) : null,
-        specs.armrest_type || null,
-        specs.seat_height || null
-      ]);
+        VALUES (
+          ${productId}, ${constructionVal}, ${dimLength}, ${dimDepth}, ${dimHeight},
+          ${sleepingWidth}, ${sleepingLength},
+          ${materialType}, ${materialComposition}, ${materialCovers}, ${materialBackrestFilling},
+          ${innerMaterialStructure}, ${innerMaterialCushionFilling},
+          ${additionalFeaturesVal}, ${hasShelvesVal}, ${legHeightVal}, ${hasLiftMechanismVal}, ${typesVal},
+          ${armrestTypeVal}, ${seatHeightVal}
+        )
+      `;
+      break;
+    }
+
+    case 'corner_sofas': {
+      await db.query`
+        INSERT INTO corner_sofa_specs (
+          product_id, construction, dimensions_length, dimensions_width, dimensions_depth, dimensions_height,
+          dimensions_sleeping_area_width, dimensions_sleeping_area_length,
+          material_type, material_composition, material_covers, material_backrest_filling,
+          inner_material_structure, inner_material_cushion_filling,
+          additional_features, has_shelves, leg_height, has_lift_mechanism, types,
+          armrest_type, seat_height
+        )
+        VALUES (
+          ${productId}, ${constructionVal}, ${dimLength}, ${dimWidth}, ${dimDepth}, ${dimHeight},
+          ${sleepingWidth}, ${sleepingLength},
+          ${materialType}, ${materialComposition}, ${materialCovers}, ${materialBackrestFilling},
+          ${innerMaterialStructure}, ${innerMaterialCushionFilling},
+          ${additionalFeaturesVal}, ${hasShelvesVal}, ${legHeightVal}, ${hasLiftMechanismVal}, ${typesVal},
+          ${armrestTypeVal}, ${seatHeightVal}
+        )
+      `;
+      break;
+    }
+
+    case 'sofa_beds': {
+      await db.query`
+        INSERT INTO sofa_bed_specs (
+          product_id, construction, dimensions_length, dimensions_depth, dimensions_height,
+          dimensions_sleeping_area_width, dimensions_sleeping_area_length,
+          material_type, material_composition, material_covers, material_backrest_filling,
+          inner_material_structure, inner_material_cushion_filling,
+          additional_features, has_shelves, leg_height, has_lift_mechanism, types,
+          armrest_type, seat_height
+        )
+        VALUES (
+          ${productId}, ${constructionVal}, ${dimLength}, ${dimDepth}, ${dimHeight},
+          ${sleepingWidth}, ${sleepingLength},
+          ${materialType}, ${materialComposition}, ${materialCovers}, ${materialBackrestFilling},
+          ${innerMaterialStructure}, ${innerMaterialCushionFilling},
+          ${additionalFeaturesVal}, ${hasShelvesVal}, ${legHeightVal}, ${hasLiftMechanismVal}, ${typesVal},
+          ${armrestTypeVal}, ${seatHeightVal}
+        )
+      `;
       break;
     }
 
     case 'beds': {
+      const headboardType = (specs.headboard_type as string) || null;
+      const storageOptions = (specs.storage_options as string) || null;
       await db.query`
         INSERT INTO bed_specs (
-          product_id, category, construction, dimensions, material, headboard_type,
-          storage_options, types
+          product_id, construction, dimensions_length, dimensions_depth, dimensions_height,
+          dimensions_sleeping_area_width, dimensions_sleeping_area_length,
+          material, headboard_type, storage_options, types
         )
         VALUES (
-          ${productId},
-          ${category},
-          ${specs.construction || null},
-          ${dimensions ? JSON.stringify(dimensions) : null},
-          ${typeof material === 'string' ? material : null},
-          ${specs.headboard_type || null},
-          ${specs.storage_options || null},
-          ${types ? JSON.stringify(types) : null}
+          ${productId}, ${constructionVal}, ${dimLength}, ${dimDepth}, ${dimHeight},
+          ${sleepingWidth}, ${sleepingLength},
+          ${materialType}, ${headboardType}, ${storageOptions}, ${typesVal}
         )
       `;
       break;
     }
 
     case 'mattresses': {
+      const coreType = (specs.core_type as string) || (specs.type as string) || null;
+      const hardness = (specs.hardness as string) || (specs.firmness as string) || null;
       await db.query`
         INSERT INTO mattress_specs (
-          product_id, category, type, firmness, thickness, core_type, hardness,
-          dimensions, types
+          product_id, dimensions_length, dimensions_width, dimensions_height,
+          dimensions_sleeping_area_width, dimensions_sleeping_area_length,
+          material, core_type, hardness, types
         )
         VALUES (
-          ${productId},
-          ${category},
-          ${specs.type || null},
-          ${specs.firmness || null},
-          ${specs.thickness || null},
-          ${specs.core_type || null},
-          ${specs.hardness || null},
-          ${dimensions ? JSON.stringify(dimensions) : null},
-          ${types ? JSON.stringify(types) : null}
+          ${productId}, ${dimLength}, ${dimWidth}, ${dimHeight},
+          ${sleepingWidth}, ${sleepingLength},
+          ${materialType}, ${coreType}, ${hardness}, ${typesVal}
         )
       `;
       break;
     }
 
     case 'tables': {
+      const shape = (specs.shape as string) || null;
+      const extendable = Boolean(specs.extendable);
       await db.query`
         INSERT INTO table_specs (
-          product_id, category, shape, extendable, material, dimensions, types
+          product_id, dimensions_length, dimensions_width, dimensions_depth, dimensions_height,
+          material, shape, extendable, types
         )
         VALUES (
-          ${productId},
-          ${category},
-          ${specs.shape || null},
-          ${specs.extendable || false},
-          ${typeof material === 'string' ? material : null},
-          ${dimensions ? JSON.stringify(dimensions) : null},
-          ${types ? JSON.stringify(types) : null}
+          ${productId}, ${dimLength}, ${dimWidth}, ${dimDepth}, ${dimHeight},
+          ${materialType}, ${shape}, ${extendable}, ${typesVal}
         )
       `;
       break;
     }
 
     case 'chairs': {
+      const upholstery = (specs.upholstery as string) || null;
+      const weightCapacity = specs.weight_capacity ? Number(specs.weight_capacity) : null;
       await db.query`
         INSERT INTO chair_specs (
-          product_id, category, upholstery, seat_height, weight_capacity, material,
-          dimensions, types
+          product_id, dimensions_length, dimensions_width, dimensions_depth, dimensions_height,
+          material, upholstery, seat_height, weight_capacity, types
         )
         VALUES (
-          ${productId},
-          ${category},
-          ${specs.upholstery || null},
-          ${specs.seat_height || null},
-          ${specs.weight_capacity || null},
-          ${typeof material === 'string' ? material : null},
-          ${dimensions ? JSON.stringify(dimensions) : null},
-          ${types ? JSON.stringify(types) : null}
+          ${productId}, ${dimLength}, ${dimWidth}, ${dimDepth}, ${dimHeight},
+          ${materialType}, ${upholstery}, ${seatHeightVal}, ${weightCapacity}, ${typesVal}
         )
       `;
       break;
     }
 
     case 'wardrobes': {
+      const doorCount = specs.door_count ? Number(specs.door_count) : null;
+      const doorType = (specs.door_type as string) || null;
+      const internalLayout = (specs.internal_layout as string) || null;
       await db.query`
         INSERT INTO wardrobe_specs (
-          product_id, category, door_count, door_type, internal_layout, material,
-          dimensions, types
+          product_id, dimensions_length, dimensions_width, dimensions_depth, dimensions_height,
+          material, door_count, door_type, internal_layout, types
         )
         VALUES (
-          ${productId},
-          ${category},
-          ${specs.door_count || null},
-          ${specs.door_type || null},
-          ${specs.internal_layout || null},
-          ${typeof material === 'string' ? material : null},
-          ${dimensions ? JSON.stringify(dimensions) : null},
-          ${types ? JSON.stringify(types) : null}
+          ${productId}, ${dimLength}, ${dimWidth}, ${dimDepth}, ${dimHeight},
+          ${materialType}, ${doorCount}, ${doorType}, ${internalLayout}, ${typesVal}
         )
       `;
       break;
     }
 
     case 'accessories': {
+      const mountingType = (specs.mounting_type as string) || null;
+      const shelfCount = specs.shelf_count ? Number(specs.shelf_count) : null;
       await db.query`
         INSERT INTO accessory_specs (
-          product_id, category, mounting_type, shelf_count, material, dimensions, types
+          product_id, dimensions_length, dimensions_width, dimensions_depth, dimensions_height,
+          material, mounting_type, shelf_count, types
         )
         VALUES (
-          ${productId},
-          ${category},
-          ${specs.mounting_type || null},
-          ${specs.shelf_count || null},
-          ${typeof material === 'string' ? material : null},
-          ${dimensions ? JSON.stringify(dimensions) : null},
-          ${types ? JSON.stringify(types) : null}
+          ${productId}, ${dimLength}, ${dimWidth}, ${dimDepth}, ${dimHeight},
+          ${materialType}, ${mountingType}, ${shelfCount}, ${typesVal}
         )
       `;
       break;

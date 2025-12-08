@@ -32,19 +32,61 @@ interface ProductsTableProps {
   canDelete: boolean;
 }
 
+// Map to display Ukrainian category names
+const CATEGORY_DISPLAY: Record<string, string> = {
+  sofas: 'Дивани',
+  corner_sofas: 'Кутові дивани',
+  sofa_beds: 'Дивани-ліжка',
+  beds: 'Ліжка',
+  tables: 'Столи',
+  chairs: 'Стільці',
+  mattresses: 'Матраци',
+  wardrobes: 'Шафи',
+  accessories: 'Аксесуари',
+};
+
+// Map Ukrainian category names to English keys for normalization
+const CATEGORY_NORMALIZE: Record<string, string> = {
+  // English keys (pass through)
+  sofas: 'sofas',
+  corner_sofas: 'corner_sofas',
+  sofa_beds: 'sofa_beds',
+  beds: 'beds',
+  tables: 'tables',
+  chairs: 'chairs',
+  mattresses: 'mattresses',
+  wardrobes: 'wardrobes',
+  accessories: 'accessories',
+  // Ukrainian singular
+  'диван': 'sofas',
+  'кутовий диван': 'corner_sofas',
+  'диван-ліжко': 'sofa_beds',
+  'ліжко': 'beds',
+  'стіл': 'tables',
+  'стілець': 'chairs',
+  'матрац': 'mattresses',
+  'шафа': 'wardrobes',
+  'аксесуар': 'accessories',
+  // Ukrainian plural
+  'дивани': 'sofas',
+  'кутові дивани': 'corner_sofas',
+  'дивани-ліжка': 'sofa_beds',
+  'ліжка': 'beds',
+  'столи': 'tables',
+  'стільці': 'chairs',
+  'матраци': 'mattresses',
+  'шафи': 'wardrobes',
+  'аксесуари': 'accessories',
+};
+
+function normalizeCategory(category: string): string {
+  const normalized = category?.toLowerCase().trim();
+  return CATEGORY_NORMALIZE[normalized] || category;
+}
+
 function formatCategory(category: string): string {
-  const categories: Record<string, string> = {
-    sofas: 'Дивани',
-    corner_sofas: 'Кутові дивани',
-    sofa_beds: 'Дивани-ліжка',
-    beds: 'Ліжка',
-    tables: 'Столи',
-    chairs: 'Стільці',
-    mattresses: 'Матраци',
-    wardrobes: 'Шафи',
-    accessories: 'Аксесуари',
-  };
-  return categories[category] || category;
+  const normalized = normalizeCategory(category);
+  return CATEGORY_DISPLAY[normalized] || category;
 }
 
 function formatCurrency(amount: number): string {
@@ -76,7 +118,7 @@ function getStockClass(stock: number): string {
 function getSortValue(product: Product, column: SortColumn): string | number {
   switch (column) {
     case 'category':
-      return product.category;
+      return formatCategory(product.category); // Use display name for alphabetic sorting
     case 'price':
       return product.price;
     case 'stock':
@@ -117,12 +159,15 @@ export default function ProductsTable({
   const sortColumn: SortColumn | null = validSortColumns.includes(sortCol as SortColumn) ? sortCol as SortColumn : null;
   const sortOrder: SortOrder = sortOrd === 'asc' ? 'asc' : 'desc';
 
-  // Handle sort click: cycle desc -> asc -> remove
+  // Handle sort click: category toggles sorted/default, others cycle desc -> asc -> remove
   const handleSort = useCallback((column: SortColumn) => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (sortColumn === column) {
-      if (sortOrder === 'desc') {
+      if (column === 'category') {
+        // Category: toggle between sorted and default (2 clicks)
+        params.delete('sort');
+      } else if (sortOrder === 'desc') {
         params.set('sort', `${column}:asc`);
       } else {
         params.delete('sort');

@@ -32,6 +32,51 @@ export const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
   'аксесуари': 'Аксесуари',
 };
 
+// Mapping from Ukrainian to English for spec table lookups
+export const CATEGORY_TO_ENGLISH: Record<string, string> = {
+  // English pass-through
+  'sofas': 'sofas',
+  'corner_sofas': 'corner_sofas',
+  'sofa_beds': 'sofa_beds',
+  'beds': 'beds',
+  'tables': 'tables',
+  'chairs': 'chairs',
+  'mattresses': 'mattresses',
+  'wardrobes': 'wardrobes',
+  'accessories': 'accessories',
+  // Ukrainian singular
+  'диван': 'sofas',
+  'кутовий диван': 'corner_sofas',
+  'диван-ліжко': 'sofa_beds',
+  'ліжко': 'beds',
+  'стіл': 'tables',
+  'стілець': 'chairs',
+  'матрац': 'mattresses',
+  'шафа': 'wardrobes',
+  'аксесуар': 'accessories',
+  // Ukrainian plural
+  'дивани': 'sofas',
+  'кутові дивани': 'corner_sofas',
+  'дивани-ліжка': 'sofa_beds',
+  'ліжка': 'beds',
+  'столи': 'tables',
+  'стільці': 'chairs',
+  'матраци': 'mattresses',
+  'шафи': 'wardrobes',
+  'аксесуари': 'accessories',
+};
+
+/**
+ * Normalize category to English for spec table lookups
+ * @param category - Category name (English or Ukrainian)
+ * @returns English category key
+ */
+export function normalizeCategoryToEnglish(category: string | undefined | null): string {
+  if (!category) return '';
+  const lowerCategory = category.toLowerCase().trim();
+  return CATEGORY_TO_ENGLISH[lowerCategory] || category;
+}
+
 // Mapping from English DB category to URL slug (camelCase)
 export const CATEGORY_URL_SLUGS: Record<string, string> = {
   'sofas': 'sofas',
