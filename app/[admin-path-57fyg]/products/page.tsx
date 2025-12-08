@@ -173,114 +173,42 @@ async function getProducts({
   category: string;
   lowStock: boolean;
 }) {
-  let countResult;
-  let productsResult;
-  const searchPattern = `%${search}%`;
+  // Build WHERE clause dynamically
+  let whereClause = 'WHERE 1=1';
+  const values: unknown[] = [];
+  let paramIndex = 1;
 
-  // Using template literals to avoid prepared statement issues
-  // Different query branches based on active filters
-  if (search && category && lowStock) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-        AND category = ${category}
-        AND stock < 10
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-        AND category = ${category}
-        AND stock < 10
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (search && category) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-        AND category = ${category}
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-        AND category = ${category}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (search && lowStock) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-        AND stock < 10
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-        AND stock < 10
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (category && lowStock) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products
-      WHERE category = ${category} AND stock < 10
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE category = ${category} AND stock < 10
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (search) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE (name ILIKE ${searchPattern} OR slug ILIKE ${searchPattern})
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (category) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products WHERE category = ${category}
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE category = ${category}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (lowStock) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM products WHERE stock < 10
-    `;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      WHERE stock < 10
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else {
-    // No filters
-    countResult = await db.query`SELECT COUNT(*) as total FROM products`;
-    productsResult = await db.query`
-      SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
-      FROM products
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
+  if (search) {
+    whereClause += ` AND (name ILIKE $${paramIndex} OR slug ILIKE $${paramIndex})`;
+    values.push(`%${search}%`);
+    paramIndex++;
   }
 
+  if (category) {
+    whereClause += ` AND category = $${paramIndex}`;
+    values.push(category);
+    paramIndex++;
+  }
+
+  if (lowStock) {
+    whereClause += ` AND stock < 10`;
+  }
+
+  // Count total
+  const countQuery = `SELECT COUNT(*) as total FROM products ${whereClause}`;
+  const countResult = await db.query(countQuery, values);
   const total = Number(countResult.rows[0]?.total) || 0;
+
+  // Get products (sorting is handled client-side)
+  const productsQuery = `
+    SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
+    FROM products
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT $${paramIndex++} OFFSET $${paramIndex}
+  `;
+
+  const productsResult = await db.query(productsQuery, [...values, limit, offset]);
 
   // Get categories for filter
   const categoriesResult = await db.query`

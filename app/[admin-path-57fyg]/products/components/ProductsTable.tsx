@@ -4,9 +4,9 @@
  * Products table with multi-select and bulk delete functionality
  */
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ConfirmModal from '../../components/ConfirmModal';
 import styles from '../../styles/admin.module.css';
 
@@ -23,6 +23,9 @@ interface Product {
   created_at: string;
   updated_at: string;
 }
+
+type SortColumn = 'category' | 'price' | 'stock' | 'is_on_sale' | 'updated_at';
+type SortOrder = 'asc' | 'desc';
 
 interface ProductsTableProps {
   products: Product[];
@@ -69,24 +72,90 @@ function getStockClass(stock: number): string {
   return styles.stockNormal;
 }
 
+// Get value for sorting - must be outside component for proper memoization
+function getSortValue(product: Product, column: SortColumn): string | number {
+  switch (column) {
+    case 'category':
+      return product.category;
+    case 'price':
+      return product.price;
+    case 'stock':
+      return product.stock;
+    case 'is_on_sale':
+      return (product.is_on_sale ? 4 : 0) + (product.is_new ? 2 : 0) + (product.is_bestseller ? 1 : 0);
+    case 'updated_at':
+      return new Date(product.updated_at).getTime();
+    default:
+      return 0;
+  }
+}
+
+// Sort indicator component
+function SortIndicator({ column, currentSort, currentOrder }: { column: SortColumn; currentSort: SortColumn | null; currentOrder: SortOrder }) {
+  if (currentSort !== column) {
+    return <span className={styles.sortIndicator}>↕</span>;
+  }
+  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '↑' : '↓'}</span>;
+}
+
 export default function ProductsTable({
   products,
   canDelete,
 }: ProductsTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [singleDeleteProduct, setSingleDeleteProduct] = useState<{ id: number; name: string } | null>(null);
 
-  const allSelected = products.length > 0 && selectedIds.size === products.length;
-  const someSelected = selectedIds.size > 0 && selectedIds.size < products.length;
+  // Read sort state from URL params
+  const validSortColumns: SortColumn[] = ['category', 'price', 'stock', 'is_on_sale', 'updated_at'];
+  const sortParam = searchParams.get('sort');
+  const [sortCol, sortOrd] = sortParam?.split(':') || [];
+  const sortColumn: SortColumn | null = validSortColumns.includes(sortCol as SortColumn) ? sortCol as SortColumn : null;
+  const sortOrder: SortOrder = sortOrd === 'asc' ? 'asc' : 'desc';
+
+  // Handle sort click: cycle desc -> asc -> remove
+  const handleSort = useCallback((column: SortColumn) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (sortColumn === column) {
+      if (sortOrder === 'desc') {
+        params.set('sort', `${column}:asc`);
+      } else {
+        params.delete('sort');
+      }
+    } else {
+      params.set('sort', `${column}:desc`);
+    }
+
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, sortColumn, sortOrder, router]);
+
+  // Sort products client-side
+  const sortedProducts = useMemo(() => {
+    if (!sortColumn) return products;
+
+    return [...products].sort((a, b) => {
+      const aVal = getSortValue(a, sortColumn);
+      const bVal = getSortValue(b, sortColumn);
+
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [products, sortColumn, sortOrder]);
+
+  const allSelected = sortedProducts.length > 0 && selectedIds.size === sortedProducts.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < sortedProducts.length;
 
   const handleSelectAll = () => {
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(products.map(p => p.id)));
+      setSelectedIds(new Set(sortedProducts.map(p => p.id)));
     }
   };
 
@@ -129,11 +198,18 @@ export default function ProductsTable({
     }
   };
 
-  const handleSingleDelete = async (id: number, name: string) => {
-    if (!confirm(`Видалити товар "${name}"?`)) return;
+  const handleSingleDelete = (id: number, name: string) => {
+    setSingleDeleteProduct({ id, name });
+  };
+
+  const confirmSingleDelete = async () => {
+    if (!singleDeleteProduct) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
 
     try {
-      const response = await fetch(`/admin-path-57fyg/api/products/${id}`, {
+      const response = await fetch(`/admin-path-57fyg/api/products/${singleDeleteProduct.id}`, {
         method: 'DELETE',
       });
 
@@ -142,9 +218,12 @@ export default function ProductsTable({
         throw new Error(data.error || 'Помилка видалення');
       }
 
+      setSingleDeleteProduct(null);
       router.refresh();
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Помилка видалення');
+      setDeleteError(error instanceof Error ? error.message : 'Помилка видалення');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -199,17 +278,57 @@ export default function ProductsTable({
               )}
               <th className={styles.th}>ID</th>
               <th className={styles.th}>Назва</th>
-              <th className={styles.th}>Категорія</th>
-              <th className={styles.th}>Ціна</th>
-              <th className={styles.th}>Запас</th>
-              <th className={styles.th}>Мітки</th>
+              <th className={styles.th}>
+                <button
+                  onClick={() => handleSort('category')}
+                  className={sortColumn === 'category' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Категорія
+                  <SortIndicator column="category" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
+              </th>
+              <th className={styles.th}>
+                <button
+                  onClick={() => handleSort('price')}
+                  className={sortColumn === 'price' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Ціна
+                  <SortIndicator column="price" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
+              </th>
+              <th className={styles.th}>
+                <button
+                  onClick={() => handleSort('stock')}
+                  className={sortColumn === 'stock' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Запас
+                  <SortIndicator column="stock" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
+              </th>
+              <th className={styles.th}>
+                <button
+                  onClick={() => handleSort('is_on_sale')}
+                  className={sortColumn === 'is_on_sale' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Мітки
+                  <SortIndicator column="is_on_sale" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
+              </th>
               <th className={styles.th}>Створено</th>
-              <th className={styles.th}>Змінено</th>
+              <th className={styles.th}>
+                <button
+                  onClick={() => handleSort('updated_at')}
+                  className={sortColumn === 'updated_at' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Змінено
+                  <SortIndicator column="updated_at" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
+              </th>
               <th className={styles.th}>Дії</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {sortedProducts.map((product) => (
               <tr
                 key={product.id}
                 className={selectedIds.has(product.id) ? styles.rowSelected : ''}
@@ -263,7 +382,7 @@ export default function ProductsTable({
                 </td>
               </tr>
             ))}
-            {products.length === 0 && (
+            {sortedProducts.length === 0 && (
               <tr>
                 <td colSpan={canDelete ? 10 : 9} className={styles.tdEmpty}>
                   Товарів не знайдено
@@ -274,7 +393,7 @@ export default function ProductsTable({
         </table>
       </div>
 
-      {/* Confirm Modal */}
+      {/* Bulk Delete Modal */}
       <ConfirmModal
         isOpen={isModalOpen}
         title="Видалити вибрані товари?"
@@ -285,6 +404,19 @@ export default function ProductsTable({
         variant="danger"
         onConfirm={handleDeleteSelected}
         onCancel={() => setIsModalOpen(false)}
+        isLoading={isDeleting}
+      />
+
+      {/* Single Delete Modal */}
+      <ConfirmModal
+        isOpen={!!singleDeleteProduct}
+        title="Видалити товар?"
+        message={`Ви впевнені, що хочете видалити "${singleDeleteProduct?.name}"?`}
+        confirmText="Видалити"
+        cancelText="Скасувати"
+        variant="danger"
+        onConfirm={confirmSingleDelete}
+        onCancel={() => setSingleDeleteProduct(null)}
         isLoading={isDeleting}
       />
     </>

@@ -4,7 +4,7 @@
  * Повна форма товару з усіма полями для всіх категорій
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/admin.module.css';
 import ImageUpload from './ImageUpload';
@@ -249,6 +249,28 @@ const normalizeColors = (colors: ProductColor[] | undefined): ProductColor[] => 
   }));
 };
 
+// Ukrainian to Latin transliteration map (based on Ukrainian passport standard)
+const translitMap: Record<string, string> = {
+  'а': 'a', 'б': 'b', 'в': 'v', 'г': 'h', 'ґ': 'g', 'д': 'd', 'е': 'e', 'є': 'ie',
+  'ж': 'zh', 'з': 'z', 'и': 'y', 'і': 'i', 'ї': 'i', 'й': 'i', 'к': 'k', 'л': 'l',
+  'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+  'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ь': '', 'ю': 'iu',
+  'я': 'ia', "'": '', "\u2019": '', 'ъ': '', 'ы': 'y', 'э': 'e',
+};
+
+// Generate URL-friendly slug from Ukrainian text
+const generateSlugFromName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .split('')
+    .map(char => translitMap[char] ?? char)
+    .join('')
+    .replace(/[^a-z0-9\s-]/g, '') // Remove non-latin characters
+    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .replace(/-+/g, '-')           // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, '');      // Trim hyphens from start/end
+};
+
 // =====================================================
 // TOAST NOTIFICATION COMPONENT
 // =====================================================
@@ -310,6 +332,39 @@ function Toast({ message, type, onClose }: ToastProps) {
 }
 
 // =====================================================
+// UNSAVED CHANGES MODAL COMPONENT
+// =====================================================
+
+interface UnsavedChangesModalProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function UnsavedChangesModal({ isOpen, onConfirm, onCancel }: UnsavedChangesModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onCancel}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <h3 className={styles.modalTitle}>Незбережені зміни</h3>
+        <p className={styles.modalText}>
+          У вас є незбережені зміни. Покинути сторінку?
+        </p>
+        <div className={styles.modalButtons}>
+          <button onClick={onCancel} className={styles.buttonSecondary}>
+            Залишитися
+          </button>
+          <button onClick={onConfirm} className={styles.buttonDanger}>
+            Покинути
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =====================================================
 // MAIN COMPONENT
 // =====================================================
 
@@ -337,6 +392,99 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const initialFormData = useRef(JSON.stringify(formData));
+  const isDirtyRef = useRef(isDirty);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
+
+  // Track form changes
+  useEffect(() => {
+    const currentData = JSON.stringify(formData);
+    setIsDirty(currentData !== initialFormData.current);
+  }, [formData]);
+
+  // Warn on page refresh/close with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirtyRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Intercept link clicks to warn about unsaved changes
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      if (!isDirtyRef.current) return;
+
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+
+      if (link && link.href && !link.href.startsWith('javascript:')) {
+        const url = new URL(link.href);
+        // Only intercept internal navigation (same origin)
+        if (url.origin === window.location.origin && url.pathname !== window.location.pathname) {
+          e.preventDefault();
+          e.stopPropagation();
+          setPendingNavigation(link.href);
+          setShowUnsavedModal(true);
+        }
+      }
+    };
+
+    // Intercept browser back/forward button
+    const handlePopState = () => {
+      if (isDirtyRef.current) {
+        // Push current state back to prevent navigation
+        window.history.pushState(null, '', window.location.href);
+        setPendingNavigation('back');
+        setShowUnsavedModal(true);
+      }
+    };
+
+    // Push initial state to enable popstate interception
+    window.history.pushState(null, '', window.location.href);
+
+    document.addEventListener('click', handleLinkClick, true);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      document.removeEventListener('click', handleLinkClick, true);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Handle navigation confirmation
+  const handleConfirmNavigation = () => {
+    setShowUnsavedModal(false);
+    // Reset dirty state to prevent further warnings
+    initialFormData.current = JSON.stringify(formData);
+    setIsDirty(false);
+    isDirtyRef.current = false;
+
+    if (pendingNavigation === 'back') {
+      window.history.back();
+    } else if (pendingNavigation) {
+      window.location.href = pendingNavigation;
+    }
+    setPendingNavigation(null);
+  };
+
+  const handleCancelNavigation = () => {
+    setShowUnsavedModal(false);
+    setPendingNavigation(null);
+  };
 
   // Helpers
   const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(formData.category);
@@ -425,7 +573,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   };
 
   const generateSlug = () => {
-    const slug = formData.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ\s-]+/gi, '').replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
+    const slug = generateSlugFromName(formData.name);
     setFormData(prev => ({ ...prev, slug }));
   };
 
@@ -511,6 +659,9 @@ export default function ProductForm({ product }: ProductFormProps) {
         type: 'success',
       });
 
+      // Reset dirty state after successful save
+      initialFormData.current = JSON.stringify(formData);
+      setIsDirty(false);
       setLoading(false);
 
       if (!isEdit) {
@@ -1079,11 +1230,30 @@ export default function ProductForm({ product }: ProductFormProps) {
           <button type="submit" disabled={loading} className={styles.buttonPrimary} style={{ padding: '15px 40px', fontSize: '16px' }}>
             {loading ? 'Збереження...' : isEdit ? 'Оновити товар' : 'Створити товар'}
           </button>
-          <button type="button" onClick={() => router.back()} className={styles.buttonSecondary} style={{ padding: '15px 40px', fontSize: '16px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (isDirty) {
+                setPendingNavigation('back');
+                setShowUnsavedModal(true);
+              } else {
+                router.back();
+              }
+            }}
+            className={styles.buttonSecondary}
+            style={{ padding: '15px 40px', fontSize: '16px' }}
+          >
             Скасувати
           </button>
         </div>
       </form>
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedModal}
+        onConfirm={handleConfirmNavigation}
+        onCancel={handleCancelNavigation}
+      />
     </div>
   );
 }
