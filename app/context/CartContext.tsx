@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
@@ -109,9 +109,20 @@ const CartContext = createContext<CartContextType | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = usePathname();
+  const [isAdminSubdomain, setIsAdminSubdomain] = useState(false);
 
-  // Skip cart operations for admin routes
-  const isAdminRoute = pathname?.startsWith('/admin-path-57fyg');
+  // Check if we're on admin subdomain (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      // Check for admin.dekop.com.ua or admin.localhost patterns
+      const isAdmin = hostname.startsWith('admin.') || hostname === 'admin.dekop.com.ua';
+      setIsAdminSubdomain(isAdmin);
+    }
+  }, []);
+
+  // Skip cart operations for admin routes (by path or subdomain)
+  const isAdminRoute = pathname?.startsWith('/admin-path-57fyg') || isAdminSubdomain;
 
   // Fetch cart data (disabled for admin routes)
   const { data: cartData, isLoading, error } = useQuery<Cart>({

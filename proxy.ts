@@ -54,9 +54,18 @@ export function proxy(req: NextRequest) {
     const rewriteUrl = new URL(newPath, req.url);
     rewriteUrl.search = requestUrl.search;
 
-    // Continue with security headers on rewritten response
+    // Generate nonce and pass it in request headers for downstream components
     const nonce = generateNonce();
-    const response = NextResponse.rewrite(rewriteUrl);
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-nonce', nonce);
+    requestHeaders.set('x-pathname', newPath);
+    requestHeaders.set('x-admin-subdomain', 'true'); // Flag for client-side detection
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
     return addSecurityHeaders(req, response, nonce, origin, true);
   }
 
