@@ -24,8 +24,13 @@ interface Product {
   updated_at: string;
 }
 
-type SortColumn = 'category' | 'price' | 'stock' | 'is_on_sale' | 'updated_at' | null;
+type SortColumn = 'category' | 'price' | 'stock' | 'is_on_sale' | 'updated_at';
 type SortOrder = 'asc' | 'desc';
+
+interface SortConfig {
+  column: SortColumn;
+  order: SortOrder;
+}
 
 interface ProductsTableProps {
   products: Product[];
@@ -72,12 +77,17 @@ function getStockClass(stock: number): string {
   return styles.stockNormal;
 }
 
-// Sort indicator component
-function SortIndicator({ column, currentSort, currentOrder }: { column: SortColumn; currentSort: SortColumn; currentOrder: SortOrder }) {
-  if (currentSort !== column) {
+// Sort indicator component for multi-column sorting
+function SortIndicator({ column, sortConfigs }: { column: SortColumn; sortConfigs: SortConfig[] }) {
+  const sortIndex = sortConfigs.findIndex(s => s.column === column);
+  if (sortIndex === -1) {
     return <span className={styles.sortIndicator}>↕</span>;
   }
-  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '↑' : '↓'}</span>;
+  const config = sortConfigs[sortIndex];
+  const arrow = config.order === 'asc' ? '↑' : '↓';
+  // Show priority number if multiple sorts active
+  const priority = sortConfigs.length > 1 ? `${sortIndex + 1}` : '';
+  return <span className={styles.sortIndicatorActive}>{arrow}{priority}</span>;
 }
 
 export default function ProductsTable({
@@ -91,75 +101,94 @@ export default function ProductsTable({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // Read sort state from URL params (persists across refresh)
+  // Read multi-sort state from URL params (format: sort=col1:asc,col2:desc)
   const validSortColumns: SortColumn[] = ['category', 'price', 'stock', 'is_on_sale', 'updated_at'];
-  const urlSort = searchParams.get('sort') as SortColumn;
-  const urlOrder = searchParams.get('order') as SortOrder;
-  const sortColumn: SortColumn = validSortColumns.includes(urlSort) ? urlSort : null;
-  const sortOrder: SortOrder = urlOrder === 'asc' ? 'asc' : 'desc';
+  const sortConfigs: SortConfig[] = useMemo(() => {
+    const sortParam = searchParams.get('sort');
+    if (!sortParam) return [];
 
-  // Handle sort click: cycle through desc -> asc -> reset
-  const handleSort = useCallback((column: SortColumn) => {
+    return sortParam.split(',').map(part => {
+      const [col, ord] = part.split(':');
+      return {
+        column: col as SortColumn,
+        order: (ord === 'asc' ? 'asc' : 'desc') as SortOrder
+      };
+    }).filter(s => validSortColumns.includes(s.column));
+  }, [searchParams]);
+
+  // Handle sort click: click adds/modifies column, shift+click for multi-sort
+  const handleSort = useCallback((column: SortColumn, event: React.MouseEvent) => {
     const params = new URLSearchParams(searchParams.toString());
+    const isMultiSort = event.shiftKey;
 
-    if (sortColumn === column) {
-      if (sortOrder === 'desc') {
-        // Second click: switch to ascending
-        params.set('sort', column!);
-        params.set('order', 'asc');
+    const existingIndex = sortConfigs.findIndex(s => s.column === column);
+    let newConfigs: SortConfig[];
+
+    if (existingIndex !== -1) {
+      // Column already in sort - cycle through desc -> asc -> remove
+      const current = sortConfigs[existingIndex];
+      if (current.order === 'desc') {
+        // Switch to ascending
+        newConfigs = [...sortConfigs];
+        newConfigs[existingIndex] = { column, order: 'asc' };
       } else {
-        // Third click: reset sorting
-        params.delete('sort');
-        params.delete('order');
+        // Remove from sort
+        newConfigs = sortConfigs.filter((_, i) => i !== existingIndex);
       }
     } else {
-      // First click on new column: sort descending
-      params.set('sort', column!);
-      params.set('order', 'desc');
+      // Add new column to sort
+      if (isMultiSort) {
+        // Shift+click: add to existing sorts
+        newConfigs = [...sortConfigs, { column, order: 'desc' }];
+      } else {
+        // Regular click: replace all sorts
+        newConfigs = [{ column, order: 'desc' }];
+      }
+    }
+
+    // Update URL
+    if (newConfigs.length === 0) {
+      params.delete('sort');
+    } else {
+      params.set('sort', newConfigs.map(s => `${s.column}:${s.order}`).join(','));
     }
 
     router.replace(`?${params.toString()}`, { scroll: false });
-  }, [searchParams, sortColumn, sortOrder, router]);
+  }, [searchParams, sortConfigs, router]);
 
-  // Sort products client-side
+  // Get value for sorting
+  const getSortValue = (product: Product, column: SortColumn): string | number => {
+    switch (column) {
+      case 'category':
+        return product.category;
+      case 'price':
+        return product.price;
+      case 'stock':
+        return product.stock;
+      case 'is_on_sale':
+        return (product.is_on_sale ? 4 : 0) + (product.is_new ? 2 : 0) + (product.is_bestseller ? 1 : 0);
+      case 'updated_at':
+        return new Date(product.updated_at).getTime();
+      default:
+        return 0;
+    }
+  };
+
+  // Sort products client-side with multi-column support
   const sortedProducts = useMemo(() => {
-    if (!sortColumn) return products;
+    if (sortConfigs.length === 0) return products;
 
     return [...products].sort((a, b) => {
-      let aVal: string | number | boolean;
-      let bVal: string | number | boolean;
+      for (const config of sortConfigs) {
+        const aVal = getSortValue(a, config.column);
+        const bVal = getSortValue(b, config.column);
 
-      switch (sortColumn) {
-        case 'category':
-          aVal = a.category;
-          bVal = b.category;
-          break;
-        case 'price':
-          aVal = a.price;
-          bVal = b.price;
-          break;
-        case 'stock':
-          aVal = a.stock;
-          bVal = b.stock;
-          break;
-        case 'is_on_sale':
-          // Sort by: is_on_sale, then is_new, then is_bestseller
-          aVal = (a.is_on_sale ? 4 : 0) + (a.is_new ? 2 : 0) + (a.is_bestseller ? 1 : 0);
-          bVal = (b.is_on_sale ? 4 : 0) + (b.is_new ? 2 : 0) + (b.is_bestseller ? 1 : 0);
-          break;
-        case 'updated_at':
-          aVal = new Date(a.updated_at).getTime();
-          bVal = new Date(b.updated_at).getTime();
-          break;
-        default:
-          return 0;
+        if (aVal < bVal) return config.order === 'asc' ? -1 : 1;
+        if (aVal > bVal) return config.order === 'asc' ? 1 : -1;
       }
-
-      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [products, sortColumn, sortOrder]);
+  }, [products, sortConfigs]);
 
   const allSelected = sortedProducts.length > 0 && selectedIds.size === sortedProducts.length;
   const someSelected = selectedIds.size > 0 && selectedIds.size < sortedProducts.length;
@@ -283,48 +312,48 @@ export default function ProductsTable({
               <th className={styles.th}>Назва</th>
               <th className={styles.th}>
                 <button
-                  onClick={() => handleSort('category')}
-                  className={sortColumn === 'category' ? styles.sortableHeaderActive : styles.sortableHeader}
+                  onClick={(e) => handleSort('category', e)}
+                  className={sortConfigs.some(s => s.column === 'category') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Категорія
-                  <SortIndicator column="category" currentSort={sortColumn} currentOrder={sortOrder} />
+                  <SortIndicator column="category" sortConfigs={sortConfigs} />
                 </button>
               </th>
               <th className={styles.th}>
                 <button
-                  onClick={() => handleSort('price')}
-                  className={sortColumn === 'price' ? styles.sortableHeaderActive : styles.sortableHeader}
+                  onClick={(e) => handleSort('price', e)}
+                  className={sortConfigs.some(s => s.column === 'price') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Ціна
-                  <SortIndicator column="price" currentSort={sortColumn} currentOrder={sortOrder} />
+                  <SortIndicator column="price" sortConfigs={sortConfigs} />
                 </button>
               </th>
               <th className={styles.th}>
                 <button
-                  onClick={() => handleSort('stock')}
-                  className={sortColumn === 'stock' ? styles.sortableHeaderActive : styles.sortableHeader}
+                  onClick={(e) => handleSort('stock', e)}
+                  className={sortConfigs.some(s => s.column === 'stock') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Запас
-                  <SortIndicator column="stock" currentSort={sortColumn} currentOrder={sortOrder} />
+                  <SortIndicator column="stock" sortConfigs={sortConfigs} />
                 </button>
               </th>
               <th className={styles.th}>
                 <button
-                  onClick={() => handleSort('is_on_sale')}
-                  className={sortColumn === 'is_on_sale' ? styles.sortableHeaderActive : styles.sortableHeader}
+                  onClick={(e) => handleSort('is_on_sale', e)}
+                  className={sortConfigs.some(s => s.column === 'is_on_sale') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Мітки
-                  <SortIndicator column="is_on_sale" currentSort={sortColumn} currentOrder={sortOrder} />
+                  <SortIndicator column="is_on_sale" sortConfigs={sortConfigs} />
                 </button>
               </th>
               <th className={styles.th}>Створено</th>
               <th className={styles.th}>
                 <button
-                  onClick={() => handleSort('updated_at')}
-                  className={sortColumn === 'updated_at' ? styles.sortableHeaderActive : styles.sortableHeader}
+                  onClick={(e) => handleSort('updated_at', e)}
+                  className={sortConfigs.some(s => s.column === 'updated_at') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Змінено
-                  <SortIndicator column="updated_at" currentSort={sortColumn} currentOrder={sortOrder} />
+                  <SortIndicator column="updated_at" sortConfigs={sortConfigs} />
                 </button>
               </th>
               <th className={styles.th}>Дії</th>
