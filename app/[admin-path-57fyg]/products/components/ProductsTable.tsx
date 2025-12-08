@@ -76,7 +76,7 @@ function getStockClass(stock: number): string {
 function getSortValue(product: Product, column: SortColumn): string | number {
   switch (column) {
     case 'category':
-      return formatCategory(product.category); // Sort by Ukrainian name alphabetically
+      return product.category; // Sort by category to group same categories together
     case 'price':
       return product.price;
     case 'stock':
