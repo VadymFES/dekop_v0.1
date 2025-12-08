@@ -77,7 +77,25 @@ function getStockClass(stock: number): string {
   return styles.stockNormal;
 }
 
-// Sort indicator component for multi-column sorting
+// Get value for sorting - must be outside component for proper memoization
+function getSortValue(product: Product, column: SortColumn): string | number {
+  switch (column) {
+    case 'category':
+      return product.category;
+    case 'price':
+      return product.price;
+    case 'stock':
+      return product.stock;
+    case 'is_on_sale':
+      return (product.is_on_sale ? 4 : 0) + (product.is_new ? 2 : 0) + (product.is_bestseller ? 1 : 0);
+    case 'updated_at':
+      return new Date(product.updated_at).getTime();
+    default:
+      return 0;
+  }
+}
+
+// Sort indicator component
 function SortIndicator({ column, sortConfigs }: { column: SortColumn; sortConfigs: SortConfig[] }) {
   const sortIndex = sortConfigs.findIndex(s => s.column === column);
   if (sortIndex === -1) {
@@ -85,9 +103,7 @@ function SortIndicator({ column, sortConfigs }: { column: SortColumn; sortConfig
   }
   const config = sortConfigs[sortIndex];
   const arrow = config.order === 'asc' ? '↑' : '↓';
-  // Show priority number if multiple sorts active
-  const priority = sortConfigs.length > 1 ? `${sortIndex + 1}` : '';
-  return <span className={styles.sortIndicatorActive}>{arrow}{priority}</span>;
+  return <span className={styles.sortIndicatorActive}>{arrow}</span>;
 }
 
 export default function ProductsTable({
@@ -148,24 +164,6 @@ export default function ProductsTable({
 
     router.replace(`?${params.toString()}`, { scroll: false });
   }, [searchParams, sortConfigs, router]);
-
-  // Get value for sorting
-  const getSortValue = (product: Product, column: SortColumn): string | number => {
-    switch (column) {
-      case 'category':
-        return product.category;
-      case 'price':
-        return product.price;
-      case 'stock':
-        return product.stock;
-      case 'is_on_sale':
-        return (product.is_on_sale ? 4 : 0) + (product.is_new ? 2 : 0) + (product.is_bestseller ? 1 : 0);
-      case 'updated_at':
-        return new Date(product.updated_at).getTime();
-      default:
-        return 0;
-    }
-  };
 
   // Sort products client-side with multi-column support
   const sortedProducts = useMemo(() => {
