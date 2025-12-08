@@ -88,7 +88,7 @@ export default async function RootLayout({
         <QueryProvider>
           <CartProvider>
             <FavoritesProvider>
-              <ClientLayout>{children}</ClientLayout>
+              <ClientLayout isAdminRoute={isAdminRoute}>{children}</ClientLayout>
               {!isAdminRoute && <CookieConsent />}
               {!isAdminRoute && <SpeedInsights />}
               {!isAdminRoute && <Analytics />}
