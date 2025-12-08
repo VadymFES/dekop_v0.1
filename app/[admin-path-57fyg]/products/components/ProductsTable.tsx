@@ -72,19 +72,6 @@ function getStockClass(stock: number): string {
   return styles.stockNormal;
 }
 
-function getSortLabel(sort: string): string {
-  const labels: Record<string, string> = {
-    category: 'Категорія',
-    price: 'Ціна',
-    stock: 'Запас',
-    is_on_sale: 'Мітки',
-    updated_at: 'Змінено',
-    created_at: 'Створено',
-    name: 'Назва',
-  };
-  return labels[sort] || sort;
-}
-
 // Sort indicator component
 function SortIndicator({ column, currentSort, currentOrder }: { column: string; currentSort: string; currentOrder: string }) {
   if (currentSort !== column) {
@@ -94,24 +81,27 @@ function SortIndicator({ column, currentSort, currentOrder }: { column: string; 
 }
 
 // Build sort URL helper
+// Click cycle: 1st click = desc, 2nd click = asc, 3rd click = reset to default
 function buildSortUrl(column: string, currentSort: string, currentOrder: string, searchParams: { search: string; category: string; low_stock: string }) {
   const params = new URLSearchParams();
   if (searchParams.search) params.set('search', searchParams.search);
   if (searchParams.category) params.set('category', searchParams.category);
   if (searchParams.low_stock) params.set('low_stock', searchParams.low_stock);
-  params.set('sort', column);
-  // Toggle order if clicking on the same column, otherwise default to desc
-  const newOrder = currentSort === column && currentOrder === 'desc' ? 'asc' : 'desc';
-  params.set('order', newOrder);
-  return `/admin-path-57fyg/products?${params.toString()}`;
-}
 
-// Build reset URL (removes sort params)
-function buildResetUrl(searchParams: { search: string; category: string; low_stock: string }) {
-  const params = new URLSearchParams();
-  if (searchParams.search) params.set('search', searchParams.search);
-  if (searchParams.category) params.set('category', searchParams.category);
-  if (searchParams.low_stock) params.set('low_stock', searchParams.low_stock);
+  if (currentSort === column) {
+    if (currentOrder === 'desc') {
+      // Second click: switch to ascending
+      params.set('sort', column);
+      params.set('order', 'asc');
+    }
+    // Third click (asc): reset to default - don't set sort/order params
+    // This will use the default created_at desc
+  } else {
+    // First click on new column: sort descending
+    params.set('sort', column);
+    params.set('order', 'desc');
+  }
+
   return `/admin-path-57fyg/products${params.toString() ? '?' + params.toString() : ''}`;
 }
 
@@ -223,23 +213,8 @@ export default function ProductsTable({
     }
   };
 
-  // Check if sorting is active (not default)
-  const isCustomSort = currentSort !== 'created_at' || currentOrder !== 'desc';
-
   return (
     <>
-      {/* Sort info bar */}
-      {isCustomSort && (
-        <div className={styles.sortInfoBar}>
-          <span className={styles.sortInfoText}>
-            Сортування: <strong>{getSortLabel(currentSort)}</strong> ({currentOrder === 'asc' ? 'за зростанням' : 'за спаданням'})
-          </span>
-          <Link href={buildResetUrl(searchParams)} className={styles.sortResetButton}>
-            ✕ Скинути сортування
-          </Link>
-        </div>
-      )}
-
       {/* Bulk actions bar */}
       {canDelete && selectedIds.size > 0 && (
         <div className={styles.bulkActionsBar}>

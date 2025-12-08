@@ -357,44 +357,6 @@
   font-weight: bold;
 }
 
-/* Sort Reset Button */
-.sortResetButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: #fff3e0;
-  color: #e65100;
-  border: 1px solid #ffcc80;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.sortResetButton:hover {
-  background-color: #ffe0b2;
-  border-color: #ffb74d;
-}
-
-/* Sort Info Bar */
-.sortInfoBar {
-  background-color: #e3f2fd;
-  border: 1px solid #90caf9;
-  border-radius: 4px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.sortInfoText {
-  color: #1565c0;
-  font-size: 14px;
-}
-
 /* Stock status */
 .stockNormal {
   color: #333;
