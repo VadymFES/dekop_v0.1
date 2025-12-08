@@ -354,13 +354,15 @@
 }
 
 .sortIndicator {
-  font-size: 10px;
+  font-size: 12px;
   color: #999;
+  font-weight: 700;
 }
 
 .sortIndicatorActive {
-  font-size: 10px;
+  font-size: 12px;
   color: #333;
+  font-weight: 700;
 }
 
 /* Stock status */
