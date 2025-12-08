@@ -32,19 +32,79 @@ interface ProductsTableProps {
   canDelete: boolean;
 }
 
+// Map to display Ukrainian category names
+const CATEGORY_DISPLAY: Record<string, string> = {
+  sofas: 'Дивани',
+  corner_sofas: 'Кутові дивани',
+  sofa_beds: 'Дивани-ліжка',
+  beds: 'Ліжка',
+  tables: 'Столи',
+  chairs: 'Стільці',
+  mattresses: 'Матраци',
+  wardrobes: 'Шафи',
+  accessories: 'Аксесуари',
+};
+
+// Map Ukrainian category names to English keys for normalization
+const CATEGORY_NORMALIZE: Record<string, string> = {
+  // English keys (pass through)
+  sofas: 'sofas',
+  corner_sofas: 'corner_sofas',
+  sofa_beds: 'sofa_beds',
+  beds: 'beds',
+  tables: 'tables',
+  chairs: 'chairs',
+  mattresses: 'mattresses',
+  wardrobes: 'wardrobes',
+  accessories: 'accessories',
+  // Ukrainian singular
+  'диван': 'sofas',
+  'кутовий диван': 'corner_sofas',
+  'диван-ліжко': 'sofa_beds',
+  'ліжко': 'beds',
+  'стіл': 'tables',
+  'стілець': 'chairs',
+  'матрац': 'mattresses',
+  'шафа': 'wardrobes',
+  'аксесуар': 'accessories',
+  // Ukrainian plural
+  'дивани': 'sofas',
+  'кутові дивани': 'corner_sofas',
+  'дивани-ліжка': 'sofa_beds',
+  'ліжка': 'beds',
+  'столи': 'tables',
+  'стільці': 'chairs',
+  'матраци': 'mattresses',
+  'шафи': 'wardrobes',
+  'аксесуари': 'accessories',
+};
+
+// Sort order for categories (numeric for consistent grouping)
+const CATEGORY_SORT_ORDER: Record<string, number> = {
+  sofas: 1,
+  corner_sofas: 2,
+  sofa_beds: 3,
+  beds: 4,
+  tables: 5,
+  chairs: 6,
+  mattresses: 7,
+  wardrobes: 8,
+  accessories: 9,
+};
+
+function normalizeCategory(category: string): string {
+  const normalized = category?.toLowerCase().trim();
+  return CATEGORY_NORMALIZE[normalized] || category;
+}
+
+function getCategorySortOrder(category: string): number {
+  const normalized = normalizeCategory(category);
+  return CATEGORY_SORT_ORDER[normalized] || 999;
+}
+
 function formatCategory(category: string): string {
-  const categories: Record<string, string> = {
-    sofas: 'Дивани',
-    corner_sofas: 'Кутові дивани',
-    sofa_beds: 'Дивани-ліжка',
-    beds: 'Ліжка',
-    tables: 'Столи',
-    chairs: 'Стільці',
-    mattresses: 'Матраци',
-    wardrobes: 'Шафи',
-    accessories: 'Аксесуари',
-  };
-  return categories[category] || category;
+  const normalized = normalizeCategory(category);
+  return CATEGORY_DISPLAY[normalized] || category;
 }
 
 function formatCurrency(amount: number): string {
@@ -76,7 +136,7 @@ function getStockClass(stock: number): string {
 function getSortValue(product: Product, column: SortColumn): string | number {
   switch (column) {
     case 'category':
-      return product.category; // Sort by category to group same categories together
+      return getCategorySortOrder(product.category); // Use numeric order to group categories
     case 'price':
       return product.price;
     case 'stock':
