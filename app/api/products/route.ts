@@ -2,23 +2,72 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { getCacheHeaders } from "@/app/lib/cache-headers";
 
-// Helper function to normalize category names
+// Map English category to Ukrainian (as stored in DB)
+const CATEGORY_TO_UKRAINIAN: Record<string, string> = {
+  'sofas': 'Диван',
+  'corner_sofas': 'Кутовий Диван',
+  'sofa_beds': 'Диван-Ліжко',
+  'beds': 'Ліжко',
+  'tables': 'Стіл',
+  'chairs': 'Стілець',
+  'mattresses': 'Матрац',
+  'wardrobes': 'Шафа',
+  'accessories': 'Аксесуар',
+};
+
+// Map Ukrainian category to English for normalization
+const CATEGORY_TO_ENGLISH: Record<string, string> = {
+  // English pass-through
+  'sofas': 'sofas',
+  'corner_sofas': 'corner_sofas',
+  'sofa_beds': 'sofa_beds',
+  'beds': 'beds',
+  'tables': 'tables',
+  'chairs': 'chairs',
+  'mattresses': 'mattresses',
+  'wardrobes': 'wardrobes',
+  'accessories': 'accessories',
+  // Ukrainian singular
+  'диван': 'sofas',
+  'кутовий диван': 'corner_sofas',
+  'диван-ліжко': 'sofa_beds',
+  'ліжко': 'beds',
+  'стіл': 'tables',
+  'стілець': 'chairs',
+  'матрац': 'mattresses',
+  'шафа': 'wardrobes',
+  'аксесуар': 'accessories',
+  // Ukrainian plural
+  'дивани': 'sofas',
+  'кутові дивани': 'corner_sofas',
+  'дивани-ліжка': 'sofa_beds',
+  'ліжка': 'beds',
+  'столи': 'tables',
+  'стільці': 'chairs',
+  'матраци': 'mattresses',
+  'шафи': 'wardrobes',
+  'аксесуари': 'accessories',
+};
+
+// Helper function to normalize category names to English
 function normalizeCategory(category: string): string {
-  // Convert category names to their normalized form
-  const categoryMap: Record<string, string> = {
-    'corner sofa': 'corner_sofas',
-    'sofa': 'sofas',
-    'sofa bed': 'sofa_beds',
-    'bed': 'beds',
-    'table': 'tables',
-    'chair': 'chairs',
-    'mattress': 'mattresses',
-    'wardrobe': 'wardrobes',
-    'accessory': 'accessories'
-  };
-  
-  const lowerCategory = category.toLowerCase();
-  return categoryMap[lowerCategory] || lowerCategory;
+  const lowerCategory = category.toLowerCase().trim();
+  return CATEGORY_TO_ENGLISH[lowerCategory] || category;
+}
+
+// Get Ukrainian category for DB query (accepts both English and Ukrainian)
+function getCategoryForDB(category: string): string {
+  // If already Ukrainian, return as-is
+  const lowerCategory = category.toLowerCase().trim();
+  const normalizedToEnglish = CATEGORY_TO_ENGLISH[lowerCategory];
+
+  if (normalizedToEnglish) {
+    // It's a known category (English or Ukrainian), convert to Ukrainian for DB
+    return CATEGORY_TO_UKRAINIAN[normalizedToEnglish] || category;
+  }
+
+  // Unknown category, return as-is
+  return category;
 }
 
 export async function GET(request: Request) {
@@ -204,10 +253,11 @@ export async function GET(request: Request) {
     const values: (string | number | string[] | number[])[] = [];
     let paramIndex = 1;
 
-    // Filter by category
+    // Filter by category (convert to Ukrainian DB value)
     if (category) {
+      const categoryForDB = getCategoryForDB(category);
       conditions.push(`p.category = $${paramIndex++}`);
-      values.push(category);
+      values.push(categoryForDB);
     }
 
     // Filter by max price

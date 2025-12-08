@@ -79,27 +79,9 @@ const CATEGORY_NORMALIZE: Record<string, string> = {
   'аксесуари': 'accessories',
 };
 
-// Sort order for categories (numeric for consistent grouping)
-const CATEGORY_SORT_ORDER: Record<string, number> = {
-  sofas: 1,
-  corner_sofas: 2,
-  sofa_beds: 3,
-  beds: 4,
-  tables: 5,
-  chairs: 6,
-  mattresses: 7,
-  wardrobes: 8,
-  accessories: 9,
-};
-
 function normalizeCategory(category: string): string {
   const normalized = category?.toLowerCase().trim();
   return CATEGORY_NORMALIZE[normalized] || category;
-}
-
-function getCategorySortOrder(category: string): number {
-  const normalized = normalizeCategory(category);
-  return CATEGORY_SORT_ORDER[normalized] || 999;
 }
 
 function formatCategory(category: string): string {
@@ -136,7 +118,7 @@ function getStockClass(stock: number): string {
 function getSortValue(product: Product, column: SortColumn): string | number {
   switch (column) {
     case 'category':
-      return getCategorySortOrder(product.category); // Use numeric order to group categories
+      return formatCategory(product.category); // Use display name for alphabetic sorting
     case 'price':
       return product.price;
     case 'stock':
