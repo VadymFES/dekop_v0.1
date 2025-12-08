@@ -4,9 +4,9 @@
  * Products table with multi-select and bulk delete functionality
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ConfirmModal from '../../components/ConfirmModal';
 import styles from '../../styles/admin.module.css';
 
@@ -85,30 +85,41 @@ export default function ProductsTable({
   canDelete,
 }: ProductsTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // Client-side sorting state
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  // Read sort state from URL params (persists across refresh)
+  const validSortColumns: SortColumn[] = ['category', 'price', 'stock', 'is_on_sale', 'updated_at'];
+  const urlSort = searchParams.get('sort') as SortColumn;
+  const urlOrder = searchParams.get('order') as SortOrder;
+  const sortColumn: SortColumn = validSortColumns.includes(urlSort) ? urlSort : null;
+  const sortOrder: SortOrder = urlOrder === 'asc' ? 'asc' : 'desc';
 
   // Handle sort click: cycle through desc -> asc -> reset
-  const handleSort = (column: SortColumn) => {
+  const handleSort = useCallback((column: SortColumn) => {
+    const params = new URLSearchParams(searchParams.toString());
+
     if (sortColumn === column) {
       if (sortOrder === 'desc') {
-        setSortOrder('asc');
+        // Second click: switch to ascending
+        params.set('sort', column!);
+        params.set('order', 'asc');
       } else {
-        // Reset sorting
-        setSortColumn(null);
-        setSortOrder('desc');
+        // Third click: reset sorting
+        params.delete('sort');
+        params.delete('order');
       }
     } else {
-      setSortColumn(column);
-      setSortOrder('desc');
+      // First click on new column: sort descending
+      params.set('sort', column!);
+      params.set('order', 'desc');
     }
-  };
+
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, sortColumn, sortOrder, router]);
 
   // Sort products client-side
   const sortedProducts = useMemo(() => {
