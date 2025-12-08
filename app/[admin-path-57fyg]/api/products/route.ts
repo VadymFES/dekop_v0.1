@@ -75,7 +75,8 @@ export async function GET(request: NextRequest) {
     const total = Number(countResult.rows[0]?.total) || 0;
 
     // Get products
-    const sortColumn = ['name', 'price', 'stock', 'created_at'].includes(sort) ? sort : 'created_at';
+    const allowedSortColumns = ['name', 'price', 'stock', 'category', 'updated_at', 'created_at', 'is_on_sale', 'is_new', 'is_bestseller'];
+    const sortColumn = allowedSortColumns.includes(sort) ? sort : 'created_at';
     const sortOrder = order === 'asc' ? 'ASC' : 'DESC';
 
     const productsQuery = `

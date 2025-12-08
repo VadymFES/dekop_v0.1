@@ -27,6 +27,9 @@ interface Product {
 interface ProductsTableProps {
   products: Product[];
   canDelete: boolean;
+  currentSort: string;
+  currentOrder: string;
+  searchParams: { search: string; category: string; low_stock: string };
 }
 
 function formatCategory(category: string): string {
@@ -69,9 +72,33 @@ function getStockClass(stock: number): string {
   return styles.stockNormal;
 }
 
+// Sort indicator component
+function SortIndicator({ column, currentSort, currentOrder }: { column: string; currentSort: string; currentOrder: string }) {
+  if (currentSort !== column) {
+    return <span className={styles.sortIndicator}>⇅</span>;
+  }
+  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '↑' : '↓'}</span>;
+}
+
+// Build sort URL helper
+function buildSortUrl(column: string, currentSort: string, currentOrder: string, searchParams: { search: string; category: string; low_stock: string }) {
+  const params = new URLSearchParams();
+  if (searchParams.search) params.set('search', searchParams.search);
+  if (searchParams.category) params.set('category', searchParams.category);
+  if (searchParams.low_stock) params.set('low_stock', searchParams.low_stock);
+  params.set('sort', column);
+  // Toggle order if clicking on the same column, otherwise default to desc
+  const newOrder = currentSort === column && currentOrder === 'desc' ? 'asc' : 'desc';
+  params.set('order', newOrder);
+  return `/admin-path-57fyg/products?${params.toString()}`;
+}
+
 export default function ProductsTable({
   products,
   canDelete,
+  currentSort,
+  currentOrder,
+  searchParams,
 }: ProductsTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -199,12 +226,37 @@ export default function ProductsTable({
               )}
               <th className={styles.th}>ID</th>
               <th className={styles.th}>Назва</th>
-              <th className={styles.th}>Категорія</th>
-              <th className={styles.th}>Ціна</th>
-              <th className={styles.th}>Запас</th>
-              <th className={styles.th}>Мітки</th>
+              <th className={styles.th}>
+                <Link href={buildSortUrl('category', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
+                  Категорія
+                  <SortIndicator column="category" currentSort={currentSort} currentOrder={currentOrder} />
+                </Link>
+              </th>
+              <th className={styles.th}>
+                <Link href={buildSortUrl('price', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
+                  Ціна
+                  <SortIndicator column="price" currentSort={currentSort} currentOrder={currentOrder} />
+                </Link>
+              </th>
+              <th className={styles.th}>
+                <Link href={buildSortUrl('stock', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
+                  Запас
+                  <SortIndicator column="stock" currentSort={currentSort} currentOrder={currentOrder} />
+                </Link>
+              </th>
+              <th className={styles.th}>
+                <Link href={buildSortUrl('is_on_sale', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
+                  Мітки
+                  <SortIndicator column="is_on_sale" currentSort={currentSort} currentOrder={currentOrder} />
+                </Link>
+              </th>
               <th className={styles.th}>Створено</th>
-              <th className={styles.th}>Змінено</th>
+              <th className={styles.th}>
+                <Link href={buildSortUrl('updated_at', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
+                  Змінено
+                  <SortIndicator column="updated_at" currentSort={currentSort} currentOrder={currentOrder} />
+                </Link>
+              </th>
               <th className={styles.th}>Дії</th>
             </tr>
           </thead>

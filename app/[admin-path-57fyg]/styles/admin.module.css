@@ -308,6 +308,33 @@
   background-color: #e3f2fd;
 }
 
+/* Sortable Headers */
+.sortableHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sortableHeader:hover {
+  color: #1976d2;
+}
+
+.sortIndicator {
+  font-size: 12px;
+  color: #999;
+  opacity: 0.5;
+}
+
+.sortIndicatorActive {
+  font-size: 12px;
+  color: #1976d2;
+  font-weight: bold;
+}
+
 /* Stock status */
 .stockNormal {
   color: #333;

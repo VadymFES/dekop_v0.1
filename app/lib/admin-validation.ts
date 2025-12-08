@@ -367,7 +367,7 @@ export const productFiltersSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
   category: z.string().optional(),
   search: z.string().max(100).optional(),
-  sort: z.enum(['name', 'price', 'stock', 'created_at']).optional().default('created_at'),
+  sort: z.enum(['name', 'price', 'stock', 'category', 'updated_at', 'created_at', 'is_on_sale', 'is_new', 'is_bestseller']).optional().default('created_at'),
   order: z.enum(['asc', 'desc']).optional().default('desc'),
   is_active: z.coerce.boolean().optional(),
   low_stock: z.coerce.boolean().optional(), // Show only products with stock < 10
