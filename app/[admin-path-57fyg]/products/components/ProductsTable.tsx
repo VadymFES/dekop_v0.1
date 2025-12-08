@@ -117,12 +117,15 @@ export default function ProductsTable({
   const sortColumn: SortColumn | null = validSortColumns.includes(sortCol as SortColumn) ? sortCol as SortColumn : null;
   const sortOrder: SortOrder = sortOrd === 'asc' ? 'asc' : 'desc';
 
-  // Handle sort click: cycle desc -> asc -> remove
+  // Handle sort click: category toggles sorted/default, others cycle desc -> asc -> remove
   const handleSort = useCallback((column: SortColumn) => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (sortColumn === column) {
-      if (sortOrder === 'desc') {
+      if (column === 'category') {
+        // Category: toggle between sorted and default (2 clicks)
+        params.delete('sort');
+      } else if (sortOrder === 'desc') {
         params.set('sort', `${column}:asc`);
       } else {
         params.delete('sort');
