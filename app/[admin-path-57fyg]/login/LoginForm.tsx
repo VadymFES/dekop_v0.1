@@ -13,6 +13,7 @@ export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -79,7 +80,7 @@ export default function LoginForm() {
       <div className={styles.mt15}>
         <label htmlFor="password" className={styles.label}>Пароль</label>
         <input
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           id="password"
           name="password"
           value={password}
@@ -88,6 +89,15 @@ export default function LoginForm() {
           autoComplete="current-password"
           className={styles.input}
         />
+        <label className={styles.showPasswordLabel}>
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={(e) => setShowPassword(e.target.checked)}
+            className={styles.showPasswordCheckbox}
+          />
+          Показати пароль
+        </label>
       </div>
 
       <button
