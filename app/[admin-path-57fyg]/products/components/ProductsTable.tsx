@@ -116,10 +116,9 @@ export default function ProductsTable({
     }).filter(s => validSortColumns.includes(s.column));
   }, [searchParams]);
 
-  // Handle sort click: click adds/modifies column, shift+click for multi-sort
-  const handleSort = useCallback((column: SortColumn, event: React.MouseEvent) => {
+  // Handle sort click: click adds column to sort, clicking again cycles desc -> asc -> remove
+  const handleSort = useCallback((column: SortColumn) => {
     const params = new URLSearchParams(searchParams.toString());
-    const isMultiSort = event.shiftKey;
 
     const existingIndex = sortConfigs.findIndex(s => s.column === column);
     let newConfigs: SortConfig[];
@@ -136,14 +135,8 @@ export default function ProductsTable({
         newConfigs = sortConfigs.filter((_, i) => i !== existingIndex);
       }
     } else {
-      // Add new column to sort
-      if (isMultiSort) {
-        // Shift+click: add to existing sorts
-        newConfigs = [...sortConfigs, { column, order: 'desc' }];
-      } else {
-        // Regular click: replace all sorts
-        newConfigs = [{ column, order: 'desc' }];
-      }
+      // Add new column to existing sorts
+      newConfigs = [...sortConfigs, { column, order: 'desc' }];
     }
 
     // Update URL
@@ -312,7 +305,7 @@ export default function ProductsTable({
               <th className={styles.th}>Назва</th>
               <th className={styles.th}>
                 <button
-                  onClick={(e) => handleSort('category', e)}
+                  onClick={() => handleSort('category')}
                   className={sortConfigs.some(s => s.column === 'category') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Категорія
@@ -321,7 +314,7 @@ export default function ProductsTable({
               </th>
               <th className={styles.th}>
                 <button
-                  onClick={(e) => handleSort('price', e)}
+                  onClick={() => handleSort('price')}
                   className={sortConfigs.some(s => s.column === 'price') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Ціна
@@ -330,7 +323,7 @@ export default function ProductsTable({
               </th>
               <th className={styles.th}>
                 <button
-                  onClick={(e) => handleSort('stock', e)}
+                  onClick={() => handleSort('stock')}
                   className={sortConfigs.some(s => s.column === 'stock') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Запас
@@ -339,7 +332,7 @@ export default function ProductsTable({
               </th>
               <th className={styles.th}>
                 <button
-                  onClick={(e) => handleSort('is_on_sale', e)}
+                  onClick={() => handleSort('is_on_sale')}
                   className={sortConfigs.some(s => s.column === 'is_on_sale') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Мітки
@@ -349,7 +342,7 @@ export default function ProductsTable({
               <th className={styles.th}>Створено</th>
               <th className={styles.th}>
                 <button
-                  onClick={(e) => handleSort('updated_at', e)}
+                  onClick={() => handleSort('updated_at')}
                   className={sortConfigs.some(s => s.column === 'updated_at') ? styles.sortableHeaderActive : styles.sortableHeader}
                 >
                   Змінено
