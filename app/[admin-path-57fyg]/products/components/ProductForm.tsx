@@ -505,9 +505,25 @@ export default function ProductForm({ product }: ProductFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
+
+    let newValue: string | number | boolean | null;
+    if (type === 'checkbox') {
+      newValue = checked;
+    } else if (type === 'number') {
+      // For optional fields like sale_price, allow null when empty
+      // For required fields like price and stock, use 0 when empty
+      if (value === '') {
+        newValue = name === 'sale_price' ? null : 0;
+      } else {
+        newValue = Number(value);
+      }
+    } else {
+      newValue = value;
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? (value === '' ? undefined : Number(value)) : value,
+      [name]: newValue,
     }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
