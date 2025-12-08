@@ -28,6 +28,23 @@ const SPEC_TABLES: Record<string, string> = {
   accessories: 'accessory_specs',
 };
 
+// Map English category to Ukrainian for database storage
+const CATEGORY_TO_UKRAINIAN: Record<string, string> = {
+  sofas: 'Диван',
+  corner_sofas: 'Кутовий Диван',
+  sofa_beds: 'Диван-Ліжко',
+  beds: 'Ліжко',
+  tables: 'Стіл',
+  chairs: 'Стілець',
+  mattresses: 'Матрац',
+  wardrobes: 'Шафа',
+  accessories: 'Аксесуар',
+};
+
+function getCategoryUkrainian(englishCategory: string): string {
+  return CATEGORY_TO_UKRAINIAN[englishCategory] || englishCategory;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
@@ -146,10 +163,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Insert product
+    // Insert product (save category in Ukrainian)
+    const categoryUkr = getCategoryUkrainian(data.category);
     const result = await db.query`
       INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller)
-      VALUES (${data.name}, ${data.slug}, ${data.description}, ${data.category}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
+      VALUES (${data.name}, ${data.slug}, ${data.description}, ${categoryUkr}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
       RETURNING id, name, slug, category, price, stock
     `;
 
