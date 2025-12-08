@@ -253,12 +253,11 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'beds': {
       await db.query`
         INSERT INTO bed_specs (
-          product_id, category, construction, dimensions, material, headboard_type,
+          product_id, construction, dimensions, material, headboard_type,
           storage_options, types
         )
         VALUES (
           ${productId},
-          ${category},
           ${specs.construction || null},
           ${dimensions ? JSON.stringify(dimensions) : null},
           ${typeof material === 'string' ? material : null},
@@ -273,12 +272,11 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'mattresses': {
       await db.query`
         INSERT INTO mattress_specs (
-          product_id, category, type, firmness, thickness, core_type, hardness,
+          product_id, type, firmness, thickness, core_type, hardness,
           dimensions, types
         )
         VALUES (
           ${productId},
-          ${category},
           ${specs.type || null},
           ${specs.firmness || null},
           ${specs.thickness || null},
@@ -294,11 +292,10 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'tables': {
       await db.query`
         INSERT INTO table_specs (
-          product_id, category, shape, extendable, material, dimensions, types
+          product_id, shape, extendable, material, dimensions, types
         )
         VALUES (
           ${productId},
-          ${category},
           ${specs.shape || null},
           ${specs.extendable || false},
           ${typeof material === 'string' ? material : null},
@@ -312,12 +309,11 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'chairs': {
       await db.query`
         INSERT INTO chair_specs (
-          product_id, category, upholstery, seat_height, weight_capacity, material,
+          product_id, upholstery, seat_height, weight_capacity, material,
           dimensions, types
         )
         VALUES (
           ${productId},
-          ${category},
           ${specs.upholstery || null},
           ${specs.seat_height || null},
           ${specs.weight_capacity || null},
@@ -332,12 +328,11 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'wardrobes': {
       await db.query`
         INSERT INTO wardrobe_specs (
-          product_id, category, door_count, door_type, internal_layout, material,
+          product_id, door_count, door_type, internal_layout, material,
           dimensions, types
         )
         VALUES (
           ${productId},
-          ${category},
           ${specs.door_count || null},
           ${specs.door_type || null},
           ${specs.internal_layout || null},
@@ -352,11 +347,10 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
     case 'accessories': {
       await db.query`
         INSERT INTO accessory_specs (
-          product_id, category, mounting_type, shelf_count, material, dimensions, types
+          product_id, mounting_type, shelf_count, material, dimensions, types
         )
         VALUES (
           ${productId},
-          ${category},
           ${specs.mounting_type || null},
           ${specs.shelf_count || null},
           ${typeof material === 'string' ? material : null},
