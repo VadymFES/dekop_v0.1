@@ -4,7 +4,7 @@
  * Повна форма товару з усіма полями для всіх категорій
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../../styles/admin.module.css';
 import ImageUpload from './ImageUpload';
@@ -359,6 +359,28 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const initialFormData = useRef(JSON.stringify(formData));
+
+  // Track form changes
+  useEffect(() => {
+    const currentData = JSON.stringify(formData);
+    setIsDirty(currentData !== initialFormData.current);
+  }, [formData]);
+
+  // Warn on page refresh/close with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   // Helpers
   const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(formData.category);
@@ -533,6 +555,9 @@ export default function ProductForm({ product }: ProductFormProps) {
         type: 'success',
       });
 
+      // Reset dirty state after successful save
+      initialFormData.current = JSON.stringify(formData);
+      setIsDirty(false);
       setLoading(false);
 
       if (!isEdit) {
@@ -1101,7 +1126,20 @@ export default function ProductForm({ product }: ProductFormProps) {
           <button type="submit" disabled={loading} className={styles.buttonPrimary} style={{ padding: '15px 40px', fontSize: '16px' }}>
             {loading ? 'Збереження...' : isEdit ? 'Оновити товар' : 'Створити товар'}
           </button>
-          <button type="button" onClick={() => router.back()} className={styles.buttonSecondary} style={{ padding: '15px 40px', fontSize: '16px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (isDirty) {
+                if (confirm('У вас є незбережені зміни. Ви впевнені, що хочете вийти?')) {
+                  router.back();
+                }
+              } else {
+                router.back();
+              }
+            }}
+            className={styles.buttonSecondary}
+            style={{ padding: '15px 40px', fontSize: '16px' }}
+          >
             Скасувати
           </button>
         </div>
