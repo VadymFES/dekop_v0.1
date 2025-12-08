@@ -249,6 +249,28 @@ const normalizeColors = (colors: ProductColor[] | undefined): ProductColor[] => 
   }));
 };
 
+// Ukrainian to Latin transliteration map (based on Ukrainian passport standard)
+const translitMap: Record<string, string> = {
+  'а': 'a', 'б': 'b', 'в': 'v', 'г': 'h', 'ґ': 'g', 'д': 'd', 'е': 'e', 'є': 'ie',
+  'ж': 'zh', 'з': 'z', 'и': 'y', 'і': 'i', 'ї': 'i', 'й': 'i', 'к': 'k', 'л': 'l',
+  'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+  'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ь': '', 'ю': 'iu',
+  'я': 'ia', "'": '', ''': '', 'ъ': '', 'ы': 'y', 'э': 'e',
+};
+
+// Generate URL-friendly slug from Ukrainian text
+const generateSlugFromName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .split('')
+    .map(char => translitMap[char] ?? char)
+    .join('')
+    .replace(/[^a-z0-9\s-]/g, '') // Remove non-latin characters
+    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .replace(/-+/g, '-')           // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, '');      // Trim hyphens from start/end
+};
+
 // =====================================================
 // TOAST NOTIFICATION COMPONENT
 // =====================================================
@@ -425,7 +447,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   };
 
   const generateSlug = () => {
-    const slug = formData.name.toLowerCase().replace(/[^a-z0-9а-яіїєґ\s-]+/gi, '').replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
+    const slug = generateSlugFromName(formData.name);
     setFormData(prev => ({ ...prev, slug }));
   };
 
