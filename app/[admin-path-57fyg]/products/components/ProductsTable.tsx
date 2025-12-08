@@ -72,12 +72,25 @@ function getStockClass(stock: number): string {
   return styles.stockNormal;
 }
 
+function getSortLabel(sort: string): string {
+  const labels: Record<string, string> = {
+    category: 'Категорія',
+    price: 'Ціна',
+    stock: 'Запас',
+    is_on_sale: 'Мітки',
+    updated_at: 'Змінено',
+    created_at: 'Створено',
+    name: 'Назва',
+  };
+  return labels[sort] || sort;
+}
+
 // Sort indicator component
 function SortIndicator({ column, currentSort, currentOrder }: { column: string; currentSort: string; currentOrder: string }) {
   if (currentSort !== column) {
     return <span className={styles.sortIndicator}>⇅</span>;
   }
-  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '↑' : '↓'}</span>;
+  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '▲' : '▼'}</span>;
 }
 
 // Build sort URL helper
@@ -91,6 +104,41 @@ function buildSortUrl(column: string, currentSort: string, currentOrder: string,
   const newOrder = currentSort === column && currentOrder === 'desc' ? 'asc' : 'desc';
   params.set('order', newOrder);
   return `/admin-path-57fyg/products?${params.toString()}`;
+}
+
+// Build reset URL (removes sort params)
+function buildResetUrl(searchParams: { search: string; category: string; low_stock: string }) {
+  const params = new URLSearchParams();
+  if (searchParams.search) params.set('search', searchParams.search);
+  if (searchParams.category) params.set('category', searchParams.category);
+  if (searchParams.low_stock) params.set('low_stock', searchParams.low_stock);
+  return `/admin-path-57fyg/products${params.toString() ? '?' + params.toString() : ''}`;
+}
+
+// Sortable header component
+function SortableHeader({
+  column,
+  label,
+  currentSort,
+  currentOrder,
+  searchParams
+}: {
+  column: string;
+  label: string;
+  currentSort: string;
+  currentOrder: string;
+  searchParams: { search: string; category: string; low_stock: string };
+}) {
+  const isActive = currentSort === column;
+  return (
+    <Link
+      href={buildSortUrl(column, currentSort, currentOrder, searchParams)}
+      className={isActive ? styles.sortableHeaderActive : styles.sortableHeader}
+    >
+      {label}
+      <SortIndicator column={column} currentSort={currentSort} currentOrder={currentOrder} />
+    </Link>
+  );
 }
 
 export default function ProductsTable({
@@ -175,8 +223,23 @@ export default function ProductsTable({
     }
   };
 
+  // Check if sorting is active (not default)
+  const isCustomSort = currentSort !== 'created_at' || currentOrder !== 'desc';
+
   return (
     <>
+      {/* Sort info bar */}
+      {isCustomSort && (
+        <div className={styles.bulkActionsBar} style={{ backgroundColor: '#e3f2fd', borderColor: '#90caf9' }}>
+          <span style={{ color: '#1565c0', fontSize: '14px' }}>
+            Сортування: <strong>{getSortLabel(currentSort)}</strong> ({currentOrder === 'asc' ? 'за зростанням' : 'за спаданням'})
+          </span>
+          <Link href={buildResetUrl(searchParams)} className={styles.sortResetButton}>
+            ✕ Скинути сортування
+          </Link>
+        </div>
+      )}
+
       {/* Bulk actions bar */}
       {canDelete && selectedIds.size > 0 && (
         <div className={styles.bulkActionsBar}>
@@ -227,35 +290,20 @@ export default function ProductsTable({
               <th className={styles.th}>ID</th>
               <th className={styles.th}>Назва</th>
               <th className={styles.th}>
-                <Link href={buildSortUrl('category', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
-                  Категорія
-                  <SortIndicator column="category" currentSort={currentSort} currentOrder={currentOrder} />
-                </Link>
+                <SortableHeader column="category" label="Категорія" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
               </th>
               <th className={styles.th}>
-                <Link href={buildSortUrl('price', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
-                  Ціна
-                  <SortIndicator column="price" currentSort={currentSort} currentOrder={currentOrder} />
-                </Link>
+                <SortableHeader column="price" label="Ціна" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
               </th>
               <th className={styles.th}>
-                <Link href={buildSortUrl('stock', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
-                  Запас
-                  <SortIndicator column="stock" currentSort={currentSort} currentOrder={currentOrder} />
-                </Link>
+                <SortableHeader column="stock" label="Запас" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
               </th>
               <th className={styles.th}>
-                <Link href={buildSortUrl('is_on_sale', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
-                  Мітки
-                  <SortIndicator column="is_on_sale" currentSort={currentSort} currentOrder={currentOrder} />
-                </Link>
+                <SortableHeader column="is_on_sale" label="Мітки" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
               </th>
               <th className={styles.th}>Створено</th>
               <th className={styles.th}>
-                <Link href={buildSortUrl('updated_at', currentSort, currentOrder, searchParams)} className={styles.sortableHeader}>
-                  Змінено
-                  <SortIndicator column="updated_at" currentSort={currentSort} currentOrder={currentOrder} />
-                </Link>
+                <SortableHeader column="updated_at" label="Змінено" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
               </th>
               <th className={styles.th}>Дії</th>
             </tr>

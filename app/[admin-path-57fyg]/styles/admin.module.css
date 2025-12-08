@@ -312,27 +312,70 @@
 .sortableHeader {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: #333;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: 4px;
 }
 
 .sortableHeader:hover {
   color: #1976d2;
+  background-color: #e3f2fd;
+}
+
+.sortableHeaderActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1976d2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: 4px;
+  background-color: #e3f2fd;
+  font-weight: 600;
+}
+
+.sortableHeaderActive:hover {
+  background-color: #bbdefb;
 }
 
 .sortIndicator {
-  font-size: 12px;
-  color: #999;
-  opacity: 0.5;
+  font-size: 14px;
+  color: #bbb;
 }
 
 .sortIndicatorActive {
-  font-size: 12px;
+  font-size: 14px;
   color: #1976d2;
   font-weight: bold;
+}
+
+/* Sort Reset Button */
+.sortResetButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.sortResetButton:hover {
+  background-color: #ffe0b2;
+  border-color: #ffb74d;
 }
 
 /* Stock status */
