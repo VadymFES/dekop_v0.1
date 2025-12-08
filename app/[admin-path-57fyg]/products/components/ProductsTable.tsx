@@ -4,7 +4,7 @@
  * Products table with multi-select and bulk delete functionality
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -24,12 +24,12 @@ interface Product {
   updated_at: string;
 }
 
+type SortColumn = 'category' | 'price' | 'stock' | 'is_on_sale' | 'updated_at' | null;
+type SortOrder = 'asc' | 'desc';
+
 interface ProductsTableProps {
   products: Product[];
   canDelete: boolean;
-  currentSort: string;
-  currentOrder: string;
-  searchParams: { search: string; category: string; low_stock: string };
 }
 
 function formatCategory(category: string): string {
@@ -73,70 +73,16 @@ function getStockClass(stock: number): string {
 }
 
 // Sort indicator component
-function SortIndicator({ column, currentSort, currentOrder }: { column: string; currentSort: string; currentOrder: string }) {
+function SortIndicator({ column, currentSort, currentOrder }: { column: SortColumn; currentSort: SortColumn; currentOrder: SortOrder }) {
   if (currentSort !== column) {
-    return <span className={styles.sortIndicator}>⇅</span>;
+    return <span className={styles.sortIndicator}>↕</span>;
   }
-  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '▲' : '▼'}</span>;
-}
-
-// Build sort URL helper
-// Click cycle: 1st click = desc, 2nd click = asc, 3rd click = reset to default
-function buildSortUrl(column: string, currentSort: string, currentOrder: string, searchParams: { search: string; category: string; low_stock: string }) {
-  const params = new URLSearchParams();
-  if (searchParams.search) params.set('search', searchParams.search);
-  if (searchParams.category) params.set('category', searchParams.category);
-  if (searchParams.low_stock) params.set('low_stock', searchParams.low_stock);
-
-  if (currentSort === column) {
-    if (currentOrder === 'desc') {
-      // Second click: switch to ascending
-      params.set('sort', column);
-      params.set('order', 'asc');
-    }
-    // Third click (asc): reset to default - don't set sort/order params
-    // This will use the default created_at desc
-  } else {
-    // First click on new column: sort descending
-    params.set('sort', column);
-    params.set('order', 'desc');
-  }
-
-  return `/admin-path-57fyg/products${params.toString() ? '?' + params.toString() : ''}`;
-}
-
-// Sortable header component
-function SortableHeader({
-  column,
-  label,
-  currentSort,
-  currentOrder,
-  searchParams
-}: {
-  column: string;
-  label: string;
-  currentSort: string;
-  currentOrder: string;
-  searchParams: { search: string; category: string; low_stock: string };
-}) {
-  const isActive = currentSort === column;
-  return (
-    <Link
-      href={buildSortUrl(column, currentSort, currentOrder, searchParams)}
-      className={isActive ? styles.sortableHeaderActive : styles.sortableHeader}
-    >
-      {label}
-      <SortIndicator column={column} currentSort={currentSort} currentOrder={currentOrder} />
-    </Link>
-  );
+  return <span className={styles.sortIndicatorActive}>{currentOrder === 'asc' ? '↑' : '↓'}</span>;
 }
 
 export default function ProductsTable({
   products,
   canDelete,
-  currentSort,
-  currentOrder,
-  searchParams,
 }: ProductsTableProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -144,14 +90,74 @@ export default function ProductsTable({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const allSelected = products.length > 0 && selectedIds.size === products.length;
-  const someSelected = selectedIds.size > 0 && selectedIds.size < products.length;
+  // Client-side sorting state
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  // Handle sort click: cycle through desc -> asc -> reset
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      if (sortOrder === 'desc') {
+        setSortOrder('asc');
+      } else {
+        // Reset sorting
+        setSortColumn(null);
+        setSortOrder('desc');
+      }
+    } else {
+      setSortColumn(column);
+      setSortOrder('desc');
+    }
+  };
+
+  // Sort products client-side
+  const sortedProducts = useMemo(() => {
+    if (!sortColumn) return products;
+
+    return [...products].sort((a, b) => {
+      let aVal: string | number | boolean;
+      let bVal: string | number | boolean;
+
+      switch (sortColumn) {
+        case 'category':
+          aVal = a.category;
+          bVal = b.category;
+          break;
+        case 'price':
+          aVal = a.price;
+          bVal = b.price;
+          break;
+        case 'stock':
+          aVal = a.stock;
+          bVal = b.stock;
+          break;
+        case 'is_on_sale':
+          // Sort by: is_on_sale, then is_new, then is_bestseller
+          aVal = (a.is_on_sale ? 4 : 0) + (a.is_new ? 2 : 0) + (a.is_bestseller ? 1 : 0);
+          bVal = (b.is_on_sale ? 4 : 0) + (b.is_new ? 2 : 0) + (b.is_bestseller ? 1 : 0);
+          break;
+        case 'updated_at':
+          aVal = new Date(a.updated_at).getTime();
+          bVal = new Date(b.updated_at).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [products, sortColumn, sortOrder]);
+
+  const allSelected = sortedProducts.length > 0 && selectedIds.size === sortedProducts.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < sortedProducts.length;
 
   const handleSelectAll = () => {
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(products.map(p => p.id)));
+      setSelectedIds(new Set(sortedProducts.map(p => p.id)));
     }
   };
 
@@ -265,26 +271,56 @@ export default function ProductsTable({
               <th className={styles.th}>ID</th>
               <th className={styles.th}>Назва</th>
               <th className={styles.th}>
-                <SortableHeader column="category" label="Категорія" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
+                <button
+                  onClick={() => handleSort('category')}
+                  className={sortColumn === 'category' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Категорія
+                  <SortIndicator column="category" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
               </th>
               <th className={styles.th}>
-                <SortableHeader column="price" label="Ціна" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
+                <button
+                  onClick={() => handleSort('price')}
+                  className={sortColumn === 'price' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Ціна
+                  <SortIndicator column="price" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
               </th>
               <th className={styles.th}>
-                <SortableHeader column="stock" label="Запас" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
+                <button
+                  onClick={() => handleSort('stock')}
+                  className={sortColumn === 'stock' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Запас
+                  <SortIndicator column="stock" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
               </th>
               <th className={styles.th}>
-                <SortableHeader column="is_on_sale" label="Мітки" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
+                <button
+                  onClick={() => handleSort('is_on_sale')}
+                  className={sortColumn === 'is_on_sale' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Мітки
+                  <SortIndicator column="is_on_sale" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
               </th>
               <th className={styles.th}>Створено</th>
               <th className={styles.th}>
-                <SortableHeader column="updated_at" label="Змінено" currentSort={currentSort} currentOrder={currentOrder} searchParams={searchParams} />
+                <button
+                  onClick={() => handleSort('updated_at')}
+                  className={sortColumn === 'updated_at' ? styles.sortableHeaderActive : styles.sortableHeader}
+                >
+                  Змінено
+                  <SortIndicator column="updated_at" currentSort={sortColumn} currentOrder={sortOrder} />
+                </button>
               </th>
               <th className={styles.th}>Дії</th>
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {sortedProducts.map((product) => (
               <tr
                 key={product.id}
                 className={selectedIds.has(product.id) ? styles.rowSelected : ''}
@@ -338,7 +374,7 @@ export default function ProductsTable({
                 </td>
               </tr>
             ))}
-            {products.length === 0 && (
+            {sortedProducts.length === 0 && (
               <tr>
                 <td colSpan={canDelete ? 10 : 9} className={styles.tdEmpty}>
                   Товарів не знайдено

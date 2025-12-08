@@ -16,8 +16,6 @@ interface PageProps {
     search?: string;
     category?: string;
     low_stock?: string;
-    sort?: string;
-    order?: string;
   }>;
 }
 
@@ -37,9 +35,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const search = params.search || '';
   const category = params.category || '';
   const lowStock = params.low_stock === 'true';
-  const allowedSortColumns = ['name', 'price', 'stock', 'category', 'updated_at', 'created_at', 'is_on_sale', 'is_new', 'is_bestseller'];
-  const sort = allowedSortColumns.includes(params.sort || '') ? params.sort! : 'created_at';
-  const order = params.order === 'asc' ? 'asc' : 'desc';
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -51,8 +46,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     search,
     category,
     lowStock,
-    sort,
-    order,
   });
 
   const totalPages = Math.ceil(total / limit);
@@ -122,9 +115,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <ProductsTable
         products={products}
         canDelete={admin.permissions.includes('products.delete')}
-        currentSort={sort}
-        currentOrder={order}
-        searchParams={{ search, category, low_stock: lowStock ? 'true' : '' }}
       />
 
       {/* Пагінація */}
@@ -132,7 +122,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         <div className={styles.pagination}>
           {page > 1 && (
             <Link
-              href={buildPageUrl(page - 1, { search, category, low_stock: lowStock ? 'true' : '', sort, order })}
+              href={buildPageUrl(page - 1, { search, category, low_stock: lowStock ? 'true' : '' })}
               className={styles.paginationLink}
             >
               Попередня
@@ -143,7 +133,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           </span>
           {page < totalPages && (
             <Link
-              href={buildPageUrl(page + 1, { search, category, low_stock: lowStock ? 'true' : '', sort, order })}
+              href={buildPageUrl(page + 1, { search, category, low_stock: lowStock ? 'true' : '' })}
               className={styles.paginationLink}
             >
               Наступна
@@ -175,8 +165,6 @@ async function getProducts({
   search,
   category,
   lowStock,
-  sort,
-  order,
 }: {
   page: number;
   limit: number;
@@ -184,14 +172,7 @@ async function getProducts({
   search: string;
   category: string;
   lowStock: boolean;
-  sort: string;
-  order: string;
 }) {
-  // Build ORDER BY clause safely
-  const allowedSortColumns = ['name', 'price', 'stock', 'category', 'updated_at', 'created_at', 'is_on_sale', 'is_new', 'is_bestseller'];
-  const sortColumn = allowedSortColumns.includes(sort) ? sort : 'created_at';
-  const sortOrder = order === 'asc' ? 'ASC' : 'DESC';
-
   // Build WHERE clause dynamically
   let whereClause = 'WHERE 1=1';
   const values: unknown[] = [];
@@ -218,12 +199,12 @@ async function getProducts({
   const countResult = await db.query(countQuery, values);
   const total = Number(countResult.rows[0]?.total) || 0;
 
-  // Get products with dynamic ORDER BY
+  // Get products (sorting is handled client-side)
   const productsQuery = `
     SELECT id, name, slug, category, price, stock, is_on_sale, is_new, is_bestseller, created_at, updated_at
     FROM products
     ${whereClause}
-    ORDER BY ${sortColumn} ${sortOrder}
+    ORDER BY created_at DESC
     LIMIT $${paramIndex++} OFFSET $${paramIndex}
   `;
 
