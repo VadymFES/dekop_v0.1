@@ -345,81 +345,18 @@ function UnsavedChangesModal({ isOpen, onConfirm, onCancel }: UnsavedChangesModa
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 10000,
-      }}
-      onClick={onCancel}
-    >
-      <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '24px',
-          maxWidth: '400px',
-          width: '90%',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#fef3c7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px',
-            }}
-          >
-            ⚠️
-          </div>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#111' }}>
-            Незбережені зміни
-          </h3>
-        </div>
-        <p style={{ margin: '0 0 24px', color: '#666', fontSize: '14px', lineHeight: 1.5 }}>
-          У вас є незбережені зміни. Якщо ви покинете цю сторінку, всі зміни будуть втрачені.
+    <div className={styles.modalOverlay} onClick={onCancel}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <h3 className={styles.modalTitle}>Незбережені зміни</h3>
+        <p className={styles.modalText}>
+          У вас є незбережені зміни. Покинути сторінку?
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: '1px solid #ddd',
-              backgroundColor: 'white',
-              color: '#333',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
-          >
+        <div className={styles.modalButtons}>
+          <button onClick={onCancel} className={styles.buttonSecondary}>
             Залишитися
           </button>
-          <button
-            onClick={onConfirm}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              backgroundColor: '#dc2626',
-              color: 'white',
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
-          >
-            Покинути сторінку
+          <button onClick={onConfirm} className={styles.buttonDanger}>
+            Покинути
           </button>
         </div>
       </div>
