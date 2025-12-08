@@ -332,6 +332,102 @@ function Toast({ message, type, onClose }: ToastProps) {
 }
 
 // =====================================================
+// UNSAVED CHANGES MODAL COMPONENT
+// =====================================================
+
+interface UnsavedChangesModalProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function UnsavedChangesModal({ isOpen, onConfirm, onCancel }: UnsavedChangesModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '24px',
+          maxWidth: '400px',
+          width: '90%',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: '#fef3c7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+            }}
+          >
+            ⚠️
+          </div>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#111' }}>
+            Незбережені зміни
+          </h3>
+        </div>
+        <p style={{ margin: '0 0 24px', color: '#666', fontSize: '14px', lineHeight: 1.5 }}>
+          У вас є незбережені зміни. Якщо ви покинете цю сторінку, всі зміни будуть втрачені.
+        </p>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: '1px solid #ddd',
+              backgroundColor: 'white',
+              color: '#333',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Залишитися
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Покинути сторінку
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// =====================================================
 // MAIN COMPONENT
 // =====================================================
 
@@ -360,7 +456,15 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [message, setMessage] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const initialFormData = useRef(JSON.stringify(formData));
+  const isDirtyRef = useRef(isDirty);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
 
   // Track form changes
   useEffect(() => {
@@ -371,7 +475,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   // Warn on page refresh/close with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      if (isDirtyRef.current) {
         e.preventDefault();
         e.returnValue = '';
         return '';
@@ -380,7 +484,70 @@ export default function ProductForm({ product }: ProductFormProps) {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+  }, []);
+
+  // Intercept link clicks to warn about unsaved changes
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      if (!isDirtyRef.current) return;
+
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+
+      if (link && link.href && !link.href.startsWith('javascript:')) {
+        const url = new URL(link.href);
+        // Only intercept internal navigation (same origin)
+        if (url.origin === window.location.origin && url.pathname !== window.location.pathname) {
+          e.preventDefault();
+          e.stopPropagation();
+          setPendingNavigation(link.href);
+          setShowUnsavedModal(true);
+        }
+      }
+    };
+
+    // Intercept browser back/forward button
+    const handlePopState = () => {
+      if (isDirtyRef.current) {
+        // Push current state back to prevent navigation
+        window.history.pushState(null, '', window.location.href);
+        setPendingNavigation('back');
+        setShowUnsavedModal(true);
+      }
+    };
+
+    // Push initial state to enable popstate interception
+    window.history.pushState(null, '', window.location.href);
+
+    document.addEventListener('click', handleLinkClick, true);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      document.removeEventListener('click', handleLinkClick, true);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Handle navigation confirmation
+  const handleConfirmNavigation = () => {
+    setShowUnsavedModal(false);
+    // Reset dirty state to prevent further warnings
+    initialFormData.current = JSON.stringify(formData);
+    setIsDirty(false);
+    isDirtyRef.current = false;
+
+    if (pendingNavigation === 'back') {
+      window.history.back();
+    } else if (pendingNavigation) {
+      window.location.href = pendingNavigation;
+    }
+    setPendingNavigation(null);
+  };
+
+  const handleCancelNavigation = () => {
+    setShowUnsavedModal(false);
+    setPendingNavigation(null);
+  };
 
   // Helpers
   const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(formData.category);
@@ -1130,9 +1297,8 @@ export default function ProductForm({ product }: ProductFormProps) {
             type="button"
             onClick={() => {
               if (isDirty) {
-                if (confirm('У вас є незбережені зміни. Ви впевнені, що хочете вийти?')) {
-                  router.back();
-                }
+                setPendingNavigation('back');
+                setShowUnsavedModal(true);
               } else {
                 router.back();
               }
@@ -1144,6 +1310,13 @@ export default function ProductForm({ product }: ProductFormProps) {
           </button>
         </div>
       </form>
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedModal}
+        onConfirm={handleConfirmNavigation}
+        onCancel={handleCancelNavigation}
+      />
     </div>
   );
 }
