@@ -235,7 +235,7 @@ export const productSchema = z.object({
     z.enum([
       'sofas', 'corner_sofas', 'sofa_beds', 'beds',
       'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
-    ], { errorMap: () => ({ message: 'Оберіть категорію товару' }) })
+    ], { message: 'Оберіть категорію товару' })
   ),
   price: z.coerce.number().min(0.01, 'Ціна має бути більше 0').max(1000000, 'Ціна занадто велика'),
   sale_price: z.preprocess(
@@ -400,7 +400,7 @@ export const createAdminUserSchema = z.object({
   password: passwordSchema,
   first_name: z.string().max(100, 'Ім\'я занадто довге').pipe(sanitizedString).optional(),
   last_name: z.string().max(100, 'Прізвище занадто довге').pipe(sanitizedString).optional(),
-  role: z.enum(['admin', 'manager'], { errorMap: () => ({ message: 'Оберіть роль' }) }),
+  role: z.enum(['admin', 'manager'], { message: 'Оберіть роль' }),
 });
 
 /**
@@ -411,7 +411,7 @@ export const updateAdminUserSchema = z.object({
   first_name: z.string().max(100, 'Ім\'я занадто довге').pipe(sanitizedString).optional(),
   last_name: z.string().max(100, 'Прізвище занадто довге').pipe(sanitizedString).optional(),
   is_active: z.boolean().optional(),
-  role: z.enum(['admin', 'manager'], { errorMap: () => ({ message: 'Оберіть роль' }) }).optional(),
+  role: z.enum(['admin', 'manager'], { message: 'Оберіть роль' }).optional(),
 });
 
 // =====================================================
