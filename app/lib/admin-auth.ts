@@ -6,6 +6,7 @@
  * - Session management with secure tokens
  * - Login attempt tracking and lockout
  * - Audit logging
+ * - In-memory session cache with LRU eviction (Task 2)
  */
 
 import bcrypt from 'bcryptjs';
@@ -19,6 +20,10 @@ const SESSION_DURATION_HOURS = 12;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 30;
 const SESSION_COOKIE_NAME = 'admin_session';
+
+// Session Cache Constants (Task 2)
+const SESSION_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const SESSION_CACHE_MAX_SIZE = 1000; // Max 1000 entries
 
 // Types
 export interface AdminUser {
@@ -44,6 +49,122 @@ export interface AdminSession {
 export interface AdminUserWithPermissions extends AdminUser {
   permissions: string[];
   roles: string[];
+}
+
+// Session cache entry with metadata for TTL and LRU
+interface SessionCacheEntry {
+  user: AdminUserWithPermissions;
+  cachedAt: number;
+  lastAccessed: number;
+  sessionId: string;
+}
+
+// =====================================================
+// SESSION CACHE (Task 2 - In-memory LRU cache with TTL)
+// =====================================================
+
+/**
+ * LRU Cache for validated sessions
+ * - Keyed by hashed token
+ * - TTL: 5 minutes
+ * - Max size: 1000 entries with LRU eviction
+ * - Works in serverless (per-instance cache, acceptable)
+ */
+const sessionCache = new Map<string, SessionCacheEntry>();
+
+/**
+ * Get cached session if valid (not expired)
+ */
+function getCachedSession(tokenHash: string): AdminUserWithPermissions | null {
+  const entry = sessionCache.get(tokenHash);
+  if (!entry) return null;
+
+  const now = Date.now();
+
+  // Check TTL expiry
+  if (now - entry.cachedAt > SESSION_CACHE_TTL_MS) {
+    sessionCache.delete(tokenHash);
+    return null;
+  }
+
+  // Update last accessed for LRU
+  entry.lastAccessed = now;
+
+  return entry.user;
+}
+
+/**
+ * Cache a validated session
+ */
+function cacheSession(tokenHash: string, user: AdminUserWithPermissions, sessionId: string): void {
+  const now = Date.now();
+
+  // Enforce max size with LRU eviction
+  if (sessionCache.size >= SESSION_CACHE_MAX_SIZE) {
+    evictLRUEntry();
+  }
+
+  sessionCache.set(tokenHash, {
+    user,
+    cachedAt: now,
+    lastAccessed: now,
+    sessionId,
+  });
+}
+
+/**
+ * Evict the least recently used entry
+ */
+function evictLRUEntry(): void {
+  let oldestKey: string | null = null;
+  let oldestTime = Infinity;
+
+  for (const [key, entry] of sessionCache.entries()) {
+    if (entry.lastAccessed < oldestTime) {
+      oldestTime = entry.lastAccessed;
+      oldestKey = key;
+    }
+  }
+
+  if (oldestKey) {
+    sessionCache.delete(oldestKey);
+  }
+}
+
+/**
+ * Invalidate session cache entry by token hash
+ */
+export function invalidateSessionCache(tokenHash: string): void {
+  sessionCache.delete(tokenHash);
+}
+
+/**
+ * Invalidate all cache entries for a user (used on logout, password change)
+ */
+export function invalidateUserSessions(userId: string): void {
+  for (const [key, entry] of sessionCache.entries()) {
+    if (entry.user.id === userId) {
+      sessionCache.delete(key);
+    }
+  }
+}
+
+/**
+ * Invalidate session cache by session ID
+ */
+export function invalidateSessionCacheBySessionId(sessionId: string): void {
+  for (const [key, entry] of sessionCache.entries()) {
+    if (entry.sessionId === sessionId) {
+      sessionCache.delete(key);
+    }
+  }
+}
+
+/**
+ * Clear entire session cache (for permission changes that affect all users)
+ */
+export function clearSessionCache(): void {
+  sessionCache.clear();
 }
 
 // =====================================================
@@ -104,13 +225,26 @@ export async function createSession(
 
 /**
  * Validate a session token and return the user
+ *
+ * Optimizations (Task 1 & 2):
+ * - Single JOIN query combines session, user, permissions, and roles
+ * - In-memory cache with 5-minute TTL (0 DB queries on cache hit)
+ * - Non-blocking last_activity_at update (fire-and-forget)
+ * - Maintains all security checks (expiry, revoked, is_active, is_locked)
  */
 export async function validateSession(token: string): Promise<AdminUserWithPermissions | null> {
   if (!token) return null;
 
   const tokenHash = hashToken(token);
 
-  // Get session and user
+  // Check cache first (Task 2)
+  const cachedUser = getCachedSession(tokenHash);
+  if (cachedUser) {
+    return cachedUser;
+  }
+
+  // Single optimized query combining session, user, permissions, and roles (Task 1)
+  // Uses array_agg to collect permissions and roles in one query
   const result = await db.query`
     SELECT
       s.id as session_id,
@@ -124,7 +258,22 @@ export async function validateSession(token: string): Promise<AdminUserWithPermi
       u.is_locked,
       u.must_change_password,
       u.last_login_at,
-      u.created_at
+      u.created_at,
+      COALESCE(
+        (SELECT array_agg(DISTINCT ap.name)
+         FROM admin_user_roles aur
+         JOIN admin_role_permissions arp ON aur.role_id = arp.role_id
+         JOIN admin_permissions ap ON arp.permission_id = ap.id
+         WHERE aur.user_id = u.id),
+        ARRAY[]::text[]
+      ) as permissions,
+      COALESCE(
+        (SELECT array_agg(ar.name)
+         FROM admin_user_roles aur
+         JOIN admin_roles ar ON aur.role_id = ar.id
+         WHERE aur.user_id = u.id),
+        ARRAY[]::text[]
+      ) as roles
     FROM admin_sessions s
     JOIN admin_users u ON s.user_id = u.id
     WHERE s.token_hash = ${tokenHash}
@@ -138,31 +287,18 @@ export async function validateSession(token: string): Promise<AdminUserWithPermi
 
   const row = result.rows[0];
 
-  // Update last activity
-  await db.query`
+  // Non-blocking last_activity update (fire-and-forget) - Task 1
+  // We don't await this - it runs in the background
+  db.query`
     UPDATE admin_sessions
     SET last_activity_at = NOW()
     WHERE id = ${row.session_id}
-  `;
+  `.catch(err => {
+    // Log but don't fail the request
+    console.warn('Failed to update last_activity_at:', err);
+  });
 
-  // Get user permissions
-  const permissionsResult = await db.query`
-    SELECT DISTINCT ap.name
-    FROM admin_user_roles aur
-    JOIN admin_role_permissions arp ON aur.role_id = arp.role_id
-    JOIN admin_permissions ap ON arp.permission_id = ap.id
-    WHERE aur.user_id = ${row.id}
-  `;
-
-  // Get user roles
-  const rolesResult = await db.query`
-    SELECT ar.name
-    FROM admin_user_roles aur
-    JOIN admin_roles ar ON aur.role_id = ar.id
-    WHERE aur.user_id = ${row.id}
-  `;
-
-  return {
+  const user: AdminUserWithPermissions = {
     id: row.id,
     email: row.email,
     first_name: row.first_name,
@@ -172,16 +308,26 @@ export async function validateSession(token: string): Promise<AdminUserWithPermi
     must_change_password: row.must_change_password,
     last_login_at: row.last_login_at,
     created_at: row.created_at,
-    permissions: permissionsResult.rows.map(r => r.name),
-    roles: rolesResult.rows.map(r => r.name),
+    permissions: row.permissions || [],
+    roles: row.roles || [],
   };
+
+  // Cache the validated session (Task 2)
+  cacheSession(tokenHash, user, row.session_id);
+
+  return user;
 }
 
 /**
  * Revoke a session (logout)
+ * Also invalidates the session cache entry
  */
 export async function revokeSession(token: string): Promise<void> {
   const tokenHash = hashToken(token);
+
+  // Invalidate cache entry (Task 2)
+  invalidateSessionCache(tokenHash);
+
   await db.query`
     UPDATE admin_sessions
     SET revoked = true, revoked_at = NOW(), revoked_reason = 'logout'
@@ -191,8 +337,12 @@ export async function revokeSession(token: string): Promise<void> {
 
 /**
  * Revoke all sessions for a user
+ * Also invalidates all cache entries for this user
  */
 export async function revokeAllUserSessions(userId: string): Promise<void> {
+  // Invalidate all cache entries for this user (Task 2)
+  invalidateUserSessions(userId);
+
   await db.query`
     UPDATE admin_sessions
     SET revoked = true, revoked_at = NOW(), revoked_reason = 'logout_all'

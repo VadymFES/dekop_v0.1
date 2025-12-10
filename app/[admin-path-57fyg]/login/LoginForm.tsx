@@ -2,12 +2,16 @@
 
 /**
  * Форма входу в адмін-панель
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../styles/admin.module.css';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 export default function LoginForm() {
   const router = useRouter();
@@ -23,7 +27,7 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('/admin-path-57fyg/api/auth/login', {
+      const response = await fetch(`${ADMIN_PATH}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -47,7 +51,7 @@ export default function LoginForm() {
       localStorage.setItem('admin_session_start', Date.now().toString());
 
       // Redirect to dashboard on success
-      router.push('/admin-path-57fyg');
+      router.push(ADMIN_PATH);
       router.refresh();
     } catch (err) {
       setError('Виникла помилка. Спробуйте ще раз.');
@@ -121,7 +125,7 @@ export default function LoginForm() {
 
       <div className={`${styles.mt20} ${styles.textCenter}`}>
         <Link
-          href="/admin-path-57fyg/reset-password"
+          href={`${ADMIN_PATH}/reset-password`}
           className={styles.loginForgotLink}
         >
           Забули пароль?

@@ -9,11 +9,13 @@ import {
   logAdminAction,
   hashPassword,
   verifyPassword,
+  hashToken,
   revokeAllUserSessions,
   createSession,
   setSessionCookie,
 } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import { validateCsrfRequest, generateCsrfToken, setCsrfCookie } from '@/app/lib/csrf-protection';
 import { z } from 'zod';
 
 const changePasswordSchema = z.object({
@@ -29,6 +31,12 @@ const changePasswordSchema = z.object({
 
 export async function PUT(request: NextRequest) {
   try {
+    // Validate CSRF token (Task 6)
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed', code: 'CSRF_INVALID' }, { status: 403 });
+    }
+
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -81,6 +89,11 @@ export async function PUT(request: NextRequest) {
     const userAgent = request.headers.get('user-agent');
     const newToken = await createSession(admin.id, ipAddress, userAgent);
     await setSessionCookie(newToken);
+
+    // Generate new CSRF token for the new session (Task 6)
+    const sessionTokenHash = hashToken(newToken);
+    const csrfToken = generateCsrfToken(sessionTokenHash);
+    await setCsrfCookie(csrfToken);
 
     // Log action
     await logAdminAction(

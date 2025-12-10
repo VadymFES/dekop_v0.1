@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin, logAdminAction } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 import { z } from 'zod';
 
 const updateProfileSchema = z.object({
@@ -52,6 +53,12 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Validate CSRF token (Task 6)
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed', code: 'CSRF_INVALID' }, { status: 403 });
+    }
+
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

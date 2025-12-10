@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import OrdersTable from './components/OrdersTable';
 import styles from '../styles/admin.module.css';
 
@@ -22,13 +23,14 @@ interface PageProps {
 
 export default async function OrdersPage({ searchParams }: PageProps) {
   const admin = await getCurrentAdmin();
+  const adminPath = getAdminUrl();
 
   if (!admin) {
-    redirect('/admin-path-57fyg/login');
+    redirect(`${adminPath}/login`);
   }
 
   if (!admin.permissions.includes('orders.read')) {
-    redirect('/admin-path-57fyg');
+    redirect(adminPath);
   }
 
   const params = await searchParams;
@@ -229,6 +231,11 @@ interface Order {
   created_at: string;
 }
 
+/**
+ * Dynamic query builder for orders (Task 4)
+ * Single code path that conditionally appends WHERE clauses
+ * Uses parameterized queries throughout for SQL injection protection
+ */
 async function getOrders({
   limit,
   offset,
@@ -246,156 +253,68 @@ async function getOrders({
   dateFrom: string;
   dateTo: string;
 }) {
-  // Use separate queries based on filters to avoid dynamic SQL issues
-  const searchPattern = search ? `%${search}%` : null;
-  const dateToEnd = dateTo ? `${dateTo}T23:59:59` : null;
+  // Build WHERE conditions dynamically
+  const conditions: string[] = [];
+  const params: unknown[] = [];
+  let paramIndex = 1;
 
-  // Build result based on which filters are active
-  let countResult;
-  let ordersResult;
-
-  if (searchPattern && status && paymentStatus && dateFrom && dateToEnd) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND order_status = ${status}
-        AND payment_status = ${paymentStatus}
-        AND created_at >= ${dateFrom}
-        AND created_at <= ${dateToEnd}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND order_status = ${status}
-        AND payment_status = ${paymentStatus}
-        AND created_at >= ${dateFrom}
-        AND created_at <= ${dateToEnd}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (searchPattern && status && paymentStatus) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND order_status = ${status}
-        AND payment_status = ${paymentStatus}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND order_status = ${status}
-        AND payment_status = ${paymentStatus}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (searchPattern && status) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND order_status = ${status}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND order_status = ${status}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (searchPattern && paymentStatus) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND payment_status = ${paymentStatus}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE (order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern})
-        AND payment_status = ${paymentStatus}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (status && paymentStatus) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE order_status = ${status} AND payment_status = ${paymentStatus}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE order_status = ${status} AND payment_status = ${paymentStatus}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (searchPattern) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE order_number ILIKE ${searchPattern} OR user_email ILIKE ${searchPattern} OR user_phone ILIKE ${searchPattern}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (status) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders WHERE order_status = ${status}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE order_status = ${status}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (paymentStatus) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders WHERE payment_status = ${paymentStatus}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE payment_status = ${paymentStatus}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else if (dateFrom && dateToEnd) {
-    countResult = await db.query`
-      SELECT COUNT(*) as total FROM orders
-      WHERE created_at >= ${dateFrom} AND created_at <= ${dateToEnd}
-    `;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      WHERE created_at >= ${dateFrom} AND created_at <= ${dateToEnd}
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-  } else {
-    // No filters - get all orders
-    countResult = await db.query`SELECT COUNT(*) as total FROM orders`;
-    ordersResult = await db.query`
-      SELECT id, order_number, user_name, user_surname, user_email, user_phone,
-             total_amount, order_status, payment_status, created_at
-      FROM orders
-      ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `;
+  // Search filter (order number, email, phone)
+  if (search) {
+    const searchPattern = `%${search}%`;
+    conditions.push(`(order_number ILIKE $${paramIndex} OR user_email ILIKE $${paramIndex} OR user_phone ILIKE $${paramIndex})`);
+    params.push(searchPattern);
+    paramIndex++;
   }
+
+  // Order status filter
+  if (status) {
+    conditions.push(`order_status = $${paramIndex}`);
+    params.push(status);
+    paramIndex++;
+  }
+
+  // Payment status filter
+  if (paymentStatus) {
+    conditions.push(`payment_status = $${paramIndex}`);
+    params.push(paymentStatus);
+    paramIndex++;
+  }
+
+  // Date range filters
+  if (dateFrom) {
+    conditions.push(`created_at >= $${paramIndex}`);
+    params.push(dateFrom);
+    paramIndex++;
+  }
+
+  if (dateTo) {
+    const dateToEnd = `${dateTo}T23:59:59`;
+    conditions.push(`created_at <= $${paramIndex}`);
+    params.push(dateToEnd);
+    paramIndex++;
+  }
+
+  // Build WHERE clause
+  const whereClause = conditions.length > 0
+    ? `WHERE ${conditions.join(' AND ')}`
+    : '';
+
+  // Build count query
+  const countQuery = `SELECT COUNT(*) as total FROM orders ${whereClause}`;
+
+  // Build select query with pagination
+  const selectQuery = `
+    SELECT id, order_number, user_name, user_surname, user_email, user_phone,
+           total_amount, order_status, payment_status, created_at
+    FROM orders
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `;
+
+  // Execute both queries with same condition params
+  const countResult = await db.query(countQuery, params);
+  const ordersResult = await db.query(selectQuery, [...params, limit, offset]);
 
   return {
     orders: ordersResult.rows,

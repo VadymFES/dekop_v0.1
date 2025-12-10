@@ -3,11 +3,15 @@
 /**
  * Компонент навігації адмін-панелі
  * Показує посилання на основі дозволів користувача
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from '../styles/admin.module.css';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 interface AdminNavProps {
   permissions: string[];
@@ -19,11 +23,12 @@ interface NavItem {
   permission?: string;
 }
 
+// Navigation items using dynamic admin path
 const navItems: NavItem[] = [
-  { href: '/admin-path-57fyg', label: 'Головна' },
-  { href: '/admin-path-57fyg/products', label: 'Товари', permission: 'products.read' },
-  { href: '/admin-path-57fyg/orders', label: 'Замовлення', permission: 'orders.read' },
-  { href: '/admin-path-57fyg/profile', label: 'Профіль' },
+  { href: ADMIN_PATH, label: 'Головна' },
+  { href: `${ADMIN_PATH}/products`, label: 'Товари', permission: 'products.read' },
+  { href: `${ADMIN_PATH}/orders`, label: 'Замовлення', permission: 'orders.read' },
+  { href: `${ADMIN_PATH}/profile`, label: 'Профіль' },
 ];
 
 export default function AdminNav({ permissions }: AdminNavProps) {
@@ -40,7 +45,7 @@ export default function AdminNav({ permissions }: AdminNavProps) {
         if (!hasPermission(item.permission)) return null;
 
         const isActive = pathname === item.href ||
-          (item.href !== '/admin-path-57fyg' && pathname.startsWith(item.href));
+          (item.href !== ADMIN_PATH && pathname.startsWith(item.href));
 
         return (
           <Link
