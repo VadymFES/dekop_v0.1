@@ -5,9 +5,13 @@
  *
  * Provides CSRF token to all client components via React Context.
  * Handles token refresh and includes helper for fetch requests.
+ * Auto-refreshes token if missing or expired.
  */
 
-import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useCallback, useEffect, useState, ReactNode } from 'react';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 interface CsrfContextType {
   csrfToken: string | null;
@@ -23,6 +27,8 @@ interface CsrfProviderProps {
 }
 
 export function CsrfProvider({ children, initialToken }: CsrfProviderProps) {
+  const [refreshedToken, setRefreshedToken] = useState<string | null>(null);
+
   // Get CSRF token from cookie (refreshes automatically after mutations)
   const getCsrfToken = useCallback((): string | null => {
     if (typeof document === 'undefined') return initialToken;
@@ -35,8 +41,35 @@ export function CsrfProvider({ children, initialToken }: CsrfProviderProps) {
         return decodeURIComponent(value);
       }
     }
-    return initialToken;
-  }, [initialToken]);
+    // Fall back to refreshed token from API, then initial token
+    return refreshedToken || initialToken;
+  }, [initialToken, refreshedToken]);
+
+  // Auto-refresh CSRF token if missing on mount
+  useEffect(() => {
+    const checkAndRefreshToken = async () => {
+      // Check if token exists in cookie
+      const existingToken = getCsrfTokenFromCookie();
+      if (existingToken) return; // Token exists, no need to refresh
+
+      // Token missing, fetch a new one
+      try {
+        const response = await fetch(`${ADMIN_PATH}/api/auth/csrf`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.csrfToken) {
+            setRefreshedToken(data.csrfToken);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to refresh CSRF token:', error);
+      }
+    };
+
+    checkAndRefreshToken();
+  }, []);
 
   // Get headers with CSRF token
   const getCsrfHeaders = useCallback((): Record<string, string> => {
