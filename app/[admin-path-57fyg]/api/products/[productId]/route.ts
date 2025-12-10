@@ -372,12 +372,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const product = productResult.rows[0];
 
+    // Normalize category from Ukrainian to English for specs deletion
+    const normalizedCategory = normalizeCategory(product.category);
+
     // Delete related data first
     await db.query`DELETE FROM product_images WHERE product_id = ${id}`;
     await db.query`DELETE FROM product_spec_colors WHERE product_id = ${id}`;
 
-    // Delete specs
-    await deleteSpecsByCategory(id, product.category);
+    // Delete specs (using normalized English category name)
+    await deleteSpecsByCategory(id, normalizedCategory);
 
     // Delete product
     await db.query`DELETE FROM products WHERE id = ${id}`;
