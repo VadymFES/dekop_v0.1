@@ -113,6 +113,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const [isAdminSubdomain, setIsAdminSubdomain] = useState(false);
+  const [hasCheckedSubdomain, setHasCheckedSubdomain] = useState(false);
 
   // Check if we're on admin subdomain (client-side only)
   useEffect(() => {
@@ -121,13 +122,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Check for admin.dekop.com.ua or admin.localhost patterns
       const isAdmin = hostname.startsWith('admin.') || hostname === 'admin.dekop.com.ua';
       setIsAdminSubdomain(isAdmin);
+      setHasCheckedSubdomain(true);
     }
   }, []);
 
   // Skip cart operations for admin routes (by path or subdomain)
   const isAdminRoute = pathname?.startsWith(`/${ADMIN_PATH}`) || isAdminSubdomain;
 
-  // Fetch cart data (disabled for admin routes)
+  // Only enable cart queries after subdomain check is complete and we're not on admin
+  const shouldEnableCartQueries = hasCheckedSubdomain && !isAdminRoute;
+
+  // Fetch cart data (disabled for admin routes, wait for subdomain check)
   const { data: cartData, isLoading, error } = useQuery<Cart>({
     queryKey: ['cart'],
     queryFn: fetchCart,
@@ -136,7 +141,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     refetchOnWindowFocus: false, // Prevent refetch on focus
     refetchOnMount: true, // Enable refetch on mount to ensure fresh data on checkout reload
     refetchOnReconnect: false, // Prevent refetch on reconnect
-    enabled: !isAdminRoute, // Don't fetch cart on admin pages
+    enabled: shouldEnableCartQueries, // Don't fetch cart on admin pages, wait for subdomain check
   });
 
   // Memoize the queries array for product details
@@ -145,14 +150,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       (cartData?.items || []).map((item: CartItem) => ({
         queryKey: ['product', item.slug],
         queryFn: () => fetchProductDetails(item.slug!),
-        enabled: !!item.slug && !!cartData && !isAdminRoute, // Don't fetch on admin pages
+        enabled: !!item.slug && !!cartData && shouldEnableCartQueries, // Don't fetch on admin pages
         staleTime: 60 * 60 * 1000, // Cache for 1 hour
         gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour (formerly cacheTime)
         refetchOnWindowFocus: false, // Prevent refetch on focus
         refetchOnMount: false, // Prevent refetch on mount unless stale
         refetchOnReconnect: false, // Prevent refetch on reconnect
       })),
-    [cartData?.items, isAdminRoute] // Only re-compute when cart items change or admin route changes
+    [cartData?.items, shouldEnableCartQueries] // Only re-compute when cart items change or query enable changes
   );
 
   // Fetch product details for each cart item
@@ -309,9 +314,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
+  // Show loading until subdomain check is complete (unless already confirmed as admin)
+  // This prevents briefly showing empty cart before the check completes
+  const effectiveIsLoading = !hasCheckedSubdomain || isLoading;
+
   const value: CartContextType = {
     cart: cartWithProducts,
-    isLoading,
+    isLoading: effectiveIsLoading,
     error,
     addToCart: addToCartMutation.mutate,
     updateCart: (id: string, quantity: number) => updateCartMutation.mutate({ id, quantity }),
