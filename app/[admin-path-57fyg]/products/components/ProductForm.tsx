@@ -589,7 +589,9 @@ export default function ProductForm({ product }: ProductFormProps) {
   };
 
   const generateSlug = () => {
-    const slug = generateSlugFromName(formData.name);
+    const baseSlug = generateSlugFromName(formData.name);
+    const categorySlug = formData.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
+    const slug = `${baseSlug}-${categorySlug}`;
     setFormData(prev => ({ ...prev, slug }));
   };
 

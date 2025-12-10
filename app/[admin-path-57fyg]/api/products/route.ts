@@ -160,22 +160,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Auto-generate unique slug
-    let baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
-    let slug = baseSlug;
+    // Auto-generate slug with category name for uniqueness
+    const baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
+    const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
 
-    // Check if slug already exists
-    const existingSlugResult = await db.query`
-      SELECT id FROM products WHERE slug = ${slug}
-    `;
+    // Always include category in slug for unique URLs across categories
+    let slug = baseSlug.endsWith(`-${categorySlug}`) ? baseSlug : `${baseSlug}-${categorySlug}`;
 
-    // If slug exists, append category name to make it unique
-    if (existingSlugResult.rows.length > 0) {
-      const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
-      slug = `${baseSlug}-${categorySlug}`;
-    }
-
-    // Update data with the unique slug
+    // Update data with the slug
     data.slug = slug;
 
     // Insert product (category already converted to Ukrainian above)

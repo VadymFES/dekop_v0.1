@@ -213,22 +213,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }, { status: 400 });
     }
 
-    // Auto-generate unique slug (excluding current product)
-    let baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
-    let slug = baseSlug;
+    // Auto-generate slug with category name for uniqueness
+    const baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
+    const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
 
-    // Check if slug already exists (excluding current product)
-    const existingSlugResult = await db.query`
-      SELECT id FROM products WHERE slug = ${slug} AND id != ${id}
-    `;
+    // Always include category in slug for unique URLs across categories
+    let slug = baseSlug.endsWith(`-${categorySlug}`) ? baseSlug : `${baseSlug}-${categorySlug}`;
 
-    // If slug exists, append category name to make it unique
-    if (existingSlugResult.rows.length > 0) {
-      const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
-      slug = `${baseSlug}-${categorySlug}`;
-    }
-
-    // Update data with the unique slug
+    // Update data with the slug
     data.slug = slug;
 
     const oldCategory = existingProduct.rows[0].category;
