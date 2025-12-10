@@ -135,11 +135,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // Auto-generate slug if not provided
-    if (!body.slug && body.name) {
-      body.slug = slugify(body.name, { lower: true, strict: true });
-    }
-
     const validation = safeValidateInput(productSchema, body);
     if (!validation.success) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
@@ -152,32 +147,40 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data;
 
-    // Check for duplicate name
+    // Check for duplicate name within the same category
+    const categoryUkr = getCategoryUkrainian(data.category);
     const existingNameResult = await db.query`
-      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name})
+      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name}) AND category = ${categoryUkr}
     `;
 
     if (existingNameResult.rows.length > 0) {
       return NextResponse.json({
-        error: 'Товар з такою назвою вже існує',
-        errors: { name: 'Товар з такою назвою вже існує' },
+        error: 'Товар з такою назвою вже існує в цій категорії',
+        errors: { name: 'Товар з такою назвою вже існує в цій категорії' },
       }, { status: 400 });
     }
 
-    // Check for duplicate slug
-    const existingResult = await db.query`
-      SELECT id FROM products WHERE slug = ${data.slug}
-    `;
+    // Auto-generate unique slug
+    let baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let slugSuffix = 1;
 
-    if (existingResult.rows.length > 0) {
-      return NextResponse.json({
-        error: 'Товар з таким URL вже існує',
-        errors: { slug: 'Товар з таким URL вже існує' },
-      }, { status: 400 });
+    // Keep checking until we find a unique slug
+    while (true) {
+      const existingSlugResult = await db.query`
+        SELECT id FROM products WHERE slug = ${slug}
+      `;
+      if (existingSlugResult.rows.length === 0) {
+        break;
+      }
+      slug = `${baseSlug}-${slugSuffix}`;
+      slugSuffix++;
     }
 
-    // Insert product (save category in Ukrainian)
-    const categoryUkr = getCategoryUkrainian(data.category);
+    // Update data with the unique slug
+    data.slug = slug;
+
+    // Insert product (category already converted to Ukrainian above)
     const result = await db.query`
       INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller)
       VALUES (${data.name}, ${data.slug}, ${data.description}, ${categoryUkr}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})

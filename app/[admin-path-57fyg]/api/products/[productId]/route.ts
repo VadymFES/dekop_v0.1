@@ -200,29 +200,38 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const data = validation.data;
 
-    // Check for duplicate name (excluding current product)
+    // Check for duplicate name within the same category (excluding current product)
+    const categoryUkr = getCategoryUkrainian(data.category);
     const duplicateNameResult = await db.query`
-      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name}) AND id != ${id}
+      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name}) AND category = ${categoryUkr} AND id != ${id}
     `;
 
     if (duplicateNameResult.rows.length > 0) {
       return NextResponse.json({
-        error: 'Товар з такою назвою вже існує',
-        errors: { name: 'Товар з такою назвою вже існує' },
+        error: 'Товар з такою назвою вже існує в цій категорії',
+        errors: { name: 'Товар з такою назвою вже існує в цій категорії' },
       }, { status: 400 });
     }
 
-    // Check for duplicate slug (excluding current product)
-    const duplicateResult = await db.query`
-      SELECT id FROM products WHERE slug = ${data.slug} AND id != ${id}
-    `;
+    // Auto-generate unique slug (excluding current product)
+    let baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let slugSuffix = 1;
 
-    if (duplicateResult.rows.length > 0) {
-      return NextResponse.json({
-        error: 'Товар з таким URL вже існує',
-        errors: { slug: 'Товар з таким URL вже існує' },
-      }, { status: 400 });
+    // Keep checking until we find a unique slug (excluding current product)
+    while (true) {
+      const existingSlugResult = await db.query`
+        SELECT id FROM products WHERE slug = ${slug} AND id != ${id}
+      `;
+      if (existingSlugResult.rows.length === 0) {
+        break;
+      }
+      slug = `${baseSlug}-${slugSuffix}`;
+      slugSuffix++;
     }
+
+    // Update data with the unique slug
+    data.slug = slug;
 
     const oldCategory = existingProduct.rows[0].category;
     const oldProduct = existingProduct.rows[0];
@@ -233,8 +242,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     `;
     const oldImages = oldImagesResult.rows;
 
-    // Update product (save category in Ukrainian)
-    const categoryUkr = getCategoryUkrainian(data.category);
+    // Update product (category already converted to Ukrainian above)
     await db.query`
       UPDATE products SET
         name = ${data.name},
