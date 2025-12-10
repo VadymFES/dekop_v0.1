@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const validation = safeValidateInput(productFiltersSchema, params);
     if (!validation.success) {
       return NextResponse.json({
-        error: 'Invalid parameters',
+        error: 'Невірні параметри',
         errors: formatValidationErrors(validation.error),
       }, { status: 400 });
     }
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get products error:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося завантажити товари' }, { status: 500 });
   }
 }
 
@@ -126,25 +126,20 @@ export async function POST(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     if (!admin.permissions.includes('products.create')) {
-      return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Недостатньо прав для створення товарів' }, { status: 403 });
     }
 
     const body = await request.json();
-
-    // Auto-generate slug if not provided
-    if (!body.slug && body.name) {
-      body.slug = slugify(body.name, { lower: true, strict: true });
-    }
 
     const validation = safeValidateInput(productSchema, body);
     if (!validation.success) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
       return NextResponse.json({
-        error: 'Validation failed',
+        error: 'Помилка валідації',
         errors: formatValidationErrors(validation.error),
         details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
       }, { status: 400 });
@@ -152,19 +147,38 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data;
 
-    // Check for duplicate slug
-    const existingResult = await db.query`
-      SELECT id FROM products WHERE slug = ${data.slug}
+    // Check for duplicate name within the same category
+    const categoryUkr = getCategoryUkrainian(data.category);
+    const existingNameResult = await db.query`
+      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name}) AND category = ${categoryUkr}
     `;
 
-    if (existingResult.rows.length > 0) {
+    if (existingNameResult.rows.length > 0) {
       return NextResponse.json({
-        error: 'A product with this slug already exists',
+        error: 'Товар з такою назвою вже існує в цій категорії',
+        errors: { name: 'Товар з такою назвою вже існує в цій категорії' },
       }, { status: 400 });
     }
 
-    // Insert product (save category in Ukrainian)
-    const categoryUkr = getCategoryUkrainian(data.category);
+    // Auto-generate slug - only append category if base slug already exists
+    const baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
+
+    // Check if base slug already exists in database
+    const existingSlugResult = await db.query`
+      SELECT id FROM products WHERE slug = ${baseSlug}
+    `;
+
+    let slug = baseSlug;
+    if (existingSlugResult.rows.length > 0) {
+      // Base slug exists, append category for uniqueness
+      const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
+      slug = `${baseSlug}-${categorySlug}`;
+    }
+
+    // Update data with the slug
+    data.slug = slug;
+
+    // Insert product (category already converted to Ukrainian above)
     const result = await db.query`
       INSERT INTO products (name, slug, description, category, price, sale_price, stock, is_on_sale, is_new, is_bestseller)
       VALUES (${data.name}, ${data.slug}, ${data.description}, ${categoryUkr}, ${data.price}, ${data.sale_price || null}, ${data.stock}, ${data.is_on_sale}, ${data.is_new}, ${data.is_bestseller})
@@ -223,7 +237,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Create product error:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося створити товар. Спробуйте ще раз.' }, { status: 500 });
   }
 }
 
@@ -243,17 +257,17 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   const sleepingWidth = Number(sleepingArea?.width ?? specs.dimensions_sleeping_area_width ?? 0);
   const sleepingLength = Number(sleepingArea?.length ?? specs.dimensions_sleeping_area_length ?? 0);
 
-  // Extract material (could be object or individual fields)
+  // Extract material (could be object or individual fields) - use empty string for NOT NULL columns
   const material = specs.material as Record<string, unknown> | string | undefined;
-  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? null;
-  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? null;
-  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? null;
-  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? null;
+  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? '';
+  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? '';
+  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? '';
+  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? '';
 
-  // Extract inner_material (could be object or individual fields)
+  // Extract inner_material (could be object or individual fields) - use empty string for NOT NULL columns
   const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
-  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? null;
-  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? null;
+  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? '';
+  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? '';
 
   // Other common fields - use empty string for NOT NULL columns
   const constructionVal = (specs.construction as string) || '';

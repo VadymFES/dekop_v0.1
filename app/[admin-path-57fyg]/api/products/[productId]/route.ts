@@ -91,14 +91,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     const { productId } = await params;
     const id = parseInt(productId, 10);
 
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Невірний ID товару' }, { status: 400 });
     }
 
     // Get product
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     `;
 
     if (productResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не знайдено' }, { status: 404 });
     }
 
     const product = productResult.rows[0];
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('Get product error:', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося завантажити товар' }, { status: 500 });
   }
 }
 
@@ -152,18 +152,18 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     if (!admin.permissions.includes('products.update')) {
-      return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Недостатньо прав для оновлення товарів' }, { status: 403 });
     }
 
     const { productId } = await params;
     const id = parseInt(productId, 10);
 
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Невірний ID товару' }, { status: 400 });
     }
 
     // Check if product exists - fetch all fields we want to track for changelog
@@ -174,7 +174,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     `;
 
     if (existingProduct.rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не знайдено' }, { status: 404 });
     }
 
     const body = await request.json();
@@ -192,7 +192,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
       console.error('Received body.category:', body.category);
       return NextResponse.json({
-        error: 'Validation failed',
+        error: 'Помилка валідації',
         errors: formatValidationErrors(validation.error),
         details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
       }, { status: 400 });
@@ -200,16 +200,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const data = validation.data;
 
-    // Check for duplicate slug (excluding current product)
-    const duplicateResult = await db.query`
-      SELECT id FROM products WHERE slug = ${data.slug} AND id != ${id}
+    // Check for duplicate name within the same category (excluding current product)
+    const categoryUkr = getCategoryUkrainian(data.category);
+    const duplicateNameResult = await db.query`
+      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name}) AND category = ${categoryUkr} AND id != ${id}
     `;
 
-    if (duplicateResult.rows.length > 0) {
+    if (duplicateNameResult.rows.length > 0) {
       return NextResponse.json({
-        error: 'A product with this slug already exists',
+        error: 'Товар з такою назвою вже існує в цій категорії',
+        errors: { name: 'Товар з такою назвою вже існує в цій категорії' },
       }, { status: 400 });
     }
+
+    // Auto-generate slug - only append category if base slug already exists (excluding current product)
+    const baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
+
+    // Check if base slug already exists in database (exclude current product)
+    const existingSlugResult = await db.query`
+      SELECT id FROM products WHERE slug = ${baseSlug} AND id != ${id}
+    `;
+
+    let slug = baseSlug;
+    if (existingSlugResult.rows.length > 0) {
+      // Base slug exists, append category for uniqueness
+      const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
+      slug = `${baseSlug}-${categorySlug}`;
+    }
+
+    // Update data with the slug
+    data.slug = slug;
 
     const oldCategory = existingProduct.rows[0].category;
     const oldProduct = existingProduct.rows[0];
@@ -220,8 +240,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     `;
     const oldImages = oldImagesResult.rows;
 
-    // Update product (save category in Ukrainian)
-    const categoryUkr = getCategoryUkrainian(data.category);
+    // Update product (category already converted to Ukrainian above)
     await db.query`
       UPDATE products SET
         name = ${data.name},
@@ -315,11 +334,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: 'Product updated successfully',
+      message: 'Товар успішно оновлено',
     });
   } catch (error) {
     console.error('Update product error:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося оновити товар. Спробуйте ще раз.' }, { status: 500 });
   }
 }
 
@@ -328,18 +347,18 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     if (!admin.permissions.includes('products.delete')) {
-      return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Недостатньо прав для видалення товарів' }, { status: 403 });
     }
 
     const { productId } = await params;
     const id = parseInt(productId, 10);
 
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Невірний ID товару' }, { status: 400 });
     }
 
     // Get product info before deletion
@@ -348,17 +367,20 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     `;
 
     if (productResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не знайдено' }, { status: 404 });
     }
 
     const product = productResult.rows[0];
+
+    // Normalize category from Ukrainian to English for specs deletion
+    const normalizedCategory = normalizeCategory(product.category);
 
     // Delete related data first
     await db.query`DELETE FROM product_images WHERE product_id = ${id}`;
     await db.query`DELETE FROM product_spec_colors WHERE product_id = ${id}`;
 
-    // Delete specs
-    await deleteSpecsByCategory(id, product.category);
+    // Delete specs (using normalized English category name)
+    await deleteSpecsByCategory(id, normalizedCategory);
 
     // Delete product
     await db.query`DELETE FROM products WHERE id = ${id}`;
@@ -379,11 +401,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: 'Product deleted successfully',
+      message: 'Товар успішно видалено',
     });
   } catch (error) {
     console.error('Delete product error:', error);
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося видалити товар. Спробуйте ще раз.' }, { status: 500 });
   }
 }
 
@@ -396,7 +418,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return DELETE(request, { params });
   }
 
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+  return NextResponse.json({ error: 'Метод не дозволено' }, { status: 405 });
 }
 
 // Helper function to delete specs by category using template literals
@@ -523,17 +545,17 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   const sleepingWidth = Number(sleepingArea?.width ?? specs.dimensions_sleeping_area_width ?? 0);
   const sleepingLength = Number(sleepingArea?.length ?? specs.dimensions_sleeping_area_length ?? 0);
 
-  // Extract material (could be object or individual fields)
+  // Extract material (could be object or individual fields) - use empty string for NOT NULL columns
   const material = specs.material as Record<string, unknown> | string | undefined;
-  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? null;
-  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? null;
-  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? null;
-  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? null;
+  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? '';
+  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? '';
+  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? '';
+  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? '';
 
-  // Extract inner_material (could be object or individual fields)
+  // Extract inner_material (could be object or individual fields) - use empty string for NOT NULL columns
   const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
-  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? null;
-  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? null;
+  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? '';
+  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? '';
 
   // Other common fields - use empty string for NOT NULL columns
   const constructionVal = (specs.construction as string) || '';
