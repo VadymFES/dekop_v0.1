@@ -190,16 +190,12 @@ export async function withCsrfProtection(
 
 /**
  * Helper to get current CSRF token for client-side use
- * This is called by components to get the token for fetch requests
+ * This is called by Server Components to read the existing token.
+ * NOTE: This only READS the token from cookie, it does NOT generate new tokens.
+ * Token generation happens in Route Handlers (login, password change).
  */
 export async function getCurrentCsrfToken(): Promise<string | null> {
-  // First try to get from cookie
-  let token = await getCsrfCookie();
-
-  // If no token exists, generate a new one
-  if (!token) {
-    token = await refreshCsrfToken();
-  }
-
-  return token;
+  // Only read from cookie - do not generate new tokens in Server Components
+  // (cookies can only be SET in Route Handlers, not Server Components)
+  return await getCsrfCookie();
 }
