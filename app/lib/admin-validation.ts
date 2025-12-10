@@ -21,8 +21,8 @@ const sanitizedString = z.string().transform((val) => {
  * Email validation
  */
 const emailSchema = z.string()
-  .email('Invalid email address')
-  .max(255, 'Email too long')
+  .email('Невірний формат електронної пошти')
+  .max(255, 'Електронна пошта занадто довга')
   .toLowerCase()
   .trim();
 
@@ -30,23 +30,23 @@ const emailSchema = z.string()
  * Password validation with strength requirements
  */
 const passwordSchema = z.string()
-  .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password too long');
+  .min(8, 'Пароль має містити мінімум 8 символів')
+  .max(128, 'Пароль занадто довгий');
 
 /**
  * UUID validation
  */
-const uuidSchema = z.string().uuid('Invalid UUID format');
+const uuidSchema = z.string().uuid('Невірний формат UUID');
 
 /**
  * Positive number
  */
-const positiveNumber = z.number().positive('Must be a positive number');
+const positiveNumber = z.number().positive('Має бути додатним числом');
 
 /**
  * Non-negative number
  */
-const nonNegativeNumber = z.number().min(0, 'Must be non-negative');
+const nonNegativeNumber = z.number().min(0, 'Має бути невід\'ємним числом');
 
 // =====================================================
 // AUTHENTICATION SCHEMAS
@@ -57,18 +57,18 @@ const nonNegativeNumber = z.number().min(0, 'Must be non-negative');
  */
 export const adminLoginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(1, 'Пароль обов\'язковий'),
 });
 
 /**
  * Password change validation
  */
 export const passwordChangeSchema = z.object({
-  current_password: z.string().min(1, 'Current password is required'),
+  current_password: z.string().min(1, 'Поточний пароль обов\'язковий'),
   new_password: passwordSchema,
   confirm_password: z.string(),
 }).refine((data) => data.new_password === data.confirm_password, {
-  message: 'Passwords do not match',
+  message: 'Паролі не співпадають',
   path: ['confirm_password'],
 });
 
@@ -83,11 +83,11 @@ export const passwordResetRequestSchema = z.object({
  * Password reset completion
  */
 export const passwordResetSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
+  token: z.string().min(1, 'Токен обов\'язковий'),
   new_password: passwordSchema,
   confirm_password: z.string(),
 }).refine((data) => data.new_password === data.confirm_password, {
-  message: 'Passwords do not match',
+  message: 'Паролі не співпадають',
   path: ['confirm_password'],
 });
 
@@ -217,15 +217,15 @@ const productSpecsSchema = z.object({
  */
 export const productSchema = z.object({
   name: z.string()
-    .min(1, 'Name is required')
-    .max(255, 'Name too long')
+    .min(1, 'Назва товару обов\'язкова')
+    .max(255, 'Назва занадто довга (максимум 255 символів)')
     .transform((val) => val.trim().replace(/<[^>]*>/g, '').replace(/[<>]/g, '')),
   slug: z.string()
-    .min(1, 'Slug is required')
-    .max(255, 'Slug too long')
-    .regex(/^[a-z0-9а-яіїєґ-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens'),
+    .min(1, 'URL (slug) обов\'язковий')
+    .max(255, 'URL занадто довгий (максимум 255 символів)')
+    .regex(/^[a-z0-9а-яіїєґ-]+$/, 'URL може містити лише малі літери, цифри та дефіси'),
   description: z.string()
-    .max(5000, 'Description too long')
+    .max(5000, 'Опис занадто довгий (максимум 5000 символів)')
     .transform((val) => val.trim().replace(/<[^>]*>/g, '').replace(/[<>]/g, ''))
     .optional()
     .nullable()
@@ -235,14 +235,14 @@ export const productSchema = z.object({
     z.enum([
       'sofas', 'corner_sofas', 'sofa_beds', 'beds',
       'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
-    ])
+    ], { errorMap: () => ({ message: 'Оберіть категорію товару' }) })
   ),
-  price: z.coerce.number().min(0.01, 'Price must be greater than 0').max(1000000, 'Price too high'),
+  price: z.coerce.number().min(0.01, 'Ціна має бути більше 0').max(1000000, 'Ціна занадто велика'),
   sale_price: z.preprocess(
     (val) => val === '' || val === null || val === undefined ? null : Number(val),
-    z.number().min(0).max(1000000).nullable().optional()
+    z.number().min(0, 'Ціна зі знижкою не може бути від\'ємною').max(1000000, 'Ціна зі знижкою занадто велика').nullable().optional()
   ),
-  stock: z.coerce.number().min(0).max(99999, 'Stock too high').int(),
+  stock: z.coerce.number().min(0, 'Запас не може бути від\'ємним').max(99999, 'Запас занадто великий').int('Запас має бути цілим числом'),
   is_on_sale: z.boolean().optional().nullable().default(false),
   is_new: z.boolean().optional().nullable().default(false),
   is_bestseller: z.boolean().optional().nullable().default(false),
@@ -255,33 +255,33 @@ export const productSchema = z.object({
  * Product ID validation
  */
 export const productIdSchema = z.object({
-  productId: z.coerce.number().int().positive('Invalid product ID'),
+  productId: z.coerce.number().int().positive('Невірний ID товару'),
 });
 
 /**
  * Product stock update
  */
 export const stockUpdateSchema = z.object({
-  stock: nonNegativeNumber.max(99999, 'Stock too high').int(),
+  stock: nonNegativeNumber.max(99999, 'Запас занадто великий').int('Запас має бути цілим числом'),
 });
 
 /**
  * Product price update
  */
 export const priceUpdateSchema = z.object({
-  price: positiveNumber.max(1000000, 'Price too high'),
+  price: positiveNumber.max(1000000, 'Ціна занадто велика'),
 });
 
 /**
  * Bulk product import row
  */
 export const csvProductRowSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Назва обов\'язкова'),
   slug: z.string().optional(),
   description: z.string().optional().default(''),
-  category: z.string().min(1, 'Category is required'),
-  price: z.coerce.number().positive('Price must be positive'),
-  stock: z.coerce.number().int().min(0, 'Stock cannot be negative').optional().default(0),
+  category: z.string().min(1, 'Категорія обов\'язкова'),
+  price: z.coerce.number().positive('Ціна має бути додатною'),
+  stock: z.coerce.number().int().min(0, 'Запас не може бути від\'ємним').optional().default(0),
   is_on_sale: z.coerce.boolean().optional().default(false),
   is_new: z.coerce.boolean().optional().default(false),
   is_bestseller: z.coerce.boolean().optional().default(false),
@@ -331,11 +331,11 @@ export const orderPaymentUpdateSchema = z.object({
  */
 export const orderTrackingSchema = z.object({
   tracking_number: z.string()
-    .max(100, 'Tracking number too long')
+    .max(100, 'Номер відстеження занадто довгий')
     .pipe(sanitizedString)
     .optional(),
   admin_notes: z.string()
-    .max(1000, 'Notes too long')
+    .max(1000, 'Нотатки занадто довгі')
     .pipe(sanitizedString)
     .optional(),
 });
@@ -355,8 +355,8 @@ export const orderIdSchema = z.object({
  * Pagination schema
  */
 export const paginationSchema = z.object({
-  page: z.coerce.number().int().min(1, 'Page must be at least 1').optional().default(1),
-  limit: z.coerce.number().int().min(1).max(100, 'Limit cannot exceed 100').optional().default(20),
+  page: z.coerce.number().int().min(1, 'Сторінка має бути мінімум 1').optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100, 'Ліміт не може перевищувати 100').optional().default(20),
 });
 
 /**
@@ -398,9 +398,9 @@ export const orderFiltersSchema = z.object({
 export const createAdminUserSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  first_name: z.string().max(100, 'First name too long').pipe(sanitizedString).optional(),
-  last_name: z.string().max(100, 'Last name too long').pipe(sanitizedString).optional(),
-  role: z.enum(['admin', 'manager']),
+  first_name: z.string().max(100, 'Ім\'я занадто довге').pipe(sanitizedString).optional(),
+  last_name: z.string().max(100, 'Прізвище занадто довге').pipe(sanitizedString).optional(),
+  role: z.enum(['admin', 'manager'], { errorMap: () => ({ message: 'Оберіть роль' }) }),
 });
 
 /**
@@ -408,10 +408,10 @@ export const createAdminUserSchema = z.object({
  */
 export const updateAdminUserSchema = z.object({
   email: emailSchema.optional(),
-  first_name: z.string().max(100, 'First name too long').pipe(sanitizedString).optional(),
-  last_name: z.string().max(100, 'Last name too long').pipe(sanitizedString).optional(),
+  first_name: z.string().max(100, 'Ім\'я занадто довге').pipe(sanitizedString).optional(),
+  last_name: z.string().max(100, 'Прізвище занадто довге').pipe(sanitizedString).optional(),
   is_active: z.boolean().optional(),
-  role: z.enum(['admin', 'manager']).optional(),
+  role: z.enum(['admin', 'manager'], { errorMap: () => ({ message: 'Оберіть роль' }) }).optional(),
 });
 
 // =====================================================

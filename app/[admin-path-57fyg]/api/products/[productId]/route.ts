@@ -91,14 +91,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     const { productId } = await params;
     const id = parseInt(productId, 10);
 
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Невірний ID товару' }, { status: 400 });
     }
 
     // Get product
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     `;
 
     if (productResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не знайдено' }, { status: 404 });
     }
 
     const product = productResult.rows[0];
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('Get product error:', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося завантажити товар' }, { status: 500 });
   }
 }
 
@@ -152,18 +152,18 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     if (!admin.permissions.includes('products.update')) {
-      return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Недостатньо прав для оновлення товарів' }, { status: 403 });
     }
 
     const { productId } = await params;
     const id = parseInt(productId, 10);
 
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Невірний ID товару' }, { status: 400 });
     }
 
     // Check if product exists - fetch all fields we want to track for changelog
@@ -174,7 +174,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     `;
 
     if (existingProduct.rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не знайдено' }, { status: 404 });
     }
 
     const body = await request.json();
@@ -192,13 +192,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
       console.error('Received body.category:', body.category);
       return NextResponse.json({
-        error: 'Validation failed',
+        error: 'Помилка валідації',
         errors: formatValidationErrors(validation.error),
         details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
       }, { status: 400 });
     }
 
     const data = validation.data;
+
+    // Check for duplicate name (excluding current product)
+    const duplicateNameResult = await db.query`
+      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name}) AND id != ${id}
+    `;
+
+    if (duplicateNameResult.rows.length > 0) {
+      return NextResponse.json({
+        error: 'Товар з такою назвою вже існує',
+        errors: { name: 'Товар з такою назвою вже існує' },
+      }, { status: 400 });
+    }
 
     // Check for duplicate slug (excluding current product)
     const duplicateResult = await db.query`
@@ -207,7 +219,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     if (duplicateResult.rows.length > 0) {
       return NextResponse.json({
-        error: 'A product with this slug already exists',
+        error: 'Товар з таким URL вже існує',
+        errors: { slug: 'Товар з таким URL вже існує' },
       }, { status: 400 });
     }
 
@@ -315,11 +328,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: 'Product updated successfully',
+      message: 'Товар успішно оновлено',
     });
   } catch (error) {
     console.error('Update product error:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося оновити товар. Спробуйте ще раз.' }, { status: 500 });
   }
 }
 
@@ -328,18 +341,18 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     if (!admin.permissions.includes('products.delete')) {
-      return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Недостатньо прав для видалення товарів' }, { status: 403 });
     }
 
     const { productId } = await params;
     const id = parseInt(productId, 10);
 
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Невірний ID товару' }, { status: 400 });
     }
 
     // Get product info before deletion
@@ -348,7 +361,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     `;
 
     if (productResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Товар не знайдено' }, { status: 404 });
     }
 
     const product = productResult.rows[0];
@@ -379,11 +392,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: 'Product deleted successfully',
+      message: 'Товар успішно видалено',
     });
   } catch (error) {
     console.error('Delete product error:', error);
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося видалити товар. Спробуйте ще раз.' }, { status: 500 });
   }
 }
 
@@ -396,7 +409,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return DELETE(request, { params });
   }
 
-  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+  return NextResponse.json({ error: 'Метод не дозволено' }, { status: 405 });
 }
 
 // Helper function to delete specs by category using template literals

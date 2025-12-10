@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const validation = safeValidateInput(productFiltersSchema, params);
     if (!validation.success) {
       return NextResponse.json({
-        error: 'Invalid parameters',
+        error: 'Невірні параметри',
         errors: formatValidationErrors(validation.error),
       }, { status: 400 });
     }
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get products error:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося завантажити товари' }, { status: 500 });
   }
 }
 
@@ -126,11 +126,11 @@ export async function POST(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
     }
 
     if (!admin.permissions.includes('products.create')) {
-      return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
+      return NextResponse.json({ error: 'Недостатньо прав для створення товарів' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -144,13 +144,25 @@ export async function POST(request: NextRequest) {
     if (!validation.success) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
       return NextResponse.json({
-        error: 'Validation failed',
+        error: 'Помилка валідації',
         errors: formatValidationErrors(validation.error),
         details: validation.error.issues.map(i => ({ path: i.path.join('.'), message: i.message })),
       }, { status: 400 });
     }
 
     const data = validation.data;
+
+    // Check for duplicate name
+    const existingNameResult = await db.query`
+      SELECT id FROM products WHERE LOWER(name) = LOWER(${data.name})
+    `;
+
+    if (existingNameResult.rows.length > 0) {
+      return NextResponse.json({
+        error: 'Товар з такою назвою вже існує',
+        errors: { name: 'Товар з такою назвою вже існує' },
+      }, { status: 400 });
+    }
 
     // Check for duplicate slug
     const existingResult = await db.query`
@@ -159,7 +171,8 @@ export async function POST(request: NextRequest) {
 
     if (existingResult.rows.length > 0) {
       return NextResponse.json({
-        error: 'A product with this slug already exists',
+        error: 'Товар з таким URL вже існує',
+        errors: { slug: 'Товар з таким URL вже існує' },
       }, { status: 400 });
     }
 
@@ -223,7 +236,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Create product error:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    return NextResponse.json({ error: 'Не вдалося створити товар. Спробуйте ще раз.' }, { status: 500 });
   }
 }
 
