@@ -78,7 +78,6 @@ const sessionCache = new Map<string, SessionCacheEntry>();
 function getCachedSession(tokenHash: string): AdminUserWithPermissions | null {
   const entry = sessionCache.get(tokenHash);
   if (!entry) {
-    console.log(`[SessionCache] MISS - token not in cache (cache size: ${sessionCache.size})`);
     return null;
   }
 
@@ -87,15 +86,11 @@ function getCachedSession(tokenHash: string): AdminUserWithPermissions | null {
   // Check TTL expiry
   if (now - entry.cachedAt > SESSION_CACHE_TTL_MS) {
     sessionCache.delete(tokenHash);
-    console.log(`[SessionCache] MISS - token expired (age: ${Math.round((now - entry.cachedAt) / 1000)}s)`);
     return null;
   }
 
   // Update last accessed for LRU
   entry.lastAccessed = now;
-
-  const ageSeconds = Math.round((now - entry.cachedAt) / 1000);
-  console.log(`[SessionCache] HIT - user: ${entry.user.email} (age: ${ageSeconds}s, cache size: ${sessionCache.size})`);
 
   return entry.user;
 }
@@ -108,7 +103,6 @@ function cacheSession(tokenHash: string, user: AdminUserWithPermissions, session
 
   // Enforce max size with LRU eviction
   if (sessionCache.size >= SESSION_CACHE_MAX_SIZE) {
-    console.log(`[SessionCache] Evicting LRU entry (max size: ${SESSION_CACHE_MAX_SIZE})`);
     evictLRUEntry();
   }
 
@@ -118,8 +112,6 @@ function cacheSession(tokenHash: string, user: AdminUserWithPermissions, session
     lastAccessed: now,
     sessionId,
   });
-
-  console.log(`[SessionCache] CACHED - user: ${user.email} (cache size: ${sessionCache.size})`);
 }
 
 /**

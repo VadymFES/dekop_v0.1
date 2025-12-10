@@ -44,12 +44,8 @@ export async function getCachedCategories(): Promise<string[]> {
 
   // Check if cache is valid
   if (categoryCache && (now - categoryCache.cachedAt < CATEGORY_CACHE_TTL_MS)) {
-    const ageSeconds = Math.round((now - categoryCache.cachedAt) / 1000);
-    console.log(`[CategoryCache] HIT - ${categoryCache.categories.length} categories (age: ${ageSeconds}s)`);
     return categoryCache.categories;
   }
-
-  console.log(`[CategoryCache] MISS - fetching from database`);
 
   // Fetch fresh from database
   try {
@@ -64,8 +60,6 @@ export async function getCachedCategories(): Promise<string[]> {
       categories,
       cachedAt: now,
     };
-
-    console.log(`[CategoryCache] CACHED - ${categories.length} categories`);
 
     return categories;
   } catch (error) {
