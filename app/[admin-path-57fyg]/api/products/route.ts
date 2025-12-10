@@ -257,17 +257,17 @@ async function insertProductSpecs(productId: number, category: string, specs: Re
   const sleepingWidth = Number(sleepingArea?.width ?? specs.dimensions_sleeping_area_width ?? 0);
   const sleepingLength = Number(sleepingArea?.length ?? specs.dimensions_sleeping_area_length ?? 0);
 
-  // Extract material (could be object or individual fields)
+  // Extract material (could be object or individual fields) - use empty string for NOT NULL columns
   const material = specs.material as Record<string, unknown> | string | undefined;
-  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? null;
-  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? null;
-  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? null;
-  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? null;
+  const materialType = (typeof material === 'object' ? material?.type : material) ?? specs.material_type ?? '';
+  const materialComposition = (typeof material === 'object' ? material?.composition : null) ?? specs.material_composition ?? '';
+  const materialCovers = (typeof material === 'object' ? material?.covers : null) ?? specs.material_covers ?? '';
+  const materialBackrestFilling = (typeof material === 'object' ? material?.backrest_filling : null) ?? specs.material_backrest_filling ?? '';
 
-  // Extract inner_material (could be object or individual fields)
+  // Extract inner_material (could be object or individual fields) - use empty string for NOT NULL columns
   const innerMaterial = specs.inner_material as Record<string, unknown> | undefined;
-  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? null;
-  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? null;
+  const innerMaterialStructure = innerMaterial?.structure ?? specs.inner_material_structure ?? '';
+  const innerMaterialCushionFilling = innerMaterial?.cushion_filling ?? specs.inner_material_cushion_filling ?? '';
 
   // Other common fields - use empty string for NOT NULL columns
   const constructionVal = (specs.construction as string) || '';
