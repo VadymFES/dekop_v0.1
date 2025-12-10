@@ -163,18 +163,16 @@ export async function POST(request: NextRequest) {
     // Auto-generate unique slug
     let baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
     let slug = baseSlug;
-    let slugSuffix = 1;
 
-    // Keep checking until we find a unique slug
-    while (true) {
-      const existingSlugResult = await db.query`
-        SELECT id FROM products WHERE slug = ${slug}
-      `;
-      if (existingSlugResult.rows.length === 0) {
-        break;
-      }
-      slug = `${baseSlug}-${slugSuffix}`;
-      slugSuffix++;
+    // Check if slug already exists
+    const existingSlugResult = await db.query`
+      SELECT id FROM products WHERE slug = ${slug}
+    `;
+
+    // If slug exists, append category name to make it unique
+    if (existingSlugResult.rows.length > 0) {
+      const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
+      slug = `${baseSlug}-${categorySlug}`;
     }
 
     // Update data with the unique slug
