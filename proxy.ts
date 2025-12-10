@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Admin subdomain configuration
+// Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
 const ADMIN_SUBDOMAIN = 'admin';
-const ADMIN_PATH = '/admin-path-57fyg';
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin-path-57fyg'}`;
 const MAIN_DOMAIN = 'dekop.com.ua';
 
 /**
@@ -18,7 +19,7 @@ function generateNonce(): string {
  * Next.js Proxy - Security Headers, CSP & Subdomain Routing
  *
  * FEATURES:
- * - Subdomain routing: admin.dekop.com.ua -> /admin-path-57fyg/
+ * - Subdomain routing: admin.dekop.com.ua -> admin panel (configurable via env)
  * - Content Security Policy with dynamic nonce
  * - CORS configuration for allowed origins
  * - HSTS, X-Frame-Options, and other security headers
@@ -74,7 +75,7 @@ export function proxy(req: NextRequest) {
   if (isAdminPath && !isAdminSubdomain && !isDev) {
     const adminUrl = new URL(req.url);
     adminUrl.hostname = `${ADMIN_SUBDOMAIN}.${MAIN_DOMAIN}`;
-    // Remove the /admin-path-57fyg prefix from path
+    // Remove the admin path prefix from path
     adminUrl.pathname = requestUrl.pathname.replace(ADMIN_PATH, '') || '/';
 
     return NextResponse.redirect(adminUrl);

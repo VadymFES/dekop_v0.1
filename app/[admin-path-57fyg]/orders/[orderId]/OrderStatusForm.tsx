@@ -2,11 +2,16 @@
 
 /**
  * Компонент форми оновлення статусу замовлення
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCsrfTokenFromCookie } from '../../components/CsrfProvider';
 import styles from '../../styles/admin.module.css';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 interface AdminNote {
   text: string;
@@ -122,9 +127,13 @@ export default function OrderStatusForm({
         return;
       }
 
-      const response = await fetch(`/admin-path-57fyg/api/orders/${orderId}`, {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/orders/${orderId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(updates),
       });
 

@@ -1,10 +1,12 @@
 /**
  * Сторінка редагування товару
  * Завантажує повні дані товару включаючи зображення, кольори та характеристики
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { redirect, notFound } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import { db } from '@/app/lib/db';
 import ProductForm from '../../components/ProductForm';
 import ProductChangelog from '../../components/ProductChangelog';
@@ -70,11 +72,11 @@ export default async function EditProductPage({ params }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-path-57fyg/login');
+    redirect(getAdminUrl('login'));
   }
 
   if (!admin.permissions.includes('products.update')) {
-    redirect('/admin-path-57fyg/products');
+    redirect(getAdminUrl('products'));
   }
 
   const { productId } = await params;

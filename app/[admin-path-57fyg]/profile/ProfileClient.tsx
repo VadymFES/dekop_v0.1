@@ -3,11 +3,16 @@
 /**
  * Клієнтський компонент профілю адміністратора
  * Обробляє редагування імені, зміну пароля та управління сесіями
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCsrfTokenFromCookie } from '../components/CsrfProvider';
 import styles from '../styles/admin.module.css';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 interface Profile {
   id: string;
@@ -103,7 +108,7 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('/admin-path-57fyg/api/profile/sessions');
+      const response = await fetch(`${ADMIN_PATH}/api/profile/sessions`);
       const data = await response.json();
       if (data.success) {
         setSessions(data.sessions);
@@ -122,9 +127,13 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     setNameMessage('');
 
     try {
-      const response = await fetch('/admin-path-57fyg/api/profile', {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ first_name: firstName, last_name: lastName }),
       });
 
@@ -162,9 +171,13 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     }
 
     try {
-      const response = await fetch('/admin-path-57fyg/api/profile/password', {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/profile/password`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           current_password: currentPassword,
           new_password: newPassword,
@@ -197,8 +210,13 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
     setEndingSession(sessionId);
 
     try {
-      const response = await fetch(`/admin-path-57fyg/api/profile/sessions/${sessionId}`, {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = {};
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/profile/sessions/${sessionId}`, {
         method: 'DELETE',
+        headers,
       });
 
       const data = await response.json();

@@ -1,9 +1,11 @@
 /**
  * Сторінка профілю адміністратора
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { redirect } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import { db } from '@/app/lib/db';
 import ProfileClient from './ProfileClient';
 
@@ -11,7 +13,7 @@ export default async function ProfilePage() {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-path-57fyg/login');
+    redirect(getAdminUrl('login'));
   }
 
   // Get full profile data
@@ -24,7 +26,7 @@ export default async function ProfilePage() {
   `;
 
   if (profileResult.rows.length === 0) {
-    redirect('/admin-path-57fyg/login');
+    redirect(getAdminUrl('login'));
   }
 
   const profile = {

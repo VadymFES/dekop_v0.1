@@ -2,13 +2,18 @@
 
 /**
  * Orders table with multi-select and bulk delete functionality
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getCsrfTokenFromCookie } from '../../components/CsrfProvider';
 import ConfirmModal from '../../components/ConfirmModal';
 import styles from '../../styles/admin.module.css';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 interface Order {
   id: string;
@@ -71,9 +76,13 @@ export default function OrdersTable({
     setDeleteError(null);
 
     try {
-      const response = await fetch('/admin-path-57fyg/api/orders/bulk-delete', {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/orders/bulk-delete`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
 
@@ -184,7 +193,7 @@ export default function OrdersTable({
                   </td>
                 )}
                 <td style={tdStyle}>
-                  <Link href={`/admin-path-57fyg/orders/${order.id}`} style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                  <Link href={`${ADMIN_PATH}/orders/${order.id}`} style={{ color: '#1976d2', fontWeight: 'bold' }}>
                     #{order.order_number}
                   </Link>
                 </td>
@@ -202,7 +211,7 @@ export default function OrdersTable({
                 </td>
                 <td style={tdStyle}>{isClient ? formatDate(order.created_at) : '...'}</td>
                 <td style={tdStyle}>
-                  <Link href={`/admin-path-57fyg/orders/${order.id}`} style={{ color: '#1976d2' }}>
+                  <Link href={`${ADMIN_PATH}/orders/${order.id}`} style={{ color: '#1976d2' }}>
                     Переглянути
                   </Link>
                 </td>

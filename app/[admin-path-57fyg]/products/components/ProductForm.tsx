@@ -2,13 +2,18 @@
 
 /**
  * Повна форма товару з усіма полями для всіх категорій
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCsrfTokenFromCookie } from '../../components/CsrfProvider';
 import styles from '../../styles/admin.module.css';
 import ImageUpload from './ImageUpload';
 import ColorImageUpload from './ColorImageUpload';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 // =====================================================
 // TYPES
@@ -599,7 +604,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     try {
       // Check if base slug exists in database
       const excludeParam = isEdit && product?.id ? `&excludeId=${product.id}` : '';
-      const response = await fetch(`/admin-path-57fyg/api/products/check-slug?slug=${encodeURIComponent(baseSlug)}${excludeParam}`);
+      const response = await fetch(`${ADMIN_PATH}/api/products/check-slug?slug=${encodeURIComponent(baseSlug)}${excludeParam}`);
       const data = await response.json();
 
       let slug = baseSlug;
@@ -673,10 +678,14 @@ export default function ProductForm({ product }: ProductFormProps) {
     setToast(null);
 
     try {
-      const url = isEdit ? `/admin-path-57fyg/api/products/${product!.id}` : '/admin-path-57fyg/api/products';
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const url = isEdit ? `${ADMIN_PATH}/api/products/${product!.id}` : `${ADMIN_PATH}/api/products`;
       const response = await fetch(url, {
         method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(formData),
       });
 
@@ -708,7 +717,7 @@ export default function ProductForm({ product }: ProductFormProps) {
 
       if (!isEdit) {
         setTimeout(() => {
-          router.push('/admin-path-57fyg/products');
+          router.push(`${ADMIN_PATH}/products`);
           router.refresh();
         }, 1500);
       } else {
@@ -733,9 +742,13 @@ export default function ProductForm({ product }: ProductFormProps) {
     setToast(null);
 
     try {
-      const response = await fetch(`/admin-path-57fyg/api/products/${product.id}/images`, {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/products/${product.id}/images`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           type: 'images',
           images: formData.images,
@@ -771,9 +784,13 @@ export default function ProductForm({ product }: ProductFormProps) {
     setToast(null);
 
     try {
-      const response = await fetch(`/admin-path-57fyg/api/products/${product.id}/images`, {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+
+      const response = await fetch(`${ADMIN_PATH}/api/products/${product.id}/images`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           type: 'colors',
           colors: formData.colors,

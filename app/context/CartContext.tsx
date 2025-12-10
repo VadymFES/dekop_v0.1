@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
 
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin';
+
 // Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
   const res = await fetch('/cart/api', {
@@ -122,7 +125,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Skip cart operations for admin routes (by path or subdomain)
-  const isAdminRoute = pathname?.startsWith('/admin-path-57fyg') || isAdminSubdomain;
+  const isAdminRoute = pathname?.startsWith(`/${ADMIN_PATH}`) || isAdminSubdomain;
 
   // Fetch cart data (disabled for admin routes)
   const { data: cartData, isLoading, error } = useQuery<Cart>({

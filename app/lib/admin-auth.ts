@@ -77,7 +77,9 @@ const sessionCache = new Map<string, SessionCacheEntry>();
  */
 function getCachedSession(tokenHash: string): AdminUserWithPermissions | null {
   const entry = sessionCache.get(tokenHash);
-  if (!entry) return null;
+  if (!entry) {
+    return null;
+  }
 
   const now = Date.now();
 
