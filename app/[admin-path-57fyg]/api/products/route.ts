@@ -160,12 +160,20 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Auto-generate slug with category name for uniqueness
+    // Auto-generate slug - only append category if base slug already exists
     const baseSlug = body.slug || slugify(data.name, { lower: true, strict: true });
-    const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
 
-    // Always include category in slug for unique URLs across categories
-    let slug = baseSlug.endsWith(`-${categorySlug}`) ? baseSlug : `${baseSlug}-${categorySlug}`;
+    // Check if base slug already exists in database
+    const existingSlugResult = await db.query`
+      SELECT id FROM products WHERE slug = ${baseSlug}
+    `;
+
+    let slug = baseSlug;
+    if (existingSlugResult.rows.length > 0) {
+      // Base slug exists, append category for uniqueness
+      const categorySlug = data.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
+      slug = `${baseSlug}-${categorySlug}`;
+    }
 
     // Update data with the slug
     data.slug = slug;

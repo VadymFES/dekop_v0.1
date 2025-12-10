@@ -588,11 +588,35 @@ export default function ProductForm({ product }: ProductFormProps) {
     handleSpecChange('types', newTypes);
   };
 
-  const generateSlug = () => {
+  const [generatingSlug, setGeneratingSlug] = useState(false);
+
+  const generateSlug = async () => {
+    if (!formData.name) return;
+
+    setGeneratingSlug(true);
     const baseSlug = generateSlugFromName(formData.name);
-    const categorySlug = formData.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
-    const slug = `${baseSlug}-${categorySlug}`;
-    setFormData(prev => ({ ...prev, slug }));
+
+    try {
+      // Check if base slug exists in database
+      const excludeParam = isEdit && product?.id ? `&excludeId=${product.id}` : '';
+      const response = await fetch(`/admin-path-57fyg/api/products/check-slug?slug=${encodeURIComponent(baseSlug)}${excludeParam}`);
+      const data = await response.json();
+
+      let slug = baseSlug;
+      if (data.exists) {
+        // Slug exists, append category name
+        const categorySlug = formData.category.replace(/_/g, '-'); // corner_sofas -> corner-sofas
+        slug = `${baseSlug}-${categorySlug}`;
+      }
+
+      setFormData(prev => ({ ...prev, slug }));
+    } catch (error) {
+      console.error('Error checking slug:', error);
+      // Fallback: just use base slug
+      setFormData(prev => ({ ...prev, slug: baseSlug }));
+    } finally {
+      setGeneratingSlug(false);
+    }
   };
 
   // Images
@@ -795,7 +819,9 @@ export default function ProductForm({ product }: ProductFormProps) {
             <div>
               <label className={styles.label}>
                 URL (slug) *
-                <button type="button" onClick={generateSlug} className={styles.buttonGenerate}>Згенерувати</button>
+                <button type="button" onClick={generateSlug} disabled={generatingSlug || !formData.name} className={styles.buttonGenerate}>
+                  {generatingSlug ? 'Перевірка...' : 'Згенерувати'}
+                </button>
               </label>
               <input type="text" name="slug" value={formData.slug} onChange={handleChange} required className={styles.input} />
             </div>
