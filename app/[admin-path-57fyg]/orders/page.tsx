@@ -63,7 +63,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
   if (paymentStatus) exportParams.set('payment_status', paymentStatus);
   if (dateFrom) exportParams.set('date_from', dateFrom);
   if (dateTo) exportParams.set('date_to', dateTo);
-  const exportUrl = `/admin-path-57fyg/api/orders/export${exportParams.toString() ? '?' + exportParams.toString() : ''}`;
+  const exportUrl = `${getAdminUrl('api/orders/export')}${exportParams.toString() ? '?' + exportParams.toString() : ''}`;
 
   return (
     <div>
@@ -170,7 +170,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
           </button>
 
           <Link
-            href="/admin-path-57fyg/orders"
+            href={getAdminUrl('orders')}
             style={{
               padding: '8px 20px',
               backgroundColor: '#f5f5f5',
@@ -328,7 +328,7 @@ function buildPageUrl(page: number, params: Record<string, string>) {
   Object.entries(params).forEach(([key, value]) => {
     if (value) searchParams.set(key, value);
   });
-  return `/admin-path-57fyg/orders?${searchParams.toString()}`;
+  return `${getAdminUrl('orders')}?${searchParams.toString()}`;
 }
 
 const paginationLinkStyle = {

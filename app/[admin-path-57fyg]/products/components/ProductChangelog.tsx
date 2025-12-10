@@ -1,6 +1,14 @@
 'use client';
 
+/**
+ * Product changelog component
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
+ */
+
 import { useState, useEffect } from 'react';
+
+// Get admin path from environment variable (Task 7)
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
 
 interface ChangelogEntry {
   id: number;
@@ -73,7 +81,7 @@ export default function ProductChangelog({ productId }: ProductChangelogProps) {
   useEffect(() => {
     async function fetchChangelog() {
       try {
-        const response = await fetch(`/admin-path-57fyg/api/products/${productId}/changelog`);
+        const response = await fetch(`${ADMIN_PATH}/api/products/${productId}/changelog`);
         if (!response.ok) {
           throw new Error('Failed to fetch changelog');
         }

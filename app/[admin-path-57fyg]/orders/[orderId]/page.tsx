@@ -1,10 +1,12 @@
 /**
  * Сторінка деталей замовлення
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
  */
 
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import { db } from '@/app/lib/db';
 import OrderStatusForm from './OrderStatusForm';
 
@@ -16,11 +18,11 @@ export default async function OrderDetailsPage({ params }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-path-57fyg/login');
+    redirect(getAdminUrl('login'));
   }
 
   if (!admin.permissions.includes('orders.read')) {
-    redirect('/admin-path-57fyg');
+    redirect(getAdminUrl());
   }
 
   const { orderId } = await params;
@@ -53,7 +55,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
   return (
     <div>
       <div style={{ marginBottom: '20px' }}>
-        <Link href="/admin-path-57fyg/orders" style={{ color: '#1976d2' }}>
+        <Link href={getAdminUrl('orders')} style={{ color: '#1976d2' }}>
           &larr; Назад до замовлень
         </Link>
       </div>

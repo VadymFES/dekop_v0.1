@@ -1,12 +1,16 @@
 /**
  * Сторінка списку товарів адмін-панелі
  * Показує всі товари з фільтрацією та пагінацією
+ * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
+ * Uses category cache (Task 3)
  */
 
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import { db } from '@/app/lib/db';
+import { getCachedCategories, getCategoryDisplayName } from '@/app/lib/category-utils';
 import ProductsTable from './components/ProductsTable';
 import styles from '../styles/admin.module.css';
 
@@ -23,11 +27,11 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
-    redirect('/admin-path-57fyg/login');
+    redirect(getAdminUrl('login'));
   }
 
   if (!admin.permissions.includes('products.read')) {
-    redirect('/admin-path-57fyg');
+    redirect(getAdminUrl());
   }
 
   const params = await searchParams;
@@ -55,7 +59,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>Товари ({total})</h1>
         {admin.permissions.includes('products.create') && (
-          <Link href="/admin-path-57fyg/products/add" className={styles.buttonAddLarge}>
+          <Link href={getAdminUrl('products/add')} className={styles.buttonAddLarge}>
             Додати товар
           </Link>
         )}
@@ -84,7 +88,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             >
               <option value="">Всі категорії</option>
               {categories.map((cat: string) => (
-                <option key={cat} value={cat}>{formatCategory(cat)}</option>
+                <option key={cat} value={cat}>{getCategoryDisplayName(cat)}</option>
               ))}
             </select>
           </div>
@@ -105,7 +109,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             Фільтрувати
           </button>
 
-          <Link href="/admin-path-57fyg/products" className={styles.buttonClear}>
+          <Link href={getAdminUrl('products')} className={styles.buttonClear}>
             Очистити
           </Link>
         </form>
@@ -210,15 +214,13 @@ async function getProducts({
 
   const productsResult = await db.query(productsQuery, [...values, limit, offset]);
 
-  // Get categories for filter
-  const categoriesResult = await db.query`
-    SELECT DISTINCT category FROM products ORDER BY category
-  `;
+  // Get categories from cache (Task 3)
+  const categories = await getCachedCategories();
 
   return {
     products: productsResult.rows,
     total,
-    categories: categoriesResult.rows.map((r: { category: string }) => r.category),
+    categories,
   };
 }
 
@@ -243,5 +245,5 @@ function buildPageUrl(page: number, params: Record<string, string>) {
   Object.entries(params).forEach(([key, value]) => {
     if (value) searchParams.set(key, value);
   });
-  return `/admin-path-57fyg/products?${searchParams.toString()}`;
+  return `${getAdminUrl('products')}?${searchParams.toString()}`;
 }
