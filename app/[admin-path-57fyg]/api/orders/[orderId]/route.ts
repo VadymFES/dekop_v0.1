@@ -14,6 +14,7 @@ import {
   safeValidateInput,
   formatValidationErrors,
 } from '@/app/lib/admin-validation';
+import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 
 interface RouteParams {
   params: Promise<{ orderId: string }>;
@@ -67,6 +68,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    // Validate CSRF token (Task 6)
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed', code: 'CSRF_INVALID' }, { status: 403 });
+    }
+
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -7,13 +7,15 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import styles from './styles/admin.module.css';
 
 export default async function AdminDashboard() {
   const admin = await getCurrentAdmin();
+  const adminPath = getAdminUrl();
 
   if (!admin) {
-    redirect('/admin-path-57fyg/login');
+    redirect(`${adminPath}/login`);
   }
 
   // Fetch dashboard metrics
@@ -56,7 +58,7 @@ export default async function AdminDashboard() {
             {metrics.recentOrders.map((order) => (
               <tr key={order.id}>
                 <td className={styles.td}>
-                  <Link href={`/admin-path-57fyg/orders/${order.id}`} className={styles.link}>
+                  <Link href={`${adminPath}/orders/${order.id}`} className={styles.link}>
                     {order.order_number}
                   </Link>
                 </td>
@@ -108,7 +110,7 @@ export default async function AdminDashboard() {
                     {product.stock}
                   </td>
                   <td className={styles.td}>
-                    <Link href={`/admin-path-57fyg/products/${product.id}/edit`} className={styles.link}>
+                    <Link href={`${adminPath}/products/${product.id}/edit`} className={styles.link}>
                       Редагувати
                     </Link>
                   </td>
@@ -199,7 +201,10 @@ function formatDate(date: string): string {
   });
 }
 
-// Отримання метрик
+/**
+ * Get dashboard metrics with parallel query execution (Task 5)
+ * Uses Promise.all() for independent queries with error isolation
+ */
 async function getDashboardMetrics() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -210,40 +215,61 @@ async function getDashboardMetrics() {
   const monthAgo = new Date(today);
   monthAgo.setMonth(monthAgo.getMonth() - 1);
 
-  // Статистика замовлень
-  const ordersResult = await db.query`
-    SELECT
-      COUNT(*) FILTER (WHERE created_at >= ${today.toISOString()}) as orders_today,
-      COUNT(*) FILTER (WHERE created_at >= ${weekAgo.toISOString()}) as orders_week,
-      COUNT(*) FILTER (WHERE created_at >= ${monthAgo.toISOString()}) as orders_month,
-      COUNT(*) FILTER (WHERE order_status = 'processing') as pending_orders,
-      COALESCE(SUM(total_amount) FILTER (WHERE created_at >= ${today.toISOString()} AND payment_status = 'paid'), 0) as revenue_today,
-      COALESCE(SUM(total_amount) FILTER (WHERE created_at >= ${weekAgo.toISOString()} AND payment_status = 'paid'), 0) as revenue_week,
-      COALESCE(SUM(total_amount) FILTER (WHERE created_at >= ${monthAgo.toISOString()} AND payment_status = 'paid'), 0) as revenue_month
-    FROM orders
-  `;
+  // Execute all independent queries in parallel (Task 5)
+  // Each query is wrapped to handle individual failures without crashing the dashboard
+  const [
+    ordersResult,
+    lowStockResult,
+    recentOrdersResult,
+    lowStockProductsResult,
+  ] = await Promise.all([
+    // Order statistics (aggregated query)
+    db.query`
+      SELECT
+        COUNT(*) FILTER (WHERE created_at >= ${today.toISOString()}) as orders_today,
+        COUNT(*) FILTER (WHERE created_at >= ${weekAgo.toISOString()}) as orders_week,
+        COUNT(*) FILTER (WHERE created_at >= ${monthAgo.toISOString()}) as orders_month,
+        COUNT(*) FILTER (WHERE order_status = 'processing') as pending_orders,
+        COALESCE(SUM(total_amount) FILTER (WHERE created_at >= ${today.toISOString()} AND payment_status = 'paid'), 0) as revenue_today,
+        COALESCE(SUM(total_amount) FILTER (WHERE created_at >= ${weekAgo.toISOString()} AND payment_status = 'paid'), 0) as revenue_week,
+        COALESCE(SUM(total_amount) FILTER (WHERE created_at >= ${monthAgo.toISOString()} AND payment_status = 'paid'), 0) as revenue_month
+      FROM orders
+    `.catch(err => {
+      console.error('Failed to fetch order statistics:', err);
+      return { rows: [{}] };
+    }),
 
-  // Кількість товарів з малим запасом
-  const lowStockResult = await db.query`
-    SELECT COUNT(*) as count FROM products WHERE stock < 10
-  `;
+    // Low stock count
+    db.query`
+      SELECT COUNT(*) as count FROM products WHERE stock < 10
+    `.catch(err => {
+      console.error('Failed to fetch low stock count:', err);
+      return { rows: [{ count: 0 }] };
+    }),
 
-  // Останні замовлення
-  const recentOrdersResult = await db.query`
-    SELECT id, order_number, user_name, user_surname, total_amount, order_status, payment_status, created_at
-    FROM orders
-    ORDER BY created_at DESC
-    LIMIT 10
-  `;
+    // Recent orders
+    db.query`
+      SELECT id, order_number, user_name, user_surname, total_amount, order_status, payment_status, created_at
+      FROM orders
+      ORDER BY created_at DESC
+      LIMIT 10
+    `.catch(err => {
+      console.error('Failed to fetch recent orders:', err);
+      return { rows: [] };
+    }),
 
-  // Список товарів з малим запасом
-  const lowStockProductsResult = await db.query`
-    SELECT id, name, category, stock
-    FROM products
-    WHERE stock < 10
-    ORDER BY stock ASC
-    LIMIT 10
-  `;
+    // Low stock products list
+    db.query`
+      SELECT id, name, category, stock
+      FROM products
+      WHERE stock < 10
+      ORDER BY stock ASC
+      LIMIT 10
+    `.catch(err => {
+      console.error('Failed to fetch low stock products:', err);
+      return { rows: [] };
+    }),
+  ]);
 
   const stats = ordersResult.rows[0] || {};
 

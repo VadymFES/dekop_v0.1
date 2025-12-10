@@ -4,8 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateAdmin, setSessionCookie } from '@/app/lib/admin-auth';
+import { authenticateAdmin, setSessionCookie, hashToken } from '@/app/lib/admin-auth';
 import { adminLoginSchema, safeValidateInput, formatValidationErrors } from '@/app/lib/admin-validation';
+import { generateCsrfToken, setCsrfCookie } from '@/app/lib/csrf-protection';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +43,11 @@ export async function POST(request: NextRequest) {
     // Set session cookie
     await setSessionCookie(result.token!);
 
+    // Generate and set CSRF token (Task 6)
+    const sessionTokenHash = hashToken(result.token!);
+    const csrfToken = generateCsrfToken(sessionTokenHash);
+    await setCsrfCookie(csrfToken);
+
     return NextResponse.json({
       success: true,
       user: {
@@ -50,6 +56,7 @@ export async function POST(request: NextRequest) {
         first_name: result.user!.first_name,
         last_name: result.user!.last_name,
       },
+      csrfToken, // Include CSRF token in response for immediate client use
     });
   } catch (error) {
     console.error('Login error:', error);

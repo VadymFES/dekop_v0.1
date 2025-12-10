@@ -14,6 +14,8 @@ import {
   safeValidateInput,
   formatValidationErrors,
 } from '@/app/lib/admin-validation';
+import { invalidateCategoriesCache } from '@/app/lib/category-utils';
+import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 import slugify from 'slugify';
 
 // Mapping from Ukrainian category names to English enum values
@@ -150,6 +152,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PUT - Update product with all related data
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    // Validate CSRF token (Task 6)
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed', code: 'CSRF_INVALID' }, { status: 403 });
+    }
+
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
@@ -315,6 +323,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       `;
     }
 
+    // Invalidate categories cache (Task 3)
+    invalidateCategoriesCache();
+
     // Log action
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
     const userAgent = request.headers.get('user-agent');
@@ -345,6 +356,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 // DELETE - Delete product with all related data
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    // Validate CSRF token (Task 6)
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed', code: 'CSRF_INVALID' }, { status: 403 });
+    }
+
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
@@ -384,6 +401,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     // Delete product
     await db.query`DELETE FROM products WHERE id = ${id}`;
+
+    // Invalidate categories cache (Task 3)
+    invalidateCategoriesCache();
 
     // Log action
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');

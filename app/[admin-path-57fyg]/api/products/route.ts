@@ -13,6 +13,8 @@ import {
   safeValidateInput,
   formatValidationErrors,
 } from '@/app/lib/admin-validation';
+import { invalidateCategoriesCache } from '@/app/lib/category-utils';
+import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 import slugify from 'slugify';
 
 // Spec table names for each category
@@ -124,6 +126,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate CSRF token (Task 6)
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed', code: 'CSRF_INVALID' }, { status: 403 });
+    }
+
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Необхідна авторизація' }, { status: 401 });
@@ -216,6 +224,9 @@ export async function POST(request: NextRequest) {
     if (data.specs) {
       await insertProductSpecs(productId, data.category, data.specs);
     }
+
+    // Invalidate categories cache (Task 3)
+    invalidateCategoriesCache();
 
     // Log action
     const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');

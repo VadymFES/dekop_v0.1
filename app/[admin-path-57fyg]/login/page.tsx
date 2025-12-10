@@ -4,6 +4,7 @@
 
 import { redirect } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
+import { getAdminUrl } from '@/app/lib/admin-path';
 import LoginForm from './LoginForm';
 import styles from '../styles/admin.module.css';
 
@@ -16,7 +17,7 @@ export default async function AdminLoginPage() {
   // Якщо вже авторизований - перенаправити на головну
   const admin = await getCurrentAdmin();
   if (admin) {
-    redirect('/admin-path-57fyg');
+    redirect(getAdminUrl());
   }
 
   return (
