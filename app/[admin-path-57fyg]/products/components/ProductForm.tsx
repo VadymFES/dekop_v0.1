@@ -382,9 +382,9 @@ export default function ProductForm({ product }: ProductFormProps) {
     slug: product?.slug || '',
     description: product?.description || '',
     category: product?.category || 'sofas',
-    price: product?.price || 0,
+    price: product?.price ?? ('' as unknown as number),
     sale_price: product?.sale_price,
-    stock: product?.stock || 0,
+    stock: product?.stock ?? ('' as unknown as number),
     is_on_sale: product?.is_on_sale || false,
     is_new: product?.is_new || false,
     is_bestseller: product?.is_bestseller || false,
@@ -515,10 +515,9 @@ export default function ProductForm({ product }: ProductFormProps) {
     if (type === 'checkbox') {
       newValue = checked;
     } else if (type === 'number') {
-      // For optional fields like sale_price, allow null when empty
-      // For required fields like price and stock, use 0 when empty
+      // Allow empty values for all number fields
       if (value === '') {
-        newValue = name === 'sale_price' ? null : 0;
+        newValue = name === 'sale_price' ? null : ('' as unknown as number);
       } else {
         newValue = Number(value);
       }
