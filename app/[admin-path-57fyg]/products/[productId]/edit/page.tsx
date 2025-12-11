@@ -181,33 +181,113 @@ async function getProductSpecs(productId: number, category: string) {
 
   const row = result.rows[0];
 
-  // Parse JSON fields
-  const specs: Record<string, unknown> = { ...row };
-  delete specs.id;
-  delete specs.product_id;
+  // Convert flat database columns to nested object format expected by form
+  const specs: Record<string, unknown> = {};
 
-  if (typeof specs.dimensions === 'string') {
-    try {
-      specs.dimensions = JSON.parse(specs.dimensions);
-    } catch { /* ignore parse errors */ }
+  // Build dimensions object from flat columns
+  const dimensions: Record<string, unknown> = {};
+  if (row.dimensions_length !== undefined && row.dimensions_length !== null) {
+    dimensions.length = Number(row.dimensions_length);
+  }
+  if (row.dimensions_width !== undefined && row.dimensions_width !== null) {
+    dimensions.width = Number(row.dimensions_width);
+  }
+  if (row.dimensions_depth !== undefined && row.dimensions_depth !== null) {
+    dimensions.depth = Number(row.dimensions_depth);
+  }
+  if (row.dimensions_height !== undefined && row.dimensions_height !== null) {
+    dimensions.height = Number(row.dimensions_height);
+  }
+  // Sleeping area
+  if (row.dimensions_sleeping_area_width || row.dimensions_sleeping_area_length) {
+    dimensions.sleeping_area = {
+      width: Number(row.dimensions_sleeping_area_width) || 0,
+      length: Number(row.dimensions_sleeping_area_length) || 0,
+    };
+  }
+  if (Object.keys(dimensions).length > 0) {
+    specs.dimensions = dimensions;
   }
 
-  if (typeof specs.material === 'string' && specs.material.startsWith('{')) {
-    try {
-      specs.material = JSON.parse(specs.material);
-    } catch { /* ignore parse errors */ }
+  // Build material object from flat columns (for sofa categories)
+  const isSofaCategory = ['sofas', 'corner_sofas', 'sofa_beds'].includes(category);
+  if (isSofaCategory) {
+    const material: Record<string, string> = {};
+    if (row.material_type) material.type = row.material_type;
+    if (row.material_composition) material.composition = row.material_composition;
+    if (row.material_covers) material.covers = row.material_covers;
+    if (row.material_backrest_filling) material.backrest_filling = row.material_backrest_filling;
+    if (Object.keys(material).length > 0) {
+      specs.material = material;
+    }
+  } else {
+    // For non-sofa categories, material is a simple string
+    if (row.material) specs.material = row.material;
+    if (row.material_type) specs.material = row.material_type;
   }
 
-  if (typeof specs.inner_material === 'string') {
-    try {
-      specs.inner_material = JSON.parse(specs.inner_material);
-    } catch { /* ignore parse errors */ }
+  // Build inner_material object from flat columns (for sofa categories)
+  if (isSofaCategory) {
+    const innerMaterial: Record<string, string> = {};
+    if (row.inner_material_structure) innerMaterial.structure = row.inner_material_structure;
+    if (row.inner_material_cushion_filling) innerMaterial.cushion_filling = row.inner_material_cushion_filling;
+    if (Object.keys(innerMaterial).length > 0) {
+      specs.inner_material = innerMaterial;
+    }
   }
 
-  if (typeof specs.types === 'string') {
-    try {
-      specs.types = JSON.parse(specs.types);
-    } catch { /* ignore parse errors */ }
+  // Copy other simple fields
+  if (row.construction) specs.construction = row.construction;
+  if (row.additional_features) specs.additional_features = row.additional_features;
+  if (row.has_shelves !== undefined) specs.has_shelves = Boolean(row.has_shelves);
+  if (row.leg_height) specs.leg_height = row.leg_height;
+  if (row.has_lift_mechanism !== undefined) specs.has_lift_mechanism = Boolean(row.has_lift_mechanism);
+  if (row.armrest_type) specs.armrest_type = row.armrest_type;
+  if (row.seat_height !== undefined && row.seat_height !== null) specs.seat_height = Number(row.seat_height);
+
+  // Bed-specific fields
+  if (row.headboard_type) specs.headboard_type = row.headboard_type;
+  if (row.storage_options) specs.storage_options = row.storage_options;
+
+  // Mattress-specific fields
+  if (row.core_type) specs.core_type = row.core_type;
+  if (row.hardness) specs.hardness = row.hardness;
+  // Map hardness to firmness for form compatibility
+  if (row.hardness) specs.firmness = row.hardness;
+
+  // Table-specific fields
+  if (row.shape) specs.shape = row.shape;
+  if (row.extendable !== undefined) specs.extendable = Boolean(row.extendable);
+
+  // Chair-specific fields
+  if (row.upholstery) specs.upholstery = row.upholstery;
+  if (row.weight_capacity !== undefined && row.weight_capacity !== null) specs.weight_capacity = Number(row.weight_capacity);
+
+  // Wardrobe-specific fields
+  if (row.door_count !== undefined && row.door_count !== null) specs.door_count = Number(row.door_count);
+  if (row.door_type) specs.door_type = row.door_type;
+  if (row.internal_layout) specs.internal_layout = row.internal_layout;
+
+  // Accessory-specific fields
+  if (row.mounting_type) specs.mounting_type = row.mounting_type;
+  if (row.shelf_count !== undefined && row.shelf_count !== null) specs.shelf_count = Number(row.shelf_count);
+
+  // Parse types array (stored as PostgreSQL array)
+  if (row.types) {
+    if (Array.isArray(row.types)) {
+      specs.types = row.types;
+    } else if (typeof row.types === 'string') {
+      // Handle PostgreSQL array format like {value1,value2}
+      if (row.types.startsWith('{') && row.types.endsWith('}')) {
+        specs.types = row.types.slice(1, -1).split(',').filter(Boolean);
+      } else {
+        try {
+          specs.types = JSON.parse(row.types);
+        } catch {
+          specs.types = row.types.split(',').map((t: string) => t.trim()).filter(Boolean);
+        }
+      }
+    }
   }
 
   return specs;
