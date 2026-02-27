@@ -96,7 +96,7 @@
 
     .productCardSlide {
       flex: 0 0 auto;
-      width: max-content;
+      width: 260px;
       scroll-snap-align: start;
     }
 
