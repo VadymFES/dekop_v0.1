@@ -132,9 +132,9 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
       }
     });
 
-    // Update URL without page reload
+    // Update URL without page reload or scroll reset
     const newURL = params.toString() ? `/catalog?${params.toString()}` : '/catalog';
-    router.push(newURL);
+    router.push(newURL, { scroll: false });
   }, [router, searchParams]);
 
   // Fetch products when URL parameters change
