@@ -11,12 +11,14 @@
     scroll-snap-type: x mandatory;
     width: 100%;
     margin-bottom: 10px;
+    gap: 20px;
   }
-  
+
 
   .productCardSlide {
-    flex: 0 0 auto;      /* Prevent flex items from shrinking */
-    scroll-snap-align: start; /* Snap alignment */
+    flex: 0 0 260px;
+    width: 260px;
+    scroll-snap-align: start;
   }
   
   /* Scroll buttons container */

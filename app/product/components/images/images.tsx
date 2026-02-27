@@ -42,7 +42,7 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
 
   // Early return if product or its images are missing.
   if (!product || !product.images || product.images.length === 0) {
-    return <div>Зображення не доступні</div>;
+    return <div className={styles.imagePlaceholder} aria-label="Зображення відсутнє" />;
   }
 
   // Handle thumbnail click
@@ -54,16 +54,20 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
     <div className={styles.imageSection}>
       {/* Main (selected) image */}
       <div className={styles.mainImageContainer}>
-        {selectedImage && (
+        {selectedImage ? (
           <Image
             key={selectedImage.id}
             src={selectedImage.image_url}
             alt={selectedImage.alt || product.name}
-            width={500} 
-            height={500} 
+            width={500}
+            height={500}
             sizes="(max-width: 768px) 100vw, 500px"
             className={styles.mainImage}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
           />
+        ) : (
+          <div className={styles.imagePlaceholder} aria-label="Зображення відсутнє" />
         )}
       </div>
 
@@ -79,13 +83,19 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
             }
             onClick={() => handleThumbnailClick(image)}
           >
-            <Image
-              src={image.image_url}
-              alt={image.alt || product.name}
-              width={80}
-              height={80}
-              sizes="(max-width: 768px) 100vw, 80px"
-            />
+            {image.image_url ? (
+              <Image
+                src={image.image_url}
+                alt={image.alt || product.name}
+                width={80}
+                height={80}
+                sizes="(max-width: 768px) 100vw, 80px"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
+              />
+            ) : (
+              <div className={styles.thumbnailPlaceholder} aria-label="Зображення відсутнє" />
+            )}
           </div>
         ))}
       </div>
