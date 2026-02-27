@@ -38,6 +38,11 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
   const router = useRouter();
   const searchParams = useSearchParams();
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Track whether price range bounds have been initialized for the current category.
+  // Price range bounds should only update on category change, not on other filter changes,
+  // to prevent the slider from shifting position when checkboxes are toggled.
+  const prevDbCategoryRef = useRef<string | null | undefined>(undefined);
+  const priceRangeInitializedRef = useRef(false);
 
   // State
   const [allProducts, setAllProducts] = useState<ProductWithImages[]>([]); // All fetched products
@@ -127,9 +132,9 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
       }
     });
 
-    // Update URL without page reload
+    // Update URL without page reload or scroll reset
     const newURL = params.toString() ? `/catalog?${params.toString()}` : '/catalog';
-    router.push(newURL);
+    router.push(newURL, { scroll: false });
   }, [router, searchParams]);
 
   // Fetch products when URL parameters change
@@ -142,6 +147,13 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     // Create new abort controller for this request
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+
+    // Reset price range initialization when category changes so that bounds
+    // refresh for the new category but stay stable for other filter changes.
+    if (dbCategory !== prevDbCategoryRef.current) {
+      prevDbCategoryRef.current = dbCategory;
+      priceRangeInitializedRef.current = false;
+    }
 
     const fetchProducts = async () => {
       setLoading(true);
@@ -185,27 +197,26 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
           // Store all products (price filtering happens in separate effect)
           setAllProducts(data);
 
-          // Calculate price range from ALL fetched products
+          // Calculate price range from ALL fetched products.
+          // Only update slider bounds on the first fetch per category so that
+          // applying other filters (status, type, etc.) doesn't shift the
+          // price slider thumbs.
           if (data.length > 0) {
             const prices = data
               .map((p: { price: number | string }) => parseFloat(p.price.toString()))
               .filter((p: number) => p > 0);
 
-            if (prices.length > 0) {
+            if (prices.length > 0 && !priceRangeInitializedRef.current) {
+              priceRangeInitializedRef.current = true;
               const min = Math.min(...prices);
               const max = Math.max(...prices);
-
-              // Only update price range if it actually changed
-              setPriceRange(prev => {
-                if (prev.min !== min || prev.max !== max) {
-                  return { min, max };
-                }
-                return prev;
-              });
+              setPriceRange({ min, max });
             }
           } else {
-            // No products, reset price range
-            setPriceRange({ min: 0, max: 0 });
+            // No products: clear the initialized flag so bounds recalculate
+            // when products return, but keep the existing priceRange so the
+            // slider stays visible and interactive during the zero-result state.
+            priceRangeInitializedRef.current = false;
             setProducts([]);
           }
         }

@@ -17,7 +17,8 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   const [tempPriceMax, setTempPriceMax] = useState<number | null>(null);
 
   if (!priceRange || priceRange.min === undefined || priceRange.max === undefined ||
-    filterValues.priceMin === undefined || filterValues.priceMax === undefined) {
+    filterValues.priceMin === undefined || filterValues.priceMax === undefined ||
+    priceRange.min === priceRange.max) {
     return null;
   }
 
