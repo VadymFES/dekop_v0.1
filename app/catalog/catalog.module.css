@@ -459,7 +459,9 @@
   gap: 20px;
   grid-template-rows: max-content;
   min-height: 400px;
-  /* width: 100%; */
+  flex: 1;
+  min-width: 0;
+  align-content: start;
 }
 
 /* Responsive design */
