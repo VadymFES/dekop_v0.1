@@ -16,6 +16,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { isLoading, addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const [isImageError, setIsImageError] = React.useState(false);
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent triggering the parent link navigation
@@ -49,6 +50,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   const firstImage = product.images.length > 0 ? product.images[0] : null;
+  const showImagePlaceholder = !firstImage || isImageError;
   const isFavorited = isFavorite(product.id);
   const isOutOfStock = product.stock < 1;
 
@@ -57,7 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <Link href={`/product/${encodeURIComponent(product.slug)}`} prefetch={false}>
         <div>
           <div className={styles.imageWrapper}>
-            {firstImage && (
+            {!showImagePlaceholder && firstImage && (
               <Image
                 src={firstImage.image_url}
                 alt={product.name}
@@ -65,9 +67,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 width={260}
                 height={260}
                 loading="lazy"
+                onError={() => setIsImageError(true)}
                 placeholder="blur"
                 blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
               />
+            )}
+
+            {showImagePlaceholder && (
+              <div className={styles.productImagePlaceholder} aria-label="Зображення недоступне">
+                Немає фото
+              </div>
             )}
 
             {/* Favorite heart icon button */}

@@ -13,6 +13,18 @@
     height: 450px;
     width: 100%;
   }
+
+
+  .mainImagePlaceholder {
+    height: 450px;
+    width: 100%;
+    background: #f1f1f1;
+    color: #7a7a7a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
   
   /* Carousel container */
   .carouselContainer {
@@ -36,7 +48,8 @@
   }
 
   @media screen and (max-width: 768px) {
-    .mainImage {
+    .mainImage,
+    .mainImagePlaceholder {
       height: 240px;
     }
 
@@ -51,3 +64,14 @@
   @media screen and (max-width: 480px) {
 
   }
+.thumbnailPlaceholder {
+  width: 80px;
+  height: 80px;
+  background: #f1f1f1;
+  color: #7a7a7a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}

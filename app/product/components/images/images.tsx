@@ -9,27 +9,32 @@ interface ProductImagesProps {
 }
 
 const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor }) => {
+  const validImages = useMemo(() => {
+    if (!product?.images || product.images.length === 0) return [];
+    return product.images.filter((image) => Boolean(image.image_url));
+  }, [product?.images]);
+
   // Filter images based on selected color
   // Show images where color matches selectedColor OR color is null (general images)
   const filteredImages = useMemo(() => {
-    if (!product?.images || product.images.length === 0) return [];
+    if (validImages.length === 0) return [];
 
     // If no color is selected, show all images
     if (!selectedColor) {
-      return product.images;
+      return validImages;
     }
 
     // Filter images: show color-specific images + general images (color is null)
-    const colorFiltered = product.images.filter(
+    const colorFiltered = validImages.filter(
       img => img.color === selectedColor || img.color === null || img.color === undefined
     );
 
     // If no images match, fall back to all images
-    return colorFiltered.length > 0 ? colorFiltered : product.images;
-  }, [product?.images, selectedColor]);
+    return colorFiltered.length > 0 ? colorFiltered : validImages;
+  }, [validImages, selectedColor]);
 
-  // Use optional chaining to safely initialize the state.
   const [selectedImage, setSelectedImage] = useState(filteredImages[0]);
+  const [isMainImageError, setIsMainImageError] = useState(false);
 
   // Sync selectedImage when filtered images change (e.g., when color changes)
   useEffect(() => {
@@ -40,9 +45,12 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
     }
   }, [filteredImages]);
 
-  // Early return if product or its images are missing.
-  if (!product || !product.images || product.images.length === 0) {
-    return <div>Зображення не доступні</div>;
+  useEffect(() => {
+    setIsMainImageError(false);
+  }, [selectedImage?.id]);
+
+  if (!product) {
+    return null;
   }
 
   // Handle thumbnail click
@@ -54,40 +62,47 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
     <div className={styles.imageSection}>
       {/* Main (selected) image */}
       <div className={styles.mainImageContainer}>
-        {selectedImage && (
+        {selectedImage && !isMainImageError ? (
           <Image
             key={selectedImage.id}
             src={selectedImage.image_url}
             alt={selectedImage.alt || product.name}
-            width={500} 
-            height={500} 
+            width={500}
+            height={500}
             sizes="(max-width: 768px) 100vw, 500px"
             className={styles.mainImage}
+            onError={() => setIsMainImageError(true)}
           />
+        ) : (
+          <div className={styles.mainImagePlaceholder}>Немає фото</div>
         )}
       </div>
 
       {/* Carousel (thumbnails) - shows filtered images based on selected color */}
       <div className={styles.carouselContainer}>
-        {filteredImages.map((image) => (
-          <div
-            key={image.id}
-            className={
-              selectedImage && image.id === selectedImage.id
-                ? styles.thumbnailSelected
-                : styles.thumbnail
-            }
-            onClick={() => handleThumbnailClick(image)}
-          >
-            <Image
-              src={image.image_url}
-              alt={image.alt || product.name}
-              width={80}
-              height={80}
-              sizes="(max-width: 768px) 100vw, 80px"
-            />
-          </div>
-        ))}
+        {filteredImages.length > 0 ? (
+          filteredImages.map((image) => (
+            <div
+              key={image.id}
+              className={
+                selectedImage && image.id === selectedImage.id
+                  ? styles.thumbnailSelected
+                  : styles.thumbnail
+              }
+              onClick={() => handleThumbnailClick(image)}
+            >
+              <Image
+                src={image.image_url}
+                alt={image.alt || product.name}
+                width={80}
+                height={80}
+                sizes="(max-width: 768px) 100vw, 80px"
+              />
+            </div>
+          ))
+        ) : (
+          <div className={styles.thumbnailPlaceholder}>Немає фото</div>
+        )}
       </div>
     </div>
   );
