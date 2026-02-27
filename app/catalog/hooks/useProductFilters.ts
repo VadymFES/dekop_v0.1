@@ -213,7 +213,9 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
               setPriceRange({ min, max });
             }
           } else {
-            // No products, reset price range
+            // No products: reset price range and clear the initialized flag so
+            // the bounds are recalculated when products return on the next fetch.
+            priceRangeInitializedRef.current = false;
             setPriceRange({ min: 0, max: 0 });
             setProducts([]);
           }
