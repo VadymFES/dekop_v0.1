@@ -214,7 +214,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
             <>
               <Link className={styles.navButton} href="/individual-order">Під замовлення</Link>
               {/* <Link className={styles.menuTextButton} href="/account">Профіль</Link> */}
-              <Link className={styles.menuTextButton} href="/notifications">Повідомлення</Link>
+              {/* <Link className={styles.menuTextButton} href="/notifications">Повідомлення</Link> */}
               <Link className={styles.navButton} href="/about-us">Про нас</Link>
               <Link className={styles.navButton} href="/contact-us">Контакти</Link>
             </>
@@ -224,7 +224,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
 
         <div className={`${styles.rightIcons} ${menuOpen ? styles.hideIcons : ''}`}>
 
-          <div className={styles.iconContainer}>
+          {/* <div className={styles.iconContainer}>
             <button className={styles.iconButton} aria-label="Account">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path fillRule="evenodd" clipRule="evenodd" d="M13.7186 9.33231L13.7185 9.33238C12.7998 10.3568 11.4765 11 10 11C8.52355 11 7.20017 10.3568 6.2815 9.33238L6.28144 9.33231C5.48495 8.44426 5 7.28005 5 6C5 3.23878 7.23878 1 10 1C12.7612 1 15 3.23878 15 6C15 7.28005 14.515 8.44426 13.7186 9.33231ZM10 12C11.775 12 13.3645 11.225 14.463 10C15.4155 8.938 16 7.539 16 6C16 2.6865 13.3135 0 10 0C6.6865 0 4 2.6865 4 6C4 7.539 4.5845 8.938 5.537 10C6.6355 11.225 8.225 12 10 12ZM9.32171 16.7348L10 17.3609L10.6783 16.7348L15.0068 12.7392C16.877 14.1858 18.1781 16.4213 18.448 19H1.55198C1.82186 16.4213 3.12296 14.1858 4.99321 12.7392L9.32171 16.7348ZM19.453 19C19.1501 15.7975 17.4077 13.0472 14.9215 11.457L10 16L5.0785 11.457C2.59228 13.0472 0.849949 15.7975 0.54703 19C0.515928 19.3288 0.5 19.6624 0.5 20H1.5H18.5H19.5C19.5 19.6624 19.4841 19.3288 19.453 19Z" fill="#160101" />
@@ -232,9 +232,9 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
 
               <span className={styles.iconLabel}>Профіль</span>
             </button>
-          </div>
+          </div> */}
 
-          <div className={styles.iconContainer}>
+          {/* <div className={styles.iconContainer}>
             <button className={styles.iconButton} aria-label="Notification">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M8.35442 20C9.05956 20.6224 9.9858 21 11.0002 21C12.0147 21 12.9409 20.6224 13.6461 20M1.29414 4.81989C1.27979 3.36854 2.06227 2.01325 3.32635 1.3M20.7024 4.8199C20.7167 3.36855 19.9342 2.01325 18.6702 1.3M17.0002 7C17.0002 5.4087 16.3681 3.88258 15.2429 2.75736C14.1177 1.63214 12.5915 1 11.0002 1C9.40895 1 7.88283 1.63214 6.75761 2.75736C5.63239 3.88258 5.00025 5.4087 5.00025 7C5.00025 10.0902 4.22072 12.206 3.34991 13.6054C2.61538 14.7859 2.24811 15.3761 2.26157 15.5408C2.27649 15.7231 2.31511 15.7926 2.46203 15.9016C2.59471 16 3.19284 16 4.3891 16H17.6114C18.8077 16 19.4058 16 19.5385 15.9016C19.6854 15.7926 19.724 15.7231 19.7389 15.5408C19.7524 15.3761 19.3851 14.7859 18.6506 13.6054C17.7798 12.206 17.0002 10.0902 17.0002 7Z" stroke="#160101" strokeLinecap="round" strokeLinejoin="round" />
@@ -242,8 +242,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
               <span className={styles.badge}>3</span>
               <span className={styles.iconLabel}>Повідомлення</span>
             </button>
-
-          </div>
+          </div> */}
 
           <div className={styles.iconContainer}>
             <Link href={'/favorites'} className={styles.iconButton} aria-label="Favorites">
