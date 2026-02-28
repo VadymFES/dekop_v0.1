@@ -57,6 +57,50 @@
   gap: 10px;
   margin-bottom: 20px;
 }
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 4px;
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0px 0px 3px 0px #1601018A;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background-color: var(--background);
+}
+
+.checkbox:checked::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: transparent;
+  border: 1px solid #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #160101;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
 .emptyCart {
   margin-top: 30px;
   font-size: 18px;
