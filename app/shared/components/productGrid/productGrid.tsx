@@ -5,7 +5,6 @@ import ProductCard from "../productCard/productCard";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 import styles from "./productGrid.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
-import Image from "next/image";
 
 function getDotRange(
   currentIndex: number,
@@ -117,18 +116,7 @@ export default function ProductGrid({ products: serverProducts }: ProductGridPro
           ))}
         </div>
         <div className={styles.specialProductShowcase}>
-          <Image
-            src="https://images.unsplash.com/photo-1630585308572-f53438fc684f?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Special Product"
-            className={styles.halfImageLeft}
-            loading="lazy"
-            placeholder="blur"
-            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAxMCIgaGVpZ2h0PSI1MDUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YwZjBmMCIvPjwvc3ZnPg=="
-            width={500}
-            height={730}
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority={false}
-          />
+          <div className={styles.showcasePlaceholder} />
         </div>
       </div>
 

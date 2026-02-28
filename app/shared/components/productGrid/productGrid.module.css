@@ -27,15 +27,21 @@
   .specialProductShowcase {
     display: flex;
     height: 100%; /* Full height matching the grid */
+    flex: 1;
+    min-width: 0;
   }
-  
-  .halfImageRight {
+
+  .showcasePlaceholder {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensure the image covers the full area */
-    object-position: center; /* Show left part of the image */
+    background-color: #F5F5F5;
+    background-image: url('/images/placeholder-product.svg');
+    background-size: 40%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 8px;
   }
-  
+
 
   .scrollButtons {
     display: flex;
@@ -90,42 +96,30 @@
   }
 
   @media screen and (max-width: 1500px) {
-  
-    .bodyContentGrid{
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-
 
     .productCardSlide {
       flex: 0 0 auto;
       width: 260px;
       scroll-snap-align: start;
     }
-
-    .specialProductShowcase {
-        display: none;
-      }
-    }
+  }
 
   @media screen and (max-width: 1088px) {
     .bodyContentGrid {
       display: block;
       height: auto;
-
     }
-    
-      .productGrid {
-        display: flex;
-        gap: 16px;
-        height: max-content;
-        width: 100%;
-        overflow-x: auto;
-        scroll-behavior: smooth;
-        scrollbar-width: none; /* Firefox */
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
+
+    .productGrid {
+      display: flex;
+      gap: 16px;
+      height: max-content;
+      width: 100%;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scrollbar-width: none; /* Firefox */
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
     }
 
     /* Scroll buttons container */

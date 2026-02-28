@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback } from 'react';
+import React, { memo, useEffect, useState, useCallback, useRef } from 'react';
 import styles from '../catalog.module.css';
 import { ProductsDisplayProps } from '../types';
 import { ProductWithImages } from '@/app/lib/definitions';
@@ -23,6 +23,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   const [visibleProducts, setVisibleProducts] = useState<ProductWithImages[]>([]);
   const [page, setPage] = useState(1);
   const productsPerPage = 9;
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     if (!loading && !isFiltering) {
@@ -36,6 +37,12 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   }, [loading, isFiltering]);
 
   useEffect(() => {
+    // Disconnect any active observer before resetting the list to prevent
+    // the stale observer from appending products from the old sort order
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
     setPage(1);
     setVisibleProducts(filteredProducts.slice(0, productsPerPage));
   }, [filteredProducts]);
@@ -43,6 +50,12 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
 
 
   const lastProductRef: ObserverCallback = useCallback(node => {
+    // Always disconnect the previous observer before creating a new one
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
     if (loading || !node) return;
 
     const observer: IntersectionObserver = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
@@ -57,7 +70,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
     }, { threshold: 0.1, rootMargin: '50px' });
 
     observer.observe(node);
-    return () => observer.disconnect();
+    observerRef.current = observer;
   }, [loading, visibleProducts.length, filteredProducts.length, page]);
 
   return (
