@@ -12,7 +12,9 @@
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     width: 100%;
-    margin-bottom: 10px;
+    padding-bottom: 1.7rem;
+    padding-left: 10px;
+    scroll-padding-left: 10px;
     gap: 20px;
   }
 
@@ -21,6 +23,8 @@
     flex: 0 0 260px;
     width: 260px;
     scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
   }
   
   
@@ -30,7 +34,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
   }
   
   /* Arrow buttons */

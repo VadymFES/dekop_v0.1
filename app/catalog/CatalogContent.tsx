@@ -85,6 +85,15 @@ export default function CatalogContent(): React.ReactElement {
   // Local state for filter modal
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
+  // Detect mobile to skip rendering the auto-apply sidebar on small screens
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 1023);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // Event handler: Category change
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
     const chosenSlug = e.target.value;
@@ -192,17 +201,19 @@ export default function CatalogContent(): React.ReactElement {
 
         <React.Suspense>
           <div className={styles.contentWrapper}>
-            <FiltersSidebar
-              loading={loading}
-              isCategoryLoading={isCategoryLoading}
-              slug={slug}
-              filters={filters}
-              priceRange={priceRange}
-              finalFilterGroups={finalFilterGroups}
-              handleCategoryChange={handleCategoryChange}
-              handleFilterChange={handleFilterChange}
-              handlePriceChange={handlePriceChange}
-            />
+            {!isMobile && (
+              <FiltersSidebar
+                loading={loading}
+                isCategoryLoading={isCategoryLoading}
+                slug={slug}
+                filters={filters}
+                priceRange={priceRange}
+                finalFilterGroups={finalFilterGroups}
+                handleCategoryChange={handleCategoryChange}
+                handleFilterChange={handleFilterChange}
+                handlePriceChange={handlePriceChange}
+              />
+            )}
             <ProductsDisplay
               loading={loading}
               isFiltering={false} // No longer needed with new architecture

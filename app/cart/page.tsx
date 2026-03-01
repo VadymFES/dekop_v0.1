@@ -153,6 +153,7 @@ export default function Cart() {
                 <input
                   type="checkbox"
                   id="selectAll"
+                  className={styles.checkbox}
                   checked={selectedIds.length === cart.length && cart.length > 0}
                   onChange={(e) =>
                     setSelectedIds(
@@ -186,6 +187,7 @@ export default function Cart() {
                             {/* Checkbox */}
                             <input
                               type="checkbox"
+                              className={styles.checkbox}
                               checked={selectedIds.includes(item.id)}
                               onChange={(e) =>
                                 handleCheckboxChange(item.id, e.target.checked)

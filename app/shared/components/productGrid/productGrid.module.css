@@ -20,6 +20,8 @@
 
   .productCardSlide {
     width: 260px;
+    display: flex;
+    flex-direction: column;
   }
 
 
@@ -101,6 +103,8 @@
       flex: 0 0 auto;
       width: 260px;
       scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
     }
   }
 
@@ -120,6 +124,9 @@
       scrollbar-width: none; /* Firefox */
       -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
+      padding-bottom: 1.7rem;
+      padding-left: 10px;
+      scroll-padding-left: 10px;
     }
 
     /* Scroll buttons container */
@@ -128,7 +135,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
   }
   
   /* Arrow buttons */
