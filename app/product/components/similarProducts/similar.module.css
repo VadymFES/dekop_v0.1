@@ -16,6 +16,8 @@
   .similarItemSlide {
     flex: 0 0 260px;     /* Fixed width matches image size; prevents placeholder collapse */
     scroll-snap-align: start; /* Snap alignment */
+    display: flex;
+    flex-direction: column;
   }
   
   .scrollButtons {

@@ -21,6 +21,8 @@
     flex: 0 0 260px;
     width: 260px;
     scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
   }
   
   
