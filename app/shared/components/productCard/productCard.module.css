@@ -7,14 +7,27 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: relative; /* For proper positioning of elements */
     overflow: hidden;
-    height: auto; /* Flexible height that adapts to content */
+    height: 100%; /* Fill grid cell / flex slide height */
     width: 100%; /* Full width of grid cell */
     max-width: 300px; /* Prevent cards from stretching too wide */
     margin: 0 auto; /* Center cards in grid cell */
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
                 box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transitions */
     flex: 1 1 auto; /* Cards can grow and shrink */
-    
+  }
+
+  /* Link fills the card vertically, leaving room for the button */
+  .cardLink {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  /* Inner content wrapper also grows as a flex column */
+  .cardContent {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 
   .productImage {
@@ -86,6 +99,7 @@
     padding: 8px 16px;
     width: 100%;
     box-sizing: border-box;
+    flex: 1; /* Fill remaining vertical space after the image */
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth movement matching button */
   }
 
@@ -276,7 +290,7 @@
   /* Mobile touch optimization - always show add to cart button */
   @media (max-width: 1023px) {
     .productCard {
-      height: auto;
+      height: 100%; /* Still fill the grid cell on mobile */
       min-height: 300px; /* Ensure minimum usable height */
     }
 

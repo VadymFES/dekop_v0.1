@@ -54,8 +54,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className={`${styles.productCard} ${isOutOfStock ? styles.outOfStock : ''}`}>
-      <Link href={`/product/${encodeURIComponent(product.slug)}`} prefetch={false}>
-        <div>
+      <Link href={`/product/${encodeURIComponent(product.slug)}`} prefetch={false} className={styles.cardLink}>
+        <div className={styles.cardContent}>
           <div className={styles.imageWrapper}>
             {firstImage ? (
               <Image
