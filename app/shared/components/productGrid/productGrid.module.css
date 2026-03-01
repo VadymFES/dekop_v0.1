@@ -125,6 +125,7 @@
       -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
       padding-bottom: 2rem;
+      padding-left: 10px;
 
     }
 
