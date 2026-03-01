@@ -8,7 +8,7 @@
     position: relative; /* For proper positioning of elements */
     overflow: hidden;
     height: 100%; /* Fill grid cell / flex slide height */
-    max-height: 360px; /* Cap card height on large screens */
+    max-height: 390px;
     width: 100%; /* Full width of grid cell */
     max-width: 300px; /* Prevent cards from stretching too wide */
     margin: 0 auto; /* Center cards in grid cell */
