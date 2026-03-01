@@ -8,12 +8,10 @@
     position: relative; /* For proper positioning of elements */
     overflow: hidden;
     height: auto; /* Flexible height that adapts to content */
-    width: 100%; /* Full width of grid cell */
-    max-width: 300px; /* Prevent cards from stretching too wide */
-    margin: 0 auto; /* Center cards in grid cell */
+    width: 100%; /* Fill the container (grid cell or carousel slide) */
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
                 box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transitions */
-    flex: 1 1 auto; /* Cards can grow and shrink */
+    flex: 1 1 auto; /* Fill column height in carousel slides */
     
   }
 

@@ -215,9 +215,9 @@
 }
 
 .productCardWrapper {
+  min-width: 0; /* Prevent grid blowout */
   display: flex;
-  max-width: 300px;
-  gap: 20px;
+  flex-direction: column;
 }
 
 /* Sidebar responsive adjustments */
