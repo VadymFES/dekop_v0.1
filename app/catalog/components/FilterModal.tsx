@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
 import styles from './FilterModal.module.css';
-import { FiltersSidebarProps } from '../types';
+import { FiltersSidebarProps, FilterOptions } from '../types';
 import { CATEGORY_SLUG_MAP } from '../types';
 import { PriceRangeFilter } from './PriceRangeFilter';
 import FiltersSkeleton from './ui/FiltersSkeleton/FiltersSkeleton';
@@ -13,6 +13,8 @@ interface FilterModalProps extends FiltersSidebarProps {
   onClose: () => void;
   onApply: () => void;
   onReset: () => void;
+  updateFilter: (filterType: keyof FilterOptions, value: string | string[] | number | null) => void;
+  updatePriceRange: (min: number, max: number) => void;
 }
 
 export const FilterModal: React.FC<FilterModalProps> = ({
@@ -28,7 +30,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   finalFilterGroups,
   handleCategoryChange,
   handleFilterChange,
-  handlePriceChange
+  handlePriceChange,
+  updateFilter,
+  updatePriceRange
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -138,24 +142,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
   // Apply all temporary filters to the actual URL
   const handleApplyClick = () => {
-    // Apply all filter changes
-    Object.keys(tempFilters).forEach(key => {
-      const filterKey = key as keyof typeof tempFilters;
-      if (filterKey !== 'priceMin' && filterKey !== 'priceMax' && tempFilters[filterKey] !== filters[filterKey]) {
-        handleFilterChange({
-          target: {
-            value: Array.isArray(tempFilters[filterKey]) ? tempFilters[filterKey] : tempFilters[filterKey],
-            checked: true,
-            type: Array.isArray(tempFilters[filterKey]) ? 'checkbox' : 'radio'
-          }
-        } as any, key.charAt(0).toUpperCase() + key.slice(1));
+    // Apply each changed filter directly via updateFilter to avoid value-nesting bugs
+    (Object.keys(tempFilters) as Array<keyof typeof tempFilters>).forEach(filterKey => {
+      if (filterKey === 'priceMin' || filterKey === 'priceMax') return;
+      if (JSON.stringify(tempFilters[filterKey]) !== JSON.stringify(filters[filterKey])) {
+        updateFilter(filterKey as keyof FilterOptions, tempFilters[filterKey] as string | string[] | null);
       }
     });
 
     // Apply price changes
     if (tempPriceMin !== filters.priceMin || tempPriceMax !== filters.priceMax) {
-      handlePriceChange('min', tempPriceMin);
-      handlePriceChange('max', tempPriceMax);
+      updatePriceRange(tempPriceMin, tempPriceMax);
     }
 
     onApply();
