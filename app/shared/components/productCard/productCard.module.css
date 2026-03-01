@@ -23,13 +23,6 @@
     flex: 1;
   }
 
-  /* Inner content wrapper also grows as a flex column */
-  .cardContent {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-
   .productImage {
     width: 100%;
     height: auto;
