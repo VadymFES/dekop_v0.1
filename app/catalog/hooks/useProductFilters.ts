@@ -32,6 +32,7 @@ interface UseProductFiltersReturn {
   updateSort: (sort: string) => void;
   resetFilters: () => void;
   clearFilter: (filterType: string, value: string) => void;
+  applyFilters: (newFilters: Partial<FilterOptions>, priceMin: number, priceMax: number) => void;
 }
 
 export function useProductFilters(dbCategory: string | null): UseProductFiltersReturn {
@@ -355,6 +356,24 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     router.push(newURL);
   }, [router, searchParams]);
 
+  // Apply all filters at once (used by mobile modal to avoid stale state issues)
+  const applyFilters = useCallback((newFilters: Partial<FilterOptions>, priceMin: number, priceMax: number) => {
+    const params: Record<string, string | string[]> = {};
+
+    if (sortOption !== 'rating_desc') params.sort = sortOption;
+
+    if (newFilters.type && newFilters.type.length > 0) params.type = newFilters.type;
+    if (newFilters.material && newFilters.material.length > 0) params.material = newFilters.material;
+    if (newFilters.complectation && newFilters.complectation.length > 0) params.feature = newFilters.complectation;
+    if (newFilters.size) params.size = newFilters.size;
+    if (newFilters.status && newFilters.status.length > 0) params.status = newFilters.status;
+
+    if (priceMin > priceRange.min) params.minPrice = Math.floor(priceMin).toString();
+    if (priceMax < priceRange.max) params.maxPrice = Math.floor(priceMax).toString();
+
+    updateURLParams(params);
+  }, [sortOption, priceRange, updateURLParams]);
+
   // Clear a specific filter value
   const clearFilter = useCallback((filterType: string, value: string) => {
     const key = filterType.toLowerCase() as keyof FilterOptions;
@@ -385,6 +404,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     updateSort,
     resetFilters,
     clearFilter,
+    applyFilters,
   };
 }
 
