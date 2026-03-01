@@ -124,6 +124,8 @@
       scrollbar-width: none; /* Firefox */
       -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
+      padding-bottom: 2rem;
+
     }
 
     /* Scroll buttons container */
@@ -132,7 +134,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
   }
   
   /* Arrow buttons */

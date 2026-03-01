@@ -12,7 +12,7 @@
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     width: 100%;
-    margin-bottom: 10px;
+    padding-bottom: 2rem;
     gap: 20px;
   }
 
@@ -32,7 +32,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
   }
   
   /* Arrow buttons */
