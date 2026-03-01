@@ -374,7 +374,7 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     updateURLParams(params);
   }, [sortOption, priceRange, updateURLParams]);
 
-  // Clear a specific filter value
+  // Clear a specific filter value (pass empty string to clear all values of that type)
   const clearFilter = useCallback((filterType: string, value: string) => {
     const key = filterType.toLowerCase() as keyof FilterOptions;
 
@@ -385,9 +385,13 @@ export function useProductFilters(dbCategory: string | null): UseProductFiltersR
     }
 
     if (Array.isArray(filters[key])) {
-      const newValues = (filters[key] as string[]).filter(v => v !== value);
-      updateFilter(key, newValues);
-    } else if (filters[key] === value) {
+      if (value === '') {
+        updateFilter(key, []);
+      } else {
+        const newValues = (filters[key] as string[]).filter(v => v !== value);
+        updateFilter(key, newValues);
+      }
+    } else if (filters[key] === value || value === '') {
       updateFilter(key, null);
     }
   }, [filters, priceRange, updateFilter, updatePriceRange]);
