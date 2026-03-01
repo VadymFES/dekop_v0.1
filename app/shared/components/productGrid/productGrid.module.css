@@ -20,6 +20,8 @@
 
   .productCardSlide {
     width: 260px;
+    display: flex;
+    flex-direction: column;
   }
 
 
@@ -101,6 +103,8 @@
       flex: 0 0 auto;
       width: 260px;
       scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
     }
   }
 
