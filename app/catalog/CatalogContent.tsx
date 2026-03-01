@@ -41,6 +41,7 @@ export default function CatalogContent(): React.ReactElement {
     updateSort,
     resetFilters,
     clearFilter,
+    applyFilters,
   } = useProductFilters(dbCategory);
 
   // Memoized filter groups to avoid recalculations
