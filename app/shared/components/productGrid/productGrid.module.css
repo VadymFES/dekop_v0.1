@@ -4,16 +4,17 @@
 
 .bodyContentGrid {
     display: flex;
-    justify-content: space-between; 
-    height: 730px;
+    justify-content: space-between;
+    align-items: stretch;
+    height: auto;
     gap: 20px;
   }
 
   .productGrid {
     display: grid;
     grid-template-columns: repeat(3, 260px); /* 3 columns, fixed width */
-    grid-template-rows: repeat(2, 1fr); /* 2 rows */
-    height: 730px; /* Full height matching the special showcase */
+    grid-template-rows: repeat(2, auto); /* 2 rows sized by content */
+    height: auto;
     width: fit-content;
     gap: 20px; /* Space between grid items */
   }
@@ -28,7 +29,7 @@
   
   .specialProductShowcase {
     display: flex;
-    height: 100%; /* Full height matching the grid */
+    align-self: stretch;
     flex: 1;
     min-width: 0;
   }
