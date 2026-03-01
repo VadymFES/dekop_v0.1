@@ -239,7 +239,6 @@ export default function CatalogContent(): React.ReactElement {
           handleCategoryChange={handleCategoryChange}
           handleFilterChange={handleFilterChange}
           handlePriceChange={handlePriceChange}
-          applyFilters={applyFilters}
         />
       </div>
     </div>
