@@ -51,24 +51,10 @@
     flex-direction: row-reverse;
     gap: 4px;
     z-index: 3;
+    max-width: 100%;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .salesLeaderLabel {
-    background-color: #F3DDF8;
-    color: #160101;
-  }
-
-  .newLabel {
-    background-color: #DAF2C2;
-    color: #160101;
-  }
-
-  .discountLabel {
-    background-color: #F45145;
-    color: #FEFDFC;
-  }
-  
   .salesLeaderLabel,
   .discountLabel,
   .newLabel {
@@ -81,11 +67,23 @@
   }
 
   .salesLeaderLabel {
+    background-color: #F3DDF8;
+    color: #160101;
     font-size: 10px;
     padding: 3px 5px;
     max-width: 110px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .newLabel {
+    background-color: #DAF2C2;
+    color: #160101;
+  }
+
+  .discountLabel {
+    background-color: #F45145;
+    color: #FEFDFC;
   }
 
   .productDetails {
