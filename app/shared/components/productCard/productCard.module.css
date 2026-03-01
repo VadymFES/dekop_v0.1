@@ -26,17 +26,19 @@
 
   .productImage {
     width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1; /* Maintain square aspect ratio */
+    height: 100%;
+    aspect-ratio: 4 / 3;
     border-radius: 8px;
     object-fit: cover;
+    object-position: center;
   }
 
   .imageWrapper {
     position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1; /* Always reserve square space even without an image */
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth scaling matching other animations */
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .imagePlaceholder {
