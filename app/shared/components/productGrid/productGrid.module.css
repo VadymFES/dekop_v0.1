@@ -125,7 +125,8 @@
       -webkit-overflow-scrolling: touch;
       scroll-snap-type: x mandatory;
       padding-bottom: 1.7rem;
-
+      padding-left: 10px;
+      scroll-padding-left: 10px;
     }
 
     /* Scroll buttons container */

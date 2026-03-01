@@ -13,8 +13,8 @@
     scroll-snap-type: x mandatory;
     width: 100%;
     padding-bottom: 1.7rem;
-    padding-left: 20px;
-    scroll-padding-left: 20px;
+    padding-left: 10px;
+    scroll-padding-left: 10px;
     gap: 20px;
   }
 
