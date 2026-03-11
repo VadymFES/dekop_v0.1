@@ -14,10 +14,24 @@ import SessionTimer from './components/SessionTimer';
 import { CsrfProvider } from './components/CsrfProvider';
 import styles from './styles/admin.module.css';
 
-export const metadata = {
-  title: 'Адмін-панель - DEKOP',
-  robots: 'noindex, nofollow',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ 'admin-path-57fyg': string }>;
+}) {
+  const resolvedParams = await params;
+  const adminPath =
+    process.env.ADMIN_PATH_SECRET ||
+    process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ||
+    'admin';
+  if (resolvedParams['admin-path-57fyg'] !== adminPath) {
+    return {};
+  }
+  return {
+    title: 'Адмін-панель - DEKOP',
+    robots: 'noindex, nofollow',
+  };
+}
 
 interface LayoutProps {
   children: React.ReactNode;
