@@ -130,7 +130,7 @@ export function proxy(req: NextRequest) {
       if (!knownFirstSegments.has(segments[0])) {
         // Two-level path → won't match [admin-path-57fyg] → Next.js renders
         // app/not-found.tsx with status 404, no admin CSS loaded.
-        return NextResponse.rewrite(new URL('/~404/not-found', req.url));
+        return NextResponse.rewrite(new URL('/not-found-proxy/index', req.url));
       }
     }
   }
