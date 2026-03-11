@@ -5,8 +5,10 @@
  * Includes CSRF protection provider (Task 6)
  */
 
+import { notFound } from 'next/navigation';
 import { getCurrentAdmin, AdminUserWithPermissions } from '@/app/lib/admin-auth';
 import { getCurrentCsrfToken } from '@/app/lib/csrf-protection';
+import { getAdminPath } from '@/app/lib/admin-path';
 import AdminNav from './components/AdminNav';
 import LogoutButton from './components/LogoutButton';
 import SessionTimer from './components/SessionTimer';
@@ -20,9 +22,15 @@ export const metadata = {
 
 interface LayoutProps {
   children: React.ReactNode;
+  params: Promise<{ 'admin-path-57fyg': string }>;
 }
 
-export default async function AdminLayout({ children }: LayoutProps) {
+export default async function AdminLayout({ children, params }: LayoutProps) {
+  const resolvedParams = await params;
+  if (resolvedParams['admin-path-57fyg'] !== getAdminPath()) {
+    notFound();
+  }
+
   const admin = await getCurrentAdmin();
   // Get or generate CSRF token for authenticated users (Task 6)
   const csrfToken = admin ? await getCurrentCsrfToken() : null;
