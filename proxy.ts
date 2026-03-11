@@ -109,7 +109,32 @@ export function proxy(req: NextRequest) {
 
     return NextResponse.redirect(adminUrl);
   }
-  
+
+  // ==========================================
+  // DYNAMIC SEGMENT LEAK GUARD
+  // ==========================================
+  // The [admin-path-57fyg] folder is a top-level dynamic segment, so Next.js
+  // matches ANY single-level path (e.g. /about-us) against it and preloads
+  // admin CSS even when notFound() is called later in the layout.
+  // Intercept unknown single-level paths here, before routing, and rewrite
+  // them to a guaranteed-missing two-level path so Next.js renders
+  // app/not-found.tsx without ever touching the admin segment.
+  if (!isAdminPath && !isAdminSubdomain) {
+    const segments = requestUrl.pathname.split('/').filter(Boolean);
+    if (segments.length === 1) {
+      const knownFirstSegments = new Set([
+        'cart', 'catalog', 'checkout', 'favorites', 'order-success',
+        'payment-cancelled', 'payment-delivery-policy', 'privacy-policy',
+        'product', 'return-policy', 'user-agreement', 'api',
+      ]);
+      if (!knownFirstSegments.has(segments[0])) {
+        // Two-level path → won't match [admin-path-57fyg] → Next.js renders
+        // app/not-found.tsx with status 404, no admin CSS loaded.
+        return NextResponse.rewrite(new URL('/~404/not-found', req.url));
+      }
+    }
+  }
+
   // Generate nonce for this request
   const nonce = generateNonce();
 
