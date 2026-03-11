@@ -8,7 +8,6 @@
 import { notFound } from 'next/navigation';
 import { getCurrentAdmin, AdminUserWithPermissions } from '@/app/lib/admin-auth';
 import { getCurrentCsrfToken } from '@/app/lib/csrf-protection';
-import { getAdminPath } from '@/app/lib/admin-path';
 import AdminNav from './components/AdminNav';
 import LogoutButton from './components/LogoutButton';
 import SessionTimer from './components/SessionTimer';
@@ -27,7 +26,10 @@ interface LayoutProps {
 
 export default async function AdminLayout({ children, params }: LayoutProps) {
   const resolvedParams = await params;
-  if (resolvedParams['admin-path-57fyg'] !== getAdminPath()) {
+  // Use the private server-only env var so the admin path secret is never
+  // bundled into client-side JS (NEXT_PUBLIC_ vars are exposed in the browser).
+  const adminPath = process.env.ADMIN_PATH_SECRET || process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin';
+  if (resolvedParams['admin-path-57fyg'] !== adminPath) {
     notFound();
   }
 
