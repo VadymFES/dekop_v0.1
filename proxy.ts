@@ -46,6 +46,35 @@ export function proxy(req: NextRequest) {
   // Development mode check
   const isDev = process.env.NODE_ENV === 'development';
 
+  // ==========================================
+  // ADMIN AUTH GUARD (edge-level, cookie check)
+  // ==========================================
+  // Runs before any page code executes. Redirects to login if the session
+  // cookie is missing. Full session validation (DB lookup) still happens
+  // inside getCurrentAdmin() in the layout — this is a fast-path guard.
+  const isAdminRequest = isAdminSubdomain || isAdminPath;
+  if (isAdminRequest) {
+    // Resolve the path relative to the admin root so we can skip the
+    // login page and auth API routes regardless of how the admin is accessed
+    // (via subdomain or direct path).
+    const adminRelativePath = isAdminSubdomain
+      ? requestUrl.pathname
+      : requestUrl.pathname.slice(ADMIN_PATH.length) || '/';
+
+    const isLoginPage = adminRelativePath === '/login' || adminRelativePath.startsWith('/login/');
+    const isAuthApi = adminRelativePath.startsWith('/api/auth');
+
+    if (!isLoginPage && !isAuthApi) {
+      const sessionCookie = req.cookies.get('admin_session');
+      if (!sessionCookie?.value) {
+        const loginUrl = isAdminSubdomain
+          ? new URL('/login', req.url)
+          : new URL(`${ADMIN_PATH}/login`, req.url);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
+  }
+
   // If accessing admin subdomain, rewrite to admin path
   if (isAdminSubdomain && !isAdminPath) {
     const newPath = requestUrl.pathname === '/'
