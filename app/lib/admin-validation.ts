@@ -237,10 +237,10 @@ export const productSchema = z.object({
       'tables', 'chairs', 'mattresses', 'wardrobes', 'accessories'
     ], { message: 'Оберіть категорію товару' })
   ),
-  price: z.coerce.number().min(0.01, 'Ціна має бути більше 0').max(1000000, 'Ціна занадто велика'),
+  price: z.coerce.number().int('Ціна має бути цілим числом').min(1, 'Ціна має бути більше 0').max(1000000, 'Ціна занадто велика'),
   sale_price: z.preprocess(
     (val) => val === '' || val === null || val === undefined ? null : Number(val),
-    z.number().min(0, 'Ціна зі знижкою не може бути від\'ємною').max(1000000, 'Ціна зі знижкою занадто велика').nullable().optional()
+    z.number().int('Ціна зі знижкою має бути цілим числом').min(0, 'Ціна зі знижкою не може бути від\'ємною').max(1000000, 'Ціна зі знижкою занадто велика').nullable().optional()
   ),
   stock: z.coerce.number().min(0, 'Запас не може бути від\'ємним').max(99999, 'Запас занадто великий').int('Запас має бути цілим числом'),
   is_on_sale: z.boolean().optional().nullable().default(false),
@@ -269,7 +269,7 @@ export const stockUpdateSchema = z.object({
  * Product price update
  */
 export const priceUpdateSchema = z.object({
-  price: positiveNumber.max(1000000, 'Ціна занадто велика'),
+  price: positiveNumber.int('Ціна має бути цілим числом').max(1000000, 'Ціна занадто велика'),
 });
 
 /**
@@ -280,7 +280,7 @@ export const csvProductRowSchema = z.object({
   slug: z.string().optional(),
   description: z.string().optional().default(''),
   category: z.string().min(1, 'Категорія обов\'язкова'),
-  price: z.coerce.number().positive('Ціна має бути додатною'),
+  price: z.coerce.number().int('Ціна має бути цілим числом').positive('Ціна має бути додатною'),
   stock: z.coerce.number().int().min(0, 'Запас не може бути від\'ємним').optional().default(0),
   is_on_sale: z.coerce.boolean().optional().default(false),
   is_new: z.coerce.boolean().optional().default(false),

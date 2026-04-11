@@ -519,7 +519,7 @@ export default function ProductForm({ product }: ProductFormProps) {
       if (value === '') {
         newValue = name === 'sale_price' ? null : ('' as unknown as number);
       } else {
-        newValue = Number(value);
+        newValue = parseInt(value, 10);
       }
     } else {
       newValue = value;
