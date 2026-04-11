@@ -518,8 +518,11 @@ export default function ProductForm({ product }: ProductFormProps) {
       // Allow empty values for all number fields
       if (value === '') {
         newValue = name === 'sale_price' ? null : ('' as unknown as number);
-      } else {
+      } 
+        else if (name === 'price' || name === 'sale_price') {
         newValue = parseInt(value, 10);
+      } else {
+        newValue = Number(value);
       }
     } else {
       newValue = value;
