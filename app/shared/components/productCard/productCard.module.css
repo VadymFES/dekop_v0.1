@@ -82,7 +82,7 @@
   .productDetails {
     display: flex;
     justify-content: space-between; /* Create two columns */
-    align-items: flex-start; /* Align items at the start */
+    align-items: stretch; /* Stretch both columns to equal height so price can anchor to the bottom */
     padding: 8px 16px;
     width: 100%;
     box-sizing: border-box;
@@ -103,6 +103,7 @@
   .productMeta {
     text-align: right; /* Right-align the rating and price */
     min-width: fit-content;
+    justify-content: space-between; /* Push rating to top, price to bottom of the column */
   }
   
   .productName,
@@ -122,24 +123,28 @@
   /* Sale price styling */
   .priceContainer {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    flex-direction: row; /* Discounted price left, original price right — side by side */
+    align-items: center; /* Vertically center the two differently-sized prices */
+    justify-content: flex-end; /* Keep the pair right-aligned within productMeta */
+    gap: 6px; /* Readable breathing room between the two prices */
+    flex-wrap: wrap; /* Graceful wrap on very narrow viewports */
   }
 
   .originalPrice {
-    font-size: clamp(12px, 1.5vw, 14px);
+    font-size: clamp(11px, 1.5vw, 13px); /* Slightly smaller — secondary visual weight */
     font-weight: 400;
-    color: #888;
+    color: #aaa; /* Muted — clearly subordinate to the sale price */
     text-decoration: line-through;
     margin: 0;
+    line-height: 1;
   }
 
   .salePrice {
     font-size: clamp(16px, 2.5vw, 20px);
-    font-weight: 700;
+    font-weight: 700; /* Bold — dominant visual element */
     color: #F45145;
     margin: 0;
+    line-height: 1;
   }
 
   .productType,
