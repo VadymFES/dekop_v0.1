@@ -1,3 +1,7 @@
+/* Tailwind CSS v4 — theme + utilities only (no preflight reset) */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
 /* Import Inter font from Google Fonts with optimizations for CLS */
 /* display=swap prevents FOIT (Flash of Invisible Text) */
 /* Limited to only the weights we use: 400, 500, 600, 700 */
