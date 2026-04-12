@@ -12,10 +12,8 @@
     max-width: 300px; /* Prevent cards from stretching too wide */
     margin: 0 auto; /* Center cards in grid cell */
     z-index: 1;
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                z-index 0s 0.35s; /* Smooth transitions, z-index delayed on hover-off */
+    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Fast exit transitions */
     flex: 1 1 auto; /* Cards can grow and shrink */
     
   }
@@ -161,10 +159,8 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Elevate card */
   z-index: 10;
   border-radius: 8px 8px 0 0; /* Square bottom corners for button extension */
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              z-index 0s 0s; /* Immediate z-index on hover */
+  transition: box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth enter transitions */
 }
 
 .productCard:hover .imageWrapper {
@@ -190,17 +186,23 @@
     border-top: 1px solid #900000;
     border-radius: 0 0 8px 8px; /* Round bottom corners */
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-    opacity: 0; /* Start invisible */
+    opacity: 0;
+    clip-path: inset(100% 0 0 0); /* Fully clipped — creates expand effect */
     pointer-events: none;
-    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                color 0.2s ease; /* Smooth transitions */
+    transition: clip-path 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.2s ease; /* Fast collapse on hover-off */
     z-index: 5; /* Ensure button is on top */
   }
 
   /* Show button on hover - extends below the card */
   .productCard:hover .addToCartButton {
-    opacity: 1; /* Fade in */
+    opacity: 1;
+    clip-path: inset(0 0 0 0); /* Fully revealed */
     pointer-events: auto;
+    transition: clip-path 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.2s ease; /* Smooth expand on hover-in */
   }
 
   .addToCartButton:hover {
