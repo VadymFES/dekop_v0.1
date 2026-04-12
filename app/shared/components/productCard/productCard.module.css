@@ -6,13 +6,16 @@
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: relative; /* For proper positioning of elements */
-    overflow: hidden;
+    overflow: visible;
     height: auto; /* Flexible height that adapts to content */
     width: 100%; /* Full width of grid cell */
     max-width: 300px; /* Prevent cards from stretching too wide */
     margin: 0 auto; /* Center cards in grid cell */
+    z-index: 1;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transitions */
+                box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                z-index 0s 0.35s; /* Smooth transitions, z-index delayed on hover-off */
     flex: 1 1 auto; /* Cards can grow and shrink */
     
   }
@@ -90,7 +93,7 @@
   }
 
   .productCard:hover .productDetails {
-    transform: translateY(-20px); /* Move the details up */
+    transform: none;
   }
   
   .productInfo,
@@ -156,42 +159,48 @@
   /* Enhance card on hover */
 .productCard:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Elevate card */
+  z-index: 10;
+  border-radius: 8px 8px 0 0; /* Square bottom corners for button extension */
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              z-index 0s 0s; /* Immediate z-index on hover */
 }
 
 .productCard:hover .imageWrapper {
-  transform: scale(0.95); /* Scale down both the image and label */
+  transform: none;
 }
   
   /* Add to Cart Button */
   .addToCartButton {
     position: absolute; /* Position button absolutely within the card */
-    bottom: -50px; /* Start hidden below the card */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust for centering */
+    bottom: 0;
+    left: 0;
+    transform: translateY(100%); /* Position below the card */
     min-height: 44px; /* Minimum touch target size */
     height: auto;
-    width: 95%;
+    width: 100%;
     padding: 8px 16px;
     font-size: 1rem;
     font-weight: 700;
-    background-color: transparent;
+    background-color: var(--background);
     color: #ff3939;
     border: none;
     cursor: pointer;
     border-top: 1px solid #900000;
+    border-radius: 0 0 8px 8px; /* Round bottom corners */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
     opacity: 0; /* Start invisible */
-    transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
                 color 0.2s ease; /* Smooth transitions */
     z-index: 5; /* Ensure button is on top */
   }
 
-  /* Show button on hover */
+  /* Show button on hover - extends below the card */
   .productCard:hover .addToCartButton {
-    bottom: 0;
     opacity: 1; /* Fade in */
-    transform: translateX(-50%);
+    pointer-events: auto;
   }
 
   .addToCartButton:hover {
@@ -278,23 +287,30 @@
     .productCard {
       height: auto;
       min-height: 300px; /* Ensure minimum usable height */
+      overflow: hidden;
     }
 
     .addToCartButton {
-      bottom: 0;
       position: relative;
-      transform: none;
+      bottom: auto;
       left: auto;
+      transform: none;
       width: 100%;
       margin-top: auto;
       border-top: 1px solid #900000;
       border-radius: 0 0 8px 8px;
+      box-shadow: none;
       font-size: 14px; /* Fixed size for mobile readability */
       opacity: 1; /* Always visible on mobile */
+      pointer-events: auto;
+    }
+
+    .productCard:hover {
+      border-radius: 8px;
+      z-index: 1;
     }
 
     .productCard:hover .addToCartButton {
-      bottom: 0;
       transform: none;
       opacity: 1;
     }
