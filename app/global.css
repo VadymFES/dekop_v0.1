@@ -1,15 +1,10 @@
+/* External CSS imports — must come before all rules */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=latin,cyrillic');
+@import url('https://unpkg.com/leaflet/dist/leaflet.css');
+
 /* Tailwind CSS v4 — theme + utilities only (no preflight reset) */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
-
-/* Import Inter font from Google Fonts with optimizations for CLS */
-/* display=swap prevents FOIT (Flash of Invisible Text) */
-/* Limited to only the weights we use: 400, 500, 600, 700 */
-/* Includes Cyrillic subset for Ukrainian language support */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=latin,cyrillic');
-
-/* Import Leaflet CSS for map components */
-@import url('https://unpkg.com/leaflet/dist/leaflet.css');
 
 /* Root Variables for Color Themes */
 :root {
