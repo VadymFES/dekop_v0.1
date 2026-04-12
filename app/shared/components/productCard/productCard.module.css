@@ -12,7 +12,8 @@
     max-width: 300px; /* Prevent cards from stretching too wide */
     margin: 0 auto; /* Center cards in grid cell */
     z-index: 1;
-    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
                 border-radius 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Fast exit transitions */
     flex: 1 1 auto; /* Cards can grow and shrink */
     
@@ -156,10 +157,12 @@
   
   /* Enhance card on hover */
 .productCard:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Elevate card */
+  transform: scale(1.03);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18); /* Elevated shadow */
   z-index: 10;
   border-radius: 8px 8px 0 0; /* Square bottom corners for button extension */
-  transition: box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth enter transitions */
 }
 
@@ -309,6 +312,7 @@
     }
 
     .productCard:hover {
+      transform: none;
       border-radius: 8px;
       z-index: 1;
     }
