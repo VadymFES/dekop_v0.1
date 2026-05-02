@@ -51,8 +51,6 @@ export async function POST(request: Request) {
     // Check payment status based on payment method
     if (order.payment_method === 'liqpay') {
       return await checkLiqPayStatus(orderId, order.order_number);
-    } else if (order.payment_method === 'monobank') {
-      return await checkMonobankStatus(orderId);
     } else {
       return NextResponse.json({
         success: true,
@@ -140,95 +138,6 @@ async function checkLiqPayStatus(orderId: string, orderNumber: string) {
       success: false,
       status: 'pending',
       error: 'Failed to check LiqPay status'
-    });
-  }
-}
-
-/**
- * Check Monobank payment status
- * Note: Monobank requires invoice ID to check status
- */
-async function checkMonobankStatus(orderId: string) {
-  try {
-    console.log(`[Payment Check] Checking Monobank status for order ${orderId}`);
-
-    // Get invoice ID from database
-    const orderResult = await sql`
-      SELECT payment_intent_id FROM orders WHERE id = ${orderId}
-    `;
-
-    const invoiceId = orderResult.rows[0]?.payment_intent_id;
-
-    if (!invoiceId) {
-      return NextResponse.json({
-        success: true,
-        status: 'pending',
-        message: 'No invoice ID found for Monobank payment'
-      });
-    }
-
-    // Query Monobank API
-    const { getMonobankInvoiceStatus, mapMonobankStatus } = await import('@/app/lib/services/monobank-service');
-    const monobankResponse = await getMonobankInvoiceStatus(invoiceId);
-
-    console.log(`[Payment Check] Monobank response:`, monobankResponse);
-
-    if (!monobankResponse || !monobankResponse.status) {
-      return NextResponse.json({
-        success: true,
-        status: 'pending',
-        message: 'Could not get status from Monobank'
-      });
-    }
-
-    // Map Monobank status to our internal status
-    const paymentStatus = mapMonobankStatus(monobankResponse.status);
-
-    // If status changed from pending, update database
-    if (paymentStatus !== 'pending') {
-      console.log(`[Payment Check] Updating order ${orderId} status to ${paymentStatus}`);
-
-      if (paymentStatus === 'paid') {
-        await sql`
-          UPDATE orders
-          SET
-            payment_status = 'paid',
-            order_status = 'confirmed',
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${orderId}
-        `;
-
-        // Try to send confirmation email
-        try {
-          await sendConfirmationEmail(orderId);
-        } catch (emailError) {
-          console.error(`[Payment Check] Failed to send confirmation email:`, emailError);
-        }
-      } else if (paymentStatus === 'failed') {
-        await sql`
-          UPDATE orders
-          SET
-            payment_status = 'failed',
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${orderId}
-        `;
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      status: paymentStatus,
-      monobankStatus: monobankResponse.status,
-      message: paymentStatus === 'paid' ? 'Payment confirmed' :
-               paymentStatus === 'failed' ? 'Payment failed' : 'Payment pending'
-    });
-
-  } catch (error) {
-    console.error('[Payment Check] Monobank status check error:', error);
-    return NextResponse.json({
-      success: false,
-      status: 'pending',
-      error: 'Failed to check Monobank status'
     });
   }
 }

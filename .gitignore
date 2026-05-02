@@ -43,3 +43,9 @@ next-env.d.ts
 
 # Jest snapshot files
 **/__snapshots__/
+
+# Agents and logs
+.agents/
+.claude/
+skills-lock.json*
+CLAUDE.md

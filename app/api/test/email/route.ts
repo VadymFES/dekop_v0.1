@@ -44,7 +44,6 @@ export async function GET(request: Request) {
       config: diagnostics,
       webhookFlow: {
         liqpay: 'POST /api/webhooks/liqpay → handleLiqPayPaymentSuccess → sendOrderConfirmationEmail',
-        monobank: 'POST /api/webhooks/monobank → handleMonobankPaymentSuccess → sendOrderConfirmationEmail',
         manual: 'POST /api/orders/send-confirmation → sendOrderConfirmationEmail'
       },
       message: diagnostics.resendKeyConfigured

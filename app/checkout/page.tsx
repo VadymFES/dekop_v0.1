@@ -122,8 +122,7 @@ export default function CheckoutPage() {
       postalCode: ''
     },
     paymentInfo: {
-      method: 'cash_on_delivery',
-      depositPaymentMethod: 'liqpay'
+      method: 'cash_on_delivery'
     },
     customerNotes: ''
   });
@@ -229,10 +228,6 @@ export default function CheckoutPage() {
       if (!formData.paymentInfo.method) {
         newErrors.method = 'Оберіть спосіб оплати';
       }
-      // Validate deposit payment method for cash_on_delivery
-      if (formData.paymentInfo.method === 'cash_on_delivery' && !formData.paymentInfo.depositPaymentMethod) {
-        newErrors.depositPaymentMethod = 'Оберіть спосіб оплати передплати';
-      }
     }
 
     setErrors(newErrors);
@@ -293,8 +288,7 @@ export default function CheckoutPage() {
         postalCode: ''
       },
       paymentInfo: {
-        method: 'cash_on_delivery',
-        depositPaymentMethod: 'liqpay'
+        method: 'cash_on_delivery'
       },
       customerNotes: ''
     });
@@ -364,25 +358,13 @@ export default function CheckoutPage() {
       if (formData.paymentInfo.method === 'liqpay') {
         // For LiqPay: create payment and redirect to checkout
         await createLiqPayPayment(order, cartTotal, `Оплата замовлення ${order.order_number}`);
-      } else if (formData.paymentInfo.method === 'monobank') {
-        // For Monobank: create invoice and redirect
-        await createMonobankPayment(order, cartTotal, `Оплата замовлення ${order.order_number}`);
       } else if (formData.paymentInfo.method === 'cash_on_delivery') {
-        // Cash on delivery: require 20% deposit payment
-        const depositMethod = formData.paymentInfo.depositPaymentMethod;
-        if (depositMethod === 'liqpay') {
-          await createLiqPayPayment(
-            order,
-            prepaymentAmount,
-            `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
-          );
-        } else if (depositMethod === 'monobank') {
-          await createMonobankPayment(
-            order,
-            prepaymentAmount,
-            `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
-          );
-        }
+        // Cash on delivery: require 20% deposit payment via LiqPay
+        await createLiqPayPayment(
+          order,
+          prepaymentAmount,
+          `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
+        );
       }
 
     } catch (error) {
@@ -451,49 +433,6 @@ export default function CheckoutPage() {
     } catch (liqpayError) {
       console.error('LiqPay payment error:', liqpayError);
       throw new Error('Помилка при створенні платежу LiqPay');
-    }
-  };
-
-  const createMonobankPayment = async (order: OrderWithItems, amount: number, description: string) => {
-    try {
-      // Get base URL - use window.location.origin for client-side, fallback to env variable
-      const baseUrl = typeof window !== 'undefined'
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-      console.log('🔗 Creating Monobank payment with base URL:', baseUrl);
-
-      // Call server-side API to create Monobank invoice
-      const paymentResponse = await fetch('/api/payments/monobank/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amount,
-          orderId: order.id,
-          orderNumber: order.order_number,
-          customerEmail: formData.customerInfo.email,
-          resultUrl: `${baseUrl}/order-success?orderId=${order.id}&email=${encodeURIComponent(formData.customerInfo.email)}`,
-          cancelUrl: `${baseUrl}/payment-cancelled?orderId=${order.id}`,
-          serverUrl: `${baseUrl}/api/webhooks/monobank`
-        })
-      });
-
-      if (!paymentResponse.ok) {
-        const errorData = await paymentResponse.json();
-        throw new Error(errorData.error || 'Помилка при створенні платежу');
-      }
-
-      const monobankPayment = await paymentResponse.json();
-
-      if (monobankPayment.success && monobankPayment.pageUrl) {
-        // Redirect to Monobank payment page
-        window.location.href = monobankPayment.pageUrl;
-      } else {
-        throw new Error('Failed to create Monobank payment');
-      }
-    } catch (monobankError) {
-      console.error('Monobank payment error:', monobankError);
-      throw new Error('Помилка при створенні платежу Monobank');
     }
   };
 

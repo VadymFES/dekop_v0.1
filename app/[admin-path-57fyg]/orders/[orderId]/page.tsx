@@ -400,7 +400,6 @@ function formatDeliveryMethod(method: string): string {
 function formatPaymentMethod(method: string): string {
   const methods: Record<string, string> = {
     liqpay: 'LiqPay',
-    monobank: 'Monobank',
     cash_on_delivery: 'Післяплата',
   };
   return methods[method] || method;
