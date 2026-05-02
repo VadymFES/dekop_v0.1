@@ -117,7 +117,7 @@ const ProductActions = ({ product, reviews, selectedColor: externalSelectedColor
     <div className={styles.parent}>
       <div className={styles.stickyWrapper}>
         <div className={styles.topSection}>
-          <h2 className={styles.productName}>{name}</h2>
+          <h1 className={styles.productName}>{name}</h1>
           <div className={styles.availabilityPriceWrapper}>
             <span className={stock > 0 ? styles.inStock : styles.outOfStock}>
               {stock > 0 ? 'Є в наявності' : 'Немає в наявності'}

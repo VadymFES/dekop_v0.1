@@ -12,15 +12,15 @@ export interface PriceRange {
 }
 
 export interface FilterOptions {
-type?: string[] | null;
-  material?: string[] | null;
-  complectation?: string[] | null;
-  facadeMaterial?: string[] | null;
-  specifics?: string | null;
-  tabletopShape?: string[] | null;
-  size?: string | null;
-  backrest?: string | null;
-  hardness?: string | null;
+  type: string[];
+  material: string[];
+  complectation: string[];
+  facadeMaterial: string[];
+  specifics: string | null;
+  tabletopShape: string[];
+  size: string | null;
+  backrest: string | null;
+  hardness: string | null;
   priceMin: number;
   priceMax: number;
   status: string[];
@@ -28,22 +28,27 @@ type?: string[] | null;
 }
 
 export interface CatalogState {
-  products: ProductWithImages[];
+  allProducts: ProductWithImages[];
+  filteredProducts: ProductWithImages[];
   loading: boolean;
   error: string | null;
   priceRange: PriceRange;
   filters: FilterOptions;
   sortOption: string;
+  isFiltering: boolean;
 }
 
-export type CatalogAction =
+export type CatalogAction = 
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_PRODUCTS'; payload: ProductWithImages[] }
+  | { type: 'SET_ALL_PRODUCTS'; payload: ProductWithImages[] }
+  | { type: 'SET_FILTERED_PRODUCTS'; payload: ProductWithImages[] }
   | { type: 'SET_PRICE_RANGE'; payload: PriceRange }
   | { type: 'SET_FILTERS'; payload: Partial<FilterOptions> }
   | { type: 'RESET_FILTERS'; payload: PriceRange }
-  | { type: 'SET_SORT_OPTION'; payload: string };
+  | { type: 'SET_SORT_OPTION'; payload: string }
+  | { type: 'APPLY_FILTER_RESULTS'; payload: { filteredProducts: ProductWithImages[], isFiltering: boolean }}
+  | { type: 'SET_IS_FILTERING'; payload: boolean };
 
 export interface FilterChipProps {
   label: string;
@@ -78,15 +83,13 @@ export interface FiltersSidebarProps {
   handleCategoryChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   handleFilterChange: (e: React.ChangeEvent<HTMLInputElement>, groupName: string) => void;
   handlePriceChange: (thumb: "min" | "max", value: number) => void;
-  isMobile?: boolean;
-  isMobileFiltersOpen?: boolean;
-  onCloseMobileFilters?: () => void;
 }
 
 export interface ProductsDisplayProps {
   loading: boolean;
+  isFiltering: boolean;
   error: string | null;
-  products: ProductWithImages[];
+  filteredProducts: ProductWithImages[];
 }
 
 export interface SelectedFiltersProps {
@@ -96,6 +99,7 @@ export interface SelectedFiltersProps {
   slug: string;
   clearFilter: (filterType: string, value: string) => void;
   clearAllFilters: () => void;
+  updateURLWithFilters?: () => void; // Optional - not used in refactored version
 }
 
 // Category mapping constants

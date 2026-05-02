@@ -83,13 +83,10 @@
     background-color: #E2281B;
   }
   
-  /* Hide arrows on smaller screens */
+  /* Hide arrows on smaller screens (optional) */
   @media screen and (max-width: 768px) {
     .arrowScrollButton {
       display: none; 
     }
-
-    .carouselContainer {
-      gap: 12px;    }
   }
   

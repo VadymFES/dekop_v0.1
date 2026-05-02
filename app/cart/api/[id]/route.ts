@@ -26,9 +26,9 @@ interface CartItemWithProductData {
   is_bestseller: boolean;
   product_created_at: string;
   product_updated_at: string;
-  specs: ProductSpecs | null;
-  images: ProductImage[];
-  colors: ProductColor[];
+  specs: any;
+  images: any[];
+  colors: any[];
 }
 
 /**
