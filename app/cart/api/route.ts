@@ -2,8 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
-import { CartItem, ProductWithImages, ProductSpecs, ProductImage, ProductColor } from "@/app/lib/definitions";
-import { handleApiError } from "@/app/lib/error";
+import { CartItem, ProductWithImages } from "@/app/lib/definitions";
+import { handleApiError } from "@/app/lib/server-error";
 import { randomUUID } from "crypto";
 import { cartItemSchema, safeValidateInput } from "@/app/lib/validation-schemas";
 
@@ -27,9 +27,9 @@ interface CartItemWithProductData {
   is_bestseller: boolean;
   product_created_at: string;
   product_updated_at: string;
-  specs: ProductSpecs | null;
-  images: ProductImage[];
-  colors: ProductColor[];
+  specs: any;
+  images: any[];
+  colors: any[];
 }
 
 /**

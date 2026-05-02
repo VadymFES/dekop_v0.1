@@ -2,7 +2,8 @@
 import { CatalogState } from "../types";
 
 export const initialState: CatalogState = {
-  products: [],
+  allProducts: [],
+  filteredProducts: [],
   loading: true,
   error: null,
   priceRange: { min: 0, max: 0 },
@@ -22,4 +23,5 @@ export const initialState: CatalogState = {
     search: '',
   },
   sortOption: "rating_desc",
+  isFiltering: false
 };

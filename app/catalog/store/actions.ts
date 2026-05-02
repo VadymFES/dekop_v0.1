@@ -20,11 +20,27 @@ export const setError = (error: string | null): CatalogAction => ({
 });
 
 /**
- * Set products (replaces setAllProducts and setFilteredProducts)
+ * Set all products
  */
-export const setProducts = (products: ProductWithImages[]): CatalogAction => ({
-  type: 'SET_PRODUCTS',
+export const setAllProducts = (products: ProductWithImages[]): CatalogAction => ({
+  type: 'SET_ALL_PRODUCTS',
   payload: products
+});
+
+/**
+ * Set filtered products
+ */
+export const setFilteredProducts = (products: ProductWithImages[]): CatalogAction => ({
+  type: 'SET_FILTERED_PRODUCTS',
+  payload: products
+});
+
+/**
+ * Apply filter results
+ */
+export const applyFilterResults = (filteredProducts: ProductWithImages[], isFiltering: boolean): CatalogAction => ({
+  type: 'APPLY_FILTER_RESULTS',
+  payload: { filteredProducts, isFiltering }
 });
 
 /**
@@ -57,4 +73,12 @@ export const resetFilters = (priceRange: PriceRange): CatalogAction => ({
 export const setSortOption = (sortOption: string): CatalogAction => ({
   type: 'SET_SORT_OPTION',
   payload: sortOption
+});
+
+/**
+ * Set filtering state
+ */
+export const setIsFiltering = (isFiltering: boolean): CatalogAction => ({
+  type: 'SET_IS_FILTERING',
+  payload: isFiltering
 });

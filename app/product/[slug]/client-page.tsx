@@ -90,11 +90,6 @@ export default function ClientProductPage({
 
   return (
     <div className={styles.topContainer}>
-      {/* Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
       <div className={styles.secondaryContainer}>
       <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
         <ol className={styles.breadcrumb}>
