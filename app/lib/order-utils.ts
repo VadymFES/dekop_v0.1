@@ -124,8 +124,7 @@ export function getDeliveryMethodName(method: string): string {
  */
 export function getPaymentMethodName(method: string): string {
   const paymentMethods: Record<string, string> = {
-    'stripe': 'Оплата карткою (Stripe)',
-    'monobank': 'Оплата через Monobank',
+    'liqpay': 'Оплата карткою через LiqPay',
     'cash_on_delivery': 'Готівкою при отриманні'
   };
 

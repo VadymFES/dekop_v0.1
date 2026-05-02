@@ -16,14 +16,14 @@ import { sql } from '@vercel/postgres';
  * Each webhook can only be processed once within the TTL window
  *
  * @param webhookId - Unique identifier for the webhook (e.g., transaction ID, invoice ID)
- * @param provider - Payment provider name ('liqpay', 'monobank', 'other')
+ * @param provider - Payment provider name ('liqpay', 'other')
  * @param ttlSeconds - Time to live in seconds (default: 1 hour)
  * @param eventData - Optional webhook payload for debugging
  * @returns true if webhook is new and should be processed, false if already processed
  */
 export async function isWebhookUnique(
   webhookId: string,
-  provider: 'liqpay' | 'monobank' | 'other' = 'other',
+  provider: 'liqpay' | 'other' = 'other',
   ttlSeconds: number = 3600,
   eventData?: Record<string, any>
 ): Promise<boolean> {
@@ -137,7 +137,7 @@ if (typeof setInterval !== 'undefined') {
  */
 export async function recordWebhookFailure(
   webhookId: string,
-  provider: 'liqpay' | 'monobank' | 'other',
+  provider: 'liqpay' | 'other',
   errorMessage: string,
   ttlSeconds: number = 3600
 ): Promise<void> {
@@ -215,21 +215,6 @@ const LIQPAY_IP_WHITELIST = [
 ];
 
 /**
- * Monobank IP Whitelist
- *
- * CONFIGURATION OPTIONS:
- * 1. Add actual Monobank IPs here when available
- * 2. Leave empty and set DISABLE_WEBHOOK_IP_VALIDATION=true if IPs not available
- * 3. Contact Monobank support to request webhook IP ranges
- *
- * NOTE: Many payment providers use cloud infrastructure with dynamic IPs.
- * If IPs are not available, disable IP validation and rely on signature verification.
- */
-const MONOBANK_IP_WHITELIST = [
-  '18.203.190.118'
-];
-
-/**
  * Validates if an IP address is within an IP range (CIDR notation)
  */
 function isIpInRange(ip: string, range: string): boolean {
@@ -269,12 +254,12 @@ function isIpInRange(ip: string, range: string): boolean {
  * IP validation is just an additional defense layer.
  *
  * @param request - Next.js request object
- * @param provider - Payment provider ('liqpay' or 'monobank')
+ * @param provider - Payment provider ('liqpay')
  * @returns validation result with IP information
  */
 export function validateWebhookIp(
   request: NextRequest | Request,
-  provider: 'liqpay' | 'monobank'
+  provider: 'liqpay'
 ): { valid: boolean; clientIp?: string; reason?: string } {
   // Skip IP validation in development
   if (process.env.NODE_ENV === 'development') {
@@ -310,8 +295,7 @@ export function validateWebhookIp(
   }
 
   // Select appropriate whitelist
-  const whitelist =
-    provider === 'liqpay' ? LIQPAY_IP_WHITELIST : MONOBANK_IP_WHITELIST;
+  const whitelist = LIQPAY_IP_WHITELIST;
 
   // If whitelist is empty or contains only placeholder IPs, skip validation
   const hasRealIPs = whitelist.some(ip =>

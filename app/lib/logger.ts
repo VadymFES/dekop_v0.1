@@ -279,7 +279,7 @@ class Logger {
    */
   paymentLog(params: {
     event: 'created' | 'success' | 'failed' | 'refunded';
-    provider: 'liqpay' | 'monobank';
+    provider: 'liqpay';
     orderId: string;
     amount?: number;
     transactionId?: string;

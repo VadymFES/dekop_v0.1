@@ -82,7 +82,7 @@ function OrderSuccessContent() {
   }, [orderId, searchParams]);
 
   // Poll payment status for online payment methods
-  // This directly queries the payment provider (LiqPay/Monobank) to get real-time status
+  // This directly queries the payment provider (LiqPay) to get real-time status
   const pollPaymentStatus = useCallback(async () => {
     if (!orderId) return;
 
@@ -94,7 +94,7 @@ function OrderSuccessContent() {
 
     try {
       // First, call the direct status check endpoint
-      // This queries LiqPay/Monobank API directly and updates the database
+      // This queries LiqPay API directly and updates the database
       console.log('[Payment Poll] Checking payment status directly with provider...');
       const checkResponse = await fetch('/api/payments/check-status', {
         method: 'POST',
@@ -214,7 +214,7 @@ function OrderSuccessContent() {
           const fetchedOrder = data.order as OrderWithItems;
 
           // Check if we need to poll for payment status (online payments pending)
-          const isOnlinePayment = fetchedOrder.payment_method === 'liqpay' || fetchedOrder.payment_method === 'monobank';
+          const isOnlinePayment = fetchedOrder.payment_method === 'liqpay';
           const isPending = fetchedOrder.payment_status === 'pending';
 
           if (isOnlinePayment && isPending) {
@@ -389,7 +389,7 @@ function OrderSuccessContent() {
 
   // Determine success message based on payment status
   const getSuccessMessage = () => {
-    const isOnlinePayment = order.payment_method === 'liqpay' || order.payment_method === 'monobank';
+    const isOnlinePayment = order.payment_method === 'liqpay';
 
     if (order.payment_status === 'paid') {
       return {
@@ -447,7 +447,7 @@ function OrderSuccessContent() {
           </section>
 
           {/* Payment Status Alert */}
-          {order.payment_status === 'pending' && (order.payment_method === 'liqpay' || order.payment_method === 'monobank') && (
+          {order.payment_status === 'pending' && order.payment_method === 'liqpay' && (
             <section className={styles.alertSection}>
               <div className={styles.alert}>
                 <div className={styles.alertIcon}>ℹ️</div>

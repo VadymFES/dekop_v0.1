@@ -170,7 +170,6 @@ export function orderToInvoiceData(
   // Map payment method to label
   const paymentMethodLabels: Record<string, { uk: string; en: string }> = {
     liqpay: { uk: 'LiqPay (Онлайн)', en: 'LiqPay (Online)' },
-    monobank: { uk: 'Monobank (Онлайн)', en: 'Monobank (Online)' },
     cash_on_delivery: { uk: 'Оплата при отриманні', en: 'Cash on Delivery' },
   };
 

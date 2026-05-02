@@ -108,7 +108,7 @@ function PaymentCancelledContent() {
         ? `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
         : `Оплата замовлення ${order.order_number}`;
 
-      // Retry payment based on payment method
+      // Retry payment via LiqPay (full payment or 20% deposit for cash_on_delivery)
       if (order.payment_method === 'liqpay' ||
           (order.payment_method === 'cash_on_delivery' && order.prepayment_amount > 0)) {
         const paymentResponse = await fetch('/api/payments/liqpay/create', {
@@ -150,29 +150,6 @@ function PaymentCancelledContent() {
 
           document.body.appendChild(form);
           form.submit();
-        }
-      } else if (order.payment_method === 'monobank') {
-        const paymentResponse = await fetch('/api/payments/monobank/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: amount,
-            orderId: order.id,
-            orderNumber: order.order_number,
-            customerEmail: order.user_email,
-            resultUrl: `${window.location.origin}/order-success?orderId=${order.id}`,
-            serverUrl: `${window.location.origin}/api/webhooks/monobank`
-          })
-        });
-
-        if (!paymentResponse.ok) {
-          throw new Error('Помилка при створенні платежу');
-        }
-
-        const monobankPayment = await paymentResponse.json();
-
-        if (monobankPayment.success && monobankPayment.pageUrl) {
-          window.location.href = monobankPayment.pageUrl;
         }
       }
     } catch (error) {

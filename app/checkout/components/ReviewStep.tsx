@@ -140,8 +140,7 @@ export default function ReviewStep({
                 <div className={styles.reviewRow}>
                   <span className={styles.reviewLabel}>Передплата (20%):</span>
                   <span className={styles.reviewValue}>
-                    {formatUkrainianPrice(prepaymentAmount)} через{' '}
-                    {formData.paymentInfo.depositPaymentMethod === 'liqpay' ? 'LiqPay' : 'Monobank'}
+                    {formatUkrainianPrice(prepaymentAmount)} через LiqPay
                   </span>
                 </div>
                 <div className={styles.reviewRow}>
