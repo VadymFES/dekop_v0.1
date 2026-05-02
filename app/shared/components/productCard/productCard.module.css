@@ -56,21 +56,20 @@
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .salesLeaderLabel {
-    background-color: #F3DDF8;
-    color: #160101;
+  .productName,
+  .productPrice {
+    font-size: 1rem;
   }
 
-  .newLabel {
-    background-color: #DAF2C2;
-    color: #160101;
+  .productPrice {
+    font-size: 1.2rem;
   }
 
-  .discountLabel {
-    background-color: #F45145;
-    color: #FEFDFC;
+  .productType,
+  .productRating {
+    font-size: 0.85rem;
   }
-  
+
   .salesLeaderLabel,
   .discountLabel,
   .newLabel {
@@ -150,9 +149,12 @@
     font-weight: 300;
     color: #160101;
   }
-  
-  .productName, .productType, .productRating, .productPrice {
-    margin: 6px 0 0;
+
+  .salesLeaderLabel,
+  .discountLabel,
+  .newLabel {
+    font-size: 10px;
+    padding: 2px 5px;
   }
   
   /* Enhance card on hover */
@@ -232,51 +234,50 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     padding: 0;
   }
+}
 
-  .favoriteButton:hover {
-    background: rgba(255, 255, 255, 1);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+/* Very Small Mobile */
+@media (max-width: 360px) {
+  .productCard {
+    height: 320px;
+    max-width: none;
+    width: 100%;
+    margin: 0.2rem 0;
   }
 
-  .favoriteButton:active {
-    transform: scale(0.95);
+  .productImage {
+    height: 200px;
+    max-width: none;
+    width: 100%;
   }
 
-  /* Heart icon animation */
-  .heartIcon {
-    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  .productDetails {
+    padding: 12px 15px 0;
   }
 
-  .favoriteButton.favorited .heartIcon {
-    animation: heartPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  .productName {
+    font-size: 0.9rem;
   }
 
-  @keyframes heartPop {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.3);
-    }
-    100% {
-      transform: scale(1);
-    }
+  .productPrice {
+    font-size: 1rem;
   }
 
-  /* Ensure button is accessible with keyboard navigation */
-  .favoriteButton:focus-visible {
-    outline: 2px solid #ff3939;
-    outline-offset: 2px;
+  .productType,
+  .productRating {
+    font-size: 0.8rem;
   }
 
-  /* Out of Stock Styles */
-  .outOfStock {
-    opacity: 0.6;
+  .labelsContainer {
+    bottom: 3px;
+    gap: 3px;
   }
 
-  .outOfStock .productImage {
-    filter: grayscale(100%);
+  .salesLeaderLabel,
+  .discountLabel,
+  .newLabel {
+    font-size: 10px;
+    padding: 3px 5px;
   }
 
   /* Disable add to cart button for out of stock */

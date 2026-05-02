@@ -66,14 +66,12 @@
     transform: scale(0.9);
   }
   
-  /* Dots container */
   .dotsContainer {
     display: flex;
     justify-content: center;
     max-width: 150px;
   }
   
-  /* Individual dot */
   .dot {
     width: 0.75rem;
     height: 0.75rem;
@@ -129,7 +127,6 @@
       scroll-padding-left: 10px;
     }
 
-    /* Scroll buttons container */
   .scrollButtons {
     display: flex;
     justify-content: center;
@@ -138,7 +135,6 @@
     /* margin-top: 1rem; */
   }
   
-  /* Arrow buttons */
   .arrowScrollButton {
     background: none;
     border: none;
@@ -153,14 +149,12 @@
     transform: scale(0.9);
   }
   
-  /* Dots container */
   .dotsContainer {
     display: flex;
     justify-content: center;
     max-width: 150px;
   }
   
-  /* Individual dot */
   .dot {
     width: 0.75rem;
     height: 0.75rem;
@@ -191,7 +185,9 @@
     display: none;
   }
 
-    
+  .productGrid {
+    gap: 12px;
+  }
 }
 
 @media screen and (max-width: 480px) {

@@ -100,14 +100,14 @@ export default function Specifications({ product }: SpecificationsProps) {
           
           {(isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && specs.construction && (
             <>
-              <h3>Конструкція: {specs.construction}</h3>
+              <h2>Конструкція: {specs.construction}</h2>
               <br />
             </>
           )}
 
           {specs.dimensions && (
             <>
-              <h4 className={styles.specsTitle}>Розміри:</h4>
+              <h3 className={styles.specsTitle}>Розміри:</h3>
               {specs.dimensions.length != null && (
                 <p>Довжина: {specs.dimensions.length} мм</p>
               )}
@@ -141,7 +141,7 @@ export default function Specifications({ product }: SpecificationsProps) {
           {/* Render material section based on what's available */}
           {'material' in specs && specs.material && (
             <>
-              <h4 className={styles.specsTitle}>Деталі:</h4>
+              <h3 className={styles.specsTitle}>Деталі:</h3>
               {/* Render for string material */}
               {typeof specs.material === 'string' && (
                 <p>Матеріал: {specs.material}</p>
@@ -243,7 +243,7 @@ export default function Specifications({ product }: SpecificationsProps) {
             </>
           )}
 
-          <h4 className={styles.specsTitle}>Колір:</h4>
+          <h3 className={styles.specsTitle}>Колір:</h3>
           <p className={styles.disclaimer}>
             Відображення кольору на фотографії залежить від налаштувань вашого
             екрану і може відрізнятися від реального кольору товару.
@@ -258,7 +258,7 @@ export default function Specifications({ product }: SpecificationsProps) {
             (isCornerSofaSpecs(specs) && specs.inner_material) ||
             (isSofaBedSpecs(specs) && specs.inner_material)) && (
             <>
-              <h4 className={styles.specsTitle}>Корпус дивана:</h4>
+              <h3 className={styles.specsTitle}>Корпус дивана:</h3>
               {((isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && 
                 specs.inner_material?.structure) && (
                 <p>Матеріал: {specs.inner_material.structure}</p>
@@ -274,14 +274,14 @@ export default function Specifications({ product }: SpecificationsProps) {
           {/* Wardrobe-specific internal layout */}
           {isWardrobeSpecs(specs) && specs.internal_layout && (
             <>
-              <h4 className={styles.specsTitle}>Внутрішнє планування:</h4>
+              <h3 className={styles.specsTitle}>Внутрішнє планування:</h3>
               <p>{specs.internal_layout}</p>
               <br />
             </>
           )}
           
           {/* Additional features section for all product types */}
-          <h4 className={styles.specsTitle}>Додатково:</h4>
+          <h3 className={styles.specsTitle}>Додатково:</h3>
           <p>Особливості: {
             ((isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && 
              specs.additional_features) ? 

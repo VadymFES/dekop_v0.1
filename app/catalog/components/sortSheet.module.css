@@ -1,0 +1,110 @@
+/* sortSheet.module.css */
+.sheetOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* Slightly less dark than modal */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Align to bottom for sheet style */
+  z-index: 1050; /* Ensure it's above filter modal if they can overlap, or same as filterModal */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sheetOverlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sheetContent {
+  background-color: #fff;
+  width: 100%;
+  max-height: 50vh; /* Typically shorter than filter modal */
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.sheetOverlay.open .sheetContent {
+  transform: translateY(0);
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.sheetTitle {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+
+.sheetBody {
+  flex-grow: 1;
+  /* Styles for sort options, e.g., a select or list */
+}
+
+.sortSelect { /* Style for the select element itself */
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  font-size: 1em;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.sortSelect:disabled {
+  background-color: #e9ecef;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Optional: If using list items for sort options instead of select */
+.sortOptionItem {
+  padding: 12px 5px; /* Padding for touch targets */
+  font-size: 1em;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.sortOptionItem:last-child {
+  border-bottom: none;
+}
+
+.sortOptionItem.selected {
+  font-weight: bold;
+  color: var(--primary-color); /* Highlight selected option */
+}
+
+/* No explicit footer needed if select directly applies changes */
+/* If an "Apply" button is added, similar styles to FilterModal's footer can be used */
