@@ -52,6 +52,12 @@
   100% { transform: rotate(360deg); }
 }
 
+.subText {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
 /* Error State */
 .errorState {
   text-align: center;
@@ -291,6 +297,13 @@
 
 .prepaymentAmount {
   margin: 15px 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #160101;
+}
+
+.remainingAmount {
+  margin: 8px 0 0;
   font-size: 18px;
   font-weight: 700;
   color: #E94444;

@@ -1,0 +1,36 @@
+{
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "app/api/webhooks/liqpay/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/webhooks/monobank/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/webhooks/resend/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/orders/send-confirmation/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/test/email/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

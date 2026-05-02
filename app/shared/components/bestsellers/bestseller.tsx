@@ -1,11 +1,13 @@
 "use client";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import ProductCard from "../productCard/productCard";
+import CarouselSkeleton from "../carouselSkeleton/CarouselSkeleton";
 import styles from "./bestseller.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 
 interface BestsellerProps {
   products: ProductWithImages[];
+  loading?: boolean;
 }
 
 // Helper for limiting visible dots in the carousel
@@ -32,7 +34,7 @@ function getDotRange(
   return [start, end];
 }
 
-const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
+const Bestseller: React.FC<BestsellerProps> = ({ products, loading = false }) => {
   // Filter only bestsellers
   const bestsellerProducts = products.filter((p) => p.is_bestseller);
 
@@ -57,48 +59,65 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
     });
   };
 
-  // Update current slide index on scroll
+  // Scroll to a specific page index (for dot clicks)
+  const bestsellersScrollToIndex = (index: number) => {
+    if (!bestsellersRef.current) return;
+    const container = bestsellersRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
   const bestsellersHandleScroll = () => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
-    // This determines which "page" of the carousel we’re on.
     const index = Math.round(container.scrollLeft / container.clientWidth);
     setBestsellersIndex(index);
   };
 
-  // Calculate how many slides fit in the container
-  const bestsellersHandleResize = useCallback(() => {
+  const bestsellersHandleResize = () => {
     if (!bestsellersRef.current) return;
     const container = bestsellersRef.current;
     setBestsellersSlides(Math.ceil(container.scrollWidth / container.clientWidth));
     bestsellersHandleScroll();
-  }, []);
+  };
 
-  // Add event listeners
   useEffect(() => {
     const container = bestsellersRef.current;
     if (!container) return;
-  
-    const handleScroll = () => {
-      const index = Math.round(container.scrollLeft / container.clientWidth);
-      setBestsellersIndex(index);
-    };
-  
-    container.addEventListener("scroll", handleScroll);
+
+    bestsellersHandleResize();
+    container.addEventListener("scroll", bestsellersHandleScroll);
     window.addEventListener("resize", bestsellersHandleResize);
-  
+
     return () => {
-      container.removeEventListener("scroll", handleScroll);
+      container.removeEventListener("scroll", bestsellersHandleScroll);
       window.removeEventListener("resize", bestsellersHandleResize);
     };
-  }, [bestsellersHandleResize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recalculate when products change
+  useEffect(() => {
+    if (bestsellerProducts.length > 0) {
+      bestsellersHandleResize();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bestsellerProducts.length]);
 
   // Dots range
-  const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, 6);
+  const maxDots = 6;
+  const [startDot, endDot] = getDotRange(bestsellersIndex, bestsellersSlides, maxDots);
   const dotsToRender = Array.from({ length: bestsellersSlides }, (_, i) => i).slice(
     startDot,
     endDot + 1
   );
+
+  // Show skeleton while loading
+  if (loading || products.length === 0) {
+    return <CarouselSkeleton count={6} />;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -139,6 +158,8 @@ const Bestseller: React.FC<BestsellerProps> = ({ products }) => {
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
+              onClick={() => bestsellersScrollToIndex(dotIndex)}
+              style={{ cursor: 'pointer' }}
             />
           ))}
         </div>

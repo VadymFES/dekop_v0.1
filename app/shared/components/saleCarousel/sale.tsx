@@ -2,11 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import ProductCard from "../productCard/productCard";
+import CarouselSkeleton from "../carouselSkeleton/CarouselSkeleton";
 import styles from "./sale.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 
 interface SaleProps {
   products: ProductWithImages[];
+  loading?: boolean;
 }
 
 // Helper for limiting visible dots in the carousel
@@ -33,16 +35,18 @@ function getDotRange(
   return [start, end];
 }
 
-const Sale: React.FC<SaleProps> = ({ products }) => {
+const Sale: React.FC<SaleProps> = ({ products, loading = false }) => {
+  // Filter sale products
+  const saleProducts = products.filter((p) => p.is_on_sale);
+
   // Ref for the scroll container
   const saleRef = useRef<HTMLDivElement>(null);
 
-  // Current “page” index
+  // Current index and slides
   const [saleIndex, setSaleIndex] = useState(0);
-  // Total number of “pages” or slides
   const [saleSlides, setSaleSlides] = useState(1);
 
-  // Scroll left by one “page” (clientWidth)
+  // Scroll left by one page (clientWidth)
   const saleScrollLeft = () => {
     if (!saleRef.current) return;
     saleRef.current.scrollBy({
@@ -51,7 +55,7 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
     });
   };
 
-  // Scroll right by one “page”
+  // Scroll right by one page
   const saleScrollRight = () => {
     if (!saleRef.current) return;
     saleRef.current.scrollBy({
@@ -60,16 +64,23 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
     });
   };
 
-  // On scroll, figure out which page we’re on
+  // Scroll to a specific page index (for dot clicks)
+  const saleScrollToIndex = (index: number) => {
+    if (!saleRef.current) return;
+    const container = saleRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: "smooth",
+    });
+  };
+
   const saleHandleScroll = () => {
     if (!saleRef.current) return;
     const container = saleRef.current;
-    // current page = container.scrollLeft / container.clientWidth
     const index = Math.round(container.scrollLeft / container.clientWidth);
     setSaleIndex(index);
   };
 
-  // Recompute how many “pages” fit in the container
   const saleHandleResize = () => {
     if (!saleRef.current) return;
     const container = saleRef.current;
@@ -77,12 +88,10 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
     saleHandleScroll();
   };
 
-  // Set up listeners on mount
   useEffect(() => {
     const container = saleRef.current;
     if (!container) return;
 
-    // Initial calculation
     saleHandleResize();
     container.addEventListener("scroll", saleHandleScroll);
     window.addEventListener("resize", saleHandleResize);
@@ -94,11 +103,13 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // If products change, re-check slides
+  // Recalculate when products change
   useEffect(() => {
-    saleHandleResize();
+    if (saleProducts.length > 0) {
+      saleHandleResize();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products]);
+  }, [saleProducts.length]);
 
   // Build dot range with optional max of 6
   const maxDots = 6;
@@ -108,8 +119,10 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
     endDot + 1
   );
 
-  // Filter sale products
-  const saleProducts = products.filter((p) => p.is_on_sale);
+  // Show skeleton while loading
+  if (loading || products.length === 0) {
+    return <CarouselSkeleton count={6} />;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -150,6 +163,8 @@ const Sale: React.FC<SaleProps> = ({ products }) => {
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
+              onClick={() => saleScrollToIndex(dotIndex)}
+              style={{ cursor: 'pointer' }}
             />
           ))}
         </div>

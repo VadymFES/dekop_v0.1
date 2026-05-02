@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import {
@@ -9,6 +9,7 @@ import {
   getDeliveryMethodName,
   getPaymentMethodName,
 } from '@/app/lib/order-utils';
+import { trackError } from '@/app/lib/gtm-analytics';
 import styles from './page.module.css';
 
 /**
@@ -23,6 +24,7 @@ function PaymentCancelledContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const cancelledTrackedRef = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -44,6 +46,35 @@ function PaymentCancelledContent() {
 
         if (data.success && data.order) {
           setOrder(data.order);
+
+          // Track payment cancellation
+          if (!cancelledTrackedRef.current) {
+            try {
+              trackError(
+                'payment_cancelled',
+                `Payment cancelled for order ${data.order.order_number}`,
+                'payment-cancelled-page'
+              );
+
+              // Also push a custom event for cancelled checkout
+              if (typeof window !== 'undefined' && (window as any).dataLayer) {
+                (window as any).dataLayer.push({
+                  event: 'payment_cancelled',
+                  order_id: data.order.id,
+                  order_number: data.order.order_number,
+                  payment_method: data.order.payment_method,
+                  order_value: parseFloat(data.order.total_amount.toString()),
+                  currency: 'UAH',
+                  timestamp: new Date().toISOString(),
+                });
+              }
+
+              cancelledTrackedRef.current = true;
+              console.log('[Payment Cancelled] Cancellation tracked successfully');
+            } catch (trackError) {
+              console.error('[Payment Cancelled] Failed to track:', trackError);
+            }
+          }
         } else {
           throw new Error('Замовлення не знайдено');
         }
@@ -77,7 +108,7 @@ function PaymentCancelledContent() {
         ? `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
         : `Оплата замовлення ${order.order_number}`;
 
-      // Retry payment based on payment method
+      // Retry payment via LiqPay (full payment or 20% deposit for cash_on_delivery)
       if (order.payment_method === 'liqpay' ||
           (order.payment_method === 'cash_on_delivery' && order.prepayment_amount > 0)) {
         const paymentResponse = await fetch('/api/payments/liqpay/create', {
@@ -119,29 +150,6 @@ function PaymentCancelledContent() {
 
           document.body.appendChild(form);
           form.submit();
-        }
-      } else if (order.payment_method === 'monobank') {
-        const paymentResponse = await fetch('/api/payments/monobank/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: amount,
-            orderId: order.id,
-            orderNumber: order.order_number,
-            customerEmail: order.user_email,
-            resultUrl: `${window.location.origin}/order-success?orderId=${order.id}`,
-            serverUrl: `${window.location.origin}/api/webhooks/monobank`
-          })
-        });
-
-        if (!paymentResponse.ok) {
-          throw new Error('Помилка при створенні платежу');
-        }
-
-        const monobankPayment = await paymentResponse.json();
-
-        if (monobankPayment.success && monobankPayment.pageUrl) {
-          window.location.href = monobankPayment.pageUrl;
         }
       }
     } catch (error) {

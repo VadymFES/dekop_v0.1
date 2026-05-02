@@ -65,6 +65,26 @@
   margin: 12px 0;
 }
 
+/* Sale price styling */
+.priceContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.originalPrice {
+  font-size: 18px;
+  color: #888;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+.salePrice {
+  font-size: 28px;
+  color: #F45145;
+  font-weight: 700;
+}
+
 .bottomSection {
   display: flex;
   height: 44px;

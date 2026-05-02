@@ -13,24 +13,44 @@ import { PostponementIcon } from '@/app/ui/icons/delivery/postponementIcon';
 import Link from 'next/link';
 import ProductReviews from '../../reviews/reviews';
 import { useCart } from '@/app/context/CartContext';
+import { trackAddToCart } from '@/app/lib/gtm-analytics';
 
 interface ProductActionsProps {
   product?: ProductWithImages;
   reviews: Review[];
+  selectedColor?: { color: string; image_url: string } | null;
+  onColorChange?: (color: { color: string; image_url: string }) => void;
 }
 
-const ProductActions = ({ product, reviews }: ProductActionsProps) => {
+const ProductActions = ({ product, reviews, selectedColor: externalSelectedColor, onColorChange }: ProductActionsProps) => {
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(
+  // Use external color state if provided, otherwise manage internally
+  const [internalSelectedColor, setInternalSelectedColor] = useState(
     product?.colors?.[0] || { color: 'No Color', image_url: '' }
   );
+
+  // Use external state if provided, otherwise use internal
+  const selectedColor = externalSelectedColor ?? internalSelectedColor;
+  const setSelectedColor = (color: { color: string; image_url: string }) => {
+    if (onColorChange) {
+      onColorChange(color);
+    } else {
+      setInternalSelectedColor(color);
+    }
+  };
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isLoading, addToCart } = useCart();
 
   const handleAddToCart = () => {
     if (!product) return;
-    addToCart( { productId: product.id.toString(), quantity, color: selectedColor.color });
+
+    // Track add to cart event
+    trackAddToCart(product, quantity, selectedColor.color);
+
+    // Add to cart
+    addToCart({ productId: product.id.toString(), quantity, color: selectedColor.color });
   };
   
   useEffect(() => {
@@ -52,7 +72,7 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
   
   if (isLoading) return <div>Loading...</div>;
 
-  const { name, stock, rating, price, specs, colors } = product;
+  const { name, stock, rating, price, sale_price, is_on_sale, specs, colors } = product;
   
   // Check if we have specs and dimensions to display
   const showDimensions = specs && specs.dimensions;
@@ -103,7 +123,14 @@ const ProductActions = ({ product, reviews }: ProductActionsProps) => {
               {stock > 0 ? 'Є в наявності' : 'Немає в наявності'}
             </span>
             <span className={styles.productRating}>{rating}</span>
-            <span className={styles.productPrice}>{price} грн</span>
+            {is_on_sale && sale_price ? (
+              <div className={styles.priceContainer}>
+                <span className={styles.originalPrice}>{price} грн</span>
+                <span className={styles.salePrice}>{sale_price} грн</span>
+              </div>
+            ) : (
+              <span className={styles.productPrice}>{price} грн</span>
+            )}
           </div>
         </div>
       </div>

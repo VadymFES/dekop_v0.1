@@ -6,13 +6,40 @@ import {
   parseLiqPayCallback,
   mapLiqPayStatus
 } from '@/app/lib/services/liqpay-service';
+import {
+  isWebhookUnique,
+  validateWebhookIp,
+  validateWebhookTimestamp
+} from '@/app/lib/webhook-security';
 
 /**
  * POST /api/webhooks/liqpay
  * Handles LiqPay webhook callbacks for payment confirmations
+ *
+ * SECURITY LAYERS:
+ * 1. IP whitelist validation
+ * 2. Signature verification
+ * 3. Replay attack prevention
+ * 4. Timestamp validation
  */
 export async function POST(request: Request) {
   try {
+    // SECURITY LAYER 1: IP Whitelist Validation
+    const ipValidation = validateWebhookIp(request, 'liqpay');
+    if (!ipValidation.valid) {
+      console.error('LiqPay webhook IP validation failed:', ipValidation.reason);
+      return NextResponse.json(
+        { error: 'Unauthorized IP address' },
+        {
+          status: 403,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
     const formData = await request.formData();
     const data = formData.get('data') as string;
     const signature = formData.get('signature') as string;
@@ -20,18 +47,30 @@ export async function POST(request: Request) {
     if (!data || !signature) {
       return NextResponse.json(
         { error: 'Missing data or signature' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
-    // Verify callback signature
+    // SECURITY LAYER 2: Verify callback signature
     const isValid = verifyLiqPayCallback(data, signature);
 
     if (!isValid) {
       console.error('LiqPay webhook signature verification failed');
       return NextResponse.json(
         { error: 'Invalid signature' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
     }
 
@@ -44,15 +83,57 @@ export async function POST(request: Request) {
       order_id: orderId,
       status: liqpayStatus,
       transaction_id: transactionId,
-      payment_id: paymentId
+      payment_id: paymentId,
+      create_date: createDate
     } = callbackData;
 
     if (!orderId) {
       console.error('No order_id in LiqPay callback data');
       return NextResponse.json(
         { error: 'Missing order_id' },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
       );
+    }
+
+    // SECURITY LAYER 3: Replay Attack Prevention
+    const webhookId = `liqpay_${transactionId || paymentId}`;
+    const isUnique = await isWebhookUnique(webhookId, 'liqpay', 3600, callbackData);
+    if (!isUnique) {
+      console.error(`Replay attack detected for LiqPay webhook: ${webhookId}`);
+      return NextResponse.json(
+        { error: 'Duplicate webhook - already processed' },
+        {
+          status: 409,
+          headers: {
+            'X-Robots-Tag': 'noindex',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+          }
+        }
+      );
+    }
+
+    // SECURITY LAYER 4: Timestamp Validation
+    if (createDate) {
+      const timestamp = new Date(createDate).getTime();
+      if (!validateWebhookTimestamp(timestamp, 600)) { // 10 minutes tolerance
+        console.error('LiqPay webhook timestamp validation failed');
+        return NextResponse.json(
+          { error: 'Webhook timestamp too old or invalid' },
+          {
+            status: 400,
+            headers: {
+              'X-Robots-Tag': 'noindex',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+            }
+          }
+        );
+      }
     }
 
     // Map LiqPay status to our internal status
@@ -70,7 +151,16 @@ export async function POST(request: Request) {
       await handleLiqPayPaymentPending(orderId, transactionId || paymentId);
     }
 
-    return NextResponse.json({ status: 'ok' });
+    // Return success response with appropriate headers
+    return NextResponse.json(
+      { status: 'ok' },
+      {
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
+    );
 
   } catch (error) {
     console.error('LiqPay webhook error:', error);
@@ -79,7 +169,13 @@ export async function POST(request: Request) {
         error: 'Webhook handler failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          'X-Robots-Tag': 'noindex',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        }
+      }
     );
   }
 }
@@ -104,6 +200,8 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
 
     // Fetch complete order with items to send email
     try {
+      console.log(`📧 Fetching order ${orderId} to send confirmation email...`);
+
       const orderResult = await sql`
         SELECT
           o.*,
@@ -136,6 +234,8 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
           items: orderRow.items || []
         } as any;
 
+        console.log(`📦 Order found: ${order.order_number}, sending email to ${order.user_email}`);
+
         // Send confirmation email
         const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
         await sendOrderConfirmationEmail({
@@ -144,11 +244,21 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
           customerName: `${order.user_surname} ${order.user_name}`
         });
 
-        console.log(`Confirmation email sent for order ${orderId}`);
+        console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
+      } else {
+        console.error(`❌ Order ${orderId} not found - cannot send confirmation email`);
       }
     } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
+      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
+      console.error('Email error details:', emailError);
+
+      if (emailError instanceof Error) {
+        console.error('Email error message:', emailError.message);
+        console.error('Email error stack:', emailError.stack);
+      }
+
       // Don't throw - email failure shouldn't fail the webhook
+      // But make sure the error is clearly visible in logs
     }
 
   } catch (error) {

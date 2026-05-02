@@ -2,10 +2,15 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 import type { OrderWithItems } from '@/app/lib/definitions';
+import { validateApiKey } from '@/app/lib/api-auth';
 
 /**
  * GET /api/orders/[orderId]
  * Fetches a specific order with all its items
+ *
+ * SECURITY: Requires email verification to prevent unauthorized access to customer PII
+ * Customer must provide their email address via query parameter (?email=...)
+ * This prevents IDOR attacks where someone could enumerate order IDs
  */
 export async function GET(
   request: Request,
@@ -13,6 +18,8 @@ export async function GET(
 ) {
   try {
     const { orderId } = await params;
+    const { searchParams } = new URL(request.url);
+    const customerEmail = searchParams.get('email');
 
     if (!orderId) {
       return NextResponse.json(
@@ -21,7 +28,28 @@ export async function GET(
       );
     }
 
-    // Fetch order with items
+    // SECURITY: Require email verification for order access
+    if (!customerEmail) {
+      return NextResponse.json(
+        {
+          error: 'Для перегляду замовлення необхідно вказати email',
+          message: 'Email verification required for order access'
+        },
+        { status: 401 }
+      );
+    }
+
+    // Validate email format (basic check)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      return NextResponse.json(
+        { error: 'Невірний формат email' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch order with items, but ONLY if email matches
+    // This prevents unauthorized access to order details
     const result = await sql`
       SELECT
         o.*,
@@ -45,13 +73,14 @@ export async function GET(
         ) as items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.id = ${orderId}
+      WHERE o.id = ${orderId} AND LOWER(o.user_email) = LOWER(${customerEmail})
       GROUP BY o.id
     `;
 
     if (result.rows.length === 0) {
+      // Don't reveal whether order exists or email is wrong (security best practice)
       return NextResponse.json(
-        { error: 'Замовлення не знайдено' },
+        { error: 'Замовлення не знайдено або email не співпадає' },
         { status: 404 }
       );
     }
@@ -82,12 +111,24 @@ export async function GET(
 /**
  * PATCH /api/orders/[orderId]
  * Updates order status, payment status, or other fields
+ *
+ * SECURITY: Requires API key authentication - admin only
+ * This endpoint modifies order data and should only be accessible to administrators
  */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    // SECURITY: Validate API key for admin operations
+    const isAuthenticated = await validateApiKey(request);
+    if (!isAuthenticated) {
+      return NextResponse.json(
+        { error: 'Unauthorized - API key required for order modifications' },
+        { status: 401 }
+      );
+    }
+
     const { orderId } = await params;
     const body = await request.json();
 

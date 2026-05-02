@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomerInfoStep from './components/CustomerInfoStep';
 import DeliveryInfoStep from './components/DeliveryInfoStep';
@@ -13,11 +13,13 @@ import { CHECKOUT_STEPS, type CheckoutFormData } from './types';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import { formatUkrainianPrice } from '@/app/lib/order-utils';
 import { useCart } from '@/app/context/CartContext';
+import { trackBeginCheckout, trackCheckoutProgress } from '@/app/lib/gtm-analytics';
 import styles from './checkout.module.css';
 
 // LocalStorage key for checkout form data
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const CHECKOUT_STEP_KEY = 'dekop_checkout_step';
+const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
 const STORAGE_EXPIRATION_MINUTES = 20; // Data expires after 20 minutes
 
 // Helper to save form data to localStorage
@@ -67,6 +69,24 @@ const clearFormData = () => {
   }
 };
 
+// Helper to save orderId->email mapping (persists through payment flow)
+const saveOrderEmailMapping = (orderId: string, email: string) => {
+  try {
+    const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
+    const mapping = mappingData ? JSON.parse(mappingData) : {};
+
+    // Store email with timestamp for cleanup
+    mapping[orderId] = {
+      email: email,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(ORDER_EMAIL_MAPPING_KEY, JSON.stringify(mapping));
+  } catch (error) {
+    console.error('Error saving order-email mapping:', error);
+  }
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, isLoading: isCartLoading, clearCart } = useCart();
@@ -76,6 +96,7 @@ export default function CheckoutPage() {
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isFormLoaded, setIsFormLoaded] = useState(false);
+  const hasTrackedBeginCheckout = useRef(false);
 
   // Modal states
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -101,8 +122,7 @@ export default function CheckoutPage() {
       postalCode: ''
     },
     paymentInfo: {
-      method: 'cash_on_delivery',
-      depositPaymentMethod: 'liqpay'
+      method: 'cash_on_delivery'
     },
     customerNotes: ''
   });
@@ -123,6 +143,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!isCartLoading && cart.length === 0) {
       router.push('/cart');
+    } else if (!isCartLoading && cart.length > 0 && !hasTrackedBeginCheckout.current) {
+      // Track begin checkout event
+      trackBeginCheckout(cart);
+      hasTrackedBeginCheckout.current = true;
     }
   }, [cart.length, isCartLoading, router]);
 
@@ -204,10 +228,6 @@ export default function CheckoutPage() {
       if (!formData.paymentInfo.method) {
         newErrors.method = 'Оберіть спосіб оплати';
       }
-      // Validate deposit payment method for cash_on_delivery
-      if (formData.paymentInfo.method === 'cash_on_delivery' && !formData.paymentInfo.depositPaymentMethod) {
-        newErrors.depositPaymentMethod = 'Оберіть спосіб оплати передплати';
-      }
     }
 
     setErrors(newErrors);
@@ -217,6 +237,18 @@ export default function CheckoutPage() {
   const handleNext = () => {
     if (validateStep(currentStep)) {
       if (currentStep < 4) {
+        // Track checkout progress
+        if (currentStep === 2) {
+          // Shipping info added
+          trackCheckoutProgress('shipping', cart, {
+            shipping_method: formData.deliveryInfo.method,
+          });
+        } else if (currentStep === 3) {
+          // Payment info added
+          trackCheckoutProgress('payment', cart, {
+            payment_method: formData.paymentInfo.method,
+          });
+        }
         setCurrentStep(currentStep + 1);
       } else {
         handleSubmitOrder();
@@ -256,8 +288,7 @@ export default function CheckoutPage() {
         postalCode: ''
       },
       paymentInfo: {
-        method: 'cash_on_delivery',
-        depositPaymentMethod: 'liqpay'
+        method: 'cash_on_delivery'
       },
       customerNotes: ''
     });
@@ -316,29 +347,24 @@ export default function CheckoutPage() {
 
       const { order } = await orderResponse.json();
 
+      // Save orderId->email mapping to persist through payment flow
+      saveOrderEmailMapping(order.id, formData.customerInfo.email);
+
+      // Note: Purchase tracking moved to order-success page
+      // We track the purchase only after payment is confirmed as 'paid'
+      // This prevents duplicate or premature purchase events
+
       // Handle different payment methods
       if (formData.paymentInfo.method === 'liqpay') {
         // For LiqPay: create payment and redirect to checkout
         await createLiqPayPayment(order, cartTotal, `Оплата замовлення ${order.order_number}`);
-      } else if (formData.paymentInfo.method === 'monobank') {
-        // For Monobank: create invoice and redirect
-        await createMonobankPayment(order, cartTotal, `Оплата замовлення ${order.order_number}`);
       } else if (formData.paymentInfo.method === 'cash_on_delivery') {
-        // Cash on delivery: require 20% deposit payment
-        const depositMethod = formData.paymentInfo.depositPaymentMethod;
-        if (depositMethod === 'liqpay') {
-          await createLiqPayPayment(
-            order,
-            prepaymentAmount,
-            `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
-          );
-        } else if (depositMethod === 'monobank') {
-          await createMonobankPayment(
-            order,
-            prepaymentAmount,
-            `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
-          );
-        }
+        // Cash on delivery: require 20% deposit payment via LiqPay
+        await createLiqPayPayment(
+          order,
+          prepaymentAmount,
+          `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
+        );
       }
 
     } catch (error) {
@@ -352,6 +378,13 @@ export default function CheckoutPage() {
 
   const createLiqPayPayment = async (order: OrderWithItems, amount: number, description: string) => {
     try {
+      // Get base URL - use window.location.origin for client-side, fallback to env variable
+      const baseUrl = typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+      console.log('🔗 Creating LiqPay payment with base URL:', baseUrl);
+
       // Call server-side API to create payment (keeps private key secure)
       const paymentResponse = await fetch('/api/payments/liqpay/create', {
         method: 'POST',
@@ -362,9 +395,9 @@ export default function CheckoutPage() {
           orderNumber: order.order_number,
           description: description,
           customerEmail: formData.customerInfo.email,
-          resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
-          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
-          serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/liqpay`
+          resultUrl: `${baseUrl}/order-success?orderId=${order.id}&email=${encodeURIComponent(formData.customerInfo.email)}`,
+          cancelUrl: `${baseUrl}/payment-cancelled?orderId=${order.id}`,
+          serverUrl: `${baseUrl}/api/webhooks/liqpay`
         })
       });
 
@@ -400,42 +433,6 @@ export default function CheckoutPage() {
     } catch (liqpayError) {
       console.error('LiqPay payment error:', liqpayError);
       throw new Error('Помилка при створенні платежу LiqPay');
-    }
-  };
-
-  const createMonobankPayment = async (order: OrderWithItems, amount: number, description: string) => {
-    try {
-      // Call server-side API to create Monobank invoice
-      const paymentResponse = await fetch('/api/payments/monobank/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amount,
-          orderId: order.id,
-          orderNumber: order.order_number,
-          customerEmail: formData.customerInfo.email,
-          resultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/order-success?orderId=${order.id}`,
-          cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment-cancelled?orderId=${order.id}`,
-          serverUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/monobank`
-        })
-      });
-
-      if (!paymentResponse.ok) {
-        const errorData = await paymentResponse.json();
-        throw new Error(errorData.error || 'Помилка при створенні платежу');
-      }
-
-      const monobankPayment = await paymentResponse.json();
-
-      if (monobankPayment.success && monobankPayment.pageUrl) {
-        // Redirect to Monobank payment page
-        window.location.href = monobankPayment.pageUrl;
-      } else {
-        throw new Error('Failed to create Monobank payment');
-      }
-    } catch (monobankError) {
-      console.error('Monobank payment error:', monobankError);
-      throw new Error('Помилка при створенні платежу Monobank');
     }
   };
 

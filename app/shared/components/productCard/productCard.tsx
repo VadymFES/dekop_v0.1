@@ -6,6 +6,8 @@ import styles from "./productCard.module.css";
 import { ProductWithImages } from "@/app/lib/definitions";
 import { useCart } from "@/app/context/CartContext";
 import { useFavorites } from "@/app/context/FavoritesContext";
+import { trackAddToCart } from "@/app/lib/gtm-analytics";
+import { getCategoryDisplayName } from "@/app/lib/category-utils";
 
 interface ProductCardProps {
   product: ProductWithImages;
@@ -23,12 +25,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     // If the product is out of stock, do nothing
     if (product.stock < 1) return;
 
+    const color = product.colors?.[0]?.color || "";
+
+    // Track add to cart event
+    trackAddToCart(product, 1, color);
+
     // Add the product to the cart with a default quantity of 1.
     // If the product has color options, default to the first one (or an empty string if not available)
     addToCart({
       productId: product.id.toString(),
       quantity: 1,
-      color: product.colors?.[0]?.color || "",
+      color: color,
     });
   };
 
@@ -50,7 +57,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <Link href={`/product/${encodeURIComponent(product.slug)}`} prefetch={false}>
         <div>
           <div className={styles.imageWrapper}>
-            {firstImage && (
+            {firstImage ? (
               <Image
                 src={firstImage.image_url}
                 alt={product.name}
@@ -61,6 +68,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 placeholder="blur"
                 blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
               />
+            ) : (
+              <div className={styles.imagePlaceholder} aria-label="Зображення відсутнє" />
             )}
 
             {/* Favorite heart icon button */}
@@ -103,11 +112,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className={styles.productDetails}>
             <div className={styles.productInfo}>
               <p className={styles.productName}>{product.name}</p>
-              <p className={styles.productType}>{product.category}</p>
+              <p className={styles.productType}>{getCategoryDisplayName(product.category)}</p>
             </div>
             <div className={styles.productMeta}>
               <p className={styles.productRating}>{product.rating}</p>
-                <p className={styles.productPrice}>{Math.round(product.price)} грн</p>
+              {product.is_on_sale && product.sale_price ? (
+                <div className={styles.priceContainer}>
+                  <p className={styles.originalPrice}>{product.price} грн</p>
+                  <p className={styles.salePrice}>{product.sale_price} грн</p>
+                </div>
+              ) : (
+                <p className={styles.productPrice}>{product.price} грн</p>
+              )}
             </div>
           </div>
         </div>

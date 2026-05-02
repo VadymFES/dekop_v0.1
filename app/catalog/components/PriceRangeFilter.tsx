@@ -48,12 +48,8 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
 
   // Comprehensive validation of required props
   if (!priceRange || priceRange.min === undefined || priceRange.max === undefined ||
-    !filterValues || filterValues.priceMin === undefined || filterValues.priceMax === undefined) {
-    DebugLogger.domWarning('Missing required price range or filter values', {
-      component: 'PriceRangeFilter',
-      action: 'validation',
-      data: { priceRange, filterValues }
-    });
+    filterValues.priceMin === undefined || filterValues.priceMax === undefined ||
+    priceRange.min === priceRange.max) {
     return null;
   }
 

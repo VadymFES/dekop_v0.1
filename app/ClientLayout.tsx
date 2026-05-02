@@ -4,13 +4,17 @@
 import { useState, useEffect } from "react";
 import Header from "@/app/shared/components/header/header";
 import Footer from "@/app/shared/components/footer/footer";
-import styles from "./page.module.css"; 
+import styles from "./page.module.css";
+
+interface ClientLayoutProps {
+  children: React.ReactNode;
+  isAdminRoute: boolean;
+}
 
 export default function ClientLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+  isAdminRoute,
+}: ClientLayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleMenuToggle = () => {
@@ -27,6 +31,12 @@ export default function ClientLayout({
     return () => window.removeEventListener("resize", handleResize);
   }, [menuOpen]);
 
+  // Admin routes - no header/footer
+  if (isAdminRoute) {
+    return <>{children}</>;
+  }
+
+  // Regular site - show header/footer
   return (
     <div className={styles.page}>
       {menuOpen && (

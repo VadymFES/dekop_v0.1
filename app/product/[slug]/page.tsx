@@ -30,17 +30,17 @@ async function getProductData(slug: string) {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000';
 
   try {
-    // Fetch main product data
-    const productRes = await fetch(`${baseUrl}/api/products/${slug}`, { next: { revalidate: 3600 } });
+    // Fetch main product data (revalidate every 60 seconds for fresher data)
+    const productRes = await fetch(`${baseUrl}/api/products/${slug}`, { next: { revalidate: 60 } });
     if (!productRes.ok) throw new Error('Product not found');
     const product = await productRes.json();
 
     // Fetch specs, colors, and similar products
     const [specsRes, colorsRes, similarProductsRes, reviewsRes] = await Promise.all([
-      fetch(`${baseUrl}/api/products/product-specs/${product.id}`, { next: { revalidate: 3600 } }),
-      fetch(`${baseUrl}/api/products/product-colors/${product.id}`, { next: { revalidate: 3600 } }),
-      fetch(`${baseUrl}/api/products/similarRecommendations/${slug}`, { next: { revalidate: 3600 } }),
-      fetch(`${baseUrl}/api/products/reviews/${product.id}`, { next: { revalidate: 3600 } })
+      fetch(`${baseUrl}/api/products/product-specs/${product.id}`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/api/products/product-colors/${product.id}`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/product/api/similarRecommendations/${slug}`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/api/products/reviews/${product.id}`, { next: { revalidate: 60 } })
     ]);
 
     // Process specs data
@@ -74,10 +74,12 @@ async function getProductData(slug: string) {
       colors,
     };
 
-    console.log('Full product with specs:', {
+    console.log('Full product data:', {
       id: fullProduct.id,
       category: fullProduct.category,
-      hasSpecs: Boolean(fullProduct.specs)
+      hasSpecs: Boolean(fullProduct.specs),
+      imagesCount: fullProduct.images?.length || 0,
+      firstImageUrl: fullProduct.images?.[0]?.image_url || 'none'
     });
 
     return {

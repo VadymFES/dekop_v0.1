@@ -23,7 +23,8 @@ type?: string[] | null;
   hardness?: string | null;
   priceMin: number;
   priceMax: number;
-  status?: string[] | null;
+  status: string[];
+  search: string;
 }
 
 export interface CatalogState {

@@ -233,6 +233,10 @@
     margin: 0 0 8px 0;
   }
 
+  .secondaryContainer {
+  margin: 1rem 1rem;
+  }
+
   .inStock {
     background-color: #e8f5e9;
     color: #2e7d32;

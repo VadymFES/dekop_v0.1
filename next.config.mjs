@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: false,
+    reactStrictMode: true,
     images: {
         remotePatterns: [
             {
@@ -27,8 +27,18 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'images.pexels.com', // Allow Pixabay images
             },
+            {
+                protocol: 'https',
+                hostname: 'ik.imagekit.io', // Allow ImageKit images
+            },
+            {
+                protocol: 'https',
+                hostname: '*.blob.vercel-storage.com', // Vercel Blob Storage
+            },
         ],
     },
+
+    // ⚠️ REMOVED: async headers() function (CSP logic moved to middleware)
 };
 
 export default nextConfig;

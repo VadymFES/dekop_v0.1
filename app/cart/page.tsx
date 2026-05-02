@@ -20,13 +20,13 @@ export default function Cart() {
       setIsLoading(false);
     } else {
       // Check if all required properties are loaded
-      const allDataLoaded = cart.every(item => 
-        item.productDetails?.name && 
+      const allDataLoaded = cart.every(item =>
+        item.productDetails?.name &&
         item.productDetails?.price &&
         // item.colors &&
         item.productDetails?.specs
       );
-      
+
       if (allDataLoaded) {
         setIsLoading(false);
         if (selectedIds.length === 0) {
@@ -153,6 +153,7 @@ export default function Cart() {
                 <input
                   type="checkbox"
                   id="selectAll"
+                  className={styles.checkbox}
                   checked={selectedIds.length === cart.length && cart.length > 0}
                   onChange={(e) =>
                     setSelectedIds(
@@ -186,6 +187,7 @@ export default function Cart() {
                             {/* Checkbox */}
                             <input
                               type="checkbox"
+                              className={styles.checkbox}
                               checked={selectedIds.includes(item.id)}
                               onChange={(e) =>
                                 handleCheckboxChange(item.id, e.target.checked)
@@ -234,18 +236,25 @@ export default function Cart() {
                         {/* =========== Body row =========== */}
                         <div className={styles.productItemBody}>
                           {/* Product Image */}
-                          <Image
-                            src={
-                              item.image_url ||
-                              item.productDetails?.images?.[0]?.image_url ||
-                              "/default-image.png"
-                            }
-                            alt={item.productDetails?.name || "Товар"}
-                            width={150}
-                            height={100}
-                            className={styles.productImage}
-                            loading="lazy"
-                          />
+                          {(item.image_url || item.productDetails?.images?.[0]?.image_url) ? (
+                            <Image
+                              src={
+                                item.image_url ||
+                                item.productDetails?.images?.[0]?.image_url as string
+                              }
+                              alt={item.productDetails?.name || "Товар"}
+                              width={150}
+                              height={100}
+                              className={styles.productImage}
+                              loading="lazy"
+                              placeholder="blur"
+                              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
+                            />
+                          ) : (
+                            <div className={styles.imageWrapper}>
+                              <div className={styles.imagePlaceholder} aria-label="Зображення відсутнє" />
+                            </div>
+                          )}
 
                           {/* Product Description */}
                           <div className={styles.productDescription}>

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { db } from "@/app/lib/db";
+import { getCacheHeaders } from "@/app/lib/cache-headers";
 import { Review } from "@/app/lib/definitions";
-
-export const dynamic = "force-dynamic";
 
 // Utility function to validate productId
 function validateProductId(productId: string): number | null {
@@ -27,14 +26,14 @@ export async function GET(
   }
 
   try {
-    const { rows } = await sql<Review[]>`
+    const { rows } = await db.query`
       SELECT id, product_id, user_name, rating, comment, created_at
       FROM reviews
       WHERE product_id = ${productId}
       ORDER BY created_at DESC
     `;
 
-    return NextResponse.json(rows, { status: 200 });
+    return NextResponse.json(rows, { status: 200, headers: getCacheHeaders('static') });
   } catch (error) {
     console.error("Error fetching reviews:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

@@ -1,23 +1,73 @@
 import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { getCacheHeaders } from "@/app/lib/cache-headers";
 
-// Helper function to normalize category names
+// Map English category to Ukrainian (as stored in DB)
+const CATEGORY_TO_UKRAINIAN: Record<string, string> = {
+  'sofas': 'Диван',
+  'corner_sofas': 'Кутовий Диван',
+  'sofa_beds': 'Диван-Ліжко',
+  'beds': 'Ліжко',
+  'tables': 'Стіл',
+  'chairs': 'Стілець',
+  'mattresses': 'Матрац',
+  'wardrobes': 'Шафа',
+  'accessories': 'Аксесуар',
+};
+
+// Map Ukrainian category to English for normalization
+const CATEGORY_TO_ENGLISH: Record<string, string> = {
+  // English pass-through
+  'sofas': 'sofas',
+  'corner_sofas': 'corner_sofas',
+  'sofa_beds': 'sofa_beds',
+  'beds': 'beds',
+  'tables': 'tables',
+  'chairs': 'chairs',
+  'mattresses': 'mattresses',
+  'wardrobes': 'wardrobes',
+  'accessories': 'accessories',
+  // Ukrainian singular
+  'диван': 'sofas',
+  'кутовий диван': 'corner_sofas',
+  'диван-ліжко': 'sofa_beds',
+  'ліжко': 'beds',
+  'стіл': 'tables',
+  'стілець': 'chairs',
+  'матрац': 'mattresses',
+  'шафа': 'wardrobes',
+  'аксесуар': 'accessories',
+  // Ukrainian plural
+  'дивани': 'sofas',
+  'кутові дивани': 'corner_sofas',
+  'дивани-ліжка': 'sofa_beds',
+  'ліжка': 'beds',
+  'столи': 'tables',
+  'стільці': 'chairs',
+  'матраци': 'mattresses',
+  'шафи': 'wardrobes',
+  'аксесуари': 'accessories',
+};
+
+// Helper function to normalize category names to English
 function normalizeCategory(category: string): string {
-  // Convert category names to their normalized form
-  const categoryMap: Record<string, string> = {
-    'corner sofa': 'corner_sofas',
-    'sofa': 'sofas',
-    'sofa bed': 'sofa_beds',
-    'bed': 'beds',
-    'table': 'tables',
-    'chair': 'chairs',
-    'mattress': 'mattresses',
-    'wardrobe': 'wardrobes',
-    'accessory': 'accessories'
-  };
-  
-  const lowerCategory = category.toLowerCase();
-  return categoryMap[lowerCategory] || lowerCategory;
+  const lowerCategory = category.toLowerCase().trim();
+  return CATEGORY_TO_ENGLISH[lowerCategory] || category;
+}
+
+// Get Ukrainian category for DB query (accepts both English and Ukrainian)
+function getCategoryForDB(category: string): string {
+  // If already Ukrainian, return as-is
+  const lowerCategory = category.toLowerCase().trim();
+  const normalizedToEnglish = CATEGORY_TO_ENGLISH[lowerCategory];
+
+  if (normalizedToEnglish) {
+    // It's a known category (English or Ukrainian), convert to Ukrainian for DB
+    return CATEGORY_TO_UKRAINIAN[normalizedToEnglish] || category;
+  }
+
+  // Unknown category, return as-is
+  return category;
 }
 
 export async function GET(request: Request) {
@@ -28,11 +78,30 @@ export async function GET(request: Request) {
   const materials = searchParams.getAll("material");
   const features = searchParams.getAll("feature");
   const size = searchParams.get("size");
+  const statuses = searchParams.getAll("status");
+  const search = searchParams.get("search");
 
   try {
+    // Check if color column exists in product_images table
+    let hasColorColumn = false;
+    try {
+      const colCheck = await sql.query(`
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'product_images' AND column_name = 'color'
+      `);
+      hasColorColumn = colCheck.rows.length > 0;
+    } catch {
+      hasColorColumn = false;
+    }
+
+    // Build image JSON dynamically based on column existence
+    const imageJsonFields = hasColorColumn
+      ? `'id', pi.id, 'image_url', pi.image_url, 'alt', pi.alt, 'is_primary', pi.is_primary, 'color', pi.color`
+      : `'id', pi.id, 'image_url', pi.image_url, 'alt', pi.alt, 'is_primary', pi.is_primary, 'color', NULL`;
+
     let query = `
-      SELECT 
-        p.id, p.name, p.slug, p.description, p.category, p.price, p.stock, 
+      SELECT
+        p.id, p.name, p.slug, p.description, p.category, p.price, p.sale_price, p.stock,
         p.rating, COUNT(r.id) AS reviews,
         p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
         ps.specs_id, ps.construction, ps.dimensions_length, ps.dimensions_width, 
@@ -45,10 +114,7 @@ export async function GET(request: Request) {
         ps.has_shelves, ps.leg_height, ps.has_lift_mechanism, ps.types,
         json_agg(
           json_build_object(
-            'id', pi.id, 
-            'image_url', pi.image_url, 
-            'alt', pi.alt, 
-            'is_primary', pi.is_primary
+            ${imageJsonFields}
           )
         ) FILTER (WHERE pi.id IS NOT NULL) AS images,
         json_agg(
@@ -187,10 +253,11 @@ export async function GET(request: Request) {
     const values: (string | number | string[] | number[])[] = [];
     let paramIndex = 1;
 
-    // Filter by category
+    // Filter by category (convert to Ukrainian DB value)
     if (category) {
+      const categoryForDB = getCategoryForDB(category);
       conditions.push(`p.category = $${paramIndex++}`);
-      values.push(category);
+      values.push(categoryForDB);
     }
 
     // Filter by max price
@@ -242,12 +309,39 @@ export async function GET(request: Request) {
     // Filter by size
     if (size) {
       const sizeParam = paramIndex++;
-      const widthCondition = size === "single" 
-        ? `ps.dimensions_sleeping_area_width <= $${sizeParam}` 
+      const widthCondition = size === "single"
+        ? `ps.dimensions_sleeping_area_width <= $${sizeParam}`
         : `ps.dimensions_sleeping_area_width >= $${sizeParam}`;
-      
+
       conditions.push(widthCondition);
       values.push(size === "single" ? 1000 : 1400);
+    }
+
+    // Filter by status (new, on_sale, bestseller)
+    if (statuses.length > 0) {
+      const statusConditions: string[] = [];
+
+      for (const status of statuses) {
+        if (status === "new") {
+          statusConditions.push("p.is_new = TRUE");
+        } else if (status === "on_sale") {
+          statusConditions.push("p.is_on_sale = TRUE");
+        } else if (status === "bestseller") {
+          statusConditions.push("p.is_bestseller = TRUE");
+        }
+      }
+
+      if (statusConditions.length > 0) {
+        conditions.push(`(${statusConditions.join(" OR ")})`);
+      }
+    }
+
+    // Filter by search query
+    if (search && search.trim().length > 0) {
+      const searchTerm = `%${search.trim()}%`;
+      conditions.push(`(p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex + 1} OR p.category ILIKE $${paramIndex + 2})`);
+      values.push(searchTerm, searchTerm, searchTerm);
+      paramIndex += 3;
     }
 
     // Combine conditions
@@ -256,8 +350,8 @@ export async function GET(request: Request) {
     }
 
     // Group by product and specs to aggregate images and colors
-    query += ` 
-      GROUP BY p.id, ps.specs_id, p.name, p.slug, p.description, p.category, p.price, p.stock, 
+    query += `
+      GROUP BY p.id, ps.specs_id, p.name, p.slug, p.description, p.category, p.price, p.sale_price, p.stock,
         p.is_on_sale, p.is_new, p.is_bestseller, p.created_at, p.updated_at,
         ps.construction, ps.dimensions_length, ps.dimensions_width, ps.dimensions_depth, ps.dimensions_height, 
         ps.dimensions_sleeping_area_width, ps.dimensions_sleeping_area_length, ps.material_type, ps.material_composition, 
@@ -285,6 +379,7 @@ export async function GET(request: Request) {
         description: row.description,
         category: row.category,
         price: row.price,
+        sale_price: row.sale_price || null,
         stock: row.stock,
         // Використовуємо розрахований рейтинг і кількість відгуків
         rating: parseFloat(row.rating) || 0,
@@ -300,12 +395,10 @@ export async function GET(request: Request) {
       };
     });
 
-    // Add Cache-Control header to the response
-    return NextResponse.json(products, { 
+    // Return with optimized caching headers
+    return NextResponse.json(products, {
       status: 200,
-      headers: { 
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600' 
-      }
+      headers: getCacheHeaders('catalog'),
     });
   } catch (error) {
     console.error("Error fetching products:", error);

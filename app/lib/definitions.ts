@@ -6,8 +6,9 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  category: string; 
+  category: string;
   price: number;
+  sale_price?: number | null;
   stock: number;
   rating: number;
   reviews: number;
@@ -25,6 +26,7 @@ export interface ProductImage {
   url: string;
   alt: string;
   is_primary: boolean;
+  color?: string | null; // Links image to a specific color variant (null = general image)
 }
 
 // Base interface for common specification fields across categories
@@ -363,7 +365,7 @@ export interface CategoryFilters {
 export type DeliveryMethod = 'nova_poshta' | 'store_delivery' | 'pickup';
 
 // Order payment methods
-export type PaymentMethod = 'liqpay' | 'monobank' | 'cash_on_delivery';
+export type PaymentMethod = 'liqpay' | 'cash_on_delivery';
 
 // Order payment status
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';

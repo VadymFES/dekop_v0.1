@@ -23,6 +23,7 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   const [visibleProducts, setVisibleProducts] = useState<ProductWithImages[]>([]);
   const [page, setPage] = useState(1);
   const productsPerPage = 9;
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Track previous products to prevent unnecessary updates
   const previousProductsRef = useRef<string>('');
@@ -43,20 +44,25 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
   }, [loading]);
 
   useEffect(() => {
-    // Create a stable identifier for the products array
-    const currentProductsKey = products.map(p => p.id).join(',');
-
-    // Only update if products actually changed
-    if (previousProductsRef.current !== currentProductsKey) {
-      previousProductsRef.current = currentProductsKey;
-      setPage(1);
-      setVisibleProducts(products.slice(0, productsPerPage));
+    // Disconnect any active observer before resetting the list to prevent
+    // the stale observer from appending products from the old sort order
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
     }
-  }, [products, productsPerPage]);
+    setPage(1);
+    setVisibleProducts(filteredProducts.slice(0, productsPerPage));
+  }, [filteredProducts]);
 
 
 
   const lastProductRef: ObserverCallback = useCallback(node => {
+    // Always disconnect the previous observer before creating a new one
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
     if (loading || !node) return;
 
     const observer: IntersectionObserver = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
@@ -71,8 +77,8 @@ export const ProductsDisplay = memo<ProductsDisplayProps>(({
     }, { threshold: 0.1, rootMargin: '50px' });
 
     observer.observe(node);
-    return () => observer.disconnect();
-  }, [loading, visibleProducts.length, products.length, page, products, productsPerPage]);
+    observerRef.current = observer;
+  }, [loading, visibleProducts.length, filteredProducts.length, page]);
 
   return (
     <div className={styles.productGrid}>

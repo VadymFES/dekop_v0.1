@@ -1,106 +1,67 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next';
+
+/**
+ * Robots.txt Configuration
+ *
+ * Configures search engine crawler behavior.
+ * Next.js automatically serves this at /robots.txt
+ *
+ * Configuration:
+ * - Block all search engines from indexing the site
+ * - This prevents the site from appearing in search results
+ */
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-
   return {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
-        disallow: [
-          '/api/',
-          '/admin/',
-          '/_next/',
-          '/private/',
-          '/*.json',
-          '/cart?*', // Don't index cart with parameters
-          '/checkout',
-          '/account',
-          '/login',
-          '/register',
-        ],
-      },
-      {
-        userAgent: 'GPTBot',
-        allow: [
-          '/',
-          '/catalog',
-          '/product/*',
-          '/about-us',
-          '/individual-order',
-        ],
-        disallow: [
-          '/api/',
-          '/admin/',
-          '/private/',
-          '/cart',
-          '/checkout',
-          '/account',
-        ],
-      },
-      {
-        userAgent: 'ChatGPT-User',
-        allow: [
-          '/',
-          '/catalog',
-          '/product/*',
-          '/about-us',
-          '/individual-order',
-        ],
-        disallow: [
-          '/api/',
-          '/admin/', 
-          '/private/',
-          '/cart',
-          '/checkout',
-          '/account',
-        ],
-      },
-      {
-        userAgent: 'Claude-Web',
-        allow: [
-          '/',
-          '/catalog',
-          '/product/*',
-          '/about-us',
-          '/individual-order',
-        ],
-        disallow: [
-          '/api/',
-          '/admin/',
-          '/private/',
-          '/cart',
-          '/checkout',
-          '/account',
-        ],
-      },
-      {
-        userAgent: 'Bingbot',
-        allow: '/',
-        disallow: [
-          '/api/',
-          '/admin/',
-          '/private/',
-          '/cart',
-          '/checkout',
-          '/account',
-        ],
-      },
-      {
-        userAgent: 'Googlebot',
-        allow: '/',
-        disallow: [
-          '/api/',
-          '/admin/',
-          '/private/',
-          '/cart?*',
-          '/checkout',
-          '/account',
-        ],
+        disallow: '/',
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
-  }
+  };
 }
+
+
+// import { MetadataRoute } from 'next';
+
+// /**
+//  * Robots.txt Configuration
+//  *
+//  * Configures search engine crawler behavior.
+//  * Next.js automatically serves this at /robots.txt
+//  *
+//  * Configuration:
+//  * - Allow all crawlers to index all pages
+//  * - Disallow crawling of API routes, admin pages, and user-specific pages
+//  * - Point crawlers to sitemap.xml
+//  */
+
+// export default function robots(): MetadataRoute.Robots {
+//   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
+
+//   return {
+//     rules: [
+//       {
+//         userAgent: '*',
+//         allow: [
+//           '/',
+//           '/product/',
+//         ],
+//         disallow: [
+//           '/api/', // API routes should not be indexed
+//           '/checkout/', // User checkout pages
+//           '/order-success/', // Order confirmation pages
+//           '/payment-cancelled/', // Payment cancellation pages
+//           '/_next/', // Next.js internal files
+//           '/admin/', // Admin pages
+//           '/cart/',
+//           '/favorites/',
+//           '/search*',
+//         ],
+//         crawlDelay: 1, 
+//       },
+//     ],
+//     sitemap: `${baseUrl}/sitemap.xml`,
+//   };
+// }

@@ -1,6 +1,7 @@
 'use client';
 
 // app/product/[slug]/client-page.tsx
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
 import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
@@ -10,6 +11,20 @@ import Specifications from '../components/specs/specifications';
 import ProductActions from '../components/actions/actions';
 import ProductReviews from '../reviews/reviews';
 import SimilarProducts from '../components/similarProducts/similarProducts';
+import { trackViewItem } from '@/app/lib/gtm-analytics';
+
+// Mapping from English DB category to URL slug
+const ENGLISH_TO_SLUG: Record<string, string> = {
+  'sofas': 'sofas',
+  'corner_sofas': 'cornerSofas',
+  'sofa_beds': 'sofaBeds',
+  'beds': 'beds',
+  'tables': 'tables',
+  'chairs': 'chairs',
+  'mattresses': 'mattresses',
+  'wardrobes': 'wardrobes',
+  'accessories': 'accessories',
+};
 
 // Define type for component props
 interface ClientProductPageProps {
@@ -20,41 +35,58 @@ interface ClientProductPageProps {
 }
 
 // Client Component that receives data from server component
-export default function ClientProductPage({ 
-  product, 
-  reviews, 
+export default function ClientProductPage({
+  product,
+  reviews,
   similarProducts,
-  categorySlugMap 
+  categorySlugMap
 }: ClientProductPageProps) {
-  // Structured data for SEO
-  const structuredData = {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    "name": product.name,
-    "image": product.images?.map(img => img.url) || [],
-    "description": product.description || `${product.name} - ${product.category}`,
-    "brand": {
-      "@type": "Brand",
-      "name": "Dekop Furniture Enterprise"
-    },
-    "category": product.category,
-    "offers": {
-      "@type": "Offer",
-      "url": typeof window !== 'undefined' ? window.location.href : '',
-      "priceCurrency": "UAH",
-      "price": product.price,
-      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "seller": {
-        "@type": "Organization",
-        "name": "Dekop Furniture Enterprise"
-      }
-    },
-    "aggregateRating": reviews.length > 0 ? {
-      "@type": "AggregateRating",
-      "ratingValue": reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length,
-      "reviewCount": reviews.length
-    } : undefined
-  };
+  // Track product view only once
+  const hasTracked = useRef(false);
+
+  // Color state - lifted up to share between ProductImages and ProductActions
+  const [selectedColor, setSelectedColor] = useState<{ color: string; image_url: string } | null>(
+    product?.colors?.[0] || null
+  );
+
+  // Get category info (Ukrainian name and URL slug)
+  const categoryInfo = useMemo(() => {
+    const category = product.category?.toLowerCase() || '';
+
+    // Try to find by English category name first (e.g., "sofas", "corner_sofas")
+    const urlSlug = ENGLISH_TO_SLUG[category];
+    if (urlSlug && categorySlugMap[urlSlug]) {
+      return {
+        slug: urlSlug,
+        uaName: categorySlugMap[urlSlug].uaName,
+      };
+    }
+
+    // Try to find by Ukrainian dbValue (e.g., "Диван", "Кутовий Диван")
+    const entry = Object.entries(categorySlugMap).find(
+      ([, { dbValue }]) => dbValue.toLowerCase() === category
+    );
+    if (entry) {
+      return {
+        slug: entry[0],
+        uaName: entry[1].uaName,
+      };
+    }
+
+    // Fallback to original category
+    return {
+      slug: category,
+      uaName: product.category || 'Категорія',
+    };
+  }, [product.category, categorySlugMap]);
+
+  useEffect(() => {
+    // Only track once per product page load
+    if (!hasTracked.current) {
+      trackViewItem(product);
+      hasTracked.current = true;
+    }
+  }, [product.id]);
 
   return (
     <div className={styles.topContainer}>
@@ -77,8 +109,8 @@ export default function ClientProductPage({
           </li>
           <li className={styles.separator}>|</li>
           <li className={styles.breadcrumb_item}>
-            <Link href={`/category/${product.category}`}>
-              {product.category}
+            <Link href={`/catalog?category=${categoryInfo.slug}`}>
+              {categoryInfo.uaName}
             </Link>
           </li>
           <li className={styles.separator}>|</li>
@@ -98,7 +130,7 @@ export default function ClientProductPage({
                   <span className={styles.productRating}>★★★★★</span>
                 </div>
               </div>
-              <ProductImages product={product} />
+              <ProductImages product={product} selectedColor={selectedColor?.color} />
             </div>
 
             {/* Product Specifications */}
@@ -121,7 +153,12 @@ export default function ClientProductPage({
           <div className={styles.rightColumn}>
             {/* Product Actions */}
             <div className={styles.actionsSection}>
-              <ProductActions product={product} reviews={reviews} />
+              <ProductActions
+                product={product}
+                reviews={reviews}
+                selectedColor={selectedColor}
+                onColorChange={setSelectedColor}
+              />
             </div>
             {/* Reviews Section */}
             <div className={styles.reviewsSection}>
@@ -135,10 +172,8 @@ export default function ClientProductPage({
       <section className={styles.similarCarousel}>
         <div className={styles.bodyContentHeader}>
           <h2 className={styles.bodyContentTitle}>Схожі товари</h2>
-          <Link 
-            href={`/catalog?category=${Object.entries(categorySlugMap).find(
-            ([, { dbValue }]) => dbValue === product.category
-            )?.[0] || ''}`}
+          <Link
+            href={`/catalog?category=${categoryInfo.slug}`}
             className={styles.bodyContentButton}
           >
             Переглянути всі

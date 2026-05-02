@@ -43,7 +43,8 @@
     "app/api/products/[slug]/route.ts",
     "app/api/products/product-colors/[productId]/route.ts",
     "app/api/products/product-specs/[productId]/route.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next/dev/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

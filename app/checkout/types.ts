@@ -27,7 +27,6 @@ export interface CheckoutFormData {
   // Step 3: Payment Information
   paymentInfo: {
     method: PaymentMethod;
-    depositPaymentMethod?: 'liqpay' | 'monobank'; // For cash_on_delivery deposit
   };
 
   // Additional
@@ -106,34 +105,9 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
     icon: '💳'
   },
   {
-    value: 'monobank',
-    label: 'Monobank',
-    description: 'Повна оплата через Monobank',
-    icon: '🏦'
-  },
-  {
     value: 'cash_on_delivery',
     label: 'Готівкою при отриманні',
     description: 'Передплата 20% онлайн + решта при отриманні',
     icon: '💵'
-  }
-];
-
-export interface DepositPaymentOption {
-  value: 'liqpay' | 'monobank';
-  label: string;
-  icon: string;
-}
-
-export const DEPOSIT_PAYMENT_OPTIONS: DepositPaymentOption[] = [
-  {
-    value: 'liqpay',
-    label: 'LiqPay',
-    icon: '💳'
-  },
-  {
-    value: 'monobank',
-    label: 'Monobank',
-    icon: '🏦'
   }
 ];

@@ -12,13 +12,19 @@
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     width: 100%;
-    margin-bottom: 10px;
+    padding-bottom: 3.5rem;
+    padding-left: 10px;
+    scroll-padding-left: 10px;
+    gap: 20px;
   }
-  
-  
+
+
   .saleItemSlide {
-    flex: 0 0 auto;      /* Prevent flex items from shrinking */
-    scroll-snap-align: start; /* Snap alignment */
+    flex: 0 0 260px;
+    width: 260px;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
   }
   
   
@@ -28,7 +34,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
   }
   
   /* Arrow buttons */
@@ -60,11 +66,21 @@
     border-radius: 50%;
     background-color: #ccc;
     margin: 0 0.25rem;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
   }
-  
+
+  .dot:hover {
+    background-color: #999;
+    transform: scale(1.2);
+  }
+
   .activeDot {
     background-color: #F45145;
+  }
+
+  .activeDot:hover {
+    background-color: #E2281B;
   }
   
   /* Hide arrows on smaller screens */

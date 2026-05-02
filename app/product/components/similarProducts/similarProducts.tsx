@@ -52,6 +52,16 @@ const SimilarProducts: React.FC<SimilarProps> = ({ products }) => {
     });
   }, []);
 
+  // Scroll to a specific page index (for dot clicks)
+  const similarScrollToIndex = useCallback((index: number) => {
+    if (!similarRef.current) return;
+    const container = similarRef.current;
+    container.scrollTo({
+      left: index * container.clientWidth,
+      behavior: 'smooth',
+    });
+  }, []);
+
   const similarHandleScroll = useCallback(() => {
     if (!similarRef.current) return;
     const container = similarRef.current;
@@ -126,6 +136,8 @@ const SimilarProducts: React.FC<SimilarProps> = ({ products }) => {
                   ? `${styles.dot} ${styles.activeDot}`
                   : styles.dot
               }
+              onClick={() => similarScrollToIndex(dotIndex)}
+              style={{ cursor: 'pointer' }}
             />
           ))}
         </div>

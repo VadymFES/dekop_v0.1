@@ -23,7 +23,7 @@
 .header {
   display: flex;
   width: 100%;
-  height: 84px; /* Fixed height */
+  height: 88px; /* Fixed height */
   align-items: center;
   padding: 0 2rem; /* Horizontal padding for header */
   background: #fefdfcef;
@@ -50,7 +50,7 @@
   width: 506px;
   flex-direction: column; /* Stack the search bar and buttons vertically */
   align-items: center; /* Center the buttons horizontally */
-  margin-top: 10px;
+  margin-top: 5px;
   z-index: 996;
 }
 
@@ -103,13 +103,7 @@
 }
 
 .searchBar {
-  width: 256px;
-  height: 24px;
-  padding: 4px 6px;
-  border-radius: 4px;
-  background: #FEFDFC;
-  box-shadow: 0px 0px 3px 0px #1601018A;
-  border: none;
+  /* Width is controlled by the SearchBar component itself */
 }
 
 .dropdown {
@@ -153,6 +147,7 @@
 .iconButton {
   display: flex; /* Flexbox for alignment */
   flex-direction: column; /* Stack icon and label vertically */
+  justify-content: center;
   align-items: center; /* Center icon and label */
   background: none; /* Remove background */
   border: none; /* Remove border */
@@ -167,7 +162,7 @@
 }
 
 .iconLabel {
-  font-size: 11px; /* Label font size */
+  font-size: 14px; /* Label font size */
   text-align: center; /* Center text */
   margin-top: 4px; /* Space between icon and label */
 }

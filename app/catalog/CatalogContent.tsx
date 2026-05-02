@@ -18,6 +18,7 @@ import { Breadcrumbs } from "./components/Breadcrumbs";
 import { SortControl } from "./components/SortControl";
 import { SelectedFilters } from "./components/SelectedFilters";
 import { FiltersSidebar } from "./components/FiltersSidebar";
+import { FilterModal } from "./components/FilterModal";
 import { ProductsDisplay } from "./components/ProductsDisplay";
 import FilterModal from "./components/FilterModal";
 import { CatalogErrorBoundary } from "./components/CatalogErrorBoundary";
@@ -91,132 +92,23 @@ export default function CatalogContent(): React.ReactElement {
   const categoryUaName = slugData?.uaName;
   const pageTitle = categoryUaName || 'Всі категорії';
 
-  // Custom hook to parse URL filters
-  const getFiltersFromURL = useFiltersFromUrl();
+  // Use the new stable filtering hook
+  const {
+    products,
+    loading,
+    error,
+    filters,
+    priceRange,
+    sortOption,
+    updateFilter,
+    updatePriceRange,
+    updateSort,
+    resetFilters,
+    clearFilter,
+    applyFilters,
+  } = useProductFilters(dbCategory);
 
-  // Track if price filters have been initialized to prevent infinite loop
-  const priceFiltersInitialized = useRef(false);
-
-  // Track if we're updating URL to prevent reading it back
-  const isUpdatingURL = useRef(false);
-
-  // Track previous search params to detect external changes
-  const previousSearchParams = useRef<string>('');
-
-  // Track previous products to avoid unnecessary dispatches
-  const previousProductsKey = useRef<string>('');
-
-  // Initialize filters from URL on mount or when URL changes externally
-  useEffect(() => {
-    const currentParams = searchParams?.toString() || '';
-
-    // Skip if we just updated the URL ourselves
-    if (isUpdatingURL.current) {
-      isUpdatingURL.current = false;
-      previousSearchParams.current = currentParams;
-      return;
-    }
-
-    // Skip if params haven't actually changed
-    if (previousSearchParams.current === currentParams) {
-      return;
-    }
-
-    previousSearchParams.current = currentParams;
-
-    const urlFilters = getFiltersFromURL(searchParams);
-
-    // Only apply non-price filters from URL initially
-    // Price filters will be set after products are loaded
-    const filtersToApply = {
-      ...urlFilters,
-      // Don't apply 0,0 price filters from URL - wait for products to load
-      priceMin: urlFilters.priceMin > 0 ? urlFilters.priceMin : 0,
-      priceMax: urlFilters.priceMax > 0 ? urlFilters.priceMax : 0,
-    };
-
-    dispatch(actions.setFilters(filtersToApply));
-    dispatch(actions.setSortOption(urlFilters.sort));
-
-    // If URL has VALID price filters (not 0,0), mark as initialized
-    if (urlFilters.priceMin > 0 || urlFilters.priceMax > 0) {
-      priceFiltersInitialized.current = true;
-    }
-  }, [searchParams, getFiltersFromURL]);
-
-  // Build query params for TanStack Query
-  const queryParams = useMemo(() => {
-    return buildSearchParams(dbCategory, filters, sortOption);
-  }, [dbCategory, filters, sortOption]);
-
-  // Fetch products with TanStack Query (automatic deduplication and caching)
-  const { data: fetchedProducts = [], isLoading, error: queryError } = useQuery<ProductWithImages[]>({
-    queryKey: ['products', queryParams.toString()],
-    queryFn: () => fetchProducts(queryParams),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    enabled: true,
-  });
-
-  // Update products in state when query completes
-  useEffect(() => {
-    // Create a stable key to identify the current products
-    const currentProductsKey = fetchedProducts?.map(p => p.id).join(',') || 'EMPTY';
-
-    // Only process if products actually changed
-    if (previousProductsKey.current === currentProductsKey) {
-      return; // Products haven't changed, skip
-    }
-
-    previousProductsKey.current = currentProductsKey;
-
-    if (fetchedProducts && fetchedProducts.length > 0) {
-      dispatch(actions.setProducts(fetchedProducts));
-
-      // Calculate price range from fetched products
-      const prices = fetchedProducts
-        .map(p => parseFloat(p.price.toString()))
-        .filter(p => p > 0);
-
-      if (prices.length > 0) {
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-
-        // Only update price range on initial load
-        // After that, keep the original range to prevent slider from jumping when filters are applied
-        if (!priceFiltersInitialized.current) {
-          dispatch(actions.setPriceRange({ min: minPrice, max: maxPrice }));
-          dispatch(actions.setFilters({
-            priceMin: minPrice,
-            priceMax: maxPrice
-          }));
-          priceFiltersInitialized.current = true;
-        }
-      }
-    } else if (fetchedProducts && fetchedProducts.length === 0) {
-      // Handle empty results - dispatch once
-      dispatch(actions.setProducts([]));
-      // Don't reset price range to 0,0 - keep existing range or use a default
-      // This prevents the price filter from breaking when temporarily no products match
-      if (priceRange.min === 0 && priceRange.max === 0) {
-        // Only set a default range if we don't have one yet
-        dispatch(actions.setPriceRange({ min: 0, max: 100000 }));
-      }
-    }
-  }, [fetchedProducts]);
-
-  // Update loading state
-  useEffect(() => {
-    dispatch(actions.setLoading(isLoading));
-  }, [isLoading]);
-
-  // Update error state
-  useEffect(() => {
-    if (queryError) {
-      dispatch(actions.setError(queryError.message));
-    }
-  }, [queryError]);
-
-  // Memoized filter groups
+  // Memoized filter groups to avoid recalculations
   const finalFilterGroups = useMemo(() => {
     const GLOBAL_FILTERS: FilterGroup[] = [{
       name: 'Status',
@@ -293,6 +185,18 @@ export default function CatalogContent(): React.ReactElement {
 
   // Event handlers
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+
+  // Local state for filter modal
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  // Detect mobile to skip rendering the auto-apply sidebar on small screens
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 1023);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Event handler: Category change
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
@@ -432,6 +336,28 @@ export default function CatalogContent(): React.ReactElement {
     setIsMobileFiltersOpen(false);
   };
 
+  // Event handler: Open filter modal
+  const handleOpenFilterModal = (): void => {
+    setIsFilterModalOpen(true);
+  };
+
+  // Event handler: Close filter modal
+  const handleCloseFilterModal = (): void => {
+    setIsFilterModalOpen(false);
+  };
+
+  // Event handler: Apply filters (modal)
+  const handleApplyFilters = (): void => {
+    // Filters are already applied in real-time via URL params
+    // This just closes the modal
+    setIsFilterModalOpen(false);
+  };
+
+  // Event handler: Reset filters (modal)
+  const handleResetFilters = (): void => {
+    resetFilters();
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.contentContainer}>
@@ -449,26 +375,40 @@ export default function CatalogContent(): React.ReactElement {
               clearAllFilters={clearAllFilters}
             />
           </div>
-          <SortControl
-            sortOption={sortOption}
-            onChange={handleSortChange}
-            disabled={loading}
-          />
+          <div className={styles.controlButtons}>
+            <button
+              className={styles.filtersButton}
+              onClick={handleOpenFilterModal}
+              aria-label="Відкрити фільтри"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              Фільтри
+            </button>
+            <SortControl
+              sortOption={sortOption}
+              onChange={handleSortChange}
+              disabled={loading}
+            />
+          </div>
         </div>
 
         <React.Suspense>
           <div className={styles.contentWrapper}>
-            <FiltersSidebar
-              loading={loading}
-              isCategoryLoading={isCategoryLoading}
-              slug={slug}
-              filters={filters}
-              priceRange={priceRange}
-              finalFilterGroups={finalFilterGroups}
-              handleCategoryChange={handleCategoryChange}
-              handleFilterChange={handleFilterChange}
-              handlePriceChange={handlePriceChange}
-            />
+            {!isMobile && (
+              <FiltersSidebar
+                loading={loading}
+                isCategoryLoading={isCategoryLoading}
+                slug={slug}
+                filters={filters}
+                priceRange={priceRange}
+                finalFilterGroups={finalFilterGroups}
+                handleCategoryChange={handleCategoryChange}
+                handleFilterChange={handleFilterChange}
+                handlePriceChange={handlePriceChange}
+              />
+            )}
             <ProductsDisplay
               loading={loading}
               error={error}
@@ -476,6 +416,23 @@ export default function CatalogContent(): React.ReactElement {
             />
           </div>
         </React.Suspense>
+
+        {/* Filter Modal for mobile/tablet */}
+        <FilterModal
+          isOpen={isFilterModalOpen}
+          onClose={handleCloseFilterModal}
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+          loading={loading}
+          isCategoryLoading={isCategoryLoading}
+          slug={slug}
+          filters={filters}
+          priceRange={priceRange}
+          finalFilterGroups={finalFilterGroups}
+          handleCategoryChange={handleCategoryChange}
+          handleFilterChange={handleFilterChange}
+          handlePriceChange={handlePriceChange}
+        />
       </div>
     </div>
   );
