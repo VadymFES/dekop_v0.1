@@ -42,12 +42,13 @@ export default async function RootLayout({
   const isAdminRoute = pathname.includes(adminPath);
   const isComingSoonRoute = pathname === '/coming-soon' || pathname.startsWith('/coming-soon/');
 
-  const nonce = isAdminRoute ? '' : await getNonce();
+  const showTracking = !isAdminRoute && !isComingSoonRoute;
+  const nonce = showTracking ? await getNonce() : '';
 
   return (
     <html lang="uk">
       <body>
-        {!isAdminRoute && (
+        {showTracking && (
           <>
             <script
               nonce={nonce}
@@ -64,9 +65,9 @@ export default async function RootLayout({
           <CartProvider>
             <FavoritesProvider>
               <ClientLayout isAdminRoute={isAdminRoute || isComingSoonRoute}>{children}</ClientLayout>
-              {!isAdminRoute && <CookieConsent />}
-              {!isAdminRoute && <SpeedInsights />}
-              {!isAdminRoute && <Analytics />}
+              {showTracking && <CookieConsent />}
+              {showTracking && <SpeedInsights />}
+              {(showTracking || isComingSoonRoute) && <Analytics />}
             </FavoritesProvider>
           </CartProvider>
         </QueryProvider>
