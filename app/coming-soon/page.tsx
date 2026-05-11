@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import styles from './page.module.css';
@@ -96,7 +97,9 @@ export default function ComingSoonPage() {
         </div>
 
         {/* Notify form */}
-        <NotifyForm />
+        <Suspense fallback={<div className={styles.form} />}>
+          <NotifyForm />
+        </Suspense>
 
         {/* Socials */}
         <div className={styles.socials}>
