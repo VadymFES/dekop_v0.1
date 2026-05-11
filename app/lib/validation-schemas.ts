@@ -91,7 +91,7 @@ export const createOrderSchema = z.object({
   store_location: z.string().max(200, 'Store location too long').pipe(sanitizedString).optional().nullable(),
 
   // Payment information
-  payment_method: z.enum(['liqpay', 'cash_on_delivery'], {
+  payment_method: z.enum(['liqpay', 'monobank', 'cash_on_delivery'], {
     message: 'Invalid payment method',
   }),
 

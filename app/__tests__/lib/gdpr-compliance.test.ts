@@ -19,9 +19,11 @@ import {
 } from '@/app/lib/gdpr-compliance';
 
 // Mock dependencies
-jest.mock('@vercel/postgres', () => ({
-  sql: jest.fn(),
-}));
+jest.mock('@vercel/postgres', () => {
+  const mockSql = jest.fn();
+  mockSql.query = jest.fn();
+  return { sql: mockSql };
+});
 
 const { sql } = require('@vercel/postgres');
 
@@ -521,7 +523,7 @@ describe('GDPR Compliance - Consent Management', () => {
 
   describe('hasRequiredConsents', () => {
     it('should return true if all required consents are granted', async () => {
-      sql.mockResolvedValue({
+      sql.query.mockResolvedValue({
         rows: [
           { consent_type: 'data_processing', granted: true },
           { consent_type: 'cookies', granted: true },
@@ -537,7 +539,7 @@ describe('GDPR Compliance - Consent Management', () => {
     });
 
     it('should return false if not all required consents are granted', async () => {
-      sql.mockResolvedValue({
+      sql.query.mockResolvedValue({
         rows: [{ consent_type: 'data_processing', granted: true }],
       });
 
@@ -550,7 +552,7 @@ describe('GDPR Compliance - Consent Management', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      sql.mockRejectedValue(new Error('Database error'));
+      sql.query.mockRejectedValue(new Error('Database error'));
 
       const hasConsents = await hasRequiredConsents(testEmail, ['cookies']);
 
