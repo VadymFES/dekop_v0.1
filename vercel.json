@@ -32,5 +32,8 @@
       "path": "/api/cron/cleanup",
       "schedule": "0 2 * * *"
     }
+  ],
+  "redirects": [
+    { "source": "/(.*)", "destination": "/coming-soon", "permanent": false }
   ]
 }
