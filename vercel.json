@@ -35,7 +35,7 @@
   ],
   "redirects": [
     {
-      "source": "/((?!coming-soon|admin-path-57fyg).*)",
+      "source": "/((?!coming-soon|admin-path-57fyg|_next|api|favicon\\.ico|robots\\.txt|.*\\..*).*)",
       "missing": [{ "type": "host", "value": "admin.dekop.com.ua" }],
       "destination": "/coming-soon",
       "permanent": false
