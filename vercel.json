@@ -34,6 +34,6 @@
     }
   ],
   "redirects": [
-    { "source": "/(.*)", "destination": "/coming-soon", "permanent": false }
+    { "source": "/((?!coming-soon).*)", "destination": "/coming-soon", "permanent": false }
   ]
 }
