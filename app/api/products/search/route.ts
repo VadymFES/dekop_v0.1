@@ -18,10 +18,7 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    console.log('[Search API] Request received:', { query, limit });
-
     if (!query || query.trim().length < 2) {
-      console.log('[Search API] Query too short:', query);
       return NextResponse.json({
         results: [],
         count: 0,
@@ -30,14 +27,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Generate all keyboard layout variations
     const variations = generateLayoutVariations(query.trim());
-    console.log('[Search API] Generated layout variations:', variations);
-
-    // Create search patterns for all variations
     const searchPatterns = variations.map(v => `%${v}%`);
 
-    // Build the WHERE clause dynamically - handle up to 8 patterns
     const pattern1 = searchPatterns[0] || `%${query.trim()}%`;
     const pattern2 = searchPatterns[1] || pattern1;
     const pattern3 = searchPatterns[2] || pattern1;
@@ -47,9 +39,6 @@ export async function GET(request: NextRequest) {
     const pattern7 = searchPatterns[6] || pattern1;
     const pattern8 = searchPatterns[7] || pattern1;
 
-    console.log('[Search API] Searching with patterns:', searchPatterns);
-
-    // Search products by name, description, or category with multiple layout variations
     const result = await sql`
       SELECT
         p.id,
@@ -110,8 +99,6 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit}
     `;
 
-    console.log('[Search API] Query executed, rows found:', result.rows.length);
-
     const products: ProductWithImages[] = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
@@ -132,15 +119,11 @@ export async function GET(request: NextRequest) {
       specs: null,
     }));
 
-    console.log('[Search API] Products mapped:', products.length);
-
-    // Find category and filter suggestions based on all layout variations
     const allSuggestions = {
       categories: new Set<CategorySuggestion>(),
       filters: new Set<FilterSuggestion>()
     };
 
-    // Check suggestions for all variations
     variations.forEach(variation => {
       const catSuggestions = findCategorySuggestions(variation);
       const filtSuggestions = findFilterSuggestions(variation);
@@ -152,26 +135,15 @@ export async function GET(request: NextRequest) {
     const categorySuggestions = Array.from(allSuggestions.categories);
     const filterSuggestions = Array.from(allSuggestions.filters);
 
-    console.log('[Search API] Suggestions found:', {
-      categories: categorySuggestions.length,
-      filters: filterSuggestions.length
-    });
-
     const response = {
       results: products,
       count: products.length,
       query: query.trim(),
       suggestions: {
-        categories: categorySuggestions.slice(0, 3), // Limit to 3 category suggestions
-        filters: filterSuggestions.slice(0, 5) // Limit to 5 filter suggestions
+        categories: categorySuggestions.slice(0, 3),
+        filters: filterSuggestions.slice(0, 5)
       }
     };
-
-    console.log('[Search API] Returning response:', {
-      resultsCount: response.results.length,
-      categoriesCount: response.suggestions.categories.length,
-      filtersCount: response.suggestions.filters.length
-    });
 
     return NextResponse.json(response, {
       headers: {
@@ -190,7 +162,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to perform search',
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
         results: [],
         count: 0,
         suggestions: { categories: [], filters: [] }

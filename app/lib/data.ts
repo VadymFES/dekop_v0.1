@@ -1,9 +1,7 @@
-// getProductByName function is defined in app/lib/data.ts:
-
 import { ProductWithImages } from './definitions'
 
 export async function getProducts(): Promise<ProductWithImages[]> {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products`); // Use backticks here
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products`);
   if (!response.ok) {
     return [];
   }
@@ -16,7 +14,6 @@ export async function getProductBySlug(slug: string): Promise<ProductWithImages 
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${encodeURIComponent(slug)}`
     );
-    console.log('Fetching product for slug:', slug);
 
     if (!response.ok) {
       if (response.status === 404) return null;
@@ -29,8 +26,8 @@ export async function getProductBySlug(slug: string): Promise<ProductWithImages 
   }
 }
 
-  export async function getAllProductSlugs(): Promise<Array<{ slug: string }>> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/slugs`); // Use backticks here
+export async function getAllProductSlugs(): Promise<Array<{ slug: string }>> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/slugs`);
     const slugs = await response.json();
     return slugs.map((slug: string) => ({ slug }));
   }

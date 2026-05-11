@@ -1,7 +1,4 @@
-/**
- * Сторінка скидання пароля
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
+
 
 import { redirect } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';

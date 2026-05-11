@@ -16,13 +16,11 @@ import { useCart } from '@/app/context/CartContext';
 import { trackBeginCheckout, trackCheckoutProgress } from '@/app/lib/gtm-analytics';
 import styles from './checkout.module.css';
 
-// LocalStorage key for checkout form data
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const CHECKOUT_STEP_KEY = 'dekop_checkout_step';
 const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
-const STORAGE_EXPIRATION_MINUTES = 20; // Data expires after 20 minutes
+const STORAGE_EXPIRATION_MINUTES = 20;
 
-// Helper to save form data to localStorage
 const saveFormData = (data: CheckoutFormData, step: number) => {
   try {
     const storageData = {
@@ -36,7 +34,6 @@ const saveFormData = (data: CheckoutFormData, step: number) => {
   }
 };
 
-// Helper to load form data from localStorage
 const loadFormData = (): { formData: CheckoutFormData | null; currentStep: number } => {
   try {
     const saved = localStorage.getItem(CHECKOUT_STORAGE_KEY);
@@ -45,10 +42,8 @@ const loadFormData = (): { formData: CheckoutFormData | null; currentStep: numbe
     const storageData = JSON.parse(saved);
     const { formData, currentStep, timestamp } = storageData;
 
-    // Check if data is expired (older than 20 minutes)
     const minutesElapsed = (Date.now() - timestamp) / (1000 * 60);
     if (minutesElapsed > STORAGE_EXPIRATION_MINUTES) {
-      // Data expired, clear it
       localStorage.removeItem(CHECKOUT_STORAGE_KEY);
       return { formData: null, currentStep: 1 };
     }
@@ -60,7 +55,6 @@ const loadFormData = (): { formData: CheckoutFormData | null; currentStep: numbe
   }
 };
 
-// Helper to clear saved form data
 const clearFormData = () => {
   try {
     localStorage.removeItem(CHECKOUT_STORAGE_KEY);
@@ -69,13 +63,10 @@ const clearFormData = () => {
   }
 };
 
-// Helper to save orderId->email mapping (persists through payment flow)
 const saveOrderEmailMapping = (orderId: string, email: string) => {
   try {
     const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
     const mapping = mappingData ? JSON.parse(mappingData) : {};
-
-    // Store email with timestamp for cleanup
     mapping[orderId] = {
       email: email,
       timestamp: Date.now()
@@ -313,12 +304,10 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // Calculate prepayment amount for cash on delivery (20% deposit)
       const prepaymentAmount = formData.paymentInfo.method === 'cash_on_delivery'
         ? Math.round(cartTotal * 0.2)
         : 0;
 
-      // Create order (cart ID will be read from cookies on server-side)
       const orderResponse = await fetch('/api/orders/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -347,14 +336,8 @@ export default function CheckoutPage() {
 
       const { order } = await orderResponse.json();
 
-      // Save orderId->email mapping to persist through payment flow
       saveOrderEmailMapping(order.id, formData.customerInfo.email);
 
-      // Note: Purchase tracking moved to order-success page
-      // We track the purchase only after payment is confirmed as 'paid'
-      // This prevents duplicate or premature purchase events
-
-      // Handle different payment methods
       if (formData.paymentInfo.method === 'liqpay') {
         // For LiqPay: create payment and redirect to checkout
         await createLiqPayPayment(order, cartTotal, `Оплата замовлення ${order.order_number}`);
@@ -378,14 +361,10 @@ export default function CheckoutPage() {
 
   const createLiqPayPayment = async (order: OrderWithItems, amount: number, description: string) => {
     try {
-      // Get base URL - use window.location.origin for client-side, fallback to env variable
       const baseUrl = typeof window !== 'undefined'
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-      console.log('🔗 Creating LiqPay payment with base URL:', baseUrl);
-
-      // Call server-side API to create payment (keeps private key secure)
       const paymentResponse = await fetch('/api/payments/liqpay/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -409,7 +388,6 @@ export default function CheckoutPage() {
       const liqpayPayment = await paymentResponse.json();
 
       if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
-        // Create a form and submit it to redirect to LiqPay
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = liqpayPayment.checkoutUrl;
@@ -437,30 +415,23 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSuccess = async (order: OrderWithItems) => {
-    // Send confirmation email
     try {
       await fetch('/api/orders/send-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: order.id })
       });
-      console.log('Confirmation email sent');
     } catch (emailError) {
       console.error('Error sending confirmation email:', emailError);
-      // Don't block the flow if email fails
     }
 
-    // Clear cart using CartContext (which properly invalidates React Query cache)
     try {
       clearCart();
     } catch (error) {
       console.error('Error clearing cart:', error);
     }
 
-    // Clear saved checkout form data from localStorage
     clearFormData();
-
-    // Show confirmation modal
     setCompletedOrder(order);
     setShowConfirmation(true);
     setIsSubmitting(false);
@@ -468,7 +439,6 @@ export default function CheckoutPage() {
 
   const handleContinueShopping = () => {
     setShowConfirmation(false);
-    // Small delay to allow modal to close before navigation
     setTimeout(() => {
       router.push('/');
     }, 100);

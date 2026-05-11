@@ -37,53 +37,33 @@ export default function SearchBar({ className }: SearchBarProps) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Track analytics events (disabled - tracking not needed for search suggestions)
   const trackEvent = useCallback((eventName: string, eventData?: Record<string, any>) => {
-    // Search suggestion tracking disabled per user request
-    // Events like search_initiated, suggestion_clicked, etc. are not tracked
   }, []);
 
-  // Debounced search function
   const performSearch = useCallback(async (searchQuery: string) => {
-    console.log('[SearchBar] performSearch called with:', searchQuery);
-
     if (searchQuery.trim().length < 3) {
-      console.log('[SearchBar] Query too short, skipping search');
       setResults([]);
       setIsOpen(false);
       return;
     }
 
-    // Cancel previous request
     if (abortControllerRef.current) {
-      console.log('[SearchBar] Aborting previous request');
       abortControllerRef.current.abort();
     }
 
-    // Create new abort controller
     abortControllerRef.current = new AbortController();
-
     setIsLoading(true);
-    console.log('[SearchBar] Starting search request');
 
     try {
-      // Track search initiated event
       trackEvent('search_initiated', {
         search_term: searchQuery,
         search_length: searchQuery.length
       });
 
       const url = `/api/products/search?q=${encodeURIComponent(searchQuery)}&limit=8`;
-      console.log('[SearchBar] Fetching:', url);
 
       const response = await fetch(url, {
         signal: abortControllerRef.current.signal
-      });
-
-      console.log('[SearchBar] Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
       });
 
       if (!response.ok) {
@@ -97,32 +77,22 @@ export default function SearchBar({ className }: SearchBarProps) {
       }
 
       const data: SearchResponse = await response.json();
-      console.log('[SearchBar] Response data:', {
-        resultsCount: data.results?.length || 0,
-        categoriesCount: data.suggestions?.categories?.length || 0,
-        filtersCount: data.suggestions?.filters?.length || 0,
-        query: data.query
-      });
       setResults(data.results);
       setCategorySuggestions(data.suggestions?.categories || []);
       setFilterSuggestions(data.suggestions?.filters || []);
 
-      // Show dropdown if there are results or suggestions
       const hasSuggestions = (data.results.length > 0) ||
                             (data.suggestions?.categories.length > 0) ||
                             (data.suggestions?.filters.length > 0);
       setIsOpen(hasSuggestions);
 
-      // Track no results event
       if (data.results.length === 0 && !hasSuggestions) {
         trackEvent('search_no_results', {
           search_term: searchQuery
         });
       }
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log('[SearchBar] Request aborted');
-      } else {
+      if (error.name !== 'AbortError') {
         console.error('[SearchBar] Search error:', {
           name: error.name,
           message: error.message,
@@ -134,44 +104,32 @@ export default function SearchBar({ className }: SearchBarProps) {
       }
     } finally {
       setIsLoading(false);
-      console.log('[SearchBar] Search request completed');
     }
   }, [trackEvent]);
 
-  // Handle input change with debouncing
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    console.log('[SearchBar] Input changed:', value);
     setQuery(value);
     setSelectedIndex(-1);
 
-    // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new timer
     debounceTimerRef.current = setTimeout(() => {
-      console.log('[SearchBar] Debounce timer fired, performing search');
       performSearch(value);
     }, 600);
   };
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (query.trim()) {
-      // Track search submitted event
       trackEvent('search_submitted', {
         search_term: query.trim(),
         results_count: results.length
       });
-
       setIsOpen(false);
       router.push(`/catalog?search=${encodeURIComponent(query.trim())}`);
-
-      // Clear search after navigation (pathname change will also clear it)
       setQuery('');
       setResults([]);
       setCategorySuggestions([]);
@@ -180,9 +138,7 @@ export default function SearchBar({ className }: SearchBarProps) {
     }
   };
 
-  // Handle suggestion click
   const handleSuggestionClick = (product: ProductWithImages) => {
-    // Track suggestion clicked event
     trackEvent('suggestion_clicked', {
       search_term: query,
       product_id: product.id,
@@ -190,8 +146,6 @@ export default function SearchBar({ className }: SearchBarProps) {
       product_category: product.category,
       position: results.findIndex(r => r.id === product.id) + 1
     });
-
-    // Clear all search state (pathname change will also clear it)
     setQuery('');
     setResults([]);
     setCategorySuggestions([]);
@@ -200,16 +154,12 @@ export default function SearchBar({ className }: SearchBarProps) {
     setSelectedIndex(-1);
   };
 
-  // Handle category suggestion click
   const handleCategorySuggestionClick = (category: CategorySuggestion) => {
-    // Track category suggestion clicked event
     trackEvent('category_suggestion_clicked', {
       search_term: query,
       category_slug: category.slug,
       category_name: category.name
     });
-
-    // Clear all search state (pathname change will also clear it)
     setQuery('');
     setResults([]);
     setCategorySuggestions([]);
@@ -219,48 +169,35 @@ export default function SearchBar({ className }: SearchBarProps) {
     router.push(`/catalog?category=${category.slug}`);
   };
 
-  // Handle filter suggestion click
   const handleFilterSuggestionClick = (filter: FilterSuggestion) => {
-    // Track filter suggestion clicked event
     trackEvent('filter_suggestion_clicked', {
       search_term: query,
       filter_type: filter.type,
       filter_value: filter.value,
       filter_label: filter.label
     });
-
-    // Clear all search state (pathname change will also clear it)
     setQuery('');
     setResults([]);
     setCategorySuggestions([]);
     setFilterSuggestions([]);
     setIsOpen(false);
     setSelectedIndex(-1);
-
-    // Build URL with the filter applied
     const params = new URLSearchParams();
     params.append(filter.type, filter.value);
     router.push(`/catalog?${params.toString()}`);
   };
 
-  // Handle input focus - reopen dropdown if there are existing results
   const handleFocus = () => {
-    console.log('[SearchBar] Input focused');
-
-    // Reopen dropdown if there are existing results or suggestions and query is valid
     if (query.trim().length >= 3) {
       const hasSuggestions = (results.length > 0) ||
                             (categorySuggestions.length > 0) ||
                             (filterSuggestions.length > 0);
-
       if (hasSuggestions) {
-        console.log('[SearchBar] Reopening dropdown with existing results');
         setIsOpen(true);
       }
     }
   };
 
-  // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || results.length === 0) return;
 
@@ -292,7 +229,6 @@ export default function SearchBar({ className }: SearchBarProps) {
     }
   };
 
-  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -305,7 +241,6 @@ export default function SearchBar({ className }: SearchBarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -317,9 +252,7 @@ export default function SearchBar({ className }: SearchBarProps) {
     };
   }, []);
 
-  // Clear search bar when navigating to a different page
   useEffect(() => {
-    console.log('[SearchBar] Pathname changed, clearing search');
     setQuery('');
     setResults([]);
     setCategorySuggestions([]);
@@ -328,7 +261,6 @@ export default function SearchBar({ className }: SearchBarProps) {
     setSelectedIndex(-1);
   }, [pathname]);
 
-  // Get primary image or first image
   const getPrimaryImage = (product: ProductWithImages) => {
     if (!product.images || product.images.length === 0) {
       return '/images/placeholder-product.svg';

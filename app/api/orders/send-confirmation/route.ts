@@ -87,17 +87,12 @@ export async function POST(request: Request) {
       items: orderRow.items || []
     } as OrderWithItems;
 
-    // Send confirmation email
     try {
-      console.log(`📧 Sending confirmation email for order ${order.order_number} to ${order.user_email}`);
-
       await sendOrderConfirmationEmail({
         order,
         to: order.user_email,
         customerName: `${order.user_surname} ${order.user_name}`
       });
-
-      console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
 
       return NextResponse.json(
         {

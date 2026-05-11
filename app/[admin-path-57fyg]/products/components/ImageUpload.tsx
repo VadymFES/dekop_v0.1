@@ -108,6 +108,7 @@ export default function ImageUpload({
           ? window.location.origin.replace('admin.', '')
           : window.location.origin;
         xhr.open('POST', `${baseUrl}/api/upload`);
+        xhr.withCredentials = true;
         xhr.send(formData);
       });
     } catch (error) {
@@ -277,6 +278,7 @@ export default function ImageUpload({
             : window.location.origin;
           await fetch(`${baseUrl}/api/upload?url=${encodeURIComponent(imageToRemove.url)}`, {
             method: 'DELETE',
+            credentials: 'include',
           });
         } catch (error) {
           console.error('Failed to delete from Blob:', error);

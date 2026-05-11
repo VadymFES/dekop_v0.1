@@ -1,13 +1,9 @@
-// app/product/[slug]/page.tsx
-
 import { Metadata, ResolvingMetadata } from 'next';
 import { ProductWithImages } from '@/app/lib/definitions';
 import { notFound } from 'next/navigation';
 
-// Import client components
 import ClientProductPage from './client-page';
 
-// Type for page props with Promise
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -25,17 +21,14 @@ const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
   accessories:{ dbValue: "Аксесуар", uaName: "Аксесуари" }
 };
 
-// Data fetching function
 async function getProductData(slug: string) {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000';
 
   try {
-    // Fetch main product data (revalidate every 60 seconds for fresher data)
     const productRes = await fetch(`${baseUrl}/api/products/${slug}`, { next: { revalidate: 60 } });
     if (!productRes.ok) throw new Error('Product not found');
     const product = await productRes.json();
 
-    // Fetch specs, colors, and similar products
     const [specsRes, colorsRes, similarProductsRes, reviewsRes] = await Promise.all([
       fetch(`${baseUrl}/api/products/product-specs/${product.id}`, { next: { revalidate: 60 } }),
       fetch(`${baseUrl}/api/products/product-colors/${product.id}`, { next: { revalidate: 60 } }),
@@ -43,44 +36,29 @@ async function getProductData(slug: string) {
       fetch(`${baseUrl}/api/products/reviews/${product.id}`, { next: { revalidate: 60 } })
     ]);
 
-    // Process specs data
     let specsData = null;
     let categoryOverride = null;
-    
+
     if (specsRes.ok) {
       const specsResponse = await specsRes.json();
-      
-      // Check if the response has a specs property (from our updated API)
       if (specsResponse && specsResponse.specs) {
-        specsData = specsResponse.specs;  // Extract just the specs object
-        categoryOverride = specsResponse.category; // Get the normalized category from the API
+        specsData = specsResponse.specs;
+        categoryOverride = specsResponse.category;
       } else {
-        // Handle the case where the API hasn't been updated yet
         specsData = specsResponse;
-      }    
+      }
     }
 
-    // Get other data
     const colors = colorsRes.ok ? await colorsRes.json() : [];
     const similarProducts = similarProductsRes.ok ? await similarProductsRes.json() : [];
     const reviews = reviewsRes.ok ? await reviewsRes.json() : [];
 
-    // Combine all data
     const fullProduct: ProductWithImages = {
       ...product,
-      // Override category if we got a normalized one from the API
       category: categoryOverride || product.category,
       specs: specsData,
       colors,
     };
-
-    console.log('Full product data:', {
-      id: fullProduct.id,
-      category: fullProduct.category,
-      hasSpecs: Boolean(fullProduct.specs),
-      imagesCount: fullProduct.images?.length || 0,
-      firstImageUrl: fullProduct.images?.[0]?.image_url || 'none'
-    });
 
     return {
       product: fullProduct,
@@ -93,12 +71,10 @@ async function getProductData(slug: string) {
   }
 }
 
-// Generate metadata for the page
 export async function generateMetadata(
   { params, searchParams }: PageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // Await the Promise to get the slug
   const { slug } = await params;
   const data = await getProductData(slug);
 
@@ -108,7 +84,6 @@ export async function generateMetadata(
     };
   }
 
-  // Optionally access parent metadata
   const previousImages = (await parent).openGraph?.images || [];
 
   return {
@@ -120,9 +95,7 @@ export async function generateMetadata(
   };
 }
 
-// Main component
 export default async function ProductPage({ params, searchParams }: PageProps) {
-  // Await the Promise to get the slug
   const { slug } = await params;
   const data = await getProductData(slug);
   

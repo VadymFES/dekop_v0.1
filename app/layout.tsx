@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getNonce } from "@/app/lib/csp";
@@ -11,20 +10,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import GoogleTagManager from "./components/GoogleTagManager";
 import CookieConsent from "./components/CookieConsent";
-
-// Font optimization with Ukrainian (Cyrillic) support
-// Note: next/font/google disabled in build due to network restrictions
-// Using CSS @import with font-display: swap instead (see global.css)
-// TODO: Re-enable when deploying to Vercel (will work in production)
-// import { Inter } from 'next/font/google';
-// const inter = Inter({
-//  subsets: ['latin', 'cyrillic'],
-//  display: 'swap',
-//  variable: '--font-inter',
-//  preload: true,
-//  weight: ['400', '500', '600', '700'],
-//  fallback: ['Arial', 'Helvetica', 'sans-serif'],
-// });
 
 export const metadata: Metadata = {
  title: "Dekop Furniture Enterprise - меблі для вашого дому",
@@ -44,34 +29,25 @@ export const metadata: Metadata = {
  },
 };
 
-// --- GTM Configuration ---
-const GTM_ID = "GTM-TVVGC6PQ"; 
+const GTM_ID = "GTM-TVVGC6PQ";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Check if this is an admin route to skip GTM/analytics
-  // Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin';
+  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg';
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
   const isAdminRoute = pathname.includes(adminPath);
 
-  // Only get nonce for non-admin routes (avoids hydration mismatch)
   const nonce = isAdminRoute ? '' : await getNonce();
 
   return (
     <html lang="uk">
       <body>
-        {/* Skip GTM and analytics for admin routes */}
         {!isAdminRoute && (
           <>
-            {/* 1. DATA LAYER INITIALIZATION
-                - CSP: Uses dangerouslySetInnerHTML and the 'nonce' for compliance.
-                - suppressHydrationWarning: Browser clears nonce after CSP validation (expected behavior)
-            */}
             <script
               nonce={nonce}
               suppressHydrationWarning
@@ -79,10 +55,6 @@ export default async function RootLayout({
                 __html: `window.dataLayer = window.dataLayer || [];`,
               }}
             />
-
-            {/* 2. GTM CONTAINER SCRIPT & NOSCRIPT IFRAME
-                - This component loads the main GTM script and the noscript fallback.
-            */}
             <GoogleTagManager gtmId={GTM_ID} nonce={nonce} />
           </>
         )}

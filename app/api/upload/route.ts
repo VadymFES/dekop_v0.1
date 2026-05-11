@@ -10,32 +10,29 @@
 
 import { put, del } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentAdmin } from '@/app/lib/admin-auth';
 
-// Allowed file types for product images
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
-// Log that this route is loaded
-console.log('[Upload API] Route loaded successfully');
+const CORS_ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://admin.localhost:3000',
+  process.env.NEXT_PUBLIC_SITE_URL,
+  process.env.NEXT_PUBLIC_BASE_URL,
+  'https://dekop.com.ua',
+  'https://admin.dekop.com.ua',
+].filter(Boolean) as string[];
 
-// CORS headers for admin subdomain
 function getCorsHeaders(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
-  // Allow requests from admin subdomain and main domain
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://admin.localhost:3000',
-    /^https?:\/\/(admin\.)?[^/]+$/,  // Production domains
-  ];
-
-  const isAllowed = allowedOrigins.some(allowed =>
-    typeof allowed === 'string' ? origin === allowed : allowed.test(origin)
-  );
+  const isAllowed = CORS_ALLOWED_ORIGINS.includes(origin);
 
   return {
     'Access-Control-Allow-Origin': isAllowed ? origin : '',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Credentials': 'true',
   };
 }
 
@@ -46,9 +43,11 @@ export async function OPTIONS(request: NextRequest): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const corsHeaders = getCorsHeaders(request);
-  console.log('[Upload API] POST request received');
-  console.log('[Upload API] URL:', request.url);
-  console.log('[Upload API] Method:', request.method);
+
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+  }
 
   try {
     const formData = await request.formData();
@@ -61,7 +60,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: 'Непідтримуваний формат файлу. Дозволені: JPEG, PNG, WebP, GIF' },
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: 'Файл занадто великий. Максимальний розмір: 4MB' },
@@ -77,13 +74,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Generate unique filename
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(2, 8);
     const extension = file.name.split('.').pop() || 'jpg';
     const filename = `products/${timestamp}-${randomSuffix}.${extension}`;
 
-    // Upload to Vercel Blob
     const blob = await put(filename, file, {
       access: 'public',
       addRandomSuffix: false,
@@ -104,9 +99,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// GET endpoint for testing if route is accessible
 export async function GET(): Promise<NextResponse> {
-  console.log('[Upload API] GET request received - route is working');
   return NextResponse.json({
     status: 'ok',
     message: 'Upload API is working',
@@ -114,10 +107,14 @@ export async function GET(): Promise<NextResponse> {
   });
 }
 
-// DELETE endpoint for removing images from Blob storage
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   const corsHeaders = getCorsHeaders(request);
-  console.log('[Upload API] DELETE request received');
+
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');

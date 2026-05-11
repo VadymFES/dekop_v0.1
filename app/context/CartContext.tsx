@@ -5,10 +5,9 @@ import { usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin';
+// REVIEW: NEXT_PUBLIC_ADMIN_PATH_SECRET is bundled into client JS — not a true secret; used here only for route detection, not authentication
+const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? '';
 
-// Fetch cart items - Removed 'no-store' to allow caching
 const fetchCart = async (): Promise<Cart> => {
   const res = await fetch('/cart/api', {
     headers: {
@@ -19,17 +18,15 @@ const fetchCart = async (): Promise<Cart> => {
   return res.json();
 };
 
-// Fetch full product details by slug
 const fetchProductDetails = async (slug: string): Promise<ProductWithImages | null> => {
-    const res = await fetch(`/api/products/${slug}`, { 
-        next: { revalidate: 3600 }, // Cache for 1 hour
-        cache: 'force-cache' // Enforce caching
+    const res = await fetch(`/api/products/${slug}`, {
+        next: { revalidate: 3600 },
+        cache: 'force-cache'
     });
     if (!res.ok) return null;
     return res.json();
 };
 
-// Add item to cart
 const postAddToCart = async (payload: { productId: string; quantity: number; color?: string }) => {
   const res = await fetch('/cart/api', {
     method: 'POST',
@@ -40,7 +37,6 @@ const postAddToCart = async (payload: { productId: string; quantity: number; col
   return res.json();
 };
 
-// Update cart item quantity
 const updateCartAPI = async (id: string, quantity: number) => {
   const res = await fetch(`/cart/api/${id}`, {
     method: 'PATCH',
@@ -51,7 +47,6 @@ const updateCartAPI = async (id: string, quantity: number) => {
   return res.json();
 };
 
-// Remove item from cart
 const removeFromCartAPI = async (id: string) => {
   const res = await fetch(`/cart/api/${id}`, {
     method: 'DELETE',
@@ -60,23 +55,12 @@ const removeFromCartAPI = async (id: string) => {
   return res.json();
 };
 
-// Clear entire cart
 const clearCartAPI = async () => {
-  console.log('[CartContext] Attempting to clear cart...');
   const res = await fetch('/cart/api/clear', {
     method: 'POST',
   });
 
-  console.log('[CartContext] Clear cart response:', {
-    ok: res.ok,
-    status: res.status,
-    statusText: res.statusText,
-    headers: Object.fromEntries(res.headers.entries())
-  });
-
-  // Try to read the response body for logging
   const responseText = await res.text();
-  console.log('[CartContext] Clear cart response body:', responseText);
 
   if (!res.ok) {
     console.error('[CartContext] Failed to clear cart:', {
@@ -87,7 +71,6 @@ const clearCartAPI = async () => {
     throw new Error(`Failed to clear cart: ${res.status} ${res.statusText}`);
   }
 
-  // Parse the text we already read
   try {
     return JSON.parse(responseText);
   } catch (e) {
@@ -96,7 +79,6 @@ const clearCartAPI = async () => {
   }
 };
 
-// Define the context type
 interface CartContextType {
   cart: CartItem[];
   isLoading: boolean;
@@ -115,55 +97,46 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isAdminSubdomain, setIsAdminSubdomain] = useState(false);
   const [hasCheckedSubdomain, setHasCheckedSubdomain] = useState(false);
 
-  // Check if we're on admin subdomain (client-side only)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      // Check for admin.dekop.com.ua or admin.localhost patterns
       const isAdmin = hostname.startsWith('admin.') || hostname === 'admin.dekop.com.ua';
       setIsAdminSubdomain(isAdmin);
       setHasCheckedSubdomain(true);
     }
   }, []);
 
-  // Skip cart operations for admin routes (by path or subdomain)
   const isAdminRoute = pathname?.startsWith(`/${ADMIN_PATH}`) || isAdminSubdomain;
-
-  // Only enable cart queries after subdomain check is complete and we're not on admin
   const shouldEnableCartQueries = hasCheckedSubdomain && !isAdminRoute;
 
-  // Fetch cart data (disabled for admin routes, wait for subdomain check)
   const { data: cartData, isLoading, error } = useQuery<Cart>({
     queryKey: ['cart'],
     queryFn: fetchCart,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes (formerly cacheTime)
-    refetchOnWindowFocus: false, // Prevent refetch on focus
-    refetchOnMount: true, // Enable refetch on mount to ensure fresh data on checkout reload
-    refetchOnReconnect: false, // Prevent refetch on reconnect
-    enabled: shouldEnableCartQueries, // Don't fetch cart on admin pages, wait for subdomain check
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchOnReconnect: false,
+    enabled: shouldEnableCartQueries,
   });
 
-  // Memoize the queries array for product details
   const productQueryConfigs = useMemo(
     () =>
       (cartData?.items || []).map((item: CartItem) => ({
         queryKey: ['product', item.slug],
         queryFn: () => fetchProductDetails(item.slug!),
-        enabled: !!item.slug && !!cartData && shouldEnableCartQueries, // Don't fetch on admin pages
-        staleTime: 60 * 60 * 1000, // Cache for 1 hour
-        gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour (formerly cacheTime)
-        refetchOnWindowFocus: false, // Prevent refetch on focus
-        refetchOnMount: false, // Prevent refetch on mount unless stale
-        refetchOnReconnect: false, // Prevent refetch on reconnect
+        enabled: !!item.slug && !!cartData && shouldEnableCartQueries,
+        staleTime: 60 * 60 * 1000,
+        gcTime: 60 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
       })),
-    [cartData?.items, shouldEnableCartQueries] // Only re-compute when cart items change or query enable changes
+    [cartData?.items, shouldEnableCartQueries]
   );
 
-  // Fetch product details for each cart item
   const productQueries = useQueries({ queries: productQueryConfigs });
 
-  // Merge product details into cart items
   const cartWithProducts = useMemo(
     () =>
       (cartData?.items || []).map((item: CartItem, index: number) => ({
@@ -173,71 +146,53 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [cartData?.items, productQueries]
   );
 
-  // Mutation: Add to cart with optimistic updates
   const addToCartMutation = useMutation({
     mutationFn: postAddToCart,
     onMutate: async (newItem) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-
-      // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-
-      // Create an optimistic cart item (with a temporary ID)
       const optimisticItem: CartItem = {
-        id: `temp-${Date.now()}`, // Temporary ID
+        id: `temp-${Date.now()}`,
         product_id: parseInt(newItem.productId),
         quantity: newItem.quantity,
         color: newItem.color || "",
-        // Other fields will be populated when we refetch
-        // Add minimum required fields that might be used in UI
         name: "Adding to cart...",
         price: 0,
         image_url: ""
       };
-
-      // Optimistically update the cache
       if (previousCart) {
         queryClient.setQueryData(['cart'], {
           ...previousCart,
           items: [...previousCart.items, optimisticItem]
         });
       }
-
       return { previousCart, newItem };
     },
     onError: (error, _variables, context) => {
-      // If there's an error, roll back to the previous state
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
       }
       console.error('Add to cart failed:', error);
     },
     onSettled: () => {
-      // Always refetch after mutation to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
 
-  // Mutation: Update cart item quantity with optimistic updates
   const updateCartMutation = useMutation({
     mutationFn: ({ id, quantity }: { id: string; quantity: number }) => updateCartAPI(id, quantity),
     onMutate: async ({ id, quantity }) => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-      
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-      
       if (previousCart) {
-        const updatedItems = previousCart.items.map(item => 
+        const updatedItems = previousCart.items.map(item =>
           item.id === id ? { ...item, quantity } : item
         );
-        
         queryClient.setQueryData(['cart'], {
           ...previousCart,
           items: updatedItems
         });
       }
-      
       return { previousCart };
     },
     onError: (error, _variables, context) => {
@@ -251,26 +206,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  // Mutation: Remove item from cart with optimistic updates
   const removeFromCartMutation = useMutation({
     mutationFn: (id: string) => removeFromCartAPI(id),
     onMutate: async (id) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-
-      // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-
       if (previousCart) {
         const updatedItems = previousCart.items.filter(item => item.id !== id);
-
-        // Set the updated cart
         queryClient.setQueryData(['cart'], {
           ...previousCart,
           items: updatedItems
         });
       }
-
       return { previousCart };
     },
     onError: (error, _variables, context) => {
@@ -280,26 +227,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.error('Remove from cart failed:', error);
     },
     onSettled: () => {
-      // Only invalidate after the mutation has completed
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
 
-  // Mutation: Clear entire cart
   const clearCartMutation = useMutation({
     mutationFn: clearCartAPI,
     onMutate: async () => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['cart'] });
-
-      // Get current data
       const previousCart = queryClient.getQueryData(['cart']) as Cart | undefined;
-
-      // Optimistically clear the cart
-      queryClient.setQueryData(['cart'], {
-        items: []
-      });
-
+      queryClient.setQueryData(['cart'], { items: [] });
       return { previousCart };
     },
     onError: (error, _variables, context) => {
@@ -309,13 +246,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.error('Clear cart failed:', error);
     },
     onSettled: () => {
-      // Invalidate cart and refetch
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
 
-  // Show loading until subdomain check is complete (unless already confirmed as admin)
-  // This prevents briefly showing empty cart before the check completes
   const effectiveIsLoading = !hasCheckedSubdomain || isLoading;
 
   const value: CartContextType = {
@@ -331,7 +265,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-// Default context value for SSR when provider isn't available yet
 const defaultCartContext: CartContextType = {
   cart: [],
   isLoading: true,
@@ -344,9 +277,7 @@ const defaultCartContext: CartContextType = {
 
 export function useCart() {
   const context = useContext(CartContext);
-  // Return default context during SSR when provider isn't available yet
   if (!context) {
-    // Only throw in development if we're definitely on the client
     if (typeof window !== 'undefined') {
       throw new Error('useCart must be used within a CartProvider');
     }

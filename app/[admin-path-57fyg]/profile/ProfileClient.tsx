@@ -1,18 +1,11 @@
 'use client';
 
-/**
- * Клієнтський компонент профілю адміністратора
- * Обробляє редагування імені, зміну пароля та управління сесіями
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCsrfTokenFromCookie } from '../components/CsrfProvider';
 import styles from '../styles/admin.module.css';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? ''}`;
 
 interface Profile {
   id: string;

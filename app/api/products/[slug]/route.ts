@@ -347,8 +347,6 @@ function mapProductSpecs(normalizedCategory: string, row: ProductSpecRow): Produ
     }
 
     default:
-      // Для невідомих категорій повертаємо null
-      // console.log(`Unknown category: ${normalizedCategory}, cannot create specs`);
       return null;
   }
 }
@@ -422,11 +420,7 @@ export async function GET(
       rawImageRows = result.rows;
     }
 
-    // Debug: log images found
-    console.log(`[Product API] Product ${slug} (id: ${product.id}) - Found ${rawImageRows.length} images:`,
-      rawImageRows.map(r => r.image_url));
-
-    // Перетворення результатів запиту в масив типу ProductImage[]
+    const imageRows: ProductImage[] = rawImageRows.map(row => ({
     const imageRows: ProductImage[] = rawImageRows.map(row => ({
       id: row.id,
       image_url: row.image_url || '',
@@ -500,8 +494,6 @@ export async function GET(
         `.then(result => result.rows);
         break;
       default:
-        // Якщо категорія не відповідає жодній таблиці, залишаємо пустий масив
-        // console.log(`Unknown category: ${normalizedCategory}`);
         break;
     }
 

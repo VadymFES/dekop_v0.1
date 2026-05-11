@@ -10,8 +10,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useState, ReactNode } from 'react';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? ''}`;
 
 interface CsrfContextType {
   csrfToken: string | null;

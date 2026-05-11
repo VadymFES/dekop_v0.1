@@ -370,7 +370,6 @@ export async function GET(request: Request) {
 
     const products = rows.map(row => {
       const normalizedCategory = normalizeCategory(row.category);
-      // console.log(`Normalizing category: ${row.category} -> ${normalizedCategory}`);
 
       return {
         id: row.id,

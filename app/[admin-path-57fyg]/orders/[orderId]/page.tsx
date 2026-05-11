@@ -1,7 +1,4 @@
-/**
- * Сторінка деталей замовлення
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
+
 
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';

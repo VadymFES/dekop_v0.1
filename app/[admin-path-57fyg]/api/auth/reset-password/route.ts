@@ -101,11 +101,6 @@ export async function POST(request: NextRequest) {
       userAgent
     );
 
-    // In production, you would send an email here with the reset link
-    // For now, we'll just log the token for testing purposes
-    console.log(`[PASSWORD RESET] Token for ${normalizedEmail}: ${token}`);
-    console.log(`[PASSWORD RESET] Reset URL: /admin-path-57fyg/reset-password/confirm?token=${token}`);
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Reset password error:', error);

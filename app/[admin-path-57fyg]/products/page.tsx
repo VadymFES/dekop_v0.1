@@ -1,9 +1,4 @@
-/**
- * Сторінка списку товарів адмін-панелі
- * Показує всі товари з фільтрацією та пагінацією
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- * Uses category cache (Task 3)
- */
+
 
 import { redirect } from 'next/navigation';
 import Link from 'next/link';

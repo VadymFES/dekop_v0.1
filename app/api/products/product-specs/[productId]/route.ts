@@ -8,59 +8,48 @@ export async function GET(
   { params }: { params: Promise<{ productId: string }> }
 ) {
   const productId = (await params).productId;
-  console.log("Fetching specs for product ID:", productId);
 
   try {
-    // Fetch the product's category
     const { rows: productRows } = await db.query`
       SELECT id, category FROM products WHERE id = ${Number(productId)}
     `;
 
     if (productRows.length === 0) {
-      console.log("Product not found:", productId);
       return NextResponse.json(
         { error: "Product not found" },
         { status: 404 }
       );
     }
 
-    console.log("Product found:", productRows[0]);
     const category = productRows[0].category.trim().toLowerCase();
-    console.log("Raw category from database:", category);
 
-    // Define a mapping from Ukrainian categories to English categories
     const categoryMapping: { [key: string]: string } = {
       'ліжко': 'beds',
       'диван': 'sofas',
       'кутовий диван': 'corner_sofas',
-      'кутовийдиван': 'corner_sofas', // No space variant
+      'кутовийдиван': 'corner_sofas',
       'стіл': 'tables',
       'стілець': 'chairs',
       'матрац': 'mattresses',
-      'матрас': 'mattresses', // Alternative spelling
+      'матрас': 'mattresses',
       'шафа': 'wardrobes',
-      'гардероб': 'wardrobes', // Alternative term
+      'гардероб': 'wardrobes',
       'аксесуар': 'accessories'
     };
 
-    // Normalize the category by mapping it to its English equivalent
     const normalizedCategory = categoryMapping[category] || category;
-    console.log("Normalized category:", normalizedCategory);
 
-    // Fetch raw product specs without transformations
     const { rows: specRows } = await db.query`
       SELECT * FROM product_specs WHERE product_id = ${Number(productId)}
     `;
 
     if (specRows.length === 0) {
-      console.log("No specs found for product:", productId);
       return NextResponse.json(
         { error: "Product specs not found" },
         { status: 404 }
       );
     }
 
-    console.log("Raw specs found:", specRows[0]);
     const row = specRows[0];
 
     // Base specs object with common fields
@@ -239,12 +228,7 @@ export async function GET(
       return NextResponse.json(accessorySpecs, { status: 200, headers: getCacheHeaders('static') });
     } 
     else {
-      // If category doesn't match, return the raw data with a warning
-      console.log(`Unknown category after mapping: ${normalizedCategory}`);
       return NextResponse.json({
-        warning: `Category '${category}' (normalized to '${normalizedCategory}') is not specifically handled`,
-        rawData: row,
-        // Add basic specs that all components will expect
         id: row.id,
         product_id: row.product_id,
         category: 'unknown',
@@ -261,11 +245,7 @@ export async function GET(
   } catch (error: unknown) {
     console.error("Error fetching product specs:", error);
     return NextResponse.json(
-      { 
-        error: "Failed to fetch product specs",
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined 
-      },
+      { error: "Failed to fetch product specs" },
       { status: 500 }
     );
   }

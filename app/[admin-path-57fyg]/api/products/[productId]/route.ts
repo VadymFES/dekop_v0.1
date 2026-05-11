@@ -192,9 +192,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       body.slug = slugify(body.name, { lower: true, strict: true });
     }
 
-    // Debug: log the incoming category value
-    console.log('Incoming product data - category:', body.category, 'type:', typeof body.category);
-
     const validation = safeValidateInput(productSchema, body);
     if (!validation.success) {
       console.error('Product validation errors:', JSON.stringify(validation.error.issues, null, 2));
@@ -300,11 +297,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     await deleteSpecsByCategory(id, data.category);
 
     if (data.specs) {
-      console.log('Inserting specs for category:', data.category);
-      console.log('Specs data received:', JSON.stringify(data.specs, null, 2));
       await insertProductSpecs(id, data.category, data.specs);
-    } else {
-      console.log('No specs data provided for product update');
     }
 
     // Calculate and log changes to changelog
@@ -629,11 +622,7 @@ async function getProductSpecs(productId: number, category: string) {
 // Helper function to insert category-specific specs
 // Uses the actual database column structure: individual columns for dimensions/materials, not JSON
 async function insertProductSpecs(productId: number, category: string, specs: Record<string, unknown>) {
-  // Skip if category not in our known list
   if (!SPEC_TABLES[category]) return;
-
-  // Log incoming specs for debugging
-  console.log('insertProductSpecs called with:', { productId, category, specsKeys: Object.keys(specs) });
 
   // Extract dimensions (could be object or individual fields) - use 0 as default for NOT NULL columns
   const dimensions = specs.dimensions as Record<string, unknown> | undefined;

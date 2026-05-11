@@ -1,17 +1,11 @@
 'use client';
 
-/**
- * Форма входу в адмін-панель
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../styles/admin.module.css';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? ''}`;
 
 export default function LoginForm() {
   const router = useRouter();

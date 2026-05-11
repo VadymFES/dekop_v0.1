@@ -16,13 +16,11 @@ import { useCart } from '@/app/context/CartContext';
 import { trackPurchase } from '@/app/lib/gtm-analytics';
 import styles from './page.module.css';
 
-// LocalStorage key for checkout form data (same as in checkout page)
 const CHECKOUT_STORAGE_KEY = 'dekop_checkout_form';
 const ORDER_EMAIL_MAPPING_KEY = 'dekop_order_email_mapping';
 
-// Polling configuration
-const POLLING_INTERVAL_MS = 3000; // Check every 3 seconds
-const POLLING_MAX_DURATION_MS = 90000; // Stop polling after 90 seconds
+const POLLING_INTERVAL_MS = 3000;
+const POLLING_MAX_DURATION_MS = 90000;
 
 /**
  * Order Success Page Content Component
@@ -44,11 +42,9 @@ function OrderSuccessContent() {
   const pollingStartTimeRef = useRef<number | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Helper function to get customer email
   const getCustomerEmail = useCallback((): string | null => {
     let customerEmail: string | null = null;
 
-    // 1. First, check order-email mapping (persists through payment flow)
     try {
       const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
       if (mappingData && orderId) {
@@ -60,12 +56,10 @@ function OrderSuccessContent() {
       console.error('Error reading order-email mapping:', error);
     }
 
-    // 2. If not found, try URL params (from payment gateway redirect)
     if (!customerEmail) {
       customerEmail = searchParams.get('email');
     }
 
-    // 3. If still not found, try checkout form data (for cash_on_delivery)
     if (!customerEmail) {
       try {
         const checkoutData = localStorage.getItem(CHECKOUT_STORAGE_KEY);
@@ -81,8 +75,6 @@ function OrderSuccessContent() {
     return customerEmail;
   }, [orderId, searchParams]);
 
-  // Poll payment status for online payment methods
-  // This directly queries the payment provider (LiqPay) to get real-time status
   const pollPaymentStatus = useCallback(async () => {
     if (!orderId) return;
 
@@ -93,9 +85,6 @@ function OrderSuccessContent() {
     }
 
     try {
-      // First, call the direct status check endpoint
-      // This queries LiqPay API directly and updates the database
-      console.log('[Payment Poll] Checking payment status directly with provider...');
       const checkResponse = await fetch('/api/payments/check-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -104,19 +93,13 @@ function OrderSuccessContent() {
 
       if (checkResponse.ok) {
         const checkData = await checkResponse.json();
-        console.log('[Payment Poll] Direct status check result:', checkData);
-
-        // If payment confirmed or failed, stop polling and refresh order
         if (checkData.status === 'paid' || checkData.status === 'failed') {
-          // Fetch updated order from database
           const orderResponse = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
           if (orderResponse.ok) {
             const orderData = await orderResponse.json();
             if (orderData.success && orderData.order) {
-              console.log('[Payment Poll] Payment status changed:', checkData.status);
               setOrder(orderData.order);
               setIsCheckingPayment(false);
-
               if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
                 pollingIntervalRef.current = null;
@@ -127,7 +110,6 @@ function OrderSuccessContent() {
         }
       }
 
-      // Fallback: Check order status from database
       const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
 
       if (!response.ok) {
@@ -140,27 +122,20 @@ function OrderSuccessContent() {
       if (data.success && data.order) {
         const updatedOrder = data.order as OrderWithItems;
 
-        // Check if payment status has changed from pending
         if (updatedOrder.payment_status !== 'pending') {
-          console.log('[Payment Poll] Payment status changed:', updatedOrder.payment_status);
           setOrder(updatedOrder);
           setIsCheckingPayment(false);
-
-          // Clear the polling interval
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
         }
 
-        // Check if max polling duration exceeded
         if (pollingStartTimeRef.current) {
           const elapsed = Date.now() - pollingStartTimeRef.current;
           if (elapsed >= POLLING_MAX_DURATION_MS) {
-            console.log('[Payment Poll] Max polling duration exceeded, stopping');
             setOrder(updatedOrder);
             setIsCheckingPayment(false);
-
             if (pollingIntervalRef.current) {
               clearInterval(pollingIntervalRef.current);
               pollingIntervalRef.current = null;
@@ -173,7 +148,6 @@ function OrderSuccessContent() {
     }
   }, [orderId, getCustomerEmail]);
 
-  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
       if (pollingIntervalRef.current) {
@@ -189,7 +163,6 @@ function OrderSuccessContent() {
       return;
     }
 
-    // Fetch order details
     const fetchOrder = async () => {
       try {
         const customerEmail = getCustomerEmail();
@@ -198,7 +171,6 @@ function OrderSuccessContent() {
           throw new Error('Не вдалося знайти email для перевірки замовлення');
         }
 
-        // Fetch order with email verification
         const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
 
         if (!response.ok) {
@@ -212,18 +184,12 @@ function OrderSuccessContent() {
 
         if (data.success && data.order) {
           const fetchedOrder = data.order as OrderWithItems;
-
-          // Check if we need to poll for payment status (online payments pending)
           const isOnlinePayment = fetchedOrder.payment_method === 'liqpay';
           const isPending = fetchedOrder.payment_status === 'pending';
 
           if (isOnlinePayment && isPending) {
-            // Start polling for payment status
-            console.log('[Order Success] Payment pending, starting polling...');
             setIsCheckingPayment(true);
             pollingStartTimeRef.current = Date.now();
-
-            // Set up polling interval
             pollingIntervalRef.current = setInterval(() => {
               pollPaymentStatus();
             }, POLLING_INTERVAL_MS);
@@ -242,20 +208,14 @@ function OrderSuccessContent() {
     };
 
     fetchOrder();
-  }, [orderId, getCustomerEmail, pollPaymentStatus]); // Removed clearCart and cartCleared from dependencies
+  }, [orderId, getCustomerEmail, pollPaymentStatus]);
 
-  // Separate effect for cleanup and tracking - runs only once after order is loaded
   useEffect(() => {
     if (order && !cleanupInitiatedRef.current) {
-      // Set ref immediately to prevent re-runs (before any async operations)
       cleanupInitiatedRef.current = true;
 
-      console.log('[Order Success] Starting cleanup...');
-
-      // Track successful purchase (only if paid)
       if (!purchaseTrackedRef.current && order.payment_status === 'paid') {
         try {
-          // Convert order items to format expected by tracking (CartItem format)
           const trackingItems: CartItem[] = order.items.map((item, index) => ({
             id: `order-${order.id}-item-${index}`,
             product_id: item.product_id,
@@ -277,37 +237,29 @@ function OrderSuccessContent() {
           );
 
           purchaseTrackedRef.current = true;
-          console.log('[Order Success] Purchase tracked successfully');
         } catch (trackError) {
           console.error('[Order Success] Failed to track purchase:', trackError);
         }
       }
 
       const performCleanup = async () => {
-        // Clear cart
         try {
           await clearCart();
-          console.log('[Order Success] Cart cleared successfully');
         } catch (cartError) {
-          // Cart clearing may fail if already cleared - this is non-critical
           console.warn('[Order Success] Cart clearing failed (may already be cleared):', cartError);
         }
 
-        // Clear saved checkout form data from localStorage
         try {
           localStorage.removeItem(CHECKOUT_STORAGE_KEY);
-          console.log('[Order Success] Checkout form data cleared');
         } catch (storageError) {
           console.error('[Order Success] Error clearing checkout form data:', storageError);
         }
 
-        // Clean up order-email mapping for this order
         try {
           const mappingData = localStorage.getItem(ORDER_EMAIL_MAPPING_KEY);
           if (mappingData && orderId) {
             const mapping = JSON.parse(mappingData);
             delete mapping[orderId];
-            // Clean up old entries (older than 24 hours)
             const now = Date.now();
             Object.keys(mapping).forEach(key => {
               if (mapping[key].timestamp && (now - mapping[key].timestamp) > 24 * 60 * 60 * 1000) {
@@ -320,7 +272,6 @@ function OrderSuccessContent() {
               localStorage.removeItem(ORDER_EMAIL_MAPPING_KEY);
             }
           }
-          console.log('[Order Success] Order-email mapping cleaned up');
         } catch (cleanupError) {
           console.error('[Order Success] Error cleaning up order-email mapping:', cleanupError);
         }
@@ -518,20 +469,7 @@ function OrderSuccessContent() {
                    order.payment_status === 'pending' ? 'Очікується' :
                    order.payment_status === 'failed' ? 'Не вдалося' : 'Повернуто'}
                 </span>
-              </div> {/* if its prepayment make prepayed amount status here*/}
-
-              {/* {order.prepayment_amount > 0 && (
-                // <>
-                //   <p className={styles.prepaymentAmount}>
-                //     Сума передплати: {formatUkrainianPrice(order.prepayment_amount)}
-                //   </p>
-                //   <div>
-                //     <p className={styles.remainingAmount}>
-                //       Залишок до сплати: {formatUkrainianPrice(order.total_amount - order.prepayment_amount)}
-                //     </p>
-                //   </div>
-                // </>
-              )} */}
+              </div>
             </div>
           </section>
 

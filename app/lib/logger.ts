@@ -212,10 +212,6 @@ class Logger {
       console.error('🚨🚨🚨 CRITICAL SECURITY EVENT 🚨🚨🚨');
       console.error(JSON.stringify(securityContext, null, 2));
 
-      // TODO: In production, send alerts to:
-      // - Sentry / DataDog / CloudWatch
-      // - Email / Slack / PagerDuty
-      // - Security incident response system
     }
   }
 

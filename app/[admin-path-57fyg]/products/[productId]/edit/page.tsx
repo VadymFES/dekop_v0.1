@@ -1,8 +1,4 @@
-/**
- * Сторінка редагування товару
- * Завантажує повні дані товару включаючи зображення, кольори та характеристики
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
+
 
 import { redirect, notFound } from 'next/navigation';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';

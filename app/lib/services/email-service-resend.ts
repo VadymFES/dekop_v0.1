@@ -71,24 +71,15 @@ export async function sendOrderConfirmationEmail(
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua';
     const fromName = process.env.RESEND_FROM_NAME || 'Dekop Furniture Store';
 
-    console.log('📧 Attempting to send order confirmation email via Resend...');
-    console.log('  From:', `${fromName} <${fromEmail}>`);
-    console.log('  To:', `${customerName} <${to}>`);
-    console.log('  Order:', order.order_number);
-
-    // Generate invoice PDF
     let invoicePdfBuffer: Buffer | null = null;
     try {
-      console.log('📄 Generating invoice PDF for attachment...');
       const companyInfo = getCompanyInfo();
       const invoiceData = orderToInvoiceData(order, companyInfo, {
         language: 'uk',
       });
       invoicePdfBuffer = await generateInvoicePDFBuffer(invoiceData);
-      console.log('✅ Invoice PDF generated successfully');
     } catch (pdfError) {
       console.error('⚠️ Failed to generate invoice PDF:', pdfError);
-      console.log('📧 Continuing to send email without invoice attachment...');
     }
 
     const { data, error } = await getResendClient().emails.send({
@@ -107,8 +98,7 @@ export async function sendOrderConfirmationEmail(
           value: order.id,
         },
       ],
-      // Attach invoice PDF if generation was successful
-      ...(invoicePdfBuffer && {
+        ...(invoicePdfBuffer && {
         attachments: [
           {
             filename: `invoice-${order.order_number}.pdf`,
@@ -122,9 +112,6 @@ export async function sendOrderConfirmationEmail(
       console.error('❌ Resend API error:', error);
       throw new Error(error.message || 'Failed to send email via Resend');
     }
-
-    console.log('✅ Order confirmation email sent successfully via Resend!');
-    console.log('  Message ID:', data?.id);
 
     return {
       success: true,

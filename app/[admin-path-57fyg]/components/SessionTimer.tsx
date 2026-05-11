@@ -1,18 +1,11 @@
 'use client';
 
-/**
- * Session Timer Component
- * Monitors admin session and auto-logs out after 12 hours
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
-
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCsrfTokenFromCookie } from './CsrfProvider';
 import styles from '../styles/admin.module.css';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? ''}`;
 
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 const CHECK_INTERVAL_MS = 60 * 1000; // Check every minute

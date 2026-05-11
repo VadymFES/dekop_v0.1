@@ -73,12 +73,7 @@ export async function POST(request: Request) {
  */
 async function checkLiqPayStatus(orderId: string, orderNumber: string) {
   try {
-    console.log(`[Payment Check] Checking LiqPay status for order ${orderId}`);
-
-    // Query LiqPay API directly
     const liqpayResponse = await checkLiqPayPaymentStatus(orderId);
-
-    console.log(`[Payment Check] LiqPay response:`, liqpayResponse);
 
     if (!liqpayResponse || !liqpayResponse.status) {
       return NextResponse.json({
@@ -88,13 +83,9 @@ async function checkLiqPayStatus(orderId: string, orderNumber: string) {
       });
     }
 
-    // Map LiqPay status to our internal status
     const paymentStatus = mapLiqPayStatus(liqpayResponse.status);
 
-    // If status changed from pending, update database
     if (paymentStatus !== 'pending') {
-      console.log(`[Payment Check] Updating order ${orderId} status to ${paymentStatus}`);
-
       if (paymentStatus === 'paid') {
         await sql`
           UPDATE orders
@@ -106,7 +97,6 @@ async function checkLiqPayStatus(orderId: string, orderNumber: string) {
           WHERE id = ${orderId}
         `;
 
-        // Try to send confirmation email
         try {
           await sendConfirmationEmail(orderId);
         } catch (emailError) {
@@ -185,6 +175,5 @@ async function sendConfirmationEmail(orderId: string) {
       customerName: `${order.user_surname} ${order.user_name}`
     });
 
-    console.log(`[Payment Check] Confirmation email sent for order ${orderId}`);
   }
 }

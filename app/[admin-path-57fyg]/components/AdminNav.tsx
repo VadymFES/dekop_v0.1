@@ -1,17 +1,10 @@
 'use client';
 
-/**
- * Компонент навігації адмін-панелі
- * Показує посилання на основі дозволів користувача
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from '../styles/admin.module.css';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? ''}`;
 
 interface AdminNavProps {
   permissions: string[];

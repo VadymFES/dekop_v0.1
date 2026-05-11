@@ -74,10 +74,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Parse callback data
     const callbackData = parseLiqPayCallback(data);
-
-    console.log('LiqPay callback data:', callbackData);
 
     const {
       order_id: orderId,
@@ -136,10 +133,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Map LiqPay status to our internal status
     const paymentStatus = mapLiqPayStatus(liqpayStatus);
 
-    // Update order based on payment status
     if (paymentStatus === 'paid') {
       await handleLiqPayPaymentSuccess(orderId, transactionId || paymentId);
     } else if (paymentStatus === 'failed') {
@@ -147,11 +142,9 @@ export async function POST(request: Request) {
     } else if (paymentStatus === 'refunded') {
       await handleLiqPayRefund(orderId, transactionId || paymentId);
     } else {
-      // pending or other status
       await handleLiqPayPaymentPending(orderId, transactionId || paymentId);
     }
 
-    // Return success response with appropriate headers
     return NextResponse.json(
       { status: 'ok' },
       {
@@ -185,7 +178,6 @@ export async function POST(request: Request) {
  */
 async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string) {
   try {
-    // Update order payment status
     await sql`
       UPDATE orders
       SET
@@ -196,12 +188,7 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay payment successful for order ${orderId}`);
-
-    // Fetch complete order with items to send email
     try {
-      console.log(`📧 Fetching order ${orderId} to send confirmation email...`);
-
       const orderResult = await sql`
         SELECT
           o.*,
@@ -234,31 +221,17 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
           items: orderRow.items || []
         } as any;
 
-        console.log(`📦 Order found: ${order.order_number}, sending email to ${order.user_email}`);
-
-        // Send confirmation email
         const { sendOrderConfirmationEmail } = await import('@/app/lib/services/email-service');
         await sendOrderConfirmationEmail({
           order,
           to: order.user_email,
           customerName: `${order.user_surname} ${order.user_name}`
         });
-
-        console.log(`✅ Confirmation email sent successfully for order ${orderId}`);
       } else {
         console.error(`❌ Order ${orderId} not found - cannot send confirmation email`);
       }
     } catch (emailError) {
-      console.error(`❌ FAILED to send confirmation email for order ${orderId}`);
-      console.error('Email error details:', emailError);
-
-      if (emailError instanceof Error) {
-        console.error('Email error message:', emailError.message);
-        console.error('Email error stack:', emailError.stack);
-      }
-
-      // Don't throw - email failure shouldn't fail the webhook
-      // But make sure the error is clearly visible in logs
+      console.error(`❌ FAILED to send confirmation email for order ${orderId}`, emailError);
     }
 
   } catch (error) {
@@ -281,7 +254,6 @@ async function handleLiqPayPaymentFailure(orderId: string, transactionId: string
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay payment failed for order ${orderId}`);
 
   } catch (error) {
     console.error('Error handling LiqPay payment failure:', error);
@@ -303,7 +275,6 @@ async function handleLiqPayRefund(orderId: string, transactionId: string) {
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay refund processed for order ${orderId}`);
 
   } catch (error) {
     console.error('Error handling LiqPay refund:', error);
@@ -325,7 +296,6 @@ async function handleLiqPayPaymentPending(orderId: string, transactionId: string
       WHERE id = ${orderId}
     `;
 
-    console.log(`LiqPay payment pending for order ${orderId}`);
 
   } catch (error) {
     console.error('Error handling LiqPay payment pending:', error);

@@ -26,9 +26,8 @@ export default function Specifications({ product }: SpecificationsProps) {
 
   // Normalize category for rendering - map Ukrainian categories to English
   const normalizeCategory = (cat: string): string => {
-    // Convert to lowercase for consistent matching
     const catLower = cat.toLowerCase();
-    
+
     const categoryMap: { [key: string]: string } = {
       'диван': 'sofas',
       'кутовий диван': 'corner_sofas',
@@ -40,9 +39,6 @@ export default function Specifications({ product }: SpecificationsProps) {
       'шафа': 'wardrobes',
       'аксесуар': 'accessories',
     };
-    
-    // Debug output
-    console.log(`Category normalization: "${cat}" -> "${categoryMap[catLower] || catLower}"`);
     
     return categoryMap[catLower] || catLower;
   };
@@ -89,15 +85,7 @@ export default function Specifications({ product }: SpecificationsProps) {
   return (
     <section className={styles.specificationsSection}>
       <div className={styles.specsGrid}>
-        {/* Left column */}
         <div className={styles.specsColumn}>
-          {/* Debug output */}
-          {/* <div style={{background: '#f0f0f0', padding: '10px', marginBottom: '20px'}}>
-            <p>Category: {category}</p>
-            <p>Normalized: {normalizedCategory}</p>
-            <p>isSofaType: {String(isSofaType)}</p>
-          </div> */}
-          
           {(isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && specs.construction && (
             <>
               <h3>Конструкція: {specs.construction}</h3>
@@ -117,8 +105,7 @@ export default function Specifications({ product }: SpecificationsProps) {
               {'height' in specs.dimensions && specs.dimensions.height != null && (
                 <p>Висота: {specs.dimensions.height} мм</p>
               )}
-              {/* Check for sleeping area in sofas or corner sofas */}
-              {isSofaType && specs.dimensions && 
+              {isSofaType && specs.dimensions &&
                 'sleeping_area' in specs.dimensions && 
                 specs.dimensions.sleeping_area && (
                   <p>
@@ -138,16 +125,12 @@ export default function Specifications({ product }: SpecificationsProps) {
             </>
           )}
 
-          {/* Render material section based on what's available */}
           {'material' in specs && specs.material && (
             <>
               <h4 className={styles.specsTitle}>Деталі:</h4>
-              {/* Render for string material */}
               {typeof specs.material === 'string' && (
                 <p>Матеріал: {specs.material}</p>
               )}
-              
-              {/* Render for object material */}
               {'material' in specs && typeof specs.material === 'object' && specs.material && isSofaType && (
                 <>
                   {(isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && (
@@ -170,7 +153,6 @@ export default function Specifications({ product }: SpecificationsProps) {
             </>
           )}
 
-          {/* Category-specific fields */}
           {isBedSpecs(specs) && (
             <>
               {specs.headboard_type && (
@@ -250,10 +232,8 @@ export default function Specifications({ product }: SpecificationsProps) {
           </p>
         </div>
 
-        {/* Right column */}
         <div className={styles.specsColumn}>
-          {/* Sofa-type inner material (for both sofas and corner sofas) */}
-          {isSofaType && 
+          {isSofaType &&
            ((isSofaSpecs(specs) && specs.inner_material) || 
             (isCornerSofaSpecs(specs) && specs.inner_material) ||
             (isSofaBedSpecs(specs) && specs.inner_material)) && (
@@ -271,7 +251,6 @@ export default function Specifications({ product }: SpecificationsProps) {
             </>
           )}
 
-          {/* Wardrobe-specific internal layout */}
           {isWardrobeSpecs(specs) && specs.internal_layout && (
             <>
               <h4 className={styles.specsTitle}>Внутрішнє планування:</h4>
@@ -280,7 +259,6 @@ export default function Specifications({ product }: SpecificationsProps) {
             </>
           )}
           
-          {/* Additional features section for all product types */}
           <h4 className={styles.specsTitle}>Додатково:</h4>
           <p>Особливості: {
             ((isSofaSpecs(specs) || isCornerSofaSpecs(specs) || isSofaBedSpecs(specs)) && 

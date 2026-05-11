@@ -39,7 +39,6 @@ function pushToDataLayer(data: Record<string, any>) {
     timestamp: new Date().toISOString(),
   });
 
-  console.log('[GTM Analytics]', data.event, data);
 }
 
 /**

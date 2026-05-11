@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * Повна форма товару з усіма полями для всіх категорій
- * Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
- */
-
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCsrfTokenFromCookie } from '../../components/CsrfProvider';
@@ -12,8 +7,7 @@ import styles from '../../styles/admin.module.css';
 import ImageUpload from './ImageUpload';
 import ColorImageUpload from './ColorImageUpload';
 
-// Get admin path from environment variable (Task 7)
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? ''}`;
 
 // =====================================================
 // TYPES

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Admin subdomain configuration
-// Uses NEXT_PUBLIC_ADMIN_PATH_SECRET for admin path (Task 7)
 const ADMIN_SUBDOMAIN = 'admin';
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET || 'admin-path-57fyg'}`;
+const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg'}`;
 const MAIN_DOMAIN = 'dekop.com.ua';
 
 /**

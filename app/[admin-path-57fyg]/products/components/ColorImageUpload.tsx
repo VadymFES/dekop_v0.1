@@ -81,6 +81,7 @@ export default function ColorImageUpload({
         ? window.location.origin.replace('admin.', '')
         : window.location.origin;
       xhr.open('POST', `${baseUrl}/api/upload`);
+      xhr.withCredentials = true;
       xhr.send(formData);
     });
   };

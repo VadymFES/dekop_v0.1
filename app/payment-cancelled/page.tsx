@@ -70,7 +70,6 @@ function PaymentCancelledContent() {
               }
 
               cancelledTrackedRef.current = true;
-              console.log('[Payment Cancelled] Cancellation tracked successfully');
             } catch (trackError) {
               console.error('[Payment Cancelled] Failed to track:', trackError);
             }
