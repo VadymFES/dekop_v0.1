@@ -40,6 +40,7 @@ export default async function RootLayout({
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
   const isAdminRoute = pathname.includes(adminPath);
+  const isComingSoonRoute = pathname === '/coming-soon' || pathname.startsWith('/coming-soon/');
 
   const nonce = isAdminRoute ? '' : await getNonce();
 
@@ -62,7 +63,7 @@ export default async function RootLayout({
         <QueryProvider>
           <CartProvider>
             <FavoritesProvider>
-              <ClientLayout isAdminRoute={isAdminRoute}>{children}</ClientLayout>
+              <ClientLayout isAdminRoute={isAdminRoute || isComingSoonRoute}>{children}</ClientLayout>
               {!isAdminRoute && <CookieConsent />}
               {!isAdminRoute && <SpeedInsights />}
               {!isAdminRoute && <Analytics />}

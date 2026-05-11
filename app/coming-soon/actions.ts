@@ -1,0 +1,68 @@
+'use server';
+
+import { Resend } from 'resend';
+import { z } from 'zod';
+import { redirect } from 'next/navigation';
+import { db } from '@/app/lib/db';
+
+const emailSchema = z.string().email();
+
+export async function subscribeNotification(
+  _prev: { success: boolean; error?: string } | null,
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  const raw = formData.get('email');
+
+  const parsed = emailSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { success: false, error: 'Введіть коректний email' };
+  }
+  const email = parsed.data.toLowerCase();
+
+  // Check for duplicate before sending anything
+  const existing = await db.query`
+    SELECT 1 FROM newsletter_subscribers WHERE email = ${email}
+  `;
+  if (existing.rows.length > 0) {
+    return { success: false, error: 'Цей email вже зареєстровано.' };
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua';
+  const adminEmail = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'info@dekop.com.ua';
+
+  // Insert and send outside try/catch so redirect() is not swallowed
+  await db.query`
+    INSERT INTO newsletter_subscribers (email) VALUES (${email})
+  `;
+
+  try {
+    await Promise.all([
+      resend.emails.send({
+        from,
+        to: adminEmail,
+        subject: 'Новий підписник — сповіщення про відкриття',
+        html: `<p>Новий підписник на сповіщення про відкриття магазину:</p><p><strong>${email}</strong></p>`,
+      }),
+      resend.emails.send({
+        from,
+        to: email,
+        subject: 'Ми вас сповістимо — онлайн-магазин меблів Dekop',
+        html: `
+          <div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:0 auto;color:#160101">
+            <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">Дякуємо!</h2>
+            <p style="color:#555;line-height:1.6;margin-bottom:16px">
+              Ви підписалися на сповіщення про відкриття магазину <strong>Dekop</strong>.
+              Ми надішлемо вам листа, щойно магазин відкриється.
+            </p>
+            <p style="color:#aaa;font-size:13px">Якщо ви не підписувалися — просто ігноруйте цей лист.</p>
+          </div>
+        `,
+      }),
+    ]);
+  } catch {
+    // Email sending failed but subscriber is saved — redirect anyway
+  }
+
+  redirect('/coming-soon?subscribed=1');
+}
