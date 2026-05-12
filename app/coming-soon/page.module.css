@@ -94,8 +94,8 @@
 .rulerDot:nth-child(8) { animation-delay: 2.1s; }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.18; transform: scaleY(1); }
-  50%       { opacity: 0.55; transform: scaleY(2.2); border-radius: 3px; }
+  0%, 100% { opacity: 0.18; transform: scale(1); }
+  50%       { opacity: 0.6;  transform: scale(1.8); }
 }
 
 /* ── Content card ── */
