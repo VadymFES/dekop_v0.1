@@ -17,7 +17,6 @@ export default function robots(): MetadataRoute.Robots {
           `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg'}/`,
           '/cart/',
           '/favorites/',
-          '/coming-soon',
         ],
       },
     ],
