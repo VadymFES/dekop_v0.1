@@ -44,6 +44,23 @@ export function proxy(req: NextRequest) {
   // Development mode check
   const isDev = process.env.NODE_ENV === 'development';
 
+  // ── Coming soon redirect (bot-aware) ─────────────────────────────────────
+  // Set COMING_SOON=true in Vercel env vars to enable.
+  // Search engine bots bypass the redirect so real pages get crawled/indexed.
+  // vercel.json cannot check user-agents, so this MUST live in middleware.
+  if (process.env.COMING_SOON === 'true' && !isAdminPath && !isAdminSubdomain) {
+    const path = requestUrl.pathname;
+    const isComingSoonPage = path === '/coming-soon' || path.startsWith('/coming-soon/');
+    if (!isComingSoonPage) {
+      const ua = req.headers.get('user-agent') || '';
+      const isBot = /googlebot|google-inspectiontool|google-extended|bingbot|baiduspider|yandexbot|duckduckbot|slurp|applebot|facebookexternalhit|twitterbot|linkedinbot|perplexitybot|anthropic-ai|claudebot/i.test(ua);
+      if (!isBot) {
+        return NextResponse.redirect(new URL('/coming-soon', req.url));
+      }
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   // If accessing admin subdomain, rewrite to admin path
   if (isAdminSubdomain && !isAdminPath) {
     const newPath = requestUrl.pathname === '/'
