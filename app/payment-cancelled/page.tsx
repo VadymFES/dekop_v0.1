@@ -110,7 +110,7 @@ function PaymentCancelledContent() {
       // Retry payment via LiqPay (full payment or 20% deposit for cash_on_delivery)
       if (order.payment_method === 'liqpay' ||
           (order.payment_method === 'cash_on_delivery' && order.prepayment_amount > 0)) {
-        const paymentResponse = await fetch('/api/payments/liqpay/create', {
+        const paymentResponse = await fetch('/api/payments/liqpay', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

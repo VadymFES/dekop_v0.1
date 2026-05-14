@@ -3,7 +3,7 @@
  * Tests CSRF protection for all state-changing operations (POST, PUT, PATCH, DELETE)
  */
 
-import { POST as createOrder } from '@/app/api/orders/create/route';
+import { POST as createOrder } from '@/app/api/orders/route';
 import { POST as addToCart } from '@/app/cart/api/route';
 import { PATCH as updateCartItem, DELETE as deleteCartItem } from '@/app/cart/api/[id]/route';
 import {
@@ -206,7 +206,7 @@ describe('CSRF Protection', () => {
       const db = require('@vercel/postgres').db;
       db.connect.mockResolvedValue(mockClient);
 
-      const request = new Request('http://localhost:3000/api/orders/create', {
+      const request = new Request('http://localhost:3000/api/orders', {
         method: 'POST',
         headers: {
           'X-CSRF-Token': csrfToken,
@@ -230,7 +230,7 @@ describe('CSRF Protection', () => {
       };
       cookies.mockResolvedValue(mockCookieStore);
 
-      const request = new Request('http://localhost:3000/api/orders/create', {
+      const request = new Request('http://localhost:3000/api/orders', {
         method: 'POST',
         body: JSON.stringify(mockOrderData),
         // Missing X-CSRF-Token header
@@ -361,7 +361,7 @@ describe('CSRF Protection', () => {
   describe('CSRF Attack Scenarios', () => {
     it('should prevent cross-site form submission attack', async () => {
       // Attacker creates malicious form on evil.com that posts to our API
-      const maliciousRequest = new Request('http://localhost:3000/api/orders/create', {
+      const maliciousRequest = new Request('http://localhost:3000/api/orders', {
         method: 'POST',
         headers: {
           Origin: 'http://evil.com',

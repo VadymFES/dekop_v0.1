@@ -85,7 +85,7 @@ function OrderSuccessContent() {
     }
 
     try {
-      const checkResponse = await fetch('/api/payments/check-status', {
+      const checkResponse = await fetch('/api/payments/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId, email: customerEmail })

@@ -365,7 +365,7 @@ export default function CheckoutPage() {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-      const paymentResponse = await fetch('/api/payments/liqpay/create', {
+      const paymentResponse = await fetch('/api/payments/liqpay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
