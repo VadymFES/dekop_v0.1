@@ -4,6 +4,7 @@ import { Resend } from 'resend';
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
 import { db } from '@/app/lib/db';
+import { rateLimit, tooManyRequests } from '@/app/lib/rate-limit';
 
 const emailSchema = z.string().email();
 
@@ -12,6 +13,10 @@ export async function subscribeNotification(
   formData: FormData
 ): Promise<{ success: boolean; error?: string }> {
   const raw = formData.get('email');
+
+  // Rate limit by email value (not IP) so bulk email spamming is blocked
+  const rl = await rateLimit(`subscribe:${String(raw).toLowerCase().slice(0, 254)}`, { limit: 3, windowSeconds: 3600 });
+  if (!rl.success) return { success: false, error: 'Забагато спроб. Спробуйте через годину.' };
 
   const parsed = emailSchema.safeParse(raw);
   if (!parsed.success) {

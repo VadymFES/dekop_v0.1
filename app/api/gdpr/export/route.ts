@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { exportUserData } from '@/app/lib/gdpr-compliance';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
 /**
  * GET /api/gdpr/export?email=user@example.com&format=json
@@ -76,6 +77,9 @@ export async function GET(request: NextRequest) {
  * }
  */
 export async function POST(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('gdpr:export', request), { limit: 2, windowSeconds: 86400 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const body = await request.json();
     const { email, format = 'json' } = body;

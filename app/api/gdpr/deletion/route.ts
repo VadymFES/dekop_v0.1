@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { scheduleDeletionRequest, cancelDeletionRequest } from '@/app/lib/gdpr-compliance';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
 /**
  * POST /api/gdpr/deletion
@@ -23,6 +24,9 @@ import { scheduleDeletionRequest, cancelDeletionRequest } from '@/app/lib/gdpr-c
  * }
  */
 export async function POST(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('gdpr:deletion', request), { limit: 3, windowSeconds: 86400 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const body = await request.json();
     const { email, scheduledDate, options } = body;

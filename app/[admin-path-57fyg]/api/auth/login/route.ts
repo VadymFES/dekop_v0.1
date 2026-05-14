@@ -7,8 +7,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateAdmin, setSessionCookie, hashToken } from '@/app/lib/admin-auth';
 import { adminLoginSchema, safeValidateInput, formatValidationErrors } from '@/app/lib/admin-validation';
 import { generateCsrfToken, setCsrfCookie } from '@/app/lib/csrf-protection';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('admin:login', request), { limit: 5, windowSeconds: 900 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const body = await request.json();
 

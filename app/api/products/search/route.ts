@@ -8,11 +8,15 @@ import {
   FilterSuggestion
 } from '@/app/lib/search-keywords';
 import { generateLayoutVariations } from '@/app/lib/keyboard-layout';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('products:search', request), { limit: 30, windowSeconds: 60 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('q');

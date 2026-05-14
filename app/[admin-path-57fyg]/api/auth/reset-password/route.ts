@@ -6,8 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/app/lib/db';
 import { generateToken, hashToken, logAdminAction } from '@/app/lib/admin-auth';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('admin:reset-password', request), { limit: 3, windowSeconds: 3600 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const body = await request.json();
     const { email } = body;

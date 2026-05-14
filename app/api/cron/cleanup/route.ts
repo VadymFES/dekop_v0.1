@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const csrf = await sql`SELECT cleanup_expired_csrf_tokens()`;
   const carts = await sql`SELECT cleanup_expired_carts()`;
   const deletions = await sql`SELECT process_scheduled_deletions()`;
+  const rateLimits = await sql`DELETE FROM rate_limits WHERE window_start < NOW() - INTERVAL '1 day' RETURNING 1`;
 
   return Response.json({
     success: true,
@@ -20,6 +21,7 @@ export async function GET(request: Request) {
       csrf: csrf.rows[0].cleanup_expired_csrf_tokens,
       carts: carts.rows[0].cleanup_expired_carts,
       deletions: deletions.rows[0].process_scheduled_deletions,
+      rate_limits: rateLimits.rowCount ?? 0,
     },
   });
 }

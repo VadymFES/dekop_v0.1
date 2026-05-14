@@ -11,12 +11,16 @@ import {
 } from '@/app/lib/order-utils';
 import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schemas';
 import { handleError } from '@/app/lib/error-handler';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
 /**
  * POST /api/orders/create
  * Creates a new order from cart data
  */
 export async function POST(request: Request) {
+  const rl = await rateLimit(rateLimitKey('orders:create', request), { limit: 10, windowSeconds: 3600 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const body = await request.json();
 
