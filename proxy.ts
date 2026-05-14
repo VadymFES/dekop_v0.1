@@ -64,7 +64,8 @@ export function proxy(req: NextRequest) {
   // ─────────────────────────────────────────────────────────────────────────
 
   // If accessing admin subdomain, rewrite to admin path
-  if (isAdminSubdomain && !isAdminPath) {
+  // API routes pass through unchanged — they handle their own auth
+  if (isAdminSubdomain && !isAdminPath && !requestUrl.pathname.startsWith('/api/')) {
     const newPath = requestUrl.pathname === '/'
       ? ADMIN_PATH
       : `${ADMIN_PATH}${requestUrl.pathname}`;

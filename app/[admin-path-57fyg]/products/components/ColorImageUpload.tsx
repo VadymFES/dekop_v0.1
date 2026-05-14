@@ -77,9 +77,7 @@ export default function ColorImageUpload({
         reject(new Error('Network error'));
       });
 
-      const baseUrl = window.location.hostname.startsWith('admin.')
-        ? window.location.origin.replace('admin.', '')
-        : window.location.origin;
+      const baseUrl = window.location.origin;
       xhr.open('POST', `${baseUrl}/api/upload`);
       xhr.withCredentials = true;
       xhr.send(formData);
