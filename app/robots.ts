@@ -7,9 +7,21 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/product/', '/catalog'],
+        allow: [
+          '/',
+          '/product/',
+          '/catalog',
+          '/api/products/',  // needed for page rendering
+          '/cart/api',        // needed for cart rendering
+        ],
         disallow: [
-          '/api/',
+          '/api/webhooks/',
+          '/api/payments/',
+          '/api/upload',
+          '/api/orders/',
+          '/api/gdpr/',
+          '/api/cron/',
+          '/api/test/',
           '/checkout/',
           '/order-success/',
           '/payment-cancelled/',
