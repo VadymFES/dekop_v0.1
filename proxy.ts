@@ -48,7 +48,7 @@ export function proxy(req: NextRequest) {
   // Set COMING_SOON=true in Vercel env vars to enable.
   // Search engine bots bypass the redirect so real pages get crawled/indexed.
   // vercel.json cannot check user-agents, so this MUST live in middleware.
-  if (process.env.COMING_SOON === 'true' && !isAdminPath && !isAdminSubdomain) {
+  if (process.env.COMING_SOON !== 'false' && !isAdminPath && !isAdminSubdomain) {
     const path = requestUrl.pathname;
     const isComingSoonPage = path === '/coming-soon' || path.startsWith('/coming-soon/');
     if (!isComingSoonPage) {
