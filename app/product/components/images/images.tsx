@@ -59,11 +59,9 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
             key={selectedImage.id}
             src={selectedImage.image_url}
             alt={selectedImage.alt || product.name}
-            width={1200}
-            height={900}
+            fill
             sizes="(max-width: 768px) 100vw, 1200px"
             className={styles.mainImage}
-            style={{ width: '100%', height: 'auto' }}
             priority
             quality={85}
             placeholder="blur"

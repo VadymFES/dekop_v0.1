@@ -25,16 +25,20 @@
     background-position: center;
   }
   
-  /* Main image container */
+  /* Main image container — fixed size, image fits without cropping */
   .mainImageContainer {
-    margin-bottom: 1rem; 
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    max-width: 1200px;
+    margin-bottom: 1rem;
+    background: #f8f8f6;
+    border-radius: 8px;
+    overflow: hidden;
   }
 
   .mainImage {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 8px;
+    object-fit: contain !important;
   }
   
   /* Carousel container */
@@ -59,9 +63,8 @@
   }
 
   @media screen and (max-width: 768px) {
-    .mainImage {
-      width: 100%;
-      height: auto;
+    .mainImageContainer {
+      aspect-ratio: 1 / 1;
     }
 
       /* Carousel container */
