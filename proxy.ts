@@ -44,6 +44,16 @@ export function proxy(req: NextRequest) {
   // Development mode check
   const isDev = process.env.NODE_ENV === 'development';
 
+  // ── Search engine bot bypass for coming-soon ──────────────────────────────
+  // vercel.json redirects all human traffic to /coming-soon.
+  // Bots must reach real pages so they can crawl and index the site.
+  const ua = req.headers.get('user-agent') || '';
+  const isSearchBot = /googlebot|bingbot|yandexbot|baiduspider|duckduckbot|slurp|applebot|google-inspectiontool|google-extended|facebookexternalhit|twitterbot|linkedinbot/i.test(ua);
+  if (isSearchBot && requestUrl.pathname === '/coming-soon') {
+    return NextResponse.redirect(new URL('/', req.url), { status: 302 });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   // If accessing admin subdomain, rewrite to admin path
   if (isAdminSubdomain && !isAdminPath) {
     const newPath = requestUrl.pathname === '/'
