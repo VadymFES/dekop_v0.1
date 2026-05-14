@@ -1,4 +1,5 @@
 import { Metadata, ResolvingMetadata } from 'next';
+import { headers } from 'next/headers';
 import { ProductWithImages } from '@/app/lib/definitions';
 import { notFound } from 'next/navigation';
 import { productSchema, breadcrumbSchema } from '@/app/lib/schema';
@@ -23,12 +24,9 @@ const CATEGORY_SLUG_MAP: Record<string, { dbValue: string; uaName: string }> = {
 };
 
 async function getProductData(slug: string) {
-  const baseUrl = process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : (process.env.NEXT_PUBLIC_SITE_URL ||
-       process.env.NEXT_PUBLIC_BASE_URL ||
-       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-       'https://dekop.com.ua');
+  const headersList = await headers();
+  const host = headersList.get('host') || 'dekop.com.ua';
+  const baseUrl = host.includes('localhost') ? `http://${host}` : `https://${host}`;
 
   try {
     const productRes = await fetch(`${baseUrl}/api/products/${slug}`, { next: { revalidate: 60 } });
