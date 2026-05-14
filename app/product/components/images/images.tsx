@@ -59,12 +59,13 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
             key={selectedImage.id}
             src={selectedImage.image_url}
             alt={selectedImage.alt || product.name}
-            width={500}
-            height={500}
-            sizes="(max-width: 768px) 100vw, 500px"
+            width={1200}
+            height={900}
+            sizes="(max-width: 768px) 100vw, 1200px"
             className={styles.mainImage}
+            style={{ width: '100%', height: 'auto' }}
             priority
-            quality={80}
+            quality={85}
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
           />
