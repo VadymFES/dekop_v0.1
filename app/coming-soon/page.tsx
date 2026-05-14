@@ -63,7 +63,7 @@ export default function ComingSoonPage() {
             width={320}
             height={110}
             className={styles.logoImg}
-            style={{ width: 'auto' }}
+            style={{ height: '110px', width: 'auto' }}
             priority
             quality={85}
             sizes="(max-width: 480px) 200px, 320px"

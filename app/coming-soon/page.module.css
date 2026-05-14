@@ -120,8 +120,7 @@
 }
 
 .logoImg {
-  height: 110px;
-  width: auto;
+  display: block;
 }
 
 /* ── Decorative line with icon ── */

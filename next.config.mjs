@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+    allowedDevOrigins: ['192.168.252.194'],
     images: {
+        qualities: [75, 85],
         remotePatterns: [
             {
                 protocol: 'https',

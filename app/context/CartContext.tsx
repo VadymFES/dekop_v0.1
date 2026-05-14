@@ -107,7 +107,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isAdminRoute = pathname?.startsWith(`/${ADMIN_PATH}`) || isAdminSubdomain;
-  const shouldEnableCartQueries = hasCheckedSubdomain && !isAdminRoute;
+  const isComingSoonRoute = pathname === '/coming-soon' || pathname?.startsWith('/coming-soon/');
+  const shouldEnableCartQueries = hasCheckedSubdomain && !isAdminRoute && !isComingSoonRoute;
 
   const { data: cartData, isLoading, error } = useQuery<Cart>({
     queryKey: ['cart'],
