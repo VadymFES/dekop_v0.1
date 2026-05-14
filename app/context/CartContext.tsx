@@ -9,7 +9,7 @@ import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
 const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? '';
 
 const fetchCart = async (): Promise<Cart> => {
-  const res = await fetch('/cart/api', {
+  const res = await fetch('/api/cart', {
     headers: {
       'Cache-Control': 'no-store'
     }
@@ -28,7 +28,7 @@ const fetchProductDetails = async (slug: string): Promise<ProductWithImages | nu
 };
 
 const postAddToCart = async (payload: { productId: string; quantity: number; color?: string }) => {
-  const res = await fetch('/cart/api', {
+  const res = await fetch('/api/cart', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -38,7 +38,7 @@ const postAddToCart = async (payload: { productId: string; quantity: number; col
 };
 
 const updateCartAPI = async (id: string, quantity: number) => {
-  const res = await fetch(`/cart/api/${id}`, {
+  const res = await fetch(`/api/cart/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ quantity }),
@@ -48,7 +48,7 @@ const updateCartAPI = async (id: string, quantity: number) => {
 };
 
 const removeFromCartAPI = async (id: string) => {
-  const res = await fetch(`/cart/api/${id}`, {
+  const res = await fetch(`/api/cart/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error('Failed to remove item from cart');
@@ -56,8 +56,8 @@ const removeFromCartAPI = async (id: string) => {
 };
 
 const clearCartAPI = async () => {
-  const res = await fetch('/cart/api/clear', {
-    method: 'POST',
+  const res = await fetch('/api/cart', {
+    method: 'DELETE',
   });
 
   const responseText = await res.text();

@@ -3,8 +3,8 @@
  * Tests cookie security attributes, tampering prevention, and secure session management
  */
 
-import { POST, GET } from '@/app/cart/api/route';
-import { PATCH, DELETE } from '@/app/cart/api/[id]/route';
+import { POST, GET } from '@/app/api/cart/route';
+import { PATCH, DELETE } from '@/app/api/cart/[id]/route';
 import { NextRequest } from 'next/server';
 
 // Mock dependencies

@@ -1,4 +1,4 @@
-// app/cart/api/route.ts
+// app/api/cart/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
@@ -254,3 +254,28 @@ export async function POST(request: NextRequest) {
   }
 }
 
+
+/**
+ * DELETE /api/cart
+ * Clear all items from the cart (replaces POST /cart/api/clear).
+ */
+export async function DELETE() {
+  try {
+    const cookieStore = await cookies();
+    const cartId = cookieStore.get("cartId")?.value;
+    if (!cartId) {
+      return NextResponse.json({ success: true, message: "Кошик вже очищено" });
+    }
+    await sql`DELETE FROM cart_items WHERE cart_id = ${cartId}`;
+    await sql`DELETE FROM carts WHERE id = ${cartId}`;
+    const response = NextResponse.json({ success: true, message: "Кошик успішно очищено" });
+    response.cookies.delete("cartId");
+    return response;
+  } catch (error) {
+    console.error("[Cart Clear] Error:", error);
+    return NextResponse.json(
+      { error: { code: "internal_error", message: "Помилка при очищенні кошика" } },
+      { status: 500 }
+    );
+  }
+}

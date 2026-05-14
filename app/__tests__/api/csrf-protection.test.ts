@@ -4,8 +4,8 @@
  */
 
 import { POST as createOrder } from '@/app/api/orders/route';
-import { POST as addToCart } from '@/app/cart/api/route';
-import { PATCH as updateCartItem, DELETE as deleteCartItem } from '@/app/cart/api/[id]/route';
+import { POST as addToCart } from '@/app/api/cart/route';
+import { PATCH as updateCartItem, DELETE as deleteCartItem } from '@/app/api/cart/[id]/route';
 import {
   generateCsrfToken,
   storeCsrfToken,

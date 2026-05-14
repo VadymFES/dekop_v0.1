@@ -12,7 +12,7 @@ export default function robots(): MetadataRoute.Robots {
           '/product/',
           '/catalog',
           '/api/products/',  // needed for page rendering
-          '/cart/api',        // needed for cart rendering
+          '/api/cart',       // needed for cart rendering
         ],
         disallow: [
           '/api/webhooks/',
