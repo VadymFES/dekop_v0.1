@@ -7,6 +7,7 @@ import NotifyForm from './NotifyForm';
 export const metadata: Metadata = {
   title: 'Незабаром | Dekop Furniture',
   description: 'Наш магазин меблів незабаром відкриється. Підпишіться, щоб дізнатися першими.',
+  robots: { index: false, follow: true },
 };
 
 export default function ComingSoonPage() {
