@@ -46,14 +46,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Product pages
+  // Product pages — wrapped in a timeout so a slow DB never blocks the sitemap
   try {
-    const { rows } = await db.query`
+    const queryPromise = db.query`
       SELECT slug, updated_at
       FROM products
       WHERE stock > 0
       ORDER BY updated_at DESC
     `;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('sitemap db timeout')), 5000)
+    );
+
+    const { rows } = await Promise.race([queryPromise, timeoutPromise]);
 
     const productPages: MetadataRoute.Sitemap = rows.map((row) => ({
       url: `${baseUrl}/product/${row.slug}`,
