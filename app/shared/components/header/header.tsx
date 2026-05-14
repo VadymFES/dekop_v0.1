@@ -86,8 +86,11 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
           <Link href="/">
             <Image
               src="/logomain.png"
-              alt="Logo"
-              width={126.15} height={68}
+              alt="Dekop"
+              width={126}
+              height={68}
+              priority
+              sizes="(max-width: 640px) 100px, 126px"
             />
           </Link>
         </div>

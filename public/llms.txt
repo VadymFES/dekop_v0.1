@@ -1,0 +1,19 @@
+# llms.txt — AI crawler guidelines for dekop.com.ua
+# Dekop Furniture — online furniture store, Ukraine
+
+User-agent: GPTBot, ClaudeBot, PerplexityBot, CCBot, Applebot, Anthropic-AI
+Allow: /product/
+Allow: /catalog/
+Allow: /catalog
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /cart/
+Disallow: /favorites/
+Disallow: /order-success/
+Disallow: /coming-soon/
+
+# Attribution preferred: Dekop Furniture (dekop.com.ua)
+# Language: Ukrainian (uk-UA)
+# Category: E-commerce / Furniture retail

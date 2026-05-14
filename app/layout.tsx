@@ -10,6 +10,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import GoogleTagManager from "./components/GoogleTagManager";
 import CookieConsent from "./components/CookieConsent";
+import { organizationSchema, websiteSchema } from "@/app/lib/schema";
 
 export const metadata: Metadata = {
   title: {
@@ -40,6 +41,12 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dekop — Меблі для вашого дому",
+    description: "Інтернет-магазин меблів Dekop — дивани, ліжка, столи, шафи та аксесуари для вашого дому.",
+    images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://dekop.com.ua"}/og-image.png`],
+  },
   icons: {
     icon: [{ url: "/favicon.png", sizes: "16x16", type: "image/png" }],
   },
@@ -61,9 +68,17 @@ export default async function RootLayout({
   const showTracking = !isAdminRoute && !isComingSoonRoute;
   const nonce = showTracking ? await getNonce() : '';
 
+  const orgSchema = organizationSchema();
+  const siteSchema = websiteSchema();
+
   return (
     <html lang="uk">
       <body>
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([orgSchema, siteSchema]) }}
+        />
         {showTracking && (
           <>
             <script

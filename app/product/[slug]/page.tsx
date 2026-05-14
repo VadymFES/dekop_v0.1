@@ -1,6 +1,7 @@
 import { Metadata, ResolvingMetadata } from 'next';
 import { ProductWithImages } from '@/app/lib/definitions';
 import { notFound } from 'next/navigation';
+import { productSchema, breadcrumbSchema } from '@/app/lib/schema';
 
 import ClientProductPage from './client-page';
 
@@ -88,14 +89,28 @@ export async function generateMetadata(
     };
   }
 
-  const previousImages = (await parent).openGraph?.images || [];
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
+  const product = data.product;
+  const primaryImage = product.images?.find(i => i.is_primary) ?? product.images?.[0];
+  const desc = product.description
+    ? `${product.description.slice(0, 120)}. Ціна: ${product.sale_price ?? product.price} грн. Доставка по Україні.`
+    : `Купити ${product.name} в Dekop. Ціна: ${product.sale_price ?? product.price} грн. Доставка по Україні.`;
 
   return {
-    title: `${data.product.name} | Dekop Furniture Enterprise`,
+    title: `${product.name} | Dekop`,
+    description: desc,
+    alternates: { canonical: `${baseUrl}/product/${slug}` },
     openGraph: {
-      title: data.product.name,
-      images: [...(previousImages || [])],
+      title: product.name,
+      description: desc,
+      url: `${baseUrl}/product/${slug}`,
+      type: 'website',
+      locale: 'uk_UA',
+      images: primaryImage?.image_url
+        ? [{ url: primaryImage.image_url, width: 800, height: 800, alt: product.name }]
+        : (await parent).openGraph?.images || [],
     },
+    twitter: { card: 'summary_large_image', title: product.name, description: desc },
   };
 }
 
@@ -107,10 +122,39 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  return <ClientProductPage 
-    product={data.product} 
-    reviews={data.reviews} 
-    similarProducts={data.similarProducts} 
-    categorySlugMap={CATEGORY_SLUG_MAP}
-  />;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
+  const category = Object.entries(CATEGORY_SLUG_MAP).find(
+    ([, v]) => v.dbValue.toLowerCase() === data.product.category?.toLowerCase()
+  );
+  const categorySlug = category?.[0];
+  const categoryUa = category?.[1].uaName ?? 'Каталог';
+
+  const schemas = [
+    productSchema(data.product, data.reviews, slug),
+    breadcrumbSchema([
+      { name: 'Головна', url: baseUrl },
+      { name: 'Каталог', url: `${baseUrl}/catalog` },
+      ...(categorySlug ? [{ name: categoryUa, url: `${baseUrl}/catalog?category=${categorySlug}` }] : []),
+      { name: data.product.name, url: `${baseUrl}/product/${slug}` },
+    ]),
+  ];
+
+  return (
+    <>
+      {schemas.map((s, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }}
+        />
+      ))}
+      <ClientProductPage
+        product={data.product}
+        reviews={data.reviews}
+        similarProducts={data.similarProducts}
+        categorySlugMap={CATEGORY_SLUG_MAP}
+      />
+    </>
+  );
 }

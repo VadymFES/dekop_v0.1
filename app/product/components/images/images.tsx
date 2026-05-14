@@ -63,6 +63,8 @@ const ProductImages: React.FC<ProductImagesProps> = ({ product, selectedColor })
             height={500}
             sizes="(max-width: 768px) 100vw, 500px"
             className={styles.mainImage}
+            priority
+            quality={80}
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjYwIiBoZWlnaHQ9IjI2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PC9zdmc+"
           />

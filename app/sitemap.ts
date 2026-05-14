@@ -52,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       SELECT slug, updated_at
       FROM products
       WHERE stock > 0
+         OR updated_at > NOW() - INTERVAL '30 days'
       ORDER BY updated_at DESC
     `;
     const timeoutPromise = new Promise<never>((_, reject) =>
