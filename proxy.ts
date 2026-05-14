@@ -51,7 +51,9 @@ export function proxy(req: NextRequest) {
   if (process.env.COMING_SOON !== 'false' && !isAdminPath && !isAdminSubdomain) {
     const path = requestUrl.pathname;
     const isComingSoonPage = path === '/coming-soon' || path.startsWith('/coming-soon/');
-    if (!isComingSoonPage) {
+    // API routes must never redirect — SSR/ISR server-side fetches use them internally
+    const isApiRoute = path.startsWith('/api/');
+    if (!isComingSoonPage && !isApiRoute) {
       const ua = req.headers.get('user-agent') || '';
       const isBot = /googlebot|google-inspectiontool|google-extended|bingbot|baiduspider|yandexbot|duckduckbot|slurp|applebot|facebookexternalhit|twitterbot|linkedinbot|perplexitybot|anthropic-ai|claudebot/i.test(ua);
       if (!isBot) {
