@@ -89,7 +89,7 @@ async function getProductData(slug: string) {
       user_name: (r.user_name as string) || '',
       rating: r.rating as number,
       comment: (r.comment as string) || '',
-      created_at: (r.created_at as string) || new Date().toISOString(),
+      created_at: r.created_at ? new Date(r.created_at as string | Date).toISOString() : new Date().toISOString(),
     }));
 
     const similarProducts: ProductWithImages[] = similarResult.rows.map((r: Record<string, unknown>) => ({
@@ -106,8 +106,8 @@ async function getProductData(slug: string) {
       is_on_sale: Boolean(r.is_on_sale),
       is_new: Boolean(r.is_new),
       is_bestseller: Boolean(r.is_bestseller),
-      created_at: (r.created_at as string) || '',
-      updated_at: (r.updated_at as string) || '',
+      created_at: r.created_at ? new Date(r.created_at as string | Date).toISOString() : '',
+      updated_at: r.updated_at ? new Date(r.updated_at as string | Date).toISOString() : '',
       images: Array.isArray(r.images) ? r.images : [],
       colors: [],
       specs: null,
@@ -127,8 +127,8 @@ async function getProductData(slug: string) {
       is_on_sale: Boolean(p.is_on_sale),
       is_new: Boolean(p.is_new),
       is_bestseller: Boolean(p.is_bestseller),
-      created_at: p.created_at || '',
-      updated_at: p.updated_at || '',
+      created_at: p.created_at ? new Date(p.created_at).toISOString() : '',
+      updated_at: p.updated_at ? new Date(p.updated_at).toISOString() : '',
       images,
       colors,
       specs: specResult.rows[0] || null,
