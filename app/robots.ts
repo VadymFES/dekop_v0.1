@@ -1,67 +1,26 @@
 import { MetadataRoute } from 'next';
 
-/**
- * Robots.txt Configuration
- *
- * Configures search engine crawler behavior.
- * Next.js automatically serves this at /robots.txt
- *
- * Configuration:
- * - Block all search engines from indexing the site
- * - This prevents the site from appearing in search results
- */
-
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
+
   return {
     rules: [
       {
         userAgent: '*',
-        disallow: '/',
+        allow: ['/', '/product/', '/catalog'],
+        disallow: [
+          '/api/',
+          '/checkout/',
+          '/order-success/',
+          '/payment-cancelled/',
+          '/_next/',
+          `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg'}/`,
+          '/cart/',
+          '/favorites/',
+          '/coming-soon',
+        ],
       },
     ],
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }
-
-
-// import { MetadataRoute } from 'next';
-
-// /**
-//  * Robots.txt Configuration
-//  *
-//  * Configures search engine crawler behavior.
-//  * Next.js automatically serves this at /robots.txt
-//  *
-//  * Configuration:
-//  * - Allow all crawlers to index all pages
-//  * - Disallow crawling of API routes, admin pages, and user-specific pages
-//  * - Point crawlers to sitemap.xml
-//  */
-
-// export default function robots(): MetadataRoute.Robots {
-//   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
-
-//   return {
-//     rules: [
-//       {
-//         userAgent: '*',
-//         allow: [
-//           '/',
-//           '/product/',
-//         ],
-//         disallow: [
-//           '/api/', // API routes should not be indexed
-//           '/checkout/', // User checkout pages
-//           '/order-success/', // Order confirmation pages
-//           '/payment-cancelled/', // Payment cancellation pages
-//           '/_next/', // Next.js internal files
-//           '/admin/', // Admin pages
-//           '/cart/',
-//           '/favorites/',
-//           '/search*',
-//         ],
-//         crawlDelay: 1, 
-//       },
-//     ],
-//     sitemap: `${baseUrl}/sitemap.xml`,
-//   };
-// }
