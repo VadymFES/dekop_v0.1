@@ -3,10 +3,17 @@
 import { Resend } from 'resend';
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { db } from '@/app/lib/db';
-import { rateLimit, tooManyRequests } from '@/app/lib/rate-limit';
+import { rateLimit } from '@/app/lib/rate-limit';
 
 const emailSchema = z.string().email();
+
+let resendClient: Resend | null = null;
+function getResend(): Resend {
+  if (!resendClient) resendClient = new Resend(process.env.RESEND_API_KEY);
+  return resendClient;
+}
 
 export async function subscribeNotification(
   _prev: { success: boolean; error?: string } | null,
@@ -14,9 +21,21 @@ export async function subscribeNotification(
 ): Promise<{ success: boolean; error?: string }> {
   const raw = formData.get('email');
 
-  // Rate limit by email value (not IP) so bulk email spamming is blocked
-  const rl = await rateLimit(`subscribe:${String(raw).toLowerCase().slice(0, 254)}`, { limit: 3, windowSeconds: 3600 });
-  if (!rl.success) return { success: false, error: 'Забагато спроб. Спробуйте через годину.' };
+  // IP-based rate limit: 5 attempts per IP per hour (bot/abuse protection)
+  const headersList = await headers();
+  const ip =
+    headersList.get('x-forwarded-for')?.split(',')[0].trim() ||
+    headersList.get('x-real-ip') ||
+    'unknown';
+  const ipRl = await rateLimit(`subscribe-ip:${ip}`, { limit: 5, windowSeconds: 3600 });
+  if (!ipRl.success) return { success: false, error: 'Забагато спроб. Спробуйте через годину.' };
+
+  // Email-based rate limit: 3 attempts per email per hour
+  const emailRl = await rateLimit(
+    `subscribe:${String(raw).toLowerCase().slice(0, 254)}`,
+    { limit: 3, windowSeconds: 3600 }
+  );
+  if (!emailRl.success) return { success: false, error: 'Забагато спроб. Спробуйте через годину.' };
 
   const parsed = emailSchema.safeParse(raw);
   if (!parsed.success) {
@@ -32,17 +51,17 @@ export async function subscribeNotification(
     return { success: false, error: 'Цей email вже зареєстровано.' };
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = getResend();
   const from = process.env.RESEND_FROM_EMAIL || 'noreply@dekop.com.ua';
   const adminEmail = process.env.NEXT_PUBLIC_COMPANY_EMAIL || 'info@dekop.com.ua';
 
-  // Insert and send outside try/catch so redirect() is not swallowed
+  // Insert subscriber — outside try/catch so redirect() is never swallowed
   await db.query`
     INSERT INTO newsletter_subscribers (email) VALUES (${email})
   `;
 
   try {
-    await Promise.all([
+    const [adminResult, userResult] = await Promise.all([
       resend.emails.send({
         from,
         to: adminEmail,
@@ -65,8 +84,18 @@ export async function subscribeNotification(
         `,
       }),
     ]);
-  } catch {
-    // Email sending failed but subscriber is saved — redirect anyway
+
+    // Resend v6 returns { data, error } instead of throwing — log failures so
+    // they surface in Vercel Function Logs rather than being silently dropped.
+    if (adminResult.error) {
+      console.error('[coming-soon] admin notification failed:', adminResult.error);
+    }
+    if (userResult.error) {
+      console.error('[coming-soon] user confirmation failed:', userResult.error);
+    }
+  } catch (err) {
+    // Network-level failure — subscriber is already saved, so just log
+    console.error('[coming-soon] email send threw:', err);
   }
 
   redirect('/coming-soon?subscribed=1');

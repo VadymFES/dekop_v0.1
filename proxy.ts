@@ -53,7 +53,14 @@ export function proxy(req: NextRequest) {
     const isComingSoonPage = path === '/coming-soon' || path.startsWith('/coming-soon/');
     // API routes must never redirect — SSR/ISR server-side fetches use them internally
     const isApiRoute = path.startsWith('/api/');
-    if (!isComingSoonPage && !isApiRoute) {
+    // Vercel-internal paths (_vercel/insights/view etc.) must pass through.
+    // Redirecting them sends the Analytics beacon to /coming-soon on every page
+    // load, creating a cascade of serverless invocations that triggers 429s.
+    const isVercelInternal = path.startsWith('/_vercel/');
+    // Next.js runtime paths (_next/webpack-hmr, RSC flight data, etc.) must
+    // also pass through; they are not user-navigable pages.
+    const isNextInternal = path.startsWith('/_next/');
+    if (!isComingSoonPage && !isApiRoute && !isVercelInternal && !isNextInternal) {
       const ua = req.headers.get('user-agent') || '';
       const isBot = /googlebot|google-inspectiontool|google-extended|bingbot|baiduspider|yandexbot|duckduckbot|slurp|applebot|facebookexternalhit|twitterbot|linkedinbot|perplexitybot|anthropic-ai|claudebot/i.test(ua);
       if (!isBot) {
@@ -465,11 +472,13 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * - _next/static  (static files)
+     * - _next/image   (image optimisation)
+     * - _vercel       (Vercel Analytics & Speed Insights beacons — must NOT be
+     *                  redirected or they loop back and trigger 429s)
+     * - favicon.ico
      * - Static assets (images, fonts, etc.)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf|eot)$).*)',
+    '/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf|eot)$).*)',
   ],
 };
