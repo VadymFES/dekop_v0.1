@@ -48,7 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     toggleFavorite(product.id);
   };
 
-  const firstImage = product.images.length > 0 ? product.images[0] : null;
+  const firstImage = product.images.find(img => img.is_primary) ?? product.images[0] ?? null;
   const isFavorited = isFavorite(product.id);
   const isOutOfStock = product.stock < 1;
 

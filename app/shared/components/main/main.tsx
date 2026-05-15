@@ -169,7 +169,7 @@ const Main = ({ products: serverProducts }: MainProps) => {
           </div>
 
           <div className={styles.advantages_container_categories}>
-            <div className={styles.categories}>
+            <Link href="/catalog?category=tables" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 78 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -183,9 +183,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
                 </div>
               </div>
 
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=chairs" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 79 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -201,9 +201,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=kitchens" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
 
 
@@ -225,9 +225,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=wardrobes" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 79 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -242,9 +242,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=sofas" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 78 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -262,9 +262,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=beds" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 79 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -282,9 +282,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=mattresses" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
 
@@ -336,9 +336,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=accessories" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 79 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -353,9 +353,9 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <div className={styles.categories}>
+            <Link href="/catalog?category=accessories" className={styles.categories}>
               <div className={`${styles.iconBoxCatg} ${styles.shadow}`}>
                 <div className={styles.iconImage}>
                   <svg width="78" height="78" viewBox="0 0 78 78" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -374,7 +374,7 @@ const Main = ({ products: serverProducts }: MainProps) => {
 
                 </div>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className={styles.bodyBanner}>
