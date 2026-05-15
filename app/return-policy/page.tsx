@@ -291,7 +291,7 @@ export default function ReturnPolicyPage() {
             <li><strong>Email:</strong> support@dekop.com.ua</li>
             <li><strong>Телефон:</strong> +380 (098) 220 85 69</li>
             <li><strong>Час роботи:</strong> Пн-Пт: 9:00-20:00, Сб-Нд: 10:00-18:00</li>
-            <li><strong>Форма зворотного зв'язку:</strong> <Link href="/contact-us">доступна на Сайті</Link></li>
+            <li><strong>Форма зворотного зв'язку:</strong> <Link href="/contacts">доступна на Сайті</Link></li>
           </ul>
         </section>
 

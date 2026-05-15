@@ -203,7 +203,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
               <Link className={styles.navButton} href="/kitchens">Кухні</Link>
               <Link className={styles.navButton} href="/individual-order">Під замовлення</Link>
               <Link className={styles.navButton} href="/about-us">Про нас</Link>
-              <Link className={styles.navButton} href="/contact-us">Контакти</Link>
+              <Link className={styles.navButton} href="/contacts">Контакти</Link>
             </>
           </div>
 
