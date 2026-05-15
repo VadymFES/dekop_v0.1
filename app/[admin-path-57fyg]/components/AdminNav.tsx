@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { href: ADMIN_PATH, label: 'Головна' },
   { href: `${ADMIN_PATH}/products`, label: 'Товари', permission: 'products.read' },
   { href: `${ADMIN_PATH}/orders`, label: 'Замовлення', permission: 'orders.read' },
+  { href: `${ADMIN_PATH}/kitchens`, label: 'Кухні' },
   { href: `${ADMIN_PATH}/profile`, label: 'Профіль' },
 ];
 

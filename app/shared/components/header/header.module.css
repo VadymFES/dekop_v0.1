@@ -30,7 +30,7 @@
   box-shadow: var(--header-box-shadow);
   position: sticky;
   top: 0;
-  z-index: 9999;
+  z-index: 1000;
 }
 
 
@@ -115,7 +115,7 @@
   left: 50%; /* Start from the middle of the viewport */
   top: 84px; /* Position below the header */
   background: #fefdfcef;
-  box-shadow: 0px 13px 19px -5px #2a28283d; 
+  box-shadow: 0px 13px 19px -5px #2a28283d;
   animation: slideDown 0.5s ease-out forwards;
   z-index: -1;
 }

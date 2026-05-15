@@ -171,11 +171,6 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
                     </Link>
                   </li>
                   <li>
-                    <Link className={styles.dropdownItem} href={"/kithens"}>
-                      <span className={`${styles.navButton} ${styles.navButtonCat}`}>Кухні</span>
-                    </Link>
-                  </li>
-                  <li>
                     <Link className={styles.dropdownItem} href={"/catalog?category=wardrobes"}>
                       <span className={`${styles.navButton} ${styles.navButtonCat}`}>Шафи</span>
                     </Link>
@@ -205,6 +200,7 @@ const Header = ({ menuOpen, onMenuToggle }: HeaderProps) => {
             )}
 
             <>
+              <Link className={styles.navButton} href="/kitchens">Кухні</Link>
               <Link className={styles.navButton} href="/individual-order">Під замовлення</Link>
               <Link className={styles.navButton} href="/about-us">Про нас</Link>
               <Link className={styles.navButton} href="/contact-us">Контакти</Link>
