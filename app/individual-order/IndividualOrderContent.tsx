@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useActionState } from 'react';
 import Link from 'next/link';
 import ProductCard from '@/app/shared/components/productCard/productCard';
@@ -22,11 +23,6 @@ const COLORS = [
   'Бежевий','Червоний',
 ];
 
-const APPLIANCES = [
-  'Духова шафа',        'Мікрохвильова піч',
-  'Посудомийна машина', 'Витяжка',
-];
-
 function getDotRange(current: number, total: number, max: number): [number, number] {
   if (total <= max) return [0, total - 1];
   const half = Math.floor(max / 2);
@@ -42,17 +38,45 @@ interface Props {
 }
 
 export default function IndividualOrderContent({ suggestions }: Props) {
-  const [selectedTypes, setSelectedTypes]       = useState<string[]>([]);
-  const [selectedColors, setSelectedColors]     = useState<string[]>([]);
-  const [selectedAppliances, setSelectedAppliances] = useState<string[]>([]);
-  const [construction, setConstruction]         = useState<string>('');
-  const [showComment, setShowComment]           = useState(false);
+  const [selectedTypes, setSelectedTypes]   = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [construction, setConstruction]     = useState<string>('');
+  const [showComment, setShowComment]       = useState(false);
+  const [imagePreview, setImagePreview]     = useState<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
-  const isKitchen = selectedTypes.includes('Кухня');
+  const toggleType  = (v: string) => setSelectedTypes(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
+  const toggleColor = (v: string) => setSelectedColors(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
 
-  const toggleType      = (v: string) => setSelectedTypes(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
-  const toggleColor     = (v: string) => setSelectedColors(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
-  const toggleAppliance = (v: string) => setSelectedAppliances(p => p.includes(v) ? p.filter(x => x !== v) : [...p, v]);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    const file = e.target.files?.[0] ?? null;
+    if (file) {
+      const url = URL.createObjectURL(file);
+      previewUrlRef.current = url;
+      setImagePreview(url);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
+  const clearImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setImagePreview(null);
+    const input = document.getElementById('order-image') as HTMLInputElement;
+    if (input) input.value = '';
+  };
+
+  useEffect(() => {
+    return () => { if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); };
+  }, []);
 
   const [formState, formAction, pending] = useActionState(submitIndividualOrder, null);
 
@@ -96,8 +120,7 @@ export default function IndividualOrderContent({ suggestions }: Props) {
     <div className={styles.page}>
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="breadcrumb">
-        <Link href="/">На головну
-        </Link>
+        <Link href="/">На головну</Link>
         <span className={styles.breadcrumbSep}>/</span>
         <span className={styles.breadcrumbActive}>Під замовлення</span>
       </nav>
@@ -119,20 +142,19 @@ export default function IndividualOrderContent({ suggestions }: Props) {
         <form action={formAction}>
           <input type="hidden" name="productTypes" value={selectedTypes.join(', ')} />
           <input type="hidden" name="colors"       value={selectedColors.join(', ')} />
-          <input type="hidden" name="appliances"   value={selectedAppliances.join(', ')} />
           <input type="hidden" name="construction" value={construction} />
 
           <div className={styles.formColumns}>
             {/* ── Left: contact ── */}
             <div className={styles.contactColumn}>
               <h2 className={styles.columnTitle}>Контактні дані</h2>
-              <input name="lastName"   type="text" placeholder="Прізвище *"           className={styles.input} required disabled={pending} />
-              <input name="firstName"  type="text" placeholder="Ім'я *"               className={styles.input} required disabled={pending} />
-              <input name="patronymic" type="text" placeholder="По батькові"           className={styles.input} disabled={pending} />
-              <input name="phone"      type="tel"  placeholder="+380 Номер телефону *" className={styles.input} required disabled={pending} />
-              <input name="email"      type="email" placeholder="E-mail"              className={styles.input} disabled={pending} />
-              <input name="region" type="text" placeholder="Область: Почніть вводити назву *" className={styles.input} required disabled={pending} />
-              <input name="city"   type="text" placeholder="Місто: Почніть вводити назву *"   className={styles.input} required disabled={pending} />
+              <input name="lastName"   type="text"  placeholder="Прізвище *"           className={styles.input} required disabled={pending} />
+              <input name="firstName"  type="text"  placeholder="Ім'я *"               className={styles.input} required disabled={pending} />
+              <input name="patronymic" type="text"  placeholder="По батькові"           className={styles.input} disabled={pending} />
+              <input name="phone"      type="tel"   placeholder="+380 Номер телефону *" className={styles.input} required disabled={pending} />
+              <input name="email"      type="email" placeholder="E-mail"               className={styles.input} disabled={pending} />
+              <input name="region"     type="text"  placeholder="Область: Почніть вводити назву *" className={styles.input} required disabled={pending} />
+              <input name="city"       type="text"  placeholder="Місто: Почніть вводити назву *"   className={styles.input} required disabled={pending} />
               <label className={styles.gdprLabel}>
                 <input type="checkbox" name="gdpr" className={styles.gdprCheckbox} required disabled={pending} />
                 <span>
@@ -163,34 +185,6 @@ export default function IndividualOrderContent({ suggestions }: Props) {
                       <span>{t}</span>
                     </label>
                   ))}
-                </div>
-              </div>
-
-              {/* Kitchen materials dropdowns */}
-              <div className={styles.configBlock}>
-                <div className={styles.blockTitleRow}>
-                  <h2 className={styles.blockTitle}>Матеріали:</h2>
-                  <span className={styles.kitchenOnlyTag}>Для кухонь</span>
-                </div>
-                <div className={styles.selectRow}>
-                  <select name="corpus" className={styles.select} disabled={pending || !isKitchen} defaultValue="">
-                    <option value="" disabled>Корпус</option>
-                    <option value="ldsp">ЛДСП</option>
-                    <option value="mdf">МДФ</option>
-                    <option value="solid">Масив дерева</option>
-                  </select>
-                  <select name="worktop" className={styles.select} disabled={pending || !isKitchen} defaultValue="">
-                    <option value="" disabled>Робоча поверхня</option>
-                    <option value="ldsp">ЛДСП</option>
-                    <option value="stone">Камінь</option>
-                    <option value="acrylic">Акрил</option>
-                  </select>
-                  <select name="fittings" className={styles.select} disabled={pending || !isKitchen} defaultValue="">
-                    <option value="" disabled>Фурнітура</option>
-                    <option value="blum">Blum</option>
-                    <option value="hettich">Hettich</option>
-                    <option value="grass">Grass</option>
-                  </select>
                 </div>
               </div>
 
@@ -236,26 +230,53 @@ export default function IndividualOrderContent({ suggestions }: Props) {
                 </div>
               </div>
 
-              {/* Built-in appliances (kitchen only) */}
+              {/* Image upload */}
               <div className={styles.configBlock}>
                 <div className={styles.blockTitleRow}>
-                  <h2 className={`${styles.blockTitle} ${!isKitchen ? styles.kitchenOnlyTag : ''}`}>Вбудовані прилади:</h2>
-                  <span className={styles.kitchenOnlyTag}>Для кухонь</span>
+                  <h2 className={styles.blockTitle}>Фото або ескіз:</h2>
+                  <span className={styles.optionalTag}>необов&apos;язково</span>
                 </div>
-                <div className={styles.checkboxGrid2}>
-                  {APPLIANCES.map((a) => (
-                    <label key={a} className={`${styles.checkboxLabel} ${!isKitchen ? styles.disabled : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={selectedAppliances.includes(a)}
-                        onChange={() => isKitchen && toggleAppliance(a)}
-                        className={styles.checkbox}
-                        disabled={pending || !isKitchen}
+                <label className={styles.imageUploadLabel} htmlFor="order-image">
+                  {imagePreview ? (
+                    <div className={styles.imagePreviewWrapper}>
+                      <Image
+                        src={imagePreview}
+                        alt="Попередній перегляд"
+                        width={600}
+                        height={200}
+                        className={styles.imagePreview}
+                        unoptimized
                       />
-                      <span>{a}</span>
-                    </label>
-                  ))}
-                </div>
+                      <button
+                        type="button"
+                        className={styles.imageClearBtn}
+                        onClick={clearImage}
+                        aria-label="Видалити фото"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className={styles.imageUploadPlaceholder}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
+                      <span className={styles.imageUploadText}>Натисніть щоб обрати фото</span>
+                      <span className={styles.imageUploadHint}>JPEG, PNG, WebP — до 4 МБ</span>
+                    </div>
+                  )}
+                  <input
+                    id="order-image"
+                    name="image"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className={styles.imageInput}
+                    onChange={handleImageChange}
+                    disabled={pending}
+                  />
+                </label>
               </div>
 
               {/* Comment */}
@@ -283,11 +304,7 @@ export default function IndividualOrderContent({ suggestions }: Props) {
             <button type="submit" className={styles.submitBtn} disabled={pending}>
               {pending ? 'Надсилання...' : (
                 <>
-                  НАДІСЛАТИ ЗАПИТ НА ЗАМОВЛЕННЯ
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="2" y="4" width="20" height="16" rx="2"/>
-                    <path d="m2 7 10 7 10-7"/>
-                  </svg>
+                  Надіслати запит на замовлення
                 </>
               )}
             </button>

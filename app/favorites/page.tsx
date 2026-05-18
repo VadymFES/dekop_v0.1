@@ -9,7 +9,7 @@ import styles from "./favorites.module.css";
 
 const Breadcrumb = () => (
   <nav className={styles.breadcrumbs} aria-label="breadcrumb">
-    <Link href="/">Головна</Link>
+    <Link href="/">На головну</Link>
     <span className={styles.breadcrumbSep}>/</span>
     <span className={styles.breadcrumbActive}>Обране</span>
   </nav>

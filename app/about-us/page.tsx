@@ -93,7 +93,7 @@ export default function AboutUsPage() {
     <div className={styles.page}>
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="breadcrumb">
-        <Link href="/">Головна</Link>
+        <Link href="/">На головну</Link>
         <span className={styles.breadcrumbSep}>/</span>
         <span className={styles.breadcrumbActive}>Про нас</span>
       </nav>

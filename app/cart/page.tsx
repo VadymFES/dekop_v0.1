@@ -7,7 +7,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import { CartItem, ProductSpecs } from "@/app/lib/definitions";
-import { HomeIcon } from "@/app/ui/icons/breadcrumbs/homeIcon";
 import { CartLoading } from "./ui/cartSkeleton";
 
 export default function Cart() {
@@ -134,11 +133,9 @@ export default function Cart() {
           <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
             <ol className={styles.breadcrumb}>
               <li className={styles.breadcrumb_item}>
-                <Link href="/">
-                  <HomeIcon />
-                </Link>
+                <Link href="/">На головну</Link>
               </li>
-              <li className={styles.separator}>|</li>
+              <li className={styles.separator}>/</li>
               <li className={styles.breadcrumb_item}>Кошик</li>
             </ol>
           </nav>

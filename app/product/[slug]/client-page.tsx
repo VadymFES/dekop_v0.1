@@ -4,7 +4,6 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { ProductWithImages, Review } from '@/app/lib/definitions';
 import Link from 'next/link';
-import { HomeIcon } from '@/app/ui/icons/breadcrumbs/homeIcon';
 import styles from './product.module.css';
 import ProductImages from '../components/images/images';
 import Specifications from '../components/specs/specifications';
@@ -94,21 +93,19 @@ export default function ClientProductPage({
       <nav aria-label="Breadcrumb" className={styles.breadcrumbContainer}>
         <ol className={styles.breadcrumb}>
           <li className={styles.breadcrumb_item}>
-            <Link href="/">
-              <HomeIcon />
-            </Link>
+            <Link href="/">На головну</Link>
           </li>
-          <li className={styles.separator}>|</li>
+          <li className={styles.separator}>/</li>
           <li className={styles.breadcrumb_item}>
             <Link href="/catalog">Каталог</Link>
           </li>
-          <li className={styles.separator}>|</li>
+          <li className={styles.separator}>/</li>
           <li className={styles.breadcrumb_item}>
             <Link href={`/catalog?category=${categoryInfo.slug}`}>
               {categoryInfo.uaName}
             </Link>
           </li>
-          <li className={styles.separator}>|</li>
+          <li className={styles.separator}>/</li>
           <li className={styles.breadcrumb_item}>{product.name}</li>
         </ol>
       </nav>

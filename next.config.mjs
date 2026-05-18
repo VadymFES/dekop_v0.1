@@ -2,6 +2,9 @@
 const nextConfig = {
     reactStrictMode: true,
     allowedDevOrigins: ['192.168.252.194'],
+    serverActions: {
+        bodySizeLimit: '4mb',
+    },
     images: {
         formats: ['image/avif', 'image/webp'],
         qualities: [40, 60, 75, 80, 85],

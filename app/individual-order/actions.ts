@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { put } from '@vercel/blob';
 import { Resend } from 'resend';
 import { db } from '@/app/lib/db';
 import { rateLimit } from '@/app/lib/rate-limit';
@@ -14,12 +15,8 @@ const schema = z.object({
   region:       z.string().min(1, 'Введіть область').max(100),
   city:         z.string().min(1, 'Введіть місто').max(100),
   productTypes: z.string().max(300).optional(),
-  corpus:       z.string().max(60).optional(),
-  worktop:      z.string().max(60).optional(),
-  fittings:     z.string().max(60).optional(),
   colors:       z.string().max(300).optional(),
   construction: z.string().max(60).optional(),
-  appliances:   z.string().max(300).optional(),
   comment:      z.string().max(1000).optional(),
 });
 
@@ -37,12 +34,9 @@ async function ensureTable() {
       region        VARCHAR(100) NOT NULL,
       city          VARCHAR(100) NOT NULL,
       product_types TEXT,
-      corpus        VARCHAR(60),
-      worktop       VARCHAR(60),
-      fittings      VARCHAR(60),
       colors        TEXT,
       construction  VARCHAR(60),
-      appliances    TEXT,
+      image_url     TEXT,
       comment       TEXT,
       status        VARCHAR(30) DEFAULT 'new',
       created_at    TIMESTAMPTZ DEFAULT NOW()
@@ -75,6 +69,28 @@ export async function submitIndividualOrder(
     return { success: false, error: 'Необхідна згода на обробку персональних даних.' };
   }
 
+  // ── Image upload (optional, non-fatal) ──────────────────────────────────
+  const imageFile = formData.get('image');
+  let imageUrl = '';
+
+  if (imageFile instanceof File && imageFile.size > 0) {
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!ALLOWED.includes(imageFile.type)) {
+      return { success: false, error: 'Непідтримуваний формат зображення. Дозволені: JPEG, PNG, WebP.' };
+    }
+    if (imageFile.size > 4 * 1024 * 1024) {
+      return { success: false, error: 'Файл занадто великий. Максимум 4 МБ.' };
+    }
+    try {
+      const ext = imageFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filename = `individual-orders/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const blob = await put(filename, imageFile, { access: 'public', addRandomSuffix: false });
+      imageUrl = blob.url;
+    } catch (uploadErr) {
+      console.error('Individual order image upload failed:', uploadErr);
+    }
+  }
+
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return {
@@ -90,13 +106,12 @@ export async function submitIndividualOrder(
     await db.query`
       INSERT INTO individual_orders
         (last_name, first_name, patronymic, phone, email, region, city,
-         product_types, corpus, worktop, fittings, colors, construction, appliances, comment)
+         product_types, colors, construction, image_url, comment)
       VALUES
         (${d.lastName}, ${d.firstName}, ${d.patronymic ?? ''},
          ${d.phone}, ${d.email ?? ''}, ${d.region}, ${d.city},
-         ${d.productTypes ?? ''}, ${d.corpus ?? ''}, ${d.worktop ?? ''},
-         ${d.fittings ?? ''}, ${d.colors ?? ''}, ${d.construction ?? ''},
-         ${d.appliances ?? ''}, ${d.comment ?? ''})
+         ${d.productTypes ?? ''}, ${d.colors ?? ''}, ${d.construction ?? ''},
+         ${imageUrl}, ${d.comment ?? ''})
     `;
   } catch (dbErr) {
     console.error('individual_orders insert failed:', dbErr);
@@ -126,14 +141,11 @@ export async function submitIndividualOrder(
               ${row('Область:', d.region)}
               ${row('Місто:', d.city)}
               ${row('Вид виробу:', d.productTypes)}
-              ${row('Корпус:', d.corpus)}
-              ${row('Робоча поверхня:', d.worktop)}
-              ${row('Фурнітура:', d.fittings)}
               ${row('Кольори:', d.colors)}
               ${row('Конструкція:', d.construction)}
-              ${row('Вбудовані прилади:', d.appliances)}
               ${row('Коментар:', d.comment)}
             </table>
+            ${imageUrl ? `<div style="margin-top:20px"><p style="font-weight:600;margin-bottom:8px">Фото:</p><img src="${imageUrl}" alt="Фото замовлення" style="max-width:100%;border-radius:6px"/></div>` : ''}
           </div>
         `,
       });

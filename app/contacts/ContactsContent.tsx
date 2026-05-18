@@ -87,7 +87,7 @@ export default function ContactsContent() {
     <div className={styles.page}>
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs} aria-label="breadcrumb">
-        <Link href="/">Головна</Link>
+        <Link href="/">На головну</Link>
         <span className={styles.breadcrumbSep}>/</span>
         <span className={styles.breadcrumbActive}>Контакти</span>
       </nav>
