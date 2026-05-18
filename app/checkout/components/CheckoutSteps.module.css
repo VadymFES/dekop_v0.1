@@ -6,14 +6,14 @@
 
 .stepTitle {
   margin: 0 0 10px;
-  font-size: 24px;
+  font-size: var(--text-2xl);
   font-weight: 700;
   color: #160101;
 }
 
 .stepDescription {
   margin: 0 0 30px;
-  font-size: 15px;
+  font-size: var(--text-base);
   color: #666;
 }
 
@@ -32,7 +32,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #160101;
 }
@@ -43,7 +43,7 @@
 
 .input {
   padding: 12px 16px;
-  font-size: 15px;
+  font-size: var(--text-base);
   border: 2px solid #e5e5e5;
   border-radius: 8px;
   background-color: #fff;
@@ -67,7 +67,7 @@
 }
 
 .errorMessage {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #E94444;
   margin-top: -4px;
 }
@@ -104,7 +104,7 @@
 }
 
 .optionIcon {
-  font-size: 32px;
+  font-size: var(--text-3xl);
   flex-shrink: 0;
 }
 
@@ -114,14 +114,14 @@
 
 .optionTitle {
   margin: 0 0 4px;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: #160101;
 }
 
 .optionDescription {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #666;
 }
 
@@ -147,7 +147,7 @@
 
 .infoText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #1a1a1a;
   line-height: 1.6;
 }
@@ -160,11 +160,11 @@
   }
 
   .stepTitle {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 
   .stepDescription {
-    font-size: 14px;
+    font-size: var(--text-sm);
     margin-bottom: 20px;
   }
 
@@ -173,15 +173,15 @@
   }
 
   .optionIcon {
-    font-size: 28px;
+    font-size: var(--text-3xl);
   }
 
   .optionTitle {
-    font-size: 15px;
+    font-size: var(--text-base);
   }
 
   .optionDescription {
-    font-size: 13px;
+    font-size: var(--text-sm);
   }
 }
 
@@ -192,7 +192,7 @@
   }
 
   .optionIcon {
-    font-size: 36px;
+    font-size: var(--text-4xl);
   }
 
   .optionRadio {
@@ -211,14 +211,14 @@
 
 .depositTitle {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: #160101;
 }
 
 .depositDescription {
   margin: 0 0 20px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #666;
   line-height: 1.5;
 }
@@ -262,7 +262,7 @@
 }
 
 .depositLabel {
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: #160101;
   text-align: center;
@@ -285,11 +285,11 @@
   }
 
   .depositTitle {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .depositDescription {
-    font-size: 13px;
+    font-size: var(--text-sm);
   }
 }
 
@@ -318,14 +318,14 @@
 
 .reviewSectionTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: #160101;
 }
 
 .editButton {
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #E94444;
   background-color: transparent;
@@ -361,21 +361,21 @@
 }
 
 .reviewLabel {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #666;
   min-width: 140px;
 }
 
 .reviewValue {
-  font-size: 15px;
+  font-size: var(--text-base);
   color: #160101;
   text-align: right;
   flex: 1;
 }
 
 .reviewItemCount {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #666;
   padding: 4px 12px;
@@ -406,13 +406,13 @@
 }
 
 .reviewItemName {
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: #160101;
 }
 
 .reviewItemColor {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #666;
 }
 
@@ -423,13 +423,13 @@
 }
 
 .reviewItemQuantity {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #666;
   font-weight: 600;
 }
 
 .reviewItemPrice {
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #160101;
   min-width: 100px;
@@ -453,13 +453,13 @@
 }
 
 .reviewTotalLabel {
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: #666;
 }
 
 .reviewTotalValue {
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #160101;
 }
@@ -472,7 +472,7 @@
 
 .reviewGrandTotal .reviewTotalLabel,
 .reviewGrandTotal .reviewTotalValue {
-  font-size: 18px;
+  font-size: var(--text-lg);
   color: #E94444;
 }
 
@@ -486,7 +486,7 @@
 
 .reviewNoteText {
   margin: 4px 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #160101;
 }
@@ -546,16 +546,16 @@
   }
 
   .reviewSectionTitle {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .editButton {
-    font-size: 13px;
+    font-size: var(--text-sm);
     padding: 6px 12px;
   }
 
   .reviewItemPrice {
     min-width: 80px;
-    font-size: 15px;
+    font-size: var(--text-base);
   }
 }

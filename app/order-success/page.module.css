@@ -54,7 +54,7 @@
 
 .subText {
   margin-top: 10px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   opacity: 0.8;
 }
 
@@ -71,13 +71,13 @@
 }
 
 .errorState h1 {
-  font-size: 32px;
+  font-size: var(--text-3xl);
   margin: 0 0 15px;
   color: white;
 }
 
 .errorState p {
-  font-size: 16px;
+  font-size: var(--text-base);
   margin-bottom: 30px;
   opacity: 0.9;
 }
@@ -110,7 +110,7 @@
 
 .title {
   margin: 0 0 12px;
-  font-size: 36px;
+  font-size: var(--text-4xl);
   font-weight: 700;
   color: white;
   line-height: 1.2;
@@ -118,7 +118,7 @@
 
 .subtitle {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   opacity: 0.95;
   line-height: 1.5;
 }
@@ -138,7 +138,7 @@
 
 .sectionTitle {
   margin: 0 0 15px;
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: #160101;
   border-bottom: 2px solid #E94444;
@@ -163,20 +163,20 @@
 }
 
 .orderNumber .label {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #666;
   font-weight: 500;
 }
 
 .orderNumber .value {
-  font-size: 24px;
+  font-size: var(--text-2xl);
   font-weight: 700;
   color: #160101;
 }
 
 .orderDate {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-base);
   color: #666;
 }
 
@@ -186,7 +186,7 @@
   background-color: #4CAF50;
   color: white;
   border-radius: 25px;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -211,20 +211,20 @@
 }
 
 .alertIcon {
-  font-size: 24px;
+  font-size: var(--text-2xl);
   flex-shrink: 0;
 }
 
 .alertTitle {
   margin: 0 0 8px;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #160101;
 }
 
 .alertText {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #666;
   line-height: 1.6;
 }
@@ -236,14 +236,14 @@
 
 .customerName {
   margin: 0 0 8px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: #160101;
 }
 
 .infoText {
   margin: 6px 0;
-  font-size: 15px;
+  font-size: var(--text-base);
   color: #666;
   line-height: 1.6;
 }
@@ -251,7 +251,7 @@
 .deliveryMethod,
 .paymentMethod {
   margin: 0 0 10px;
-  font-size: 17px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #160101;
 }
@@ -262,7 +262,7 @@
   align-items: center;
   gap: 10px;
   margin: 12px 0;
-  font-size: 16px;
+  font-size: var(--text-base);
 }
 
 .paymentStatus > span:first-child {
@@ -297,14 +297,14 @@
 
 .prepaymentAmount {
   margin: 15px 0 8px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: #160101;
 }
 
 .remainingAmount {
   margin: 8px 0 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: #E94444;
 }
@@ -326,13 +326,13 @@
 }
 
 .totalLabel {
-  font-size: 16px;
+  font-size: var(--text-base);
   color: #444;
   font-weight: 500;
 }
 
 .totalValue {
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #160101;
 }
@@ -348,13 +348,13 @@
 }
 
 .totalRow.grandTotal .totalLabel {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 800;
   color: #160101;
 }
 
 .totalRow.grandTotal .totalValue {
-  font-size: 24px;
+  font-size: var(--text-2xl);
   font-weight: 800;
   color: #E94444;
 }
@@ -371,7 +371,7 @@
   padding: 15px;
   background-color: #F1F8E9;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: var(--text-base);
   color: #33691E;
   text-align: center;
   font-weight: 600;
@@ -390,7 +390,7 @@
 .primaryButton,
 .secondaryButton {
   padding: 16px 36px;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 700;
   border: none;
   border-radius: 8px;
@@ -444,11 +444,11 @@
   }
 
   .title {
-    font-size: 28px;
+    font-size: var(--text-3xl);
   }
 
   .subtitle {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .content {
@@ -456,7 +456,7 @@
   }
 
   .sectionTitle {
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
 
   .orderHeader {
@@ -465,7 +465,7 @@
   }
 
   .orderNumber .value {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 
   .footer {
@@ -490,11 +490,11 @@
   }
 
   .title {
-    font-size: 24px;
+    font-size: var(--text-2xl);
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .content {
@@ -502,15 +502,15 @@
   }
 
   .sectionTitle {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .totalRow.grandTotal .totalLabel {
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
 
   .totalRow.grandTotal .totalValue {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 
   .alert {

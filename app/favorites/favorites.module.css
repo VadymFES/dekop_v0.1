@@ -1,8 +1,35 @@
 .container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  margin: 1rem 4rem;
   min-height: 70vh;
+}
+
+/* ── Breadcrumbs ── */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  color: #888;
+  padding-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.breadcrumbs a {
+  color: #888;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumbs a:hover {
+  color: var(--hover-color);
+}
+
+.breadcrumbSep {
+  color: #ccc;
+}
+
+.breadcrumbActive {
+  color: #555;
 }
 
 .header {
@@ -15,7 +42,7 @@
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 700;
   color: #160101;
   margin: 0;
@@ -28,7 +55,7 @@
 }
 
 .count {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   color: #666;
   margin: 0;
 }
@@ -39,7 +66,7 @@
   border: 1px solid #ff3939;
   padding: 10px 20px;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -78,14 +105,14 @@
 }
 
 .emptyTitle {
-  font-size: 1.8rem;
+  font-size: var(--text-3xl);
   font-weight: 600;
   color: #160101;
   margin-bottom: 12px;
 }
 
 .emptyDescription {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   color: #666;
   margin-bottom: 32px;
   max-width: 500px;
@@ -96,7 +123,7 @@
   color: white;
   padding: 14px 32px;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -143,14 +170,14 @@
 }
 
 .loadingContainer p {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   color: #666;
 }
 
 /* Error Message */
 .errorMessage {
   color: #ff3939;
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   padding: 20px;
   background-color: #fff5f5;
   border: 1px solid #ffcccc;
@@ -161,11 +188,12 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
-    padding: 20px 16px;
+    margin: 0 1.5rem;
+    padding-top: 1.25rem;
   }
 
   .title {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
   }
 
   .header {
@@ -184,11 +212,11 @@
   }
 
   .emptyTitle {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .emptyDescription {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }
 
@@ -198,6 +226,6 @@
   }
 
   .title {
-    font-size: 1.8rem;
+    font-size: var(--text-3xl);
   }
 }

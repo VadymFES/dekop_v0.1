@@ -1,12 +1,11 @@
 .container {
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 2rem 0;
   background: linear-gradient(to bottom, #FEFDFC, #ffffff);
 }
 
 .content {
-  max-width: 900px;
-  margin: 0 auto;
+  margin: 0 4rem;
   background: white;
   padding: 3rem;
   border-radius: 12px;
@@ -15,7 +14,7 @@
 
 .content h1 {
   color: #160101;
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 3px solid #F45145;
@@ -23,7 +22,7 @@
 
 .content h2 {
   color: #160101;
-  font-size: 1.75rem;
+  font-size: var(--text-3xl);
   margin-top: 2.5rem;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
@@ -32,7 +31,7 @@
 
 .content h3 {
   color: #160101;
-  font-size: 1.35rem;
+  font-size: var(--text-2xl);
   margin-top: 2rem;
   margin-bottom: 1rem;
   font-weight: 600;
@@ -42,7 +41,7 @@
 
 .content h4 {
   color: #160101;
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   margin-top: 1.25rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
@@ -51,7 +50,7 @@
 }
 
 .intro {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   line-height: 1.8;
   color: #160101;
   background: #f8f9fa;
@@ -109,50 +108,51 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem 0.5rem;
+    padding: 1rem 0;
   }
 
   .content {
+    margin: 0 1rem;
     padding: 2rem 1.5rem;
     border-radius: 8px;
   }
 
   .content h1 {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
   }
 
   .content h2 {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .content h3 {
-    font-size: 1.2rem;
+    font-size: var(--text-xl);
   }
 
   .content h4 {
-    font-size: 1.05rem;
+    font-size: var(--text-base);
   }
 
   .intro {
-    font-size: 1rem;
+    font-size: var(--text-base);
     padding: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .content h1 {
-    font-size: 1.75rem;
+    font-size: var(--text-3xl);
   }
 
   .content h2 {
-    font-size: 1.35rem;
+    font-size: var(--text-2xl);
   }
 
   .content h3 {
-    font-size: 1.1rem;
+    font-size: var(--text-lg);
   }
 
   .content h4 {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }

@@ -3,12 +3,11 @@
 .container {
   min-height: 100vh;
   background-color: #f9f9f9;
-  padding: 40px 20px;
+  padding: 40px 0;
 }
 
 .checkoutWrapper {
-  max-width: 1200px;
-  margin: 0 auto;
+  margin: 0 4rem;
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 40px;
@@ -48,7 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   margin-bottom: 12px;
   transition: all 0.3s;
@@ -72,13 +71,13 @@
 }
 
 .stepLabel {
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: #160101;
 }
 
 .stepDesc {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #666;
 }
 
@@ -129,7 +128,7 @@
 .primaryButton {
   flex: 1;
   padding: 16px 32px;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 600;
   background-color: #E94444;
   color: white;
@@ -155,7 +154,7 @@
 .secondaryButton {
   flex: 1;
   padding: 16px 32px;
-  font-size: 16px;
+  font-size: var(--text-base);
   font-weight: 600;
   background-color: transparent;
   color: #160101;
@@ -178,7 +177,7 @@
 
 .cancelButton {
   padding: 16px 32px;
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 600;
   background-color: transparent;
   color: #999;
@@ -214,7 +213,7 @@
 
 .summaryTitle {
   margin: 0 0 24px;
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: #160101;
 }
@@ -243,14 +242,14 @@
 }
 
 .itemName {
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: #160101;
   line-height: 1.4;
 }
 
 .itemColor {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #666;
 }
 
@@ -262,12 +261,12 @@
 }
 
 .itemQuantity {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #666;
 }
 
 .itemTotal {
-  font-size: 15px;
+  font-size: var(--text-base);
   font-weight: 700;
   color: #160101;
 }
@@ -283,7 +282,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 15px;
+  font-size: var(--text-base);
   color: #666;
 }
 
@@ -296,13 +295,13 @@
   padding-top: 12px;
   border-top: 2px solid #e5e5e5;
   margin-top: 8px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
 }
 
 .grandTotal span {
   color: #E94444;
-  font-size: 20px;
+  font-size: var(--text-xl);
 }
 
 /* Empty Cart State */
@@ -318,14 +317,14 @@
 
 .emptyCart h1 {
   margin: 0 0 16px;
-  font-size: 28px;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: #160101;
 }
 
 .emptyCart p {
   margin: 0 0 32px;
-  font-size: 16px;
+  font-size: var(--text-base);
   color: #666;
 }
 
@@ -367,7 +366,11 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 20px 16px;
+    padding: 20px 0;
+  }
+
+  .checkoutWrapper {
+    margin: 0 1rem;
   }
 
   .stepper {
@@ -402,36 +405,36 @@
   .stepNumber {
     width: 40px;
     height: 40px;
-    font-size: 16px;
+    font-size: var(--text-base);
   }
 
   .stepLabel {
-    font-size: 15px;
+    font-size: var(--text-base);
   }
 
   .stepDesc {
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
 }
 
 @media (max-width: 480px) {
   .summaryTitle {
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
 
   .itemName {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .itemTotal {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .emptyCart h1 {
-    font-size: 24px;
+    font-size: var(--text-2xl);
   }
 
   .emptyCart p {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 }

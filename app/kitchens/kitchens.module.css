@@ -1,18 +1,17 @@
 /* kitchens.module.css */
 
 .page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem 4rem;
+  margin: 1rem 4rem;
+  padding-bottom: 4rem;
 }
 
 /* ── Breadcrumbs ── */
 .breadcrumbs {
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: #555;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   padding-top: 1.5rem;
 }
 
@@ -48,21 +47,21 @@
 }
 
 .pageTitle {
-  font-size: 2rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   margin-bottom: 0.4rem;
   color: var(--foreground);
 }
 
 .pageSubtitle {
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: #555;
   margin-bottom: 1.75rem;
   max-width: 680px;
 }
 
 .carouselDisclaimer {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: #c0392b;
   font-style: italic;
   margin-bottom: 1.25rem;
@@ -120,7 +119,7 @@
 }
 
 .kitchenCardName {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--foreground);
   margin-bottom: 4px;
@@ -128,14 +127,14 @@
 }
 
 .kitchenCardDesc {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: #666;
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .kitchenCardPrice {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--foreground);
 }
@@ -200,14 +199,14 @@
 }
 
 .sectionTitle {
-  font-size: 2rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   margin-bottom: 0.4rem;
   color: var(--foreground);
 }
 
 .sectionSubtitle {
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: #555;
   margin-bottom: 1.5rem;
 }
@@ -282,7 +281,7 @@
   align-items: flex-start;
   gap: 8px;
   padding: 9px 14px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--foreground);
   cursor: pointer;
   transition: background 0.12s;
@@ -315,7 +314,7 @@
   background: none;
   border: none;
   color: #fff;
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   line-height: 1;
   cursor: pointer;
   opacity: 0.8;
@@ -342,14 +341,14 @@
 }
 
 .orderTitle {
-  font-size: 1.75rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   margin-bottom: 0.4rem;
   color: var(--foreground);
 }
 
 .orderSubtitle {
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: #555;
   margin-bottom: 2rem;
   max-width: 620px;
@@ -364,7 +363,7 @@
 }
 
 .columnTitle {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   margin-bottom: 0.75rem;
   color: var(--foreground);
@@ -383,7 +382,7 @@
   padding: 11px 14px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-family: inherit;
   color: var(--foreground);
   background: #fff;
@@ -408,7 +407,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: #555;
   cursor: pointer;
   margin-top: 4px;
@@ -468,7 +467,7 @@
   padding: 11px 14px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-family: inherit;
   color: var(--foreground);
   background: #fff;
@@ -507,7 +506,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--foreground);
   cursor: pointer;
 }
@@ -537,7 +536,7 @@
   background: none;
   border: none;
   color: #555;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-family: inherit;
   cursor: pointer;
   padding: 0;
@@ -556,7 +555,7 @@
   padding: 11px 14px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-family: inherit;
   color: var(--foreground);
   background: #fff;
@@ -583,7 +582,7 @@
   color: #fff;
   border: none;
   border-radius: 50px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
@@ -601,7 +600,7 @@
 
 .formError {
   color: var(--hover-color);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   margin-top: 1rem;
   text-align: center;
 }
@@ -610,7 +609,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--foreground);
   background: #fafafa;
   padding: 1.5rem 2rem;
@@ -638,7 +637,7 @@
 
 @media (max-width: 768px) {
   .page {
-    padding: 0 1rem 3rem;
+    margin: 0 1.5rem;
   }
 
   .galleryGrid {
@@ -662,7 +661,7 @@
   .pageTitle,
   .sectionTitle,
   .orderTitle {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .kitchenCard {

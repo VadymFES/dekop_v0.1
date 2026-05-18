@@ -8,7 +8,7 @@
   }
   
   .specsTitle {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
   
   /* Grid to create two columns */
@@ -22,7 +22,7 @@
   /* Individual column */
   .specsColumn {
     line-height: 1.6;
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
   
   /* Example color-sample box or swatch */
@@ -36,7 +36,7 @@
   
   /* Disclaimer styling */
   .disclaimer {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     color: var(--hover-color);
     margin-top: 0.5rem;
   }

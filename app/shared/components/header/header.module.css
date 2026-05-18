@@ -316,9 +316,8 @@
     padding: 2px 16px;
   }
 
-  .rightIcons .iconContainer:first-child,
-  .rightIcons .iconContainer:nth-child(2) {
-    display: none; /* Hide Account and Notification */
+  .rightIcons .iconContainer:first-child {
+    display: none; /* Hide favorites on mobile — cart stays visible */
   }
 
   .header nav {

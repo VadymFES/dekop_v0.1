@@ -1,9 +1,8 @@
 /* contacts.module.css */
 
 .page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem 5rem;
+  margin: 1rem 4rem;
+  padding-bottom: 5rem;
 }
 
 /* ── Breadcrumbs ── */
@@ -11,9 +10,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #888;
-  padding-top: 1.25rem;
+  padding-top: 1.5rem;
   margin-bottom: 2rem;
 }
 
@@ -51,14 +50,14 @@
 }
 
 .pageTitle {
-  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--foreground);
   margin: 0;
 }
 
 .pageSubtitle {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: #555;
   line-height: 1.7;
   max-width: 540px;
@@ -73,14 +72,14 @@
 }
 
 .legalTitle {
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--foreground);
   margin: 0 0 0.35rem;
 }
 
 .legalText {
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   color: #444;
   line-height: 1.6;
   margin: 0;
@@ -112,7 +111,7 @@
 }
 
 .detailLabel {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #888;
   text-transform: uppercase;
@@ -121,7 +120,7 @@
 }
 
 .detailValue {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--hover-color);
   text-decoration: none;
@@ -133,7 +132,7 @@
 }
 
 .detailText {
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   color: #444;
   line-height: 1.6;
   display: block;
@@ -147,7 +146,7 @@
 }
 
 .socialLabel {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #555;
   margin: 0;
@@ -187,14 +186,14 @@
 }
 
 .formTitle {
-  font-size: 1.15rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--foreground);
   margin: 0 0 0.35rem;
 }
 
 .formSubtitle {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: #777;
   margin: 0 0 1.5rem;
   line-height: 1.5;
@@ -213,7 +212,7 @@
 }
 
 .label {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: #555;
   font-weight: 500;
 }
@@ -225,7 +224,7 @@
   padding: 0.6rem 0.85rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   font-family: inherit;
   color: var(--foreground);
   background: #fff;
@@ -261,7 +260,7 @@
   color: #fff;
   border: none;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -290,7 +289,7 @@
 }
 
 .successMessage p {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: #444;
   line-height: 1.6;
 }
@@ -309,7 +308,7 @@
 
 @media (max-width: 600px) {
   .page {
-    padding: 0 1rem 4rem;
+    margin: 0 1.5rem;
   }
 
   .formCard {

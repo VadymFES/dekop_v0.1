@@ -29,7 +29,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   align-items: center;
 }
 
@@ -124,7 +124,7 @@
   /* Remove padding to maintain the round shape */
   border-radius: 50px;
   /* Make the button round */
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   /* Button font size */
   background-color: transparent;
   /* Button background color */
@@ -132,7 +132,7 @@
 }
 
 .descriptionTxt {
-  font-size: 1rem;
+  font-size: var(--text-base);
   line-height: 1.6;
   margin: 0;
 }
@@ -149,7 +149,7 @@
   height: 44px; /* Height of the button */
   margin-bottom: 24px; /* Remove padding to maintain the round shape */
   border-radius: 50px; /* Make the button round */
-  font-size: 1.1rem; /* Button font size */
+  font-size: var(--text-lg); /* Button font size */
   background-color: transparent; /* Button background color */
   color: #000000; /* Button text color */
   border: 2px solid #16010133;
@@ -172,7 +172,7 @@
 }
 
 .bodyContentTitle {
-  font-size: 2rem;            /* Adjust the font size for the title */
+  font-size: var(--text-3xl);            /* Adjust the font size for the title */
   font-weight: 700;           /* Bold text */
   overflow: hidden;
 }
@@ -185,7 +185,7 @@
   height: 44px; /* Height of the button */
   padding: 0; /* Remove padding to maintain the round shape */
   border-radius: 50px; /* Make the button round */
-  font-size: 1.1rem; /* Button font size */
+  font-size: var(--text-lg); /* Button font size */
   background-color: transparent; /* Button background color */
   color: #000000; /* Button text color */
   border: 2px solid #E2281B;
@@ -211,7 +211,7 @@
   }
 
   .breadcrumbContainer {
-    margin: 1rem 1rem 0 4rem;
+    margin: 1rem 4rem 0 4rem;
   }
 
   .productHeader {
@@ -228,7 +228,7 @@
   }
 
   .productName {
-    font-size: 24px;
+    font-size: var(--text-2xl);
     font-weight: 700;
     margin: 0 0 8px 0;
   }
@@ -242,7 +242,7 @@
     color: #2e7d32;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--text-sm);
     white-space: nowrap;
   }
 
@@ -251,11 +251,11 @@
     color: #c62828;
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 
   .productSku {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: #757575;
     margin: 4px 0;
   }
@@ -267,12 +267,12 @@
   }
 
   .productRating {
-    font-size: 16px;
+    font-size: var(--text-base);
     color: #ff9800;
   }
 
   .favoriteIcon {
-    font-size: 18px;
+    font-size: var(--text-lg);
     cursor: pointer;
     color: #b0b0b0;
   }
@@ -324,7 +324,7 @@
 }
 
 .reviewsSection h3 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   margin-bottom: 1rem;
   color: #2d3436;
 }
@@ -347,6 +347,6 @@
   }
 
   .breadcrumbContainer {
-    margin: 1rem 0 0 1rem;
+    margin: 1rem 1rem 0 1rem;
   }
 }

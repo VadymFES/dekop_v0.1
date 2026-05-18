@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { ProductWithImages } from "@/app/lib/definitions";
 import ProductCard from "@/app/shared/components/productCard/productCard";
 import styles from "./favorites.module.css";
+
+const Breadcrumb = () => (
+  <nav className={styles.breadcrumbs} aria-label="breadcrumb">
+    <Link href="/">Головна</Link>
+    <span className={styles.breadcrumbSep}>/</span>
+    <span className={styles.breadcrumbActive}>Обране</span>
+  </nav>
+);
 
 export default function FavoritesPage() {
   const { favorites, isLoading: favoritesLoading, clearFavorites } = useFavorites();
@@ -13,38 +22,22 @@ export default function FavoritesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Wait for favorites to load from localStorage
-    if (favoritesLoading) {
-      return;
-    }
+    if (favoritesLoading) return;
 
-    // If no favorites, stop loading
     if (favorites.length === 0) {
       setFavoriteProducts([]);
       setIsLoading(false);
       return;
     }
 
-    // Fetch all products and filter by favorites
     const fetchFavoriteProducts = async () => {
       try {
         setIsLoading(true);
         setError(null);
-
-        // Fetch all products
         const response = await fetch('/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch products');
         const allProducts: ProductWithImages[] = await response.json();
-
-        // Filter products that are in favorites
-        const favProducts = allProducts.filter((product) =>
-          favorites.includes(product.id)
-        );
-
-        setFavoriteProducts(favProducts);
+        setFavoriteProducts(allProducts.filter((p) => favorites.includes(p.id)));
       } catch (err) {
         console.error('Error fetching favorite products:', err);
         setError('Не вдалося завантажити обрані товари. Спробуйте пізніше.');
@@ -56,17 +49,16 @@ export default function FavoritesPage() {
     fetchFavoriteProducts();
   }, [favorites, favoritesLoading]);
 
-  // Handle clear all favorites
   const handleClearAll = () => {
     if (window.confirm('Ви впевнені, що хочете очистити всі обрані товари?')) {
       clearFavorites();
     }
   };
 
-  // Loading state
   if (favoritesLoading || isLoading) {
     return (
       <div className={styles.container}>
+        <Breadcrumb />
         <div className={styles.header}>
           <h1 className={styles.title}>Обране</h1>
         </div>
@@ -78,10 +70,10 @@ export default function FavoritesPage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className={styles.container}>
+        <Breadcrumb />
         <div className={styles.header}>
           <h1 className={styles.title}>Обране</h1>
         </div>
@@ -92,10 +84,10 @@ export default function FavoritesPage() {
     );
   }
 
-  // Empty state
   if (favoriteProducts.length === 0) {
     return (
       <div className={styles.container}>
+        <Breadcrumb />
         <div className={styles.header}>
           <h1 className={styles.title}>Обране</h1>
         </div>
@@ -125,9 +117,9 @@ export default function FavoritesPage() {
     );
   }
 
-  // Products display
   return (
     <div className={styles.container}>
+      <Breadcrumb />
       <div className={styles.header}>
         <h1 className={styles.title}>Обране</h1>
         <div className={styles.headerActions}>

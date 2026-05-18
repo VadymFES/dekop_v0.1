@@ -6,7 +6,7 @@
   }
   
   .reviewTitle {
-    font-size: 18px;
+    font-size: var(--text-lg);
     font-weight: bold;
   }
   
@@ -26,12 +26,12 @@
   .reviewHeader {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: var(--text-sm);
     margin-bottom: 5px;
   }
   
   .rating {
-    font-size: 16px;
+    font-size: var(--text-base);
     color: #ff9800;
   }
   

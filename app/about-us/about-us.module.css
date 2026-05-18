@@ -1,9 +1,8 @@
 /* about-us.module.css */
 
 .page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem 5rem;
+  margin: 1rem 4rem;
+  padding-bottom: 5rem;
 }
 
 /* ── Breadcrumbs ── */
@@ -11,10 +10,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #888;
-  padding-top: 1.25rem;
-  margin-bottom: 2.5rem;
+  padding-top: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .breadcrumbs a {
@@ -37,7 +36,7 @@
 
 /* ── Shared section title ── */
 .sectionTitle {
-  font-size: clamp(1.3rem, 2.2vw, 1.75rem);
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--foreground);
   margin: 0 0 1.5rem;
@@ -51,7 +50,7 @@
   color: #fff;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   text-decoration: none;
   transition: opacity 0.2s, transform 0.15s;
   white-space: nowrap;
@@ -70,7 +69,7 @@
   border: 1.5px solid #ddd;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   text-decoration: none;
   transition: border-color 0.2s, transform 0.15s;
   white-space: nowrap;
@@ -94,7 +93,7 @@
   justify-content: center;
   gap: 0.6rem;
   color: #bbb;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   letter-spacing: 0.03em;
 }
 
@@ -108,7 +107,7 @@
 }
 
 .heroTitle {
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: var(--text-4xl);
   font-weight: 700;
   color: var(--foreground);
   line-height: 1.2;
@@ -116,7 +115,7 @@
 }
 
 .heroDesc {
-  font-size: 0.975rem;
+  font-size: var(--text-base);
   color: #555;
   line-height: 1.75;
   margin: 0 0 1.75rem;
@@ -158,14 +157,14 @@
 }
 
 .statValue {
-  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--hover-color);
   line-height: 1;
 }
 
 .statLabel {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: #777;
   font-weight: 500;
   text-transform: uppercase;
@@ -207,7 +206,7 @@
 }
 
 .storyText p {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: #444;
   line-height: 1.75;
   margin: 0;
@@ -246,14 +245,14 @@
 }
 
 .valueTitle {
-  font-size: 0.975rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--foreground);
   margin: 0;
 }
 
 .valueDesc {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: #666;
   line-height: 1.65;
   margin: 0;
@@ -287,7 +286,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: #444;
   line-height: 1.6;
 }
@@ -311,14 +310,14 @@
 }
 
 .ctaTitle {
-  font-size: clamp(1.3rem, 2vw, 1.65rem);
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--foreground);
   margin: 0;
 }
 
 .ctaDesc {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: #666;
   line-height: 1.65;
   max-width: 480px;
@@ -364,7 +363,7 @@
 
 @media (max-width: 600px) {
   .page {
-    padding: 0 1rem 4rem;
+    margin: 0 1.5rem;
   }
 
   .statsStrip {
