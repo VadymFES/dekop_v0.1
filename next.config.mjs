@@ -2,8 +2,10 @@
 const nextConfig = {
     reactStrictMode: true,
     allowedDevOrigins: ['192.168.252.194'],
-    serverActions: {
-        bodySizeLimit: '4mb',
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '4mb',
+        },
     },
     images: {
         formats: ['image/avif', 'image/webp'],
