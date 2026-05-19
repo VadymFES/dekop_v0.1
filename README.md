@@ -59,7 +59,7 @@ Full-stack e-commerce platform for a Ukrainian furniture retailer. Built with Ne
 
 ```
 app/
-├── [admin-path-57fyg]/     # Admin panel (auth-gated)
+├── [q3p8t6v2hn5]/     # Admin panel (auth-gated)
 │   ├── api/                # Admin API routes
 │   ├── login/              # Login page
 │   ├── orders/             # Order management

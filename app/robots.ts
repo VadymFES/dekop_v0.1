@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { getAdminPath } from '@/app/lib/admin-path';
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
@@ -25,7 +26,7 @@ export default function robots(): MetadataRoute.Robots {
           '/checkout/',
           '/order-success/',
           '/payment-cancelled/',
-          `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg'}/`,
+          `/${getAdminPath()}/`,
           '/cart/',
           '/favorites/',
         ],

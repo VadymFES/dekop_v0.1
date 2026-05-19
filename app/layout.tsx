@@ -11,6 +11,7 @@ import { Analytics } from "@vercel/analytics/next";
 import GoogleTagManager from "./components/GoogleTagManager";
 import CookieConsent from "./components/CookieConsent";
 import { organizationSchema, websiteSchema } from "@/app/lib/schema";
+import { getAdminPath } from "@/app/lib/admin-path";
 
 export const metadata: Metadata = {
   title: {
@@ -59,7 +60,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const adminPath = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg';
+  const adminPath = getAdminPath();
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
   const isAdminRoute = pathname.includes(adminPath);

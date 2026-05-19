@@ -16,6 +16,10 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionToken, hashToken } from './admin-auth';
 
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production');
+}
+
 // Configuration
 const CSRF_SECRET = process.env.SESSION_SECRET || process.env.CSRF_SECRET || 'csrf-default-secret-change-in-production';
 const CSRF_TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour

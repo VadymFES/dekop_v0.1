@@ -58,7 +58,7 @@ app/
 ├── api/
 │   └── upload/
 │       └── route.ts                 # Upload API handler
-├── [admin-path-57fyg]/
+├── [q3p8t6v2hn5]/
 │   └── products/
 │       └── components/
 │           ├── ImageUpload.tsx      # Drag-and-drop component

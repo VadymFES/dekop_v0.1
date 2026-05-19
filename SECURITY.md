@@ -68,7 +68,7 @@ All admin mutating routes (POST, PATCH, PUT, DELETE) require a CSRF token.
 - One-time use — replay rejected
 - Not placed in URL parameters
 
-**Implementation:** `app/lib/session-security.ts`, `app/[admin-path-57fyg]/components/CsrfProvider.tsx`
+**Implementation:** `app/lib/session-security.ts`, `app/[q3p8t6v2hn5]/components/CsrfProvider.tsx`
 
 ---
 
@@ -246,7 +246,7 @@ NEXT_PUBLIC_SITE_URL=https://dekop.com.ua
 NEXT_PUBLIC_BASE_URL=https://dekop.com.ua
 ```
 
-> **Important:** `NEXT_PUBLIC_ADMIN_PATH_SECRET` must never be set to an empty string. An empty value causes `pathname.includes('')` to match every route, breaking admin route detection throughout the application. The code falls back to `'admin-path-57fyg'` if the variable is absent.
+> **Important:** `NEXT_PUBLIC_ADMIN_PATH_SECRET` must never be set to an empty string. An empty value causes `pathname.includes('')` to match every route, breaking admin route detection throughout the application. The code falls back to `'q3p8t6v2hn5'` if the variable is absent.
 
 > **Note:** `NEXT_PUBLIC_ADMIN_PATH_SECRET` is bundled into the client-side JavaScript bundle (as all `NEXT_PUBLIC_` variables are). It provides routing obscurity, not security. Real access control is the session-based auth that runs independently of the path.
 

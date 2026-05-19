@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, useQueries } from '@tanstack/react-query';
 import { Cart, CartItem, ProductWithImages } from '@/app/lib/definitions';
 
-// REVIEW: NEXT_PUBLIC_ADMIN_PATH_SECRET is bundled into client JS — not a true secret; used here only for route detection, not authentication
-const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? '';
 
 const fetchCart = async (): Promise<Cart> => {
   const res = await fetch('/api/cart', {
@@ -106,7 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isAdminRoute = pathname?.startsWith(`/${ADMIN_PATH}`) || isAdminSubdomain;
+  const isAdminRoute = isAdminSubdomain;
   const isComingSoonRoute = pathname === '/coming-soon' || pathname?.startsWith('/coming-soon/');
   const shouldEnableCartQueries = hasCheckedSubdomain && !isAdminRoute && !isComingSoonRoute;
 

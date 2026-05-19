@@ -1,5 +1,7 @@
 export function getAdminPath(): string {
-  return process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg';
+  const path = process.env.ADMIN_PATH_SECRET;
+  if (!path) throw new Error('ADMIN_PATH_SECRET is not set');
+  return path;
 }
 
 export function getAdminUrl(subPath?: string): string {
@@ -12,4 +14,4 @@ export function getAdminApiUrl(endpoint: string): string {
   return `/${getAdminPath()}/api/${endpoint}`;
 }
 
-export const ADMIN_PATH = process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg';
+export const ADMIN_PATH = getAdminPath();

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const ADMIN_SUBDOMAIN = 'admin';
-const ADMIN_PATH = `/${process.env.NEXT_PUBLIC_ADMIN_PATH_SECRET ?? 'admin-path-57fyg'}`;
+const adminPath = process.env.ADMIN_PATH_SECRET;
+if (!adminPath) throw new Error('ADMIN_PATH_SECRET is not set');
+const ADMIN_PATH = `/${adminPath}`;
 const MAIN_DOMAIN = 'dekop.com.ua';
 
 /**

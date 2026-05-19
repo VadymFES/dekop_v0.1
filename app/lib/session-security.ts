@@ -6,6 +6,10 @@
 import crypto from 'crypto';
 import { sql } from '@vercel/postgres';
 
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production');
+}
+
 /**
  * Configuration
  */
