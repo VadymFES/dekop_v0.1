@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin, logAdminAction, getSessionToken, hashToken } from '@/app/lib/admin-auth';
+import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 import { db } from '@/app/lib/db';
 
 interface RouteParams {
@@ -17,6 +18,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
 
     const { sessionId } = await params;
 

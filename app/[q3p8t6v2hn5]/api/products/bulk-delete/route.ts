@@ -2,17 +2,21 @@
  * Bulk delete products API
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin, logAdminAction } from '@/app/lib/admin-auth';
+import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 import { db } from '@/app/lib/db';
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
 
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const csrfValid = await validateCsrfRequest(request);
+    if (!csrfValid) return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
 
     if (!admin.permissions.includes('products.delete')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

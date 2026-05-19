@@ -5,9 +5,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin, logAdminAction } from '@/app/lib/admin-auth';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 import { db } from '@/app/lib/db';
 
 export async function GET(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('admin:export', request), { limit: 10, windowSeconds: 60 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {

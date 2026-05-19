@@ -1,26 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/app/lib/db';
-import { validateSession } from '@/app/lib/admin-auth';
-import { cookies } from 'next/headers';
+import { getCurrentAdmin } from '@/app/lib/admin-auth';
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ productId: string }> }
 ) {
-  const productId = Number((await params).productId);
-
-  // Verify admin authentication
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('admin_session')?.value;
-
-  if (!sessionToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const admin = await validateSession(sessionToken);
+  const admin = await getCurrentAdmin();
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const productId = Number((await params).productId);
 
   try {
     const result = await db.query`

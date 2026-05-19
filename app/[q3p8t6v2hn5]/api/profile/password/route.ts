@@ -16,6 +16,7 @@ import {
 } from '@/app/lib/admin-auth';
 import { db } from '@/app/lib/db';
 import { validateCsrfRequest, generateCsrfToken, setCsrfCookie } from '@/app/lib/csrf-protection';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 import { z } from 'zod';
 
 const changePasswordSchema = z.object({
@@ -30,6 +31,9 @@ const changePasswordSchema = z.object({
 });
 
 export async function PUT(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('admin:password', request), { limit: 10, windowSeconds: 300 });
+  if (!rl.success) return tooManyRequests(rl.reset);
+
   try {
     // Validate CSRF token (Task 6)
     const csrfValid = await validateCsrfRequest(request);

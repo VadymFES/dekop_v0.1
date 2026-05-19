@@ -6,11 +6,14 @@
  * Called by CsrfProvider when token is missing or expired.
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { refreshCsrfToken, getCsrfCookie } from '@/app/lib/csrf-protection';
 import { getSessionToken } from '@/app/lib/admin-auth';
+import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const rl = await rateLimit(rateLimitKey('admin:csrf', request), { limit: 30, windowSeconds: 60 });
+  if (!rl.success) return tooManyRequests(rl.reset);
   try {
     // Check if user has a valid session
     const sessionToken = await getSessionToken();
