@@ -14,6 +14,9 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
  * Configuration
  */
 const SECRET_KEY = process.env.SESSION_SECRET || 'default-secret-key-change-in-production';
+const kdfSalt = process.env.SESSION_KDF_SALT ?? (() => {
+  throw new Error('SESSION_KDF_SALT must be set');
+})();
 const CSRF_TOKEN_LENGTH = 32;
 const SESSION_TOKEN_LENGTH = 32;
 const CSRF_TOKEN_EXPIRY = 3600; // 1 hour in seconds
@@ -35,7 +38,7 @@ export function encryptCookieValue(value: string): string {
     const iv = crypto.randomBytes(16);
 
     // Create cipher
-    const key = crypto.scryptSync(SECRET_KEY, 'salt', 32);
+    const key = crypto.scryptSync(SECRET_KEY, kdfSalt, 32);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
     // Encrypt the value
@@ -72,7 +75,7 @@ export function decryptCookieValue(encryptedValue: string): string | null {
     const { iv, value, authTag } = combined;
 
     // Create decipher
-    const key = crypto.scryptSync(SECRET_KEY, 'salt', 32);
+    const key = crypto.scryptSync(SECRET_KEY, kdfSalt, 32);
     const decipher = crypto.createDecipheriv(
       'aes-256-gcm',
       key,

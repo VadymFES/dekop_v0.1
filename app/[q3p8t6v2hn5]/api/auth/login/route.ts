@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
         first_name: result.user!.first_name,
         last_name: result.user!.last_name,
       },
-      csrfToken, // Include CSRF token in response for immediate client use
     });
   } catch (error) {
     console.error('Login error:', error);

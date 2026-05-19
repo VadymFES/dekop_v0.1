@@ -533,7 +533,7 @@ export async function setSessionCookie(token: string): Promise<void> {
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
     maxAge: SESSION_DURATION_HOURS * 60 * 60,
     // Set domain for subdomain access in production

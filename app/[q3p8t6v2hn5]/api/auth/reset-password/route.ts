@@ -4,9 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
 import { db } from '@/app/lib/db';
 import { generateToken, hashToken, logAdminAction } from '@/app/lib/admin-auth';
 import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
+import { passwordResetRequestSchema, safeValidateInput } from '@/app/lib/admin-validation';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   const rl = await rateLimit(rateLimitKey('admin:reset-password', request), { limit: 3, windowSeconds: 3600 });
@@ -14,16 +18,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { email } = body;
 
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({
-        success: false,
-        error: 'Email обов\'язковий',
-      }, { status: 400 });
+    const validation = safeValidateInput(passwordResetRequestSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ success: false, error: 'Невірний email' }, { status: 400 });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = validation.data.email;
 
     // Get request metadata
     const ipAddress = request.headers.get('x-forwarded-for') ||
@@ -104,6 +105,36 @@ export async function POST(request: NextRequest) {
       ipAddress,
       userAgent
     );
+
+    // Send reset email
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dekop.com.ua';
+    const adminPath = process.env.ADMIN_PATH_SECRET;
+    const resetLink = `${siteUrl}/${adminPath}/reset-password?token=${token}`;
+
+    await resend.emails.send({
+      from: 'noreply@dekop.com.ua',
+      to: normalizedEmail,
+      subject: 'Скидання пароля — DEKOP Адмін',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #333;">
+          <h2 style="margin: 0 0 16px; font-size: 20px;">Скидання пароля</h2>
+          <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.5; color: #555;">
+            Ми отримали запит на скидання пароля для вашого облікового запису адміністратора DEKOP.
+            Якщо це були не ви — просто проігноруйте цей лист.
+          </p>
+          <a href="${resetLink}"
+             style="display: inline-block; padding: 12px 28px; background: #333; color: #fff;
+                    text-decoration: none; border-radius: 4px; font-size: 15px; font-weight: bold;">
+            Скинути пароль
+          </a>
+          <p style="margin: 24px 0 0; font-size: 13px; color: #999;">
+            Посилання дійсне протягом 1 години.<br>
+            Якщо кнопка не працює, скопіюйте це посилання у браузер:<br>
+            <span style="word-break: break-all;">${resetLink}</span>
+          </p>
+        </div>
+      `,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
