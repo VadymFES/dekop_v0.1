@@ -1,4 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+const SCRAPER_UAS = ['python-requests', 'scrapy', 'curl/', 'wget/', 'Go-http'];
+
+function notify(
+  type: 'rate_limit' | 'bot_ua',
+  ip: string,
+  count: number,
+  ua: string,
+  path: string
+): void {
+  const botServerUrl = process.env.BOT_SERVER_URL;
+  const secret = process.env.INTERNAL_SECRET;
+  if (!botServerUrl || !secret) return;
+  fetch(`${botServerUrl}/internal/alert`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-internal-key': secret },
+    body: JSON.stringify({ type, ip, count, ua, path }),
+  }).catch(() => {});
+}
 
 const ADMIN_SUBDOMAIN = 'admin';
 const adminPath = process.env.ADMIN_PATH_SECRET;
@@ -25,10 +50,54 @@ function generateNonce(): string {
  * - HSTS, X-Frame-Options, and other security headers
  * - Security logging for sensitive endpoints
  */
-export function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const requestUrl = new URL(req.url);
   const hostname = req.headers.get('host') || '';
   const origin = req.headers.get('origin');
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const ua = req.headers.get('user-agent') ?? '';
+  const path = requestUrl.pathname;
+
+  // ==========================================
+  // BOT MONITORING CHECKS (fail open on Redis errors)
+  // ==========================================
+
+  try {
+    const maintenance = await redis.get<string>('maintenance_mode');
+    if (maintenance === 'true') {
+      return new NextResponse('Service Unavailable', { status: 503 });
+    }
+  } catch {}
+
+  try {
+    const blocked = await redis.get(`blocked:${ip}`);
+    if (blocked) {
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+  } catch {}
+
+  if (SCRAPER_UAS.some(b => ua.includes(b))) {
+    notify('bot_ua', ip, 0, ua, path);
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+
+  try {
+    const rateKey = `rate:${ip}`;
+    const count = await redis.incr(rateKey);
+    if (count === 1) await redis.expire(rateKey, 60);
+    if (count > 100) {
+      await redis.zadd('scraper:suspects', { score: count, member: ip });
+      notify('rate_limit', ip, count, ua, path);
+      return new NextResponse('Too Many Requests', { status: 429 });
+    }
+  } catch {}
+
+  try {
+    const bucket = Math.floor(Date.now() / 60000);
+    const trafficKey = `traffic:minute:${bucket}`;
+    const n = await redis.incr(trafficKey);
+    if (n === 1) await redis.expire(trafficKey, 3600);
+  } catch {}
 
   // ==========================================
   // SUBDOMAIN ROUTING FOR ADMIN PANEL
