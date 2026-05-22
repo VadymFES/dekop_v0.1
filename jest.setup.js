@@ -6,10 +6,6 @@
 // Mock environment variables for tests
 process.env.LIQPAY_PUBLIC_KEY = 'test_public_key'
 process.env.LIQPAY_PRIVATE_KEY = 'test_private_key'
-process.env.MONOBANK_TOKEN = 'test_monobank_token'
-process.env.MONOBANK_WEBHOOK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtest
------END PUBLIC KEY-----`
 process.env.API_KEY = 'test_api_key'
 process.env.RESEND_API_KEY = 'test_resend_key'
 process.env.POSTGRES_URL = 'postgresql://test:test@localhost:5432/test'

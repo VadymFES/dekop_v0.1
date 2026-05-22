@@ -34,8 +34,7 @@ export async function GET(req: NextRequest) {
     email:        checkEnv(['RESEND_API_KEY', 'RESEND_FROM_EMAIL']),
     blob_storage: checkEnv(['BLOB_READ_WRITE_TOKEN']),
     payments: {
-      liqpay:   checkEnv(['LIQPAY_PUBLIC_KEY', 'LIQPAY_PRIVATE_KEY']),
-      monobank: checkEnv(['MONOBANK_TOKEN', 'MONOBANK_PUBLIC_KEY']),
+      liqpay: checkEnv(['LIQPAY_PUBLIC_KEY', 'LIQPAY_PRIVATE_KEY']),
     },
     bot_server: checkEnv(['BOT_SERVER_URL', 'INTERNAL_SECRET']),
   };
@@ -53,8 +52,7 @@ export async function GET(req: NextRequest) {
   // Degraded
   if (checks.email.status !== 'ok')        issues.push('email: missing_config');
   if (checks.blob_storage.status !== 'ok') issues.push('blob_storage: missing_config');
-  if (checks.payments.liqpay.status !== 'ok')   issues.push('payments.liqpay: missing_config');
-  if (checks.payments.monobank.status !== 'ok') issues.push('payments.monobank: missing_config');
+  if (checks.payments.liqpay.status !== 'ok') issues.push('payments.liqpay: missing_config');
   if (checks.bot_server.status !== 'ok')   issues.push('bot_server: missing_config');
 
   const criticalFailing =
@@ -133,9 +131,6 @@ function buildRecommendations(checks: any, memory: Memory): string[] {
   }
   if (checks.payments.liqpay.status !== 'ok') {
     recs.push('LiqPay 💳 — not configured. Set LIQPAY_PUBLIC_KEY + LIQPAY_PRIVATE_KEY in Vercel env vars.');
-  }
-  if (checks.payments.monobank.status !== 'ok') {
-    recs.push('Monobank 💳 — not configured. Set MONOBANK_TOKEN + MONOBANK_PUBLIC_KEY in Vercel env vars.');
   }
   if (checks.bot_server.status !== 'ok') {
     recs.push('Bot server 🤖 — not configured. Set BOT_SERVER_URL + INTERNAL_SECRET in Vercel env vars.');

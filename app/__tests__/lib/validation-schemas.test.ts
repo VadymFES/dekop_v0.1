@@ -320,7 +320,7 @@ describe('Validation Schemas', () => {
     })
 
     it('should validate payment method enum', () => {
-      const validMethods = ['liqpay', 'monobank', 'cash_on_delivery']
+      const validMethods = ['liqpay', 'cash_on_delivery']
 
       validMethods.forEach((method) => {
         const data = { ...validOrderData, payment_method: method }

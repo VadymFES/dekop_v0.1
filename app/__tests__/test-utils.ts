@@ -201,32 +201,6 @@ export function generateLiqPaySignature(data: string, privateKey: string): strin
   return crypto.createHash('sha1').update(signString).digest('base64')
 }
 
-/**
- * Generate Monobank RSA signature for testing
- */
-export function generateMonobankSignature(data: string, privateKey: string): string {
-  const sign = crypto.createSign('SHA256')
-  sign.update(data)
-  sign.end()
-  return sign.sign(privateKey, 'base64')
-}
-
-/**
- * Create RSA key pair for testing Monobank signatures
- */
-export function createTestKeyPair() {
-  return crypto.generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: {
-      type: 'spki',
-      format: 'pem'
-    },
-    privateKeyEncoding: {
-      type: 'pkcs8',
-      format: 'pem'
-    }
-  })
-}
 
 /**
  * Mock response helpers
