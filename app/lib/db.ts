@@ -12,6 +12,7 @@
  */
 
 import { sql } from '@vercel/postgres';
+import { redis } from './redis';
 
 // Query statistics for monitoring
 let totalQueries = 0;
@@ -61,6 +62,10 @@ export const db = {
           `⚠️ Slow query (${duration}ms) [${slowQueries}/${totalQueries} slow]:`,
           queryText.substring(0, 100) + '...'
         );
+        // Track in Redis for health check — fire-and-forget
+        const bucket = Math.floor(Date.now() / 60000);
+        const key = `latency:slow:minute:${bucket}`;
+        redis.incr(key).then(() => redis.expire(key, 3600)).catch(() => {});
       }
 
       // Log query stats every 100 queries in development

@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Redis } from '@upstash/redis';
+import { redis } from '@/app/lib/redis';
 import { db } from '@/app/lib/db';
 import { logger } from '@/app/lib/logger';
-
-export const dynamic = 'force-dynamic';
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
 
 export async function GET(req: NextRequest) {
   const bypass = req.headers.get('x-vercel-protection-bypass')
@@ -75,6 +68,8 @@ export async function GET(req: NextRequest) {
     heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
   };
 
+  const metrics = await readMetrics();
+
   return NextResponse.json(
     {
       status,
@@ -85,15 +80,43 @@ export async function GET(req: NextRequest) {
       uptime_s: Math.floor(process.uptime()),
       checks,
       memory,
-      recommendations: buildRecommendations(checks, memory),
+      metrics,
+      recommendations: buildRecommendations(checks, memory, metrics),
     },
     { status: status === 'unhealthy' ? 503 : 200 },
   );
 }
 
 type Memory = { rss_mb: number; heap_used_mb: number; heap_total_mb: number };
+type Metrics = Awaited<ReturnType<typeof readMetrics>>;
 
-function buildRecommendations(checks: any, memory: Memory): string[] {
+async function readMetrics() {
+  const now = Math.floor(Date.now() / 60000);
+  const buckets = [now, now - 1, now - 2, now - 3, now - 4];
+
+  const sum = (vals: (string | null)[]) =>
+    vals.reduce((acc, v) => acc + (parseInt(v ?? '0') || 0), 0);
+
+  try {
+    const [e4, e5, slow, traffic] = await Promise.all([
+      Promise.all(buckets.map(b => redis.get<string>(`errors:4xx:minute:${b}`))),
+      Promise.all(buckets.map(b => redis.get<string>(`errors:5xx:minute:${b}`))),
+      Promise.all(buckets.map(b => redis.get<string>(`latency:slow:minute:${b}`))),
+      Promise.all(buckets.map(b => redis.get<string>(`traffic:minute:${b}`))),
+    ]);
+    return {
+      window_minutes: 5,
+      requests:    sum(traffic),
+      errors_4xx:  sum(e4),
+      errors_5xx:  sum(e5),
+      slow_queries: sum(slow),
+    };
+  } catch {
+    return { window_minutes: 5, requests: 0, errors_4xx: 0, errors_5xx: 0, slow_queries: 0 };
+  }
+}
+
+function buildRecommendations(checks: any, memory: Memory, metrics?: Metrics): string[] {
   const recs: string[] = [];
 
   // Database
@@ -144,6 +167,23 @@ function buildRecommendations(checks: any, memory: Memory): string[] {
     recs.push(`Memory 🔴 — heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB). Likely memory leak — redeploy immediately.`);
   } else if (heapPct >= 75) {
     recs.push(`Memory ⚠️ — heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB). Monitor closely.`);
+  }
+
+  // Error rates (last 5 min)
+  if (metrics) {
+    if (metrics.errors_5xx >= 10) {
+      recs.push(`Errors 5xx 🔴 — ${metrics.errors_5xx} server errors in last 5m. Check logs immediately.`);
+    } else if (metrics.errors_5xx >= 3) {
+      recs.push(`Errors 5xx ⚠️ — ${metrics.errors_5xx} server errors in last 5m. Monitor.`);
+    }
+    if (metrics.errors_4xx >= 50) {
+      recs.push(`Errors 4xx 👀 — ${metrics.errors_4xx} not-found hits in last 5m. Possible broken links or scan.`);
+    }
+    if (metrics.slow_queries >= 20) {
+      recs.push(`Latency 🔴 — ${metrics.slow_queries} slow queries in last 5m. DB under stress.`);
+    } else if (metrics.slow_queries >= 5) {
+      recs.push(`Latency ⚠️ — ${metrics.slow_queries} slow queries in last 5m. Watch for degradation.`);
+    }
   }
 
   return recs;
