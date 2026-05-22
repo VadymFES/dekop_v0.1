@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import { Resend } from 'resend';
 import { db } from '@/app/lib/db';
-import { ensureKitchenTables } from '@/app/lib/kitchen-db';
 import { rateLimit } from '@/app/lib/rate-limit';
 
 const schema = z.object({
@@ -62,7 +61,6 @@ export async function submitKitchenOrder(
   // Persist order to database so it is visible in the admin panel
   // regardless of whether the email send succeeds.
   try {
-    await ensureKitchenTables();
     await db.query`
       INSERT INTO kitchen_orders
         (last_name, first_name, patronymic, phone, email, region, city,

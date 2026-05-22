@@ -34,9 +34,14 @@ async function getFeaturedProducts(): Promise<ProductWithImages[]> {
         pi.image_url,
         pi.alt as image_alt,
         pi.is_primary,
-        (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) AS review_count
+        COALESCE(rc.review_count, 0) AS review_count
       FROM products p
       LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = true
+      LEFT JOIN (
+        SELECT product_id, COUNT(*) AS review_count
+        FROM reviews
+        GROUP BY product_id
+      ) rc ON rc.product_id = p.id
       WHERE (p.is_on_sale = true OR p.is_new = true OR p.is_bestseller = true)
       ORDER BY
         CASE

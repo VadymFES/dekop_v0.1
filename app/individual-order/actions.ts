@@ -22,28 +22,6 @@ const schema = z.object({
 
 export type IndividualOrderState = { success: boolean; error?: string } | null;
 
-async function ensureTable() {
-  await db.query`
-    CREATE TABLE IF NOT EXISTS individual_orders (
-      id            SERIAL PRIMARY KEY,
-      last_name     VARCHAR(100) NOT NULL,
-      first_name    VARCHAR(100) NOT NULL,
-      patronymic    VARCHAR(100),
-      phone         VARCHAR(20)  NOT NULL,
-      email         VARCHAR(200),
-      region        VARCHAR(100) NOT NULL,
-      city          VARCHAR(100) NOT NULL,
-      product_types TEXT,
-      colors        TEXT,
-      construction  VARCHAR(60),
-      image_url     TEXT,
-      comment       TEXT,
-      status        VARCHAR(30) DEFAULT 'new',
-      created_at    TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-}
-
 function esc(v: string) {
   return v
     .replace(/&/g, '&amp;')
@@ -102,7 +80,6 @@ export async function submitIndividualOrder(
   const d = parsed.data;
 
   try {
-    await ensureTable();
     await db.query`
       INSERT INTO individual_orders
         (last_name, first_name, patronymic, phone, email, region, city,

@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/app/lib/db';
-import { ensureKitchenTables } from '@/app/lib/kitchen-db';
 
 export const revalidate = 60;
 
 export async function GET() {
   try {
-    await ensureKitchenTables();
     const [cardsRes, galleryRes] = await Promise.all([
       db.query`SELECT id, name, description, price, image_url, sort_order FROM kitchen_cards ORDER BY sort_order ASC, created_at ASC`,
       db.query`SELECT id, image_url, alt, sort_order FROM kitchen_gallery ORDER BY sort_order ASC, created_at ASC`,

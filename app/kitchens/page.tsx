@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { db } from '@/app/lib/db';
-import { ensureKitchenTables } from '@/app/lib/kitchen-db';
 import KitchensContent from './KitchensContent';
 
 export const revalidate = 60;
@@ -25,7 +24,6 @@ export default async function KitchensPage() {
   let gallery: { id: number; image_url: string; alt: string }[] = [];
 
   try {
-    await ensureKitchenTables();
     const [cardsRes, galleryRes] = await Promise.all([
       db.query`SELECT id, name, description, price, image_url FROM kitchen_cards ORDER BY sort_order ASC, created_at ASC`,
       db.query`SELECT id, image_url, alt FROM kitchen_gallery ORDER BY sort_order ASC, created_at ASC`,

@@ -76,21 +76,25 @@ export async function proxy(req: NextRequest) {
     }
   } catch {}
 
-  if (SCRAPER_UAS.some(b => ua.includes(b))) {
+  const isInternal = req.headers.get('x-internal-key') === process.env.INTERNAL_SECRET;
+
+  if (!isInternal && SCRAPER_UAS.some(b => ua.includes(b))) {
     notify('bot_ua', ip, 0, ua, path);
     return new NextResponse('Forbidden', { status: 403 });
   }
 
-  try {
-    const rateKey = `rate:${ip}`;
-    const count = await redis.incr(rateKey);
-    if (count === 1) await redis.expire(rateKey, 60);
-    if (count > 100) {
-      await redis.zadd('scraper:suspects', { score: count, member: ip });
-      notify('rate_limit', ip, count, ua, path);
-      return new NextResponse('Too Many Requests', { status: 429 });
-    }
-  } catch {}
+  if (!isInternal) {
+    try {
+      const rateKey = `rate:${ip}`;
+      const count = await redis.incr(rateKey);
+      if (count === 1) await redis.expire(rateKey, 60);
+      if (count > 100) {
+        await redis.zadd('scraper:suspects', { score: count, member: ip });
+        notify('rate_limit', ip, count, ua, path);
+        return new NextResponse('Too Many Requests', { status: 429 });
+      }
+    } catch {}
+  }
 
   try {
     const bucket = Math.floor(Date.now() / 60000);
