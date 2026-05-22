@@ -40,23 +40,34 @@ export async function GET(req: NextRequest) {
     bot_server: checkEnv(['BOT_SERVER_URL', 'INTERNAL_SECRET']),
   };
 
+  const issues: string[] = [];
+
+  // Critical
+  if (checks.database.status === 'error') {
+    issues.push(`database: ${(checks.database as any).error ?? 'unreachable'}`);
+  }
+  if (checks.redis.status === 'error') {
+    issues.push(`redis: ${(checks.redis as any).error ?? 'unreachable'}`);
+  }
+
+  // Degraded
+  if (checks.email.status !== 'ok')        issues.push('email: missing_config');
+  if (checks.blob_storage.status !== 'ok') issues.push('blob_storage: missing_config');
+  if (checks.payments.liqpay.status !== 'ok')   issues.push('payments.liqpay: missing_config');
+  if (checks.payments.monobank.status !== 'ok') issues.push('payments.monobank: missing_config');
+  if (checks.bot_server.status !== 'ok')   issues.push('bot_server: missing_config');
+
   const criticalFailing =
     checks.database.status !== 'ok' || checks.redis.status !== 'ok';
-  const nonCriticalFailing =
-    checks.email.status !== 'ok' ||
-    checks.blob_storage.status !== 'ok' ||
-    checks.payments.liqpay.status !== 'ok' ||
-    checks.payments.monobank.status !== 'ok' ||
-    checks.bot_server.status !== 'ok';
 
   const status: 'healthy' | 'degraded' | 'unhealthy' = criticalFailing
     ? 'unhealthy'
-    : nonCriticalFailing
+    : issues.length > 0
     ? 'degraded'
     : 'healthy';
 
   if (status !== 'healthy') {
-    logger.warn('Health check non-healthy', { status, path: '/api/health' });
+    logger.warn('Health check non-healthy', { status, issues, path: '/api/health' });
   }
 
   const mem = process.memoryUsage();
@@ -69,6 +80,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(
     {
       status,
+      issues,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
       version: process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
