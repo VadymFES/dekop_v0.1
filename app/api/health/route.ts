@@ -88,45 +88,45 @@ function buildRecommendations(checks: any, memory: Memory): string[] {
 
   // Database
   if (checks.database.status === 'error') {
-    recs.push('🔴 DB unreachable — check Vercel Postgres dashboard and connection limits');
+    recs.push('Database 🔴 — unreachable. Check Vercel Postgres dashboard and connection limits.');
   } else {
     if (checks.database.latency_ms > 500) {
-      recs.push(`⚠️ DB latency is ${checks.database.latency_ms}ms — check for long-running queries or connection pool exhaustion`);
+      recs.push(`Database ⚠️ — latency ${checks.database.latency_ms}ms. Check for long-running queries or pool exhaustion.`);
     }
     if (checks.database.slow_query_pct > 10) {
-      recs.push(`⚠️ ${checks.database.slow_query_pct}% slow queries — review missing indexes (run EXPLAIN ANALYZE on slow endpoints)`);
+      recs.push(`Database ⚠️ — ${checks.database.slow_query_pct}% slow queries. Review missing indexes (EXPLAIN ANALYZE).`);
     }
   }
 
   // Redis
   if (checks.redis.status === 'error') {
-    recs.push('🔴 Redis unreachable — check Upstash dashboard; rate limiting and bot blocking are offline');
+    recs.push('Redis 🔴 — unreachable. Rate limiting and bot blocking are offline. Check Upstash dashboard.');
   } else {
     if (checks.redis.maintenance_mode) {
-      recs.push('🔧 Site is in maintenance mode — to restore: redis SET maintenance_mode false');
+      recs.push('Maintenance mode 🔧 — site is offline for users. To restore: SET maintenance_mode false in Redis.');
     }
     if (checks.redis.scraper_suspects > 20) {
-      recs.push(`🤖 ${checks.redis.scraper_suspects} scraper suspects detected — review via: ZRANGE scraper:suspects 0 -1 WITHSCORES`);
+      recs.push(`Scrapers 🤖 — ${checks.redis.scraper_suspects} suspects. Review: ZRANGE scraper:suspects 0 -1 WITHSCORES`);
     } else if (checks.redis.scraper_suspects > 5) {
-      recs.push(`👀 ${checks.redis.scraper_suspects} scraper suspects in Redis — monitor for increase`);
+      recs.push(`Scrapers 👀 — ${checks.redis.scraper_suspects} suspects in Redis. Monitor for increase.`);
     }
   }
 
   // Non-critical services
   if (checks.email.status !== 'ok') {
-    recs.push('📧 Email not configured — set RESEND_API_KEY + RESEND_FROM_EMAIL in Vercel env vars');
+    recs.push('Email 📧 — not configured. Set RESEND_API_KEY + RESEND_FROM_EMAIL in Vercel env vars.');
   }
   if (checks.blob_storage.status !== 'ok') {
-    recs.push('🗄️ Blob storage not configured — set BLOB_READ_WRITE_TOKEN in Vercel env vars');
+    recs.push('Blob storage 🗄️ — not configured. Set BLOB_READ_WRITE_TOKEN in Vercel env vars.');
   }
   if (checks.payments.liqpay.status !== 'ok') {
-    recs.push('💳 LiqPay not configured — set LIQPAY_PUBLIC_KEY + LIQPAY_PRIVATE_KEY in Vercel env vars');
+    recs.push('LiqPay 💳 — not configured. Set LIQPAY_PUBLIC_KEY + LIQPAY_PRIVATE_KEY in Vercel env vars.');
   }
   if (checks.payments.monobank.status !== 'ok') {
-    recs.push('💳 Monobank not configured — set MONOBANK_TOKEN + MONOBANK_PUBLIC_KEY in Vercel env vars');
+    recs.push('Monobank 💳 — not configured. Set MONOBANK_TOKEN + MONOBANK_PUBLIC_KEY in Vercel env vars.');
   }
   if (checks.bot_server.status !== 'ok') {
-    recs.push('🤖 Bot server not configured — set BOT_SERVER_URL + INTERNAL_SECRET in Vercel env vars');
+    recs.push('Bot server 🤖 — not configured. Set BOT_SERVER_URL + INTERNAL_SECRET in Vercel env vars.');
   }
 
   // Memory
@@ -134,9 +134,9 @@ function buildRecommendations(checks: any, memory: Memory): string[] {
     ? Math.round((memory.heap_used_mb / memory.heap_total_mb) * 100)
     : 0;
   if (heapPct >= 90) {
-    recs.push(`🔴 Heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB) — likely memory leak, redeploy immediately`);
+    recs.push(`Memory 🔴 — heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB). Likely memory leak — redeploy immediately.`);
   } else if (heapPct >= 75) {
-    recs.push(`⚠️ Heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB) — monitor closely`);
+    recs.push(`Memory ⚠️ — heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB). Monitor closely.`);
   }
 
   return recs;
