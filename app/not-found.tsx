@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redis } from '@/app/lib/redis';
+import styles from './not-found.module.css';
 
 export default async function NotFound() {
   try {
@@ -10,36 +11,11 @@ export default async function NotFound() {
   } catch {}
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'Inter, Arial, sans-serif',
-      background: '#faf9f7',
-      color: '#160101',
-      textAlign: 'center',
-      padding: '2rem',
-    }}>
-      <p style={{ fontSize: '5rem', fontWeight: 700, margin: 0, lineHeight: 1 }}>404</p>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '1rem 0 0.5rem' }}>
-        Сторінку не знайдено
-      </h1>
-      <p style={{ color: '#888', margin: '0 0 2rem', maxWidth: 360 }}>
-        Можливо, сторінку було переміщено або видалено.
-      </p>
-      <Link href="/" style={{
-        padding: '0.7rem 2rem',
-        background: '#160101',
-        color: '#fff',
-        borderRadius: '8px',
-        textDecoration: 'none',
-        fontWeight: 500,
-        fontSize: '0.95rem',
-      }}>
-        На головну
-      </Link>
+    <main className={styles.page}>
+      <p className={styles.code}>404</p>
+      <h1 className={styles.title}>Сторінку не знайдено</h1>
+      <p className={styles.body}>Можливо, сторінку було переміщено або видалено.</p>
+      <Link href="/" className={styles.link}>На головну</Link>
     </main>
   );
 }
