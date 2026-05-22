@@ -11,8 +11,9 @@ const redis = new Redis({
 });
 
 export async function GET(req: NextRequest) {
-  const apiKey = req.headers.get('x-api-key');
-  if (!apiKey || apiKey !== process.env.INTERNAL_SECRET) {
+  const bypass = req.headers.get('x-vercel-protection-bypass')
+    ?? req.nextUrl.searchParams.get('x-vercel-protection-bypass');
+  if (!bypass || bypass !== process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
