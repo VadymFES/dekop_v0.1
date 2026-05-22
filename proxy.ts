@@ -54,7 +54,9 @@ export async function proxy(req: NextRequest) {
   const requestUrl = new URL(req.url);
   const hostname = req.headers.get('host') || '';
   const origin = req.headers.get('origin');
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? req.headers.get('x-real-ip')
+    ?? 'unknown';
   const ua = req.headers.get('user-agent') ?? '';
   const path = requestUrl.pathname;
 

@@ -5,8 +5,8 @@ import { redis } from '@/app/lib/redis';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const ip = req.ip
-    ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? req.headers.get('x-real-ip')
     ?? 'unknown';
   const blocked = await redis.get(`blocked:${ip}`);
   return NextResponse.json({
