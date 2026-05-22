@@ -66,7 +66,7 @@ export async function proxy(req: NextRequest) {
 
   try {
     const maintenance = await redis.get<string>('maintenance_mode');
-    if (maintenance === 'true' && path !== '/api/health') {
+    if (String(maintenance) === 'true' && path !== '/api/health') {
       return new NextResponse('Service Unavailable', { status: 503 });
     }
   } catch {}
