@@ -60,6 +60,12 @@ export async function GET(req: NextRequest) {
   }
 
   const mem = process.memoryUsage();
+  const memory = {
+    rss_mb:        Math.round(mem.rss / 1024 / 1024),
+    heap_used_mb:  Math.round(mem.heapUsed / 1024 / 1024),
+    heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
+  };
+
   return NextResponse.json(
     {
       status,
@@ -68,14 +74,72 @@ export async function GET(req: NextRequest) {
       version: process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
       uptime_s: Math.floor(process.uptime()),
       checks,
-      memory: {
-        rss_mb:        Math.round(mem.rss / 1024 / 1024),
-        heap_used_mb:  Math.round(mem.heapUsed / 1024 / 1024),
-        heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
-      },
+      memory,
+      recommendations: buildRecommendations(checks, memory),
     },
     { status: status === 'unhealthy' ? 503 : 200 },
   );
+}
+
+type Memory = { rss_mb: number; heap_used_mb: number; heap_total_mb: number };
+
+function buildRecommendations(checks: any, memory: Memory): string[] {
+  const recs: string[] = [];
+
+  // Database
+  if (checks.database.status === 'error') {
+    recs.push('🔴 DB unreachable — check Vercel Postgres dashboard and connection limits');
+  } else {
+    if (checks.database.latency_ms > 500) {
+      recs.push(`⚠️ DB latency is ${checks.database.latency_ms}ms — check for long-running queries or connection pool exhaustion`);
+    }
+    if (checks.database.slow_query_pct > 10) {
+      recs.push(`⚠️ ${checks.database.slow_query_pct}% slow queries — review missing indexes (run EXPLAIN ANALYZE on slow endpoints)`);
+    }
+  }
+
+  // Redis
+  if (checks.redis.status === 'error') {
+    recs.push('🔴 Redis unreachable — check Upstash dashboard; rate limiting and bot blocking are offline');
+  } else {
+    if (checks.redis.maintenance_mode) {
+      recs.push('🔧 Site is in maintenance mode — to restore: redis SET maintenance_mode false');
+    }
+    if (checks.redis.scraper_suspects > 20) {
+      recs.push(`🤖 ${checks.redis.scraper_suspects} scraper suspects detected — review via: ZRANGE scraper:suspects 0 -1 WITHSCORES`);
+    } else if (checks.redis.scraper_suspects > 5) {
+      recs.push(`👀 ${checks.redis.scraper_suspects} scraper suspects in Redis — monitor for increase`);
+    }
+  }
+
+  // Non-critical services
+  if (checks.email.status !== 'ok') {
+    recs.push('📧 Email not configured — set RESEND_API_KEY + RESEND_FROM_EMAIL in Vercel env vars');
+  }
+  if (checks.blob_storage.status !== 'ok') {
+    recs.push('🗄️ Blob storage not configured — set BLOB_READ_WRITE_TOKEN in Vercel env vars');
+  }
+  if (checks.payments.liqpay.status !== 'ok') {
+    recs.push('💳 LiqPay not configured — set LIQPAY_PUBLIC_KEY + LIQPAY_PRIVATE_KEY in Vercel env vars');
+  }
+  if (checks.payments.monobank.status !== 'ok') {
+    recs.push('💳 Monobank not configured — set MONOBANK_TOKEN + MONOBANK_PUBLIC_KEY in Vercel env vars');
+  }
+  if (checks.bot_server.status !== 'ok') {
+    recs.push('🤖 Bot server not configured — set BOT_SERVER_URL + INTERNAL_SECRET in Vercel env vars');
+  }
+
+  // Memory
+  const heapPct = memory.heap_total_mb > 0
+    ? Math.round((memory.heap_used_mb / memory.heap_total_mb) * 100)
+    : 0;
+  if (heapPct >= 90) {
+    recs.push(`🔴 Heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB) — likely memory leak, redeploy immediately`);
+  } else if (heapPct >= 75) {
+    recs.push(`⚠️ Heap at ${heapPct}% (${memory.heap_used_mb}/${memory.heap_total_mb} MB) — monitor closely`);
+  }
+
+  return recs;
 }
 
 async function checkDatabase() {
