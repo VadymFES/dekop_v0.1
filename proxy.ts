@@ -64,9 +64,7 @@ export async function proxy(req: NextRequest) {
 
   try {
     const maintenance = await redis.get<string>('maintenance_mode');
-    // Allow bot control endpoints through even during maintenance
-    const isInternalPath = path === '/api/internal/maintenance' || path === '/api/health';
-    if (maintenance === 'true' && !isInternalPath) {
+    if (maintenance === 'true' && path !== '/api/health') {
       return new NextResponse('Service Unavailable', { status: 503 });
     }
   } catch {}
