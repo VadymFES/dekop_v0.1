@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sql } from '@vercel/postgres';
 import { redis } from '@/app/lib/redis';
 import { db } from '@/app/lib/db';
 import { logger } from '@/app/lib/logger';
@@ -191,7 +192,8 @@ function buildRecommendations(checks: any, memory: Memory, metrics?: Metrics): s
 
 async function checkDatabase() {
   const start = Date.now();
-  await db.query`SELECT 1`;
+  // Use raw sql to avoid counting the cold-start connection time as a "slow query"
+  await sql`SELECT 1`;
   const { totalQueries, slowQueries, slowQueryPercentage } = db.getStats();
   return {
     status: 'ok' as const,
