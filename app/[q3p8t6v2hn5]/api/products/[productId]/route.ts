@@ -346,6 +346,49 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+// PATCH - Partial update (reorder_level, reorder_qty and similar inventory fields)
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const csrfValid = await validateCsrfRequest(request);
+  if (!csrfValid) return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+
+  const admin = await getCurrentAdmin();
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { productId } = await params;
+  const id = parseInt(productId, 10);
+  if (isNaN(id)) return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+
+  const body = await request.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+
+  const allowed = ['reorder_level', 'reorder_qty'] as const;
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  let n = 1;
+
+  for (const key of allowed) {
+    if (key in body) {
+      const val = parseInt(String(body[key]), 10);
+      if (!isNaN(val) && val >= 0) {
+        sets.push(`${key} = $${n++}`);
+        values.push(val);
+      }
+    }
+  }
+
+  if (sets.length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+  }
+
+  values.push(id);
+  await db.query(
+    `UPDATE products SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $${n}`,
+    values,
+  );
+
+  return NextResponse.json({ success: true });
+}
+
 // DELETE - Delete product with all related data
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
@@ -835,7 +878,7 @@ function normalizeValue(value: unknown, field: string): unknown {
   }
 
   // Numeric fields - convert to number for comparison
-  const numericFields = ['price', 'sale_price', 'stock'];
+  const numericFields = ['price', 'sale_price', 'stock', 'reorder_level', 'reorder_qty'];
   if (numericFields.includes(field)) {
     const num = Number(value);
     return isNaN(num) ? null : num;
@@ -868,7 +911,7 @@ function calculateChanges(
   // Fields to track for changes (excluding category which needs special handling)
   const fieldsToTrack = [
     'name', 'slug', 'description', 'price', 'sale_price',
-    'stock', 'is_on_sale', 'is_new', 'is_bestseller'
+    'stock', 'reorder_level', 'reorder_qty', 'is_on_sale', 'is_new', 'is_bestseller'
   ];
 
   for (const field of fieldsToTrack) {

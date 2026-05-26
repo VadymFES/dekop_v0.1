@@ -13,6 +13,8 @@ import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schem
 import { handleError } from '@/app/lib/error-handler';
 import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
 import { findOrCreateCustomer, applyOrderSpend } from '@/app/lib/crm/customers';
+import { recordStockMovement } from '@/app/lib/inventory/movements';
+import { getDefaultWarehouseId } from '@/app/lib/inventory/warehouses';
 
 /**
  * POST /api/orders/create
@@ -121,6 +123,9 @@ export async function POST(request: Request) {
     // TRANSACTION: Wrap order creation in a transaction to ensure data consistency
     // If any operation fails, all changes will be rolled back to prevent orphaned records
     let order: OrderWithItems;
+
+    // Resolve the default warehouse outside the transaction (cached after first call)
+    const warehouseId = await getDefaultWarehouseId();
 
     // Get a connection from the pool for transaction support
     const client = await db.connect();
@@ -240,6 +245,18 @@ export async function POST(request: Request) {
           cartItem.image_url || null,
           cartItem.category
         ]);
+      }
+
+      // Deduct stock for each cart item (inside the same transaction)
+      for (const cartItem of cartResult.rows) {
+        await recordStockMovement(client, {
+          productId: cartItem.product_id as number,
+          warehouseId,
+          type: 'order_out',
+          quantity: -(cartItem.quantity as number),
+          referenceType: 'order',
+          referenceId: String(orderId),
+        });
       }
 
       // Fetch complete order with items within the same transaction

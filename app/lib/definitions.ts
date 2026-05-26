@@ -478,6 +478,44 @@ export interface CustomerWithOrders extends Customer {
   orders: CustomerOrderSummary[];
 }
 
+// =====================================================
+// INVENTORY
+// =====================================================
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  is_default: boolean;
+  location: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export type StockMovementType = 'purchase_in' | 'order_out' | 'adjustment' | 'return_in';
+
+export interface StockMovement {
+  id: string;
+  product_id: number;
+  warehouse_id: string;
+  type: StockMovementType;
+  quantity: number;
+  reference_type: string | null;
+  reference_id: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface InventoryProduct {
+  id: number;
+  name: string;
+  slug: string;
+  category: string;
+  stock: number;
+  reorder_level: number;
+  reorder_qty: number;
+}
+
 // Example filter configurations for furniture categories
 export const FURNITURE_FILTERS: CategoryFilters = {
   sofas: [
