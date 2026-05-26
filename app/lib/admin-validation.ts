@@ -415,6 +415,59 @@ export const updateAdminUserSchema = z.object({
 });
 
 // =====================================================
+// CUSTOMER (CRM) SCHEMAS
+// =====================================================
+
+/**
+ * Ukrainian phone: +380XXXXXXXXX or 380XXXXXXXXX, normalized to +380XXXXXXXXX
+ */
+const customerPhoneSchema = z.string()
+  .regex(/^\+?380\d{9}$/, 'Невірний формат телефону. Очікується: +380XXXXXXXXX')
+  .transform((val) => (val.startsWith('+') ? val : `+${val}`));
+
+export const customerSegmentEnum = z.enum(['new', 'repeat', 'vip']);
+
+/**
+ * Customer list filters
+ */
+export const customerFiltersSchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  search: z.string().max(100).optional(), // name, phone, email, company
+  segment: customerSegmentEnum.optional(),
+  tag: z.string().max(50).optional(),
+  customer_type: z.enum(['individual', 'business']).optional(),
+  sort: z.enum(['created_at', 'last_order_at', 'total_spent', 'total_orders']).optional().default('last_order_at'),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+/**
+ * Customer update (admin edits). All fields optional for partial updates.
+ */
+export const customerUpdateSchema = z.object({
+  phone: customerPhoneSchema.optional(),
+  email: emailSchema.nullable().optional(),
+  first_name: z.string().max(100, "Ім'я занадто довге").pipe(sanitizedString).nullable().optional(),
+  last_name: z.string().max(100, 'Прізвище занадто довге').pipe(sanitizedString).nullable().optional(),
+  customer_type: z.enum(['individual', 'business']).optional(),
+  company_name: z.string().max(255, 'Назва компанії занадто довга').pipe(sanitizedString).nullable().optional(),
+  tax_id: z.string().max(20, 'ЄДРПОУ/ІПН занадто довгий').pipe(sanitizedString).nullable().optional(),
+  is_vat_payer: z.boolean().optional(),
+  tags: z.array(z.string().max(50).pipe(sanitizedString)).max(20, 'Забагато тегів').optional(),
+  notes: z.string().max(2000, 'Нотатки занадто довгі').pipe(sanitizedString).nullable().optional(),
+  marketing_consent: z.boolean().optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'Немає полів для оновлення',
+});
+
+/**
+ * Customer ID (UUID) validation
+ */
+export const customerIdSchema = z.object({
+  customerId: uuidSchema,
+});
+
+// =====================================================
 // VALIDATION HELPERS
 // =====================================================
 
@@ -460,3 +513,5 @@ export type OrderStatusUpdate = z.infer<typeof orderStatusUpdateSchema>;
 export type OrderPaymentUpdate = z.infer<typeof orderPaymentUpdateSchema>;
 export type ProductFilters = z.infer<typeof productFiltersSchema>;
 export type OrderFilters = z.infer<typeof orderFiltersSchema>;
+export type CustomerFilters = z.infer<typeof customerFiltersSchema>;
+export type CustomerUpdate = z.infer<typeof customerUpdateSchema>;

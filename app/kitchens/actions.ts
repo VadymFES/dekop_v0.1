@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Resend } from 'resend';
 import { db } from '@/app/lib/db';
 import { rateLimit } from '@/app/lib/rate-limit';
+import { findOrCreateCustomer } from '@/app/lib/crm/customers';
 
 const schema = z.object({
   lastName:   z.string().min(1, 'Введіть прізвище').max(100),
@@ -61,15 +62,23 @@ export async function submitKitchenOrder(
   // Persist order to database so it is visible in the admin panel
   // regardless of whether the email send succeeds.
   try {
+    // Link this lead to the customer master (find-or-create by normalized phone).
+    const customerId = await findOrCreateCustomer(db, {
+      phone: d.phone,
+      email: d.email,
+      firstName: d.firstName,
+      lastName: d.lastName,
+    });
+
     await db.query`
       INSERT INTO kitchen_orders
         (last_name, first_name, patronymic, phone, email, region, city,
-         corpus, worktop, fittings, colors, appliances, comment)
+         corpus, worktop, fittings, colors, appliances, comment, customer_id)
       VALUES
         (${d.lastName}, ${d.firstName}, ${d.patronymic ?? ''},
          ${d.phone}, ${d.email}, ${d.region}, ${d.city},
          ${d.corpus ?? ''}, ${d.worktop ?? ''}, ${d.fittings ?? ''},
-         ${d.colors ?? ''}, ${d.appliances ?? ''}, ${d.comment ?? ''})
+         ${d.colors ?? ''}, ${d.appliances ?? ''}, ${d.comment ?? ''}, ${customerId})
     `;
   } catch (dbErr) {
     console.error('kitchen_orders insert failed:', dbErr);

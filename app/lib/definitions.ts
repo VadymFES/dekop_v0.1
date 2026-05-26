@@ -429,6 +429,55 @@ export interface CreateOrderRequest {
   customer_notes?: string;
 }
 
+// =====================================================
+// CUSTOMER (CRM) INTERFACES
+// =====================================================
+
+export type CustomerType = 'individual' | 'business';
+
+// Customer master record (deduplicated by normalized phone)
+export interface Customer {
+  id: string;
+  phone: string;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+
+  customer_type: CustomerType;
+  company_name: string | null;
+  tax_id: string | null; // ЄДРПОУ / ІПН
+  is_vat_payer: boolean;
+
+  tags: string[];
+  notes: string | null;
+  marketing_consent: boolean;
+
+  total_orders: number;
+  total_spent: number;
+  last_order_at: string | null;
+
+  created_at: string;
+  updated_at: string;
+}
+
+// Derived segment used for filtering/labelling in the CRM admin
+export type CustomerSegment = 'new' | 'repeat' | 'vip';
+
+// A customer's order history rolled up for the detail page
+export interface CustomerOrderSummary {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  order_status: OrderStatus;
+  payment_status: PaymentStatus;
+  created_at: string;
+}
+
+// Extended customer including linked order history
+export interface CustomerWithOrders extends Customer {
+  orders: CustomerOrderSummary[];
+}
+
 // Example filter configurations for furniture categories
 export const FURNITURE_FILTERS: CategoryFilters = {
   sofas: [

@@ -66,7 +66,8 @@ describe('GDPR Compliance - Data Export', () => {
         .mockResolvedValueOnce({ rows: [] }) // Cart items
         .mockResolvedValueOnce({ rows: [] }) // Consents
         .mockResolvedValueOnce({ rows: [] }) // Privacy policy
-        .mockResolvedValueOnce({ rows: [] }); // Sessions
+        .mockResolvedValueOnce({ rows: [] }) // Sessions
+        .mockResolvedValueOnce({ rows: [] }); // Customer master
 
       const result = await exportUserData(testEmail, { format: 'json' });
 
@@ -98,6 +99,7 @@ describe('GDPR Compliance - Data Export', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
       const result = await exportUserData(testEmail, { format: 'csv' });
@@ -123,6 +125,7 @@ describe('GDPR Compliance - Data Export', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
       const result = await exportUserData(testEmail, {
@@ -137,6 +140,7 @@ describe('GDPR Compliance - Data Export', () => {
 
     it('should exclude orders when not requested', async () => {
       sql
+        .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
@@ -168,6 +172,7 @@ describe('GDPR Compliance - Data Export', () => {
         })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
       const result = await exportUserData(testEmail, {
@@ -193,6 +198,7 @@ describe('GDPR Compliance - Data Export', () => {
             },
           ],
         })
+        .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
@@ -258,6 +264,7 @@ describe('GDPR Compliance - Right to Deletion', () => {
         .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // Delete carts
         .mockResolvedValueOnce({ rows: [], rowCount: 10 }) // Delete order_items
         .mockResolvedValueOnce({ rows: [], rowCount: 5 }) // Delete orders
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // Delete customers
         .mockResolvedValueOnce({ rows: [], rowCount: 3 }) // Delete sessions
         .mockResolvedValueOnce({ rows: [], rowCount: 2 }) // Delete CSRF tokens
         .mockResolvedValueOnce({ rows: [], rowCount: 4 }) // Revoke consents

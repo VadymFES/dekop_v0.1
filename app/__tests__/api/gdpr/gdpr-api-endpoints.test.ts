@@ -38,7 +38,8 @@ describe('GDPR API Endpoints', () => {
         .mockResolvedValueOnce({ rows: [] }) // Cart
         .mockResolvedValueOnce({ rows: [] }) // Consents
         .mockResolvedValueOnce({ rows: [] }) // Privacy policy
-        .mockResolvedValueOnce({ rows: [] }); // Sessions
+        .mockResolvedValueOnce({ rows: [] }) // Sessions
+        .mockResolvedValueOnce({ rows: [] }); // Customer master
 
       const result = await exportUserData(userEmail, { format: 'json' });
 

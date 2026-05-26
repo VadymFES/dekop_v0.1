@@ -25,6 +25,7 @@ export interface UserData {
   consents: any[];
   privacyPolicyAcceptances: any[];
   sessions: any[];
+  customer?: any; // Customer master record (CRM), matched by email
 }
 
 export interface ConsentType {
@@ -206,6 +207,19 @@ async function fetchAllUserData(
     userData.sessions = sessionsResult.rows;
   }
 
+  // Fetch the customer master record (CRM), matched by email
+  const customerResult = await sql`
+    SELECT id, phone, email, first_name, last_name, customer_type, company_name,
+           tax_id, is_vat_payer, tags, notes, marketing_consent,
+           total_orders, total_spent, last_order_at, created_at
+    FROM customers
+    WHERE LOWER(email) = LOWER(${userEmail})
+    LIMIT 1
+  `;
+  if (customerResult.rows.length > 0) {
+    userData.customer = customerResult.rows[0];
+  }
+
   return userData;
 }
 
@@ -324,6 +338,10 @@ export async function deleteUserData(
         `;
         anonymizedRecords.orders = orderAnonymizeResult.rowCount || 0;
         retainedRecords.orders = orderAnonymizeResult.rowCount || 0;
+
+        // Keep the customer master row for history linkage, but redact PII
+        anonymizedRecords.customers = await anonymizeCustomerByEmail(userEmail);
+        retainedRecords.customers = anonymizedRecords.customers;
       } else {
         // Delete order items first (foreign key constraint)
         const orderItemsResult = await sql`
@@ -339,6 +357,12 @@ export async function deleteUserData(
           DELETE FROM orders WHERE LOWER(user_email) = LOWER(${userEmail})
         `;
         deletedRecords.orders = ordersResult.rowCount || 0;
+
+        // Delete the customer master row (orders.customer_id is ON DELETE SET NULL)
+        const customerDeleteResult = await sql`
+          DELETE FROM customers WHERE LOWER(email) = LOWER(${userEmail})
+        `;
+        deletedRecords.customers = customerDeleteResult.rowCount || 0;
       }
 
       // Delete sessions
@@ -419,6 +443,10 @@ async function anonymizeUserData(
   anonymizedRecords.orders = ordersResult.rowCount || 0;
   retainedRecords.orders = ordersResult.rowCount || 0;
 
+  // Anonymize the customer master record (kept for history linkage)
+  anonymizedRecords.customers = await anonymizeCustomerByEmail(userEmail);
+  retainedRecords.customers = anonymizedRecords.customers;
+
   // Delete carts (not needed after anonymization)
   const cartItemsResult = await sql`
     DELETE FROM cart_items
@@ -438,6 +466,30 @@ async function anonymizeUserData(
     DELETE FROM sessions WHERE user_id = ${userEmail}
   `;
   anonymizedRecords.sessions = sessionsResult.rowCount || 0;
+}
+
+/**
+ * Redacts PII on the customer master record matched by email, keeping the row
+ * (and its order linkage + spend aggregates) intact. Phone is reset to a unique
+ * redacted token to satisfy the UNIQUE constraint. Returns rows affected.
+ */
+async function anonymizeCustomerByEmail(userEmail: string): Promise<number> {
+  const redactedPhone = `REDACTED-${crypto.randomUUID().slice(0, 8)}`;
+  const anonymizedEmail = `anonymized-${crypto.randomUUID()}@deleted.local`;
+  const result = await sql`
+    UPDATE customers
+    SET first_name = 'Anonymized',
+        last_name = 'User',
+        phone = ${redactedPhone},
+        email = ${anonymizedEmail},
+        company_name = NULL,
+        tax_id = NULL,
+        notes = NULL,
+        tags = '{}',
+        marketing_consent = false
+    WHERE LOWER(email) = LOWER(${userEmail})
+  `;
+  return result.rowCount || 0;
 }
 
 /**

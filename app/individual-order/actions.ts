@@ -5,6 +5,7 @@ import { put } from '@vercel/blob';
 import { Resend } from 'resend';
 import { db } from '@/app/lib/db';
 import { rateLimit } from '@/app/lib/rate-limit';
+import { findOrCreateCustomer } from '@/app/lib/crm/customers';
 
 const schema = z.object({
   lastName:     z.string().min(1, 'Введіть прізвище').max(100),
@@ -80,15 +81,23 @@ export async function submitIndividualOrder(
   const d = parsed.data;
 
   try {
+    // Link this lead to the customer master (find-or-create by normalized phone).
+    const customerId = await findOrCreateCustomer(db, {
+      phone: d.phone,
+      email: d.email,
+      firstName: d.firstName,
+      lastName: d.lastName,
+    });
+
     await db.query`
       INSERT INTO individual_orders
         (last_name, first_name, patronymic, phone, email, region, city,
-         product_types, colors, construction, image_url, comment)
+         product_types, colors, construction, image_url, comment, customer_id)
       VALUES
         (${d.lastName}, ${d.firstName}, ${d.patronymic ?? ''},
          ${d.phone}, ${d.email ?? ''}, ${d.region}, ${d.city},
          ${d.productTypes ?? ''}, ${d.colors ?? ''}, ${d.construction ?? ''},
-         ${imageUrl}, ${d.comment ?? ''})
+         ${imageUrl}, ${d.comment ?? ''}, ${customerId})
     `;
   } catch (dbErr) {
     console.error('individual_orders insert failed:', dbErr);

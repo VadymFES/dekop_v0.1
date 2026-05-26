@@ -12,6 +12,7 @@ import {
 import { createOrderSchema, safeValidateInput } from '@/app/lib/validation-schemas';
 import { handleError } from '@/app/lib/error-handler';
 import { rateLimit, rateLimitKey, tooManyRequests } from '@/app/lib/rate-limit';
+import { findOrCreateCustomer, applyOrderSpend } from '@/app/lib/crm/customers';
 
 /**
  * POST /api/orders/create
@@ -128,6 +129,15 @@ export async function POST(request: Request) {
       // Begin transaction
       await client.query('BEGIN');
 
+      // Link to the customer master (find-or-create by normalized phone).
+      // Runs inside the same transaction so a failure rolls the order back too.
+      const customerId = await findOrCreateCustomer(client, {
+        phone: validatedData.user_phone,
+        email: validatedData.user_email,
+        firstName: validatedData.user_name,
+        lastName: validatedData.user_surname,
+      });
+
       // Create order using validated and sanitized data
       const orderResult = await client.query(`
         INSERT INTO orders (
@@ -154,9 +164,10 @@ export async function POST(request: Request) {
           payment_status,
           order_status,
           customer_notes,
-          payment_deadline
+          payment_deadline,
+          customer_id
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
         )
         RETURNING id, order_number, total_amount, prepayment_amount, created_at
       `, [
@@ -183,10 +194,16 @@ export async function POST(request: Request) {
         'pending',
         'processing',
         validatedData.customer_notes || null,
-        paymentDeadline.toISOString()
+        paymentDeadline.toISOString(),
+        customerId
       ]);
 
       const orderId = orderResult.rows[0].id;
+
+      // Update denormalized customer aggregates (total orders/spent, last order date)
+      if (customerId) {
+        await applyOrderSpend(client, customerId, totals.totalAmount);
+      }
 
       // Create order items from cart
       for (const cartItem of cartResult.rows) {
