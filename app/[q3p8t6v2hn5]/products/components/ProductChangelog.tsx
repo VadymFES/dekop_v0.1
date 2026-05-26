@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminPath } from '../../components/AdminPathProvider';
+import styles from '../../styles/admin.module.css';
 
 interface ChangelogEntry {
   id: number;
   product_id: number;
   admin_email: string;
   action: string;
-  changes: Record<string, { old: unknown; new: unknown }>;
+  changes: Record<string, { old: unknown; new: unknown; reason?: string; note?: string | null }>;
   created_at: string;
 }
 
@@ -28,6 +29,13 @@ const FIELD_LABELS: Record<string, string> = {
   is_on_sale: 'Акція',
   is_new: 'Новинка',
   is_bestseller: 'Хіт продажу',
+};
+
+const STOCK_REASON_LABELS: Record<string, string> = {
+  produced_in: 'Виробництво',
+  return_in: 'Повернення від клієнта',
+  adjustment: 'Коригування (інвентаризація)',
+  write_off: 'Списання (брак/пошкодження)',
 };
 
 // Action translations
@@ -138,14 +146,22 @@ export default function ProductChangelog({ productId }: ProductChangelogProps) {
 
             {entry.changes && Object.keys(entry.changes).length > 0 && (
               <div style={changesContainerStyle}>
-                {Object.entries(entry.changes).map(([field, { old: oldVal, new: newVal }]) => (
+                {Object.entries(entry.changes).map(([field, change]) => (
                   <div key={field} style={changeRowStyle}>
                     <span style={fieldLabelStyle}>
                       {FIELD_LABELS[field] || field}:
                     </span>
-                    <span style={oldValueStyle}>{formatValue(oldVal)}</span>
+                    <span style={oldValueStyle}>{formatValue(change.old)}</span>
                     <span style={arrowStyle}>→</span>
-                    <span style={newValueStyle}>{formatValue(newVal)}</span>
+                    <span style={newValueStyle}>{formatValue(change.new)}</span>
+                    {field === 'stock' && change.reason && (
+                      <span className={`${styles.badge} ${styles.badgeSuccess}`}>
+                        {STOCK_REASON_LABELS[change.reason] ?? change.reason}
+                      </span>
+                    )}
+                    {field === 'stock' && change.note && (
+                      <span className={styles.slugText}>{change.note}</span>
+                    )}
                   </div>
                 ))}
               </div>

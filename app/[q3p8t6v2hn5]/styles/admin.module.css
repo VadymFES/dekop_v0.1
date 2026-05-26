@@ -404,6 +404,11 @@
   color: #ff9800;
 }
 
+.badgeSuccess {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
 /* Status Colors */
 .statusProcessing {
   color: #ff9800;

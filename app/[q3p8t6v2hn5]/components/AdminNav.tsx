@@ -20,7 +20,6 @@ const navItemDefs: NavItem[] = [
   { subPath: '/products', label: 'Товари', permission: 'products.read' },
   { subPath: '/orders', label: 'Замовлення', permission: 'orders.read' },
   { subPath: '/customers', label: 'Клієнти' },
-  { subPath: '/inventory', label: 'Склад' },
   { subPath: '/kitchens', label: 'Кухні' },
   { subPath: '/profile', label: 'Профіль' },
 ];

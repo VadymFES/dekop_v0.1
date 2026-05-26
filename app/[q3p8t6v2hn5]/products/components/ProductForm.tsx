@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCsrfTokenFromCookie } from '../../components/CsrfProvider';
+import type { StockMovementType } from '@/app/lib/inventory/movements';
 import { useAdminPath } from '../../components/AdminPathProvider';
 import styles from '../../styles/admin.module.css';
 import ImageUpload from './ImageUpload';
@@ -394,6 +395,9 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [isDirty, setIsDirty] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [stockReason, setStockReason] = useState<StockMovementType>('produced_in');
+  const [stockLoading, setStockLoading] = useState(false);
+  const originalStock = useRef<number>(product?.stock ?? 0);
   const initialFormData = useRef(JSON.stringify(formData));
   const isDirtyRef = useRef(isDirty);
 
@@ -665,6 +669,35 @@ export default function ProductForm({ product }: ProductFormProps) {
     });
   };
 
+  const handleApplyStock = async () => {
+    if (!isEdit || (formData.stock as number) === originalStock.current) return;
+    setStockLoading(true);
+    try {
+      const csrfToken = getCsrfTokenFromCookie();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+      const delta = (formData.stock as number) - originalStock.current;
+      const res = await fetch(`${adminPath}/api/inventory/stock-in`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ productId: product!.id, quantity: delta, type: stockReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ message: data.error || 'Помилка зміни залишку', type: 'error' });
+        return;
+      }
+      originalStock.current = data.stock as number;
+      setFormData((prev) => ({ ...prev, stock: data.stock as number }));
+      setStockReason('produced_in');
+      setToast({ message: `Залишок оновлено: ${data.stock}`, type: 'success' });
+    } catch {
+      setToast({ message: 'Помилка зміни залишку', type: 'error' });
+    } finally {
+      setStockLoading(false);
+    }
+  };
+
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -862,8 +895,28 @@ export default function ProductForm({ product }: ProductFormProps) {
               <input type="number" name="sale_price" value={formData.sale_price || ''} onChange={handleChange} min="0" step="1" className={styles.input} />
             </div>
             <div>
-              <label className={styles.label}>Запас *</label>
-              <input type="number" name="stock" value={formData.stock} onChange={handleChange} required min="0" step="1" className={styles.input} />
+              <label className={styles.label}>Запас</label>
+              <input type="number" name="stock" value={formData.stock} onChange={handleChange} min="0" step="1" className={styles.input} />
+              {isEdit && (formData.stock as number) !== originalStock.current && (
+                <div className={styles.mt10}>
+                  <label className={styles.labelSmall}>Причина зміни *</label>
+                  <div className={styles.flexRow}>
+                    <select
+                      value={stockReason}
+                      onChange={(e) => setStockReason(e.target.value as StockMovementType)}
+                      className={`${styles.select} ${styles.filterSelectMedium}`}
+                    >
+                      <option value="produced_in">Виробництво</option>
+                      <option value="return_in">Повернення від клієнта</option>
+                      <option value="adjustment">Коригування (інвентаризація)</option>
+                      <option value="write_off">Списання (брак/пошкодження)</option>
+                    </select>
+                    <button type="button" onClick={handleApplyStock} disabled={stockLoading} className={styles.buttonSuccess}>
+                      {stockLoading ? '...' : 'Застосувати'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

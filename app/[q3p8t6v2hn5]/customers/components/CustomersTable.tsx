@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAdminPath } from '../../components/AdminPathProvider';
+import styles from '../../styles/admin.module.css';
 
 interface CustomerRow {
   id: string;
@@ -27,22 +28,20 @@ export default function CustomersTable({ customers, vipThreshold }: Props) {
   const adminPath = useAdminPath();
   const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  useEffect(() => { setIsClient(true); }, []);
 
   return (
-    <div style={{ backgroundColor: 'white', border: '1px solid #ccc' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f5f5f5' }}>
-            <th style={thStyle}>Клієнт</th>
-            <th style={thStyle}>Контакт</th>
-            <th style={thStyle}>Сегмент</th>
-            <th style={thStyle}>Замовлень</th>
-            <th style={thStyle}>Сума</th>
-            <th style={thStyle}>Останнє</th>
-            <th style={thStyle}>Дії</th>
+    <div className={styles.cardNoPadding}>
+      <table className={styles.table}>
+        <thead className={styles.tableHeader}>
+          <tr>
+            <th className={styles.th}>Клієнт</th>
+            <th className={styles.th}>Контакт</th>
+            <th className={styles.th}>Сегмент</th>
+            <th className={styles.th}>Замовлень</th>
+            <th className={styles.th}>Сума</th>
+            <th className={styles.th}>Останнє</th>
+            <th className={styles.th}>Дії</th>
           </tr>
         </thead>
         <tbody>
@@ -50,37 +49,33 @@ export default function CustomersTable({ customers, vipThreshold }: Props) {
             const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || '—';
             return (
               <tr key={c.id}>
-                <td style={tdStyle}>
-                  <Link href={`${adminPath}/customers/${c.id}`} style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                <td className={styles.td}>
+                  <Link href={`${adminPath}/customers/${c.id}`} className={styles.link} style={{ fontWeight: 'bold' }}>
                     {name}
                   </Link>
                   {c.customer_type === 'business' && (
-                    <div style={{ fontSize: '12px', color: '#666' }}>{c.company_name || 'Бізнес'}</div>
+                    <div className={styles.tdSmall}>{c.company_name || 'Бізнес'}</div>
                   )}
                 </td>
-                <td style={tdStyle}>
+                <td className={styles.td}>
                   <div>{c.phone}</div>
-                  {c.email && <div style={{ fontSize: '12px', color: '#666' }}>{c.email}</div>}
+                  {c.email && <div className={styles.slugText}>{c.email}</div>}
                 </td>
-                <td style={tdStyle}>
+                <td className={styles.td}>
                   <SegmentBadge totalOrders={c.total_orders} totalSpent={c.total_spent} vipThreshold={vipThreshold} />
                 </td>
-                <td style={tdStyle}>{c.total_orders}</td>
-                <td style={tdStyle}>{formatCurrency(c.total_spent)}</td>
-                <td style={tdStyle}>{isClient ? formatDate(c.last_order_at) : '...'}</td>
-                <td style={tdStyle}>
-                  <Link href={`${adminPath}/customers/${c.id}`} style={{ color: '#1976d2' }}>
-                    Переглянути
-                  </Link>
+                <td className={styles.td}>{c.total_orders}</td>
+                <td className={styles.td}>{formatCurrency(c.total_spent)}</td>
+                <td className={styles.td}>{isClient ? formatDate(c.last_order_at) : '...'}</td>
+                <td className={styles.td}>
+                  <Link href={`${adminPath}/customers/${c.id}`} className={styles.link}>Переглянути</Link>
                 </td>
               </tr>
             );
           })}
           {customers.length === 0 && (
             <tr>
-              <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: '#999' }}>
-                Клієнтів не знайдено
-              </td>
+              <td colSpan={7} className={styles.tdEmpty}>Клієнтів не знайдено</td>
             </tr>
           )}
         </tbody>
@@ -100,31 +95,17 @@ function SegmentBadge({ totalOrders, totalSpent, vipThreshold }: { totalOrders: 
     color = { bg: '#e8f5e9', text: '#2e7d32' };
   }
   return (
-    <span style={{ backgroundColor: color.bg, color: color.text, padding: '4px 10px', fontWeight: 'bold', fontSize: '12px', borderRadius: '3px' }}>
+    <span className={styles.badge} style={{ backgroundColor: color.bg, color: color.text, fontWeight: 'bold' }}>
       {label}
     </span>
   );
 }
 
 function formatCurrency(amount: number): string {
-  const formatted = new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-  return `${formatted} грн`;
+  return `${new Intl.NumberFormat('uk-UA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)} грн`;
 }
 
 function formatDate(dateString: string | null): string {
   if (!dateString) return '—';
   return new Date(dateString).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-
-const thStyle = {
-  padding: '12px 10px',
-  textAlign: 'left' as const,
-  borderBottom: '2px solid #ccc',
-  fontSize: '14px',
-};
-
-const tdStyle = {
-  padding: '10px',
-  borderBottom: '1px solid #eee',
-  fontSize: '14px',
-};

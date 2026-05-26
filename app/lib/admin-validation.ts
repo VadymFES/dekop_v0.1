@@ -510,27 +510,6 @@ export function formatValidationErrors(error: z.ZodError): Record<string, string
 // INVENTORY SCHEMAS
 // =====================================================
 
-export const stockAdjustmentSchema = z.object({
-  productId: z.number().int().positive('Невірний ID товару'),
-  quantity: z.number().int().refine((n) => n !== 0, 'Кількість не може бути 0'),
-  notes: sanitizedString.max(500, 'Нотатка занадто довга').optional(),
-});
-
-export const inventoryFiltersSchema = z.object({
-  low_stock: z.enum(['true', 'false']).optional(),
-  out_of_stock: z.enum(['true', 'false']).optional(),
-  category: z.string().max(100).optional(),
-  search: z.string().max(200).optional(),
-  page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
-});
-
-export const movementFiltersSchema = z.object({
-  productId: z.coerce.number().int().positive().optional(),
-  type: z.enum(['purchase_in', 'order_out', 'adjustment', 'return_in']).optional(),
-  page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
-});
 
 // Export types
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
@@ -541,6 +520,3 @@ export type ProductFilters = z.infer<typeof productFiltersSchema>;
 export type OrderFilters = z.infer<typeof orderFiltersSchema>;
 export type CustomerFilters = z.infer<typeof customerFiltersSchema>;
 export type CustomerUpdate = z.infer<typeof customerUpdateSchema>;
-export type StockAdjustment = z.infer<typeof stockAdjustmentSchema>;
-export type InventoryFilters = z.infer<typeof inventoryFiltersSchema>;
-export type MovementFilters = z.infer<typeof movementFiltersSchema>;

@@ -64,9 +64,8 @@ export default function CustomerForm({ customer }: Props) {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Помилка збереження');
-      }
+      if (!res.ok) throw new Error(data.error || 'Помилка збереження');
+
       setMessage({ type: 'ok', text: 'Збережено' });
       router.refresh();
     } catch (err) {
@@ -77,70 +76,78 @@ export default function CustomerForm({ customer }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ backgroundColor: 'white', border: '1px solid #ccc', padding: '20px' }}>
-      <h2 style={{ fontSize: '18px', marginTop: 0, marginBottom: '16px' }}>Профіль клієнта</h2>
+    <div className={styles.card}>
+      <h2 className={styles.sectionTitle}>Профіль клієнта</h2>
 
-      <Field label="Ім'я">
-        <input className={styles.inputSmall} value={form.first_name} onChange={(e) => set('first_name', e.target.value)} />
-      </Field>
-      <Field label="Прізвище">
-        <input className={styles.inputSmall} value={form.last_name} onChange={(e) => set('last_name', e.target.value)} />
-      </Field>
-      <Field label="Телефон">
-        <input className={styles.inputSmall} value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+380XXXXXXXXX" />
-      </Field>
-      <Field label="Email">
-        <input className={styles.inputSmall} value={form.email} onChange={(e) => set('email', e.target.value)} />
-      </Field>
+      <form onSubmit={handleSubmit}>
+        <Field label="Ім'я">
+          <input className={styles.inputSmall} value={form.first_name} onChange={(e) => set('first_name', e.target.value)} />
+        </Field>
+        <Field label="Прізвище">
+          <input className={styles.inputSmall} value={form.last_name} onChange={(e) => set('last_name', e.target.value)} />
+        </Field>
+        <Field label="Телефон">
+          <input className={styles.inputSmall} value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="+380XXXXXXXXX" />
+        </Field>
+        <Field label="Email">
+          <input className={styles.inputSmall} value={form.email} onChange={(e) => set('email', e.target.value)} />
+        </Field>
 
-      <Field label="Тип">
-        <select className={styles.select} value={form.customer_type} onChange={(e) => set('customer_type', e.target.value)} style={{ padding: '10px 12px' }}>
-          <option value="individual">Фізична особа</option>
-          <option value="business">Бізнес</option>
-        </select>
-      </Field>
+        <Field label="Тип">
+          <select className={`${styles.select} ${styles.filterSelectMedium}`} value={form.customer_type} onChange={(e) => set('customer_type', e.target.value)}>
+            <option value="individual">Фізична особа</option>
+            <option value="business">Бізнес</option>
+          </select>
+        </Field>
 
-      {form.customer_type === 'business' && (
-        <>
-          <Field label="Назва компанії">
-            <input className={styles.inputSmall} value={form.company_name} onChange={(e) => set('company_name', e.target.value)} />
-          </Field>
-          <Field label="ЄДРПОУ / ІПН">
-            <input className={styles.inputSmall} value={form.tax_id} onChange={(e) => set('tax_id', e.target.value)} />
-          </Field>
-          <Field label="Платник ПДВ">
-            <input type="checkbox" checked={form.is_vat_payer} onChange={(e) => set('is_vat_payer', e.target.checked)} />
-          </Field>
-        </>
-      )}
+        {form.customer_type === 'business' && (
+          <>
+            <Field label="Назва компанії">
+              <input className={styles.inputSmall} value={form.company_name} onChange={(e) => set('company_name', e.target.value)} />
+            </Field>
+            <Field label="ЄДРПОУ / ІПН">
+              <input className={styles.inputSmall} value={form.tax_id} onChange={(e) => set('tax_id', e.target.value)} />
+            </Field>
+            <Field label="Платник ПДВ">
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={form.is_vat_payer} onChange={(e) => set('is_vat_payer', e.target.checked)} />
+                Так
+              </label>
+            </Field>
+          </>
+        )}
 
-      <Field label="Теги (через кому)">
-        <input className={styles.inputSmall} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="опт, Київ, постійний" />
-      </Field>
-      <Field label="Нотатки">
-        <textarea className={styles.inputSmall} value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={4} style={{ resize: 'vertical' }} />
-      </Field>
-      <Field label="Згода на маркетинг">
-        <input type="checkbox" checked={form.marketing_consent} onChange={(e) => set('marketing_consent', e.target.checked)} />
-      </Field>
+        <Field label="Теги (через кому)">
+          <input className={styles.inputSmall} value={form.tags} onChange={(e) => set('tags', e.target.value)} placeholder="опт, Київ, постійний" />
+        </Field>
+        <Field label="Нотатки">
+          <textarea className={styles.textarea} value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={4} />
+        </Field>
+        <Field label="Згода на маркетинг">
+          <label className={styles.checkboxLabel}>
+            <input type="checkbox" checked={form.marketing_consent} onChange={(e) => set('marketing_consent', e.target.checked)} />
+            Надано
+          </label>
+        </Field>
 
-      {message && (
-        <div className={message.type === 'ok' ? styles.success : styles.error} style={{ marginBottom: '12px' }}>
-          {message.text}
-        </div>
-      )}
+        {message && (
+          <div className={`${message.type === 'ok' ? styles.success : styles.error} ${styles.mb15}`}>
+            {message.text}
+          </div>
+        )}
 
-      <button type="submit" disabled={saving} style={{ padding: '10px 24px', backgroundColor: '#333', color: 'white', border: 'none', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-        {saving ? 'Збереження...' : 'Зберегти'}
-      </button>
-    </form>
+        <button type="submit" disabled={saving} className={styles.buttonSecondary}>
+          {saving ? 'Збереження...' : 'Зберегти'}
+        </button>
+      </form>
+    </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ marginBottom: '14px' }}>
-      <label className={styles.labelSmall} style={{ display: 'block', marginBottom: '4px' }}>{label}</label>
+    <div className={styles.mb15}>
+      <label className={styles.labelSmall}>{label}</label>
       {children}
     </div>
   );
