@@ -137,7 +137,10 @@ export async function proxy(req: NextRequest) {
     // Next.js runtime paths (_next/webpack-hmr, RSC flight data, etc.) must
     // also pass through; they are not user-navigable pages.
     const isNextInternal = path.startsWith('/_next/');
-    if (!isComingSoonPage && !isApiRoute && !isVercelInternal && !isNextInternal) {
+    // SEO files must always be served as-is so crawlers and validators get valid
+    // content — redirecting them causes robots.txt to return HTML.
+    const isStaticSeo = path === '/robots.txt' || path === '/sitemap.xml';
+    if (!isComingSoonPage && !isApiRoute && !isVercelInternal && !isNextInternal && !isStaticSeo) {
       const ua = req.headers.get('user-agent') || '';
       const isBot = /googlebot|google-inspectiontool|google-extended|bingbot|baiduspider|yandexbot|duckduckbot|slurp|applebot|facebookexternalhit|twitterbot|linkedinbot|perplexitybot|anthropic-ai|claudebot/i.test(ua);
       if (!isBot) {
@@ -399,6 +402,10 @@ export async function proxy(req: NextRequest) {
   // DNS prefetch control
   response.headers.set('X-DNS-Prefetch-Control', 'on');
 
+  // Cross-Origin-Opener-Policy — isolates the browsing context from cross-origin
+  // documents while still allowing popups (needed for LiqPay payment windows).
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
   // ==========================================
   // ADMIN PANEL SECURITY
   // ==========================================
@@ -522,6 +529,7 @@ function addSecurityHeaders(
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('X-DNS-Prefetch-Control', 'on');
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
 
   // Admin-specific headers
   if (isAdmin) {

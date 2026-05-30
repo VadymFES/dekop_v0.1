@@ -39,6 +39,9 @@
     "swr": "^2.3.2",
     "zod": "^4.1.12"
   },
+  "browserslist": [
+    "> 0.5%, last 2 versions, not dead, not ie 11"
+  ],
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",

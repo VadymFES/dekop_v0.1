@@ -224,7 +224,7 @@
 
 .btn {
   padding: 0.85rem 1.4rem;
-  background: #F45145;
+  background: #E2281B;
   color: #fff;
   border: none;
   cursor: pointer;
@@ -238,11 +238,11 @@
 }
 
 .btn:hover {
-  background: #E2281B;
+  background: #C0201A;
 }
 
 .btn:disabled {
-  background: #f4514580;
+  background: #e2281b80;
   cursor: not-allowed;
 }
 
@@ -252,7 +252,7 @@
 
 .formNote {
   font-size: var(--text-xs);
-  color: #16010140;
+  color: #767676;
   animation: fadeUp 0.8s 0.5s ease both;
 }
 
@@ -312,7 +312,7 @@
   font-size: var(--text-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #16010130;
+  color: #767676;
   white-space: nowrap;
   z-index: 2;
   position: relative;
