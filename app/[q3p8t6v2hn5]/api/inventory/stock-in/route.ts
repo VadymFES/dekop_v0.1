@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@vercel/postgres';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { validateCsrfRequest } from '@/app/lib/csrf-protection';
@@ -12,7 +12,7 @@ const stockAdjustSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
