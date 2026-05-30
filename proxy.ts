@@ -64,46 +64,49 @@ export async function proxy(req: NextRequest) {
   // BOT MONITORING CHECKS (fail open on Redis errors)
   // ==========================================
 
-  try {
-    const maintenance = await redis.get<string>('maintenance_mode');
-    if (String(maintenance) === 'true' && path !== '/api/health') {
-      return new NextResponse('Service Unavailable', { status: 503 });
-    }
-  } catch {}
-
-  try {
-    const blocked = await redis.get(`blocked:${ip}`);
-    if (blocked) {
-      return new NextResponse('Forbidden', { status: 403 });
-    }
-  } catch {}
-
   const isInternal = req.headers.get('x-internal-key') === process.env.INTERNAL_SECRET;
 
+  // Reject known scraper UAs before touching Redis.
   if (!isInternal && SCRAPER_UAS.some(b => ua.includes(b))) {
     notify('bot_ua', ip, 0, ua, path);
     return new NextResponse('Forbidden', { status: 403 });
   }
 
+  // Fetch maintenance flag and IP block status in parallel — one round-trip.
+  try {
+    const [maintenance, blocked] = await Promise.all([
+      redis.get<string>('maintenance_mode'),
+      redis.get(`blocked:${ip}`),
+    ]);
+    if (String(maintenance) === 'true' && path !== '/api/health') {
+      return new NextResponse('Service Unavailable', { status: 503 });
+    }
+    if (blocked) {
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+  } catch {}
+
   if (!isInternal) {
     try {
       const rateKey = `rate:${ip}`;
-      const count = await redis.incr(rateKey);
-      if (count === 1) await redis.expire(rateKey, 60);
+      // Use pipeline so incr + expire are sent in a single round-trip.
+      const pipeline = redis.pipeline();
+      pipeline.incr(rateKey);
+      pipeline.expire(rateKey, 60, 'NX'); // NX = only set if not already expiring
+      const [count] = await pipeline.exec() as [number, number];
       if (count > 100) {
-        await redis.zadd('scraper:suspects', { score: count, member: ip });
+        // zadd is fire-and-forget — don't block the response on it.
+        redis.zadd('scraper:suspects', { score: count, member: ip }).catch(() => {});
         notify('rate_limit', ip, count, ua, path);
         return new NextResponse('Too Many Requests', { status: 429 });
       }
     } catch {}
   }
 
-  try {
-    const bucket = Math.floor(Date.now() / 60000);
-    const trafficKey = `traffic:minute:${bucket}`;
-    const n = await redis.incr(trafficKey);
-    if (n === 1) await redis.expire(trafficKey, 3600);
-  } catch {}
+  // Traffic counting is analytics-only — fire and forget, never block the request.
+  const bucket = Math.floor(Date.now() / 60000);
+  const trafficKey = `traffic:minute:${bucket}`;
+  redis.pipeline().incr(trafficKey).expire(trafficKey, 3600, 'NX').exec().catch(() => {});
 
   // ==========================================
   // SUBDOMAIN ROUTING FOR ADMIN PANEL
