@@ -10,62 +10,6 @@
   padding: 2rem 2rem 1.5rem;
 }
 
-/* ── Floating furniture silhouettes ── */
-.scene {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.sofa {
-  position: absolute;
-  bottom: -20px;
-  left: -60px;
-  opacity: 0.055;
-  animation: driftLeft 18s ease-in-out infinite alternate;
-}
-
-.armchair {
-  position: absolute;
-  top: 8%;
-  right: -40px;
-  opacity: 0.05;
-  animation: driftRight 14s ease-in-out infinite alternate;
-}
-
-.lamp {
-  position: absolute;
-  top: 20%;
-  left: 6%;
-  opacity: 0.04;
-  animation: sway 10s ease-in-out infinite alternate;
-}
-
-.table {
-  position: absolute;
-  bottom: 5%;
-  right: 8%;
-  opacity: 0.055;
-  animation: driftRight 20s ease-in-out infinite alternate;
-}
-
-@keyframes driftLeft {
-  from { transform: translateX(0) rotate(-2deg); }
-  to   { transform: translateX(40px) rotate(2deg); }
-}
-
-@keyframes driftRight {
-  from { transform: translateX(0) rotate(2deg); }
-  to   { transform: translateX(-40px) rotate(-2deg); }
-}
-
-@keyframes sway {
-  from { transform: rotate(-4deg); }
-  to   { transform: rotate(4deg); }
-}
-
 /* ── Animated dots ruler ── */
 .ruler {
   display: flex;
@@ -332,8 +276,6 @@
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
-  .sofa, .armchair, .lamp, .table { display: none; }
-
   .form {
     flex-direction: column;
     max-width: 80%;

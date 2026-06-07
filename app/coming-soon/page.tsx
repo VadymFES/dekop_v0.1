@@ -14,45 +14,6 @@ export default function ComingSoonPage() {
   return (
     <main className={styles.page}>
 
-      {/* Animated background furniture silhouettes */}
-      <div className={styles.scene}>
-        {/* Sofa */}
-        <svg className={styles.sofa} width="520" height="260" viewBox="0 0 520 260" fill="none">
-          <rect x="20" y="120" width="480" height="100" rx="18" fill="#160101"/>
-          <rect x="20" y="80" width="100" height="140" rx="14" fill="#160101"/>
-          <rect x="400" y="80" width="100" height="140" rx="14" fill="#160101"/>
-          <rect x="40" y="60" width="440" height="80" rx="14" fill="#160101"/>
-          <rect x="60" y="220" width="40" height="30" rx="6" fill="#160101"/>
-          <rect x="420" y="220" width="40" height="30" rx="6" fill="#160101"/>
-        </svg>
-
-        {/* Armchair */}
-        <svg className={styles.armchair} width="280" height="240" viewBox="0 0 280 240" fill="none">
-          <rect x="40" y="100" width="200" height="100" rx="14" fill="#160101"/>
-          <rect x="10" y="80" width="60" height="120" rx="12" fill="#160101"/>
-          <rect x="210" y="80" width="60" height="120" rx="12" fill="#160101"/>
-          <rect x="40" y="50" width="200" height="70" rx="12" fill="#160101"/>
-          <rect x="60" y="200" width="30" height="28" rx="5" fill="#160101"/>
-          <rect x="190" y="200" width="30" height="28" rx="5" fill="#160101"/>
-        </svg>
-
-        {/* Floor lamp */}
-        <svg className={styles.lamp} width="100" height="340" viewBox="0 0 100 340" fill="none">
-          <rect x="44" y="80" width="12" height="240" rx="6" fill="#160101"/>
-          <ellipse cx="50" cy="320" rx="36" ry="10" fill="#160101"/>
-          <path d="M10 80 Q50 10 90 80Z" fill="#160101"/>
-          <ellipse cx="50" cy="80" rx="40" ry="10" fill="#160101"/>
-        </svg>
-
-        {/* Coffee table */}
-        <svg className={styles.table} width="360" height="140" viewBox="0 0 360 140" fill="none">
-          <rect x="20" y="40" width="320" height="30" rx="8" fill="#160101"/>
-          <rect x="40" y="70" width="18" height="60" rx="5" fill="#160101"/>
-          <rect x="302" y="70" width="18" height="60" rx="5" fill="#160101"/>
-          <rect x="10" y="30" width="340" height="18" rx="6" fill="#160101"/>
-        </svg>
-      </div>
-
       {/* Main content */}
       <div className={styles.card}>
 
