@@ -8,6 +8,23 @@ const redis = new Redis({
 
 const SCRAPER_UAS = ['python-requests', 'scrapy', 'curl/', 'wget/', 'Go-http'];
 
+// Paths probed by credential-harvesting bots. Checked before Redis to avoid
+// wasting invocations. Returns 404 (not 403) to avoid fingerprinting the block.
+const PROBE_PATH_PATTERNS = [
+  /^\/.vscode\//i,
+  /^\/.git\//i,
+  /^\/.env(\.|$)/i,
+  /\/sftp[^/]*\.(json|cfg|config|save|ini)(-.*)?$/i,
+  /\/ftp[^/]*\.(json|cfg|config|ini)$/i,
+  /\/accounts\.ftp\./i,
+  /\/(wp-admin|wp-login|wp-config|xmlrpc)(\.|\/|$)/i,
+  /\.php$/i,
+  /\/\.(htaccess|htpasswd|DS_Store)$/i,
+  /\/(etc\/passwd|proc\/self)/i,
+  /\.(sql|bak|backup|tar|zip|gz|rar)$/i,
+  /\/config\.(json|yaml|yml|ini|xml)$/i,
+];
+
 function notify(
   type: 'rate_limit' | 'bot_ua',
   ip: string,
@@ -59,6 +76,17 @@ export async function proxy(req: NextRequest) {
     ?? 'unknown';
   const ua = req.headers.get('user-agent') ?? '';
   const path = requestUrl.pathname;
+
+  // ==========================================
+  // PROBE PATH BLOCKLIST
+  // ==========================================
+  if (PROBE_PATH_PATTERNS.some(re => re.test(path))) {
+    // Ban the IP for 24 h — all subsequent requests hit the blocked:ip check
+    // and return 403 before any further processing.
+    redis.set(`blocked:${ip}`, '1', { ex: 86400 }).catch(() => {});
+    notify('bot_ua', ip, 0, ua, path);
+    return new NextResponse(null, { status: 404 });
+  }
 
   // ==========================================
   // BOT MONITORING CHECKS (fail open on Redis errors)
