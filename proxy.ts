@@ -106,7 +106,7 @@ export async function proxy(req: NextRequest) {
       redis.get<string>('maintenance_mode'),
       redis.get(`blocked:${ip}`),
     ]);
-    if (String(maintenance) === 'true' && path !== '/api/health') {
+    if (maintenance && path !== '/api/health') {
       return new NextResponse('Service Unavailable', { status: 503 });
     }
     if (blocked) {
