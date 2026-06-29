@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { getCurrentAdmin } from '@/app/lib/admin-auth';
 import { getAdminUrl } from '@/app/lib/admin-path';
 import { db } from '@/app/lib/db';
-import { getCachedCategories, getCategoryDisplayName } from '@/app/lib/category-utils';
+import { getCachedCategories } from '@/app/lib/category-cache.server';
+import { getCategoryDisplayName } from '@/app/lib/category-utils';
 import ProductsTable from './components/ProductsTable';
 import styles from '../styles/admin.module.css';
 
