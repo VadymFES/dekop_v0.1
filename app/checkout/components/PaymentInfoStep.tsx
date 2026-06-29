@@ -24,57 +24,70 @@ export default function PaymentInfoStep({
         Оберіть зручний для вас спосіб оплати
       </p>
 
-      {/* Payment Method Selection */}
-      <div className={styles.optionsGrid}>
-        {PAYMENT_OPTIONS.map((option) => (
-          <div
-            key={option.value}
-            className={`${styles.optionCard} ${
-              formData.method === option.value ? styles.optionCardSelected : ''
-            }`}
-            onClick={() => onChange('method', option.value)}
-          >
-            <div className={styles.optionIcon}>{option.icon}</div>
-            <div className={styles.optionContent}>
-              <h3 className={styles.optionTitle}>{option.label}</h3>
-              <p className={styles.optionDescription}>{option.description}</p>
+      {/* Payment Method Selection — visually distinct block */}
+      <div className={styles.paymentBlock}>
+        <div className={styles.optionsGrid}>
+          {PAYMENT_OPTIONS.map((option) => (
+            <div
+              key={option.value}
+              className={`${styles.optionCard} ${
+                formData.method === option.value ? styles.optionCardSelected : ''
+              }`}
+              onClick={() => onChange('method', option.value)}
+            >
+              <div className={styles.optionIcon}>{option.icon}</div>
+              <div className={styles.optionContent}>
+                <h3 className={styles.optionTitle}>{option.label}</h3>
+                <p className={styles.optionDescription}>{option.description}</p>
+              </div>
+              <div className={styles.optionRadio}>
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={option.value}
+                  checked={formData.method === option.value}
+                  onChange={() => onChange('method', option.value)}
+                  className={styles.radioInput}
+                />
+              </div>
             </div>
-            <div className={styles.optionRadio}>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value={option.value}
-                checked={formData.method === option.value}
-                onChange={() => onChange('method', option.value)}
-                className={styles.radioInput}
+          ))}
+        </div>
+
+        {errors.method && (
+          <span className={styles.errorMessage}>{errors.method}</span>
+        )}
+
+        {/* Payment Info Notice */}
+        {formData.method === 'liqpay' && (
+          <div className={styles.infoBox}>
+            <p className={styles.infoText}>
+              🔒 <strong>Захищена оплата через LiqPay</strong>
+            </p>
+            <p className={styles.infoText}>
+              Після підтвердження замовлення вас буде перенаправлено на захищену сторінку LiqPay для введення даних картки. Ваші платіжні дані не передаються на наш сайт.
+            </p>
+            <div className={styles.liqpayBadge}>
+              <img
+                src="/images/liqpay-logo.png"
+                alt="Оплата через LiqPay"
+                className={styles.liqpayBadgeImg}
               />
+              <span className={styles.infoText}>Powered by LiqPay</span>
             </div>
           </div>
-        ))}
+        )}
+
+        {formData.method === 'cash_on_delivery' && (
+          <div className={styles.infoBox}>
+            <p className={styles.infoText}>
+              💰 Передплата: 20% від суми замовлення (онлайн через LiqPay)
+              <br />
+              💵 Залишок: оплата готівкою при отриманні товару
+            </p>
+          </div>
+        )}
       </div>
-
-      {errors.method && (
-        <span className={styles.errorMessage}>{errors.method}</span>
-      )}
-
-      {/* Payment Info Notice */}
-      {formData.method === 'liqpay' && (
-        <div className={styles.infoBox}>
-          <p className={styles.infoText}>
-            💳 Безпечна оплата через LiqPay. Ваші дані карти захищені.
-          </p>
-        </div>
-      )}
-
-      {formData.method === 'cash_on_delivery' && (
-        <div className={styles.infoBox}>
-          <p className={styles.infoText}>
-            💰 Передплата: 20% від суми замовлення (онлайн через LiqPay)
-            <br />
-            💵 Залишок: оплата готівкою при отриманні товару
-          </p>
-        </div>
-      )}
     </div>
   );
 }

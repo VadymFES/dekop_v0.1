@@ -126,7 +126,6 @@
 }
 
 .primaryButton {
-  flex: 1;
   padding: 16px 32px;
   font-size: var(--text-base);
   font-weight: 600;
@@ -152,7 +151,6 @@
 }
 
 .secondaryButton {
-  flex: 1;
   padding: 16px 32px;
   font-size: var(--text-base);
   font-weight: 600;

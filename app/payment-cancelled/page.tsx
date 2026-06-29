@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import type { OrderWithItems } from '@/app/lib/definitions';
 import {
@@ -26,6 +27,30 @@ function PaymentCancelledContent() {
   const [isRetrying, setIsRetrying] = useState(false);
   const cancelledTrackedRef = useRef(false);
 
+  const getCustomerEmail = (): string | null => {
+    try {
+      const mappingData = localStorage.getItem('dekop_order_email_mapping');
+      if (mappingData && orderId) {
+        const mapping = JSON.parse(mappingData);
+        const orderData = mapping[orderId];
+        if (orderData?.email) return orderData.email;
+      }
+    } catch {}
+
+    const urlEmail = searchParams.get('email');
+    if (urlEmail) return urlEmail;
+
+    try {
+      const checkoutData = localStorage.getItem('dekop_checkout_form');
+      if (checkoutData) {
+        const parsed = JSON.parse(checkoutData);
+        return parsed.formData?.customerInfo?.email || null;
+      }
+    } catch {}
+
+    return null;
+  };
+
   useEffect(() => {
     if (!orderId) {
       setError('Ідентифікатор замовлення не знайдено');
@@ -36,7 +61,11 @@ function PaymentCancelledContent() {
     // Fetch order details
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`/api/orders/${orderId}`);
+        const customerEmail = getCustomerEmail();
+        if (!customerEmail) {
+          throw new Error('Не вдалося знайти email для перевірки замовлення');
+        }
+        const response = await fetch(`/api/orders/${orderId}?email=${encodeURIComponent(customerEmail)}`);
 
         if (!response.ok) {
           throw new Error('Не вдалося завантажити дані замовлення');
@@ -179,6 +208,11 @@ function PaymentCancelledContent() {
           <button className={styles.primaryButton} onClick={handleReturnToCart}>
             Повернутися до кошика
           </button>
+          <p style={{ marginTop: '12px', fontSize: 'var(--text-sm)', color: '#666' }}>
+            <Link href="/order-lookup" style={{ color: '#E94444' }}>
+              Знайти замовлення за email
+            </Link>
+          </p>
         </div>
       </div>
     );

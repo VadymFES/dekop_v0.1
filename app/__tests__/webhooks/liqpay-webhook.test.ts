@@ -1,13 +1,16 @@
 /**
  * LiqPay Webhook Integration Tests
- * Tests all 4 security layers and payment status handling
+ * Tests all security layers and payment status handling.
+ *
+ * Reflects the 2026-06-29 audit fix: security rejections (IP mismatch, bad
+ * signature, duplicate) all return HTTP 200 so LiqPay stops retrying.
+ * Timestamp validation was removed (used wrong field; deduplication covers
+ * replay attacks).
  */
 
 import crypto from 'crypto'
 import { POST } from '@/app/api/webhooks/liqpay/route'
-import { createMockRequest } from '../test-utils'
 
-// Mock dependencies
 jest.mock('@vercel/postgres', () => ({
   sql: jest.fn(),
 }))
@@ -19,638 +22,412 @@ jest.mock('@/app/lib/services/email-service', () => ({
 jest.mock('@/app/lib/webhook-security', () => ({
   isWebhookUnique: jest.fn(),
   validateWebhookIp: jest.fn(),
-  validateWebhookTimestamp: jest.fn(),
 }))
 
 const { sql } = require('@vercel/postgres')
 const { sendOrderConfirmationEmail } = require('@/app/lib/services/email-service')
-const {
-  isWebhookUnique,
-  validateWebhookIp,
-  validateWebhookTimestamp,
-} = require('@/app/lib/webhook-security')
+const { isWebhookUnique, validateWebhookIp } = require('@/app/lib/webhook-security')
 
-describe('LiqPay Webhook Integration', () => {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function makeLiqPayWebhook(payload: object) {
+  const privateKey = process.env.LIQPAY_PRIVATE_KEY ?? ''
+  const data = Buffer.from(JSON.stringify(payload)).toString('base64')
+  const signature = crypto
+    .createHash('sha1')
+    .update(privateKey + data + privateKey)
+    .digest('base64')
+  return { data, signature }
+}
+
+function makeWebhookRequest(data: string, signature: string, ip = '127.0.0.1') {
+  const form = new FormData()
+  form.append('data', data)
+  form.append('signature', signature)
+  return new Request('http://localhost:3000/api/webhooks/liqpay', {
+    method: 'POST',
+    headers: { 'x-forwarded-for': ip },
+    body: form,
+  })
+}
+
+// ─── Setup ───────────────────────────────────────────────────────────────────
+
+describe('LiqPay Webhook', () => {
   const originalEnv = process.env
 
   beforeEach(() => {
     jest.clearAllMocks()
-    jest.restoreAllMocks() // Restore all spies
     process.env = {
       ...originalEnv,
       LIQPAY_PUBLIC_KEY: 'test_public_key',
       LIQPAY_PRIVATE_KEY: 'test_private_key',
       DISABLE_WEBHOOK_IP_VALIDATION: 'true',
+      NODE_ENV: 'test',
     }
-
-    // Set default mock return values
-    validateWebhookIp.mockReturnValue({ valid: true, reason: 'Test mode' })
-    validateWebhookTimestamp.mockReturnValue(true)
+    validateWebhookIp.mockReturnValue({ valid: true })
+    isWebhookUnique.mockResolvedValue(true)
+    sql.mockResolvedValue({ rows: [], rowCount: 1 })
   })
 
   afterEach(() => {
     process.env = originalEnv
-    jest.restoreAllMocks() // Clean up spies after each test
   })
 
-  /**
-   * Helper to create valid LiqPay webhook data
-   */
-  function createLiqPayWebhookData(payload: any) {
-    const data = Buffer.from(JSON.stringify(payload)).toString('base64')
-    const privateKey = process.env.LIQPAY_PRIVATE_KEY || ''
-    const signString = privateKey + data + privateKey
-    const signature = crypto.createHash('sha1').update(signString).digest('base64')
-    return { data, signature }
-  }
+  // ─── Layer 1: IP Validation ─────────────────────────────────────────────────
 
-  /**
-   * Helper to create webhook request with form data
-   */
-  function createWebhookRequest(data: string, signature: string, ip = '127.0.0.1') {
-    const formData = new FormData()
-    formData.append('data', data)
-    formData.append('signature', signature)
+  describe('Security Layer 1 — IP Validation', () => {
+    it('returns 200 (not 403) when IP is rejected, to stop LiqPay retries', async () => {
+      validateWebhookIp.mockReturnValue({ valid: false, reason: 'Not in whitelist' })
 
-    const request = new Request('http://localhost:3000/api/webhooks/liqpay', {
-      method: 'POST',
-      headers: {
-        'x-forwarded-for': ip,
-      },
-      body: formData,
-    })
-
-    return request
-  }
-
-  describe('Security Layer 1: IP Validation', () => {
-    it('should accept webhook when IP validation is disabled', async () => {
-      const payload = {
-        order_id: 'test-order-123',
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-1',
         status: 'success',
-        transaction_id: 'txn_123',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      // Mock webhook uniqueness check
-      isWebhookUnique.mockResolvedValue(true)
-
-      // Mock database update
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature, '1.2.3.4')
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(result.status).toBe('ok')
-    })
-
-    it('should reject webhook from unauthorized IP when validation enabled', async () => {
-      process.env.DISABLE_WEBHOOK_IP_VALIDATION = 'false'
-
-      // Mock IP validation to reject unauthorized IP
-      validateWebhookIp.mockReturnValue({
-        valid: false,
-        reason: 'Unauthorized IP address',
+        transaction_id: 'txn-1',
       })
 
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_123',
-      }
+      const res = await POST(makeWebhookRequest(data, signature, '1.2.3.4'))
+      const body = await res.json()
 
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      const request = createWebhookRequest(data, signature, '192.168.1.1')
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(403)
-      expect(result.error).toContain('Unauthorized IP')
+      expect(res.status).toBe(200)
+      expect(body.status).toBe('ok')
+      expect(sql).not.toHaveBeenCalled()
     })
 
-    it('should accept webhook from whitelisted IP', async () => {
-      process.env.DISABLE_WEBHOOK_IP_VALIDATION = 'false'
-
-      const payload = {
-        order_id: 'test-order-123',
+    it('passes through when IP validation succeeds', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-2',
         status: 'success',
-        transaction_id: 'txn_123',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      isWebhookUnique.mockResolvedValue(true)
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      // Use an IP from the LiqPay whitelist
-      const request = createWebhookRequest(data, signature, '99.83.131.17')
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-    })
-  })
-
-  describe('Security Layer 2: Signature Verification', () => {
-    it('should reject webhook with invalid signature', async () => {
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_123',
-      }
-
-      const data = Buffer.from(JSON.stringify(payload)).toString('base64')
-      const invalidSignature = 'invalid_signature'
-
-      const request = createWebhookRequest(data, invalidSignature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Invalid signature')
-    })
-
-    it('should reject webhook with missing data', async () => {
-      const formData = new FormData()
-      formData.append('signature', 'some_signature')
-
-      const request = new Request('http://localhost:3000/api/webhooks/liqpay', {
-        method: 'POST',
-        body: formData,
+        transaction_id: 'txn-2',
       })
-
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Missing data or signature')
-    })
-
-    it('should reject webhook with missing signature', async () => {
-      const payload = { order_id: 'test-123' }
-      const data = Buffer.from(JSON.stringify(payload)).toString('base64')
-
-      const formData = new FormData()
-      formData.append('data', data)
-
-      const request = new Request('http://localhost:3000/api/webhooks/liqpay', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Missing data or signature')
-    })
-
-    it('should reject tampered webhook data', async () => {
-      const originalPayload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_123',
-      }
-
-      const { signature } = createLiqPayWebhookData(originalPayload)
-
-      // Tamper with payload
-      const tamperedPayload = {
-        order_id: 'test-order-456', // Changed order ID
-        status: 'success',
-        transaction_id: 'txn_123',
-      }
-      const tamperedData = Buffer.from(JSON.stringify(tamperedPayload)).toString(
-        'base64'
-      )
-
-      const request = createWebhookRequest(tamperedData, signature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Invalid signature')
-    })
-  })
-
-  describe('Security Layer 3: Replay Attack Prevention', () => {
-    it('should reject duplicate webhook', async () => {
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_duplicate',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      // First webhook is unique
-      isWebhookUnique.mockResolvedValue(false)
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(409)
-      expect(result.error).toContain('Duplicate webhook')
-    })
-
-    it('should accept webhook with unique transaction ID', async () => {
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_unique',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      isWebhookUnique.mockResolvedValue(true)
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-    })
-
-    it('should handle webhook without transaction_id using payment_id', async () => {
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        payment_id: 'pay_123',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      isWebhookUnique.mockResolvedValue(true)
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature)
-      await POST(request)
-
-      expect(isWebhookUnique).toHaveBeenCalledWith(
-        'liqpay_pay_123',
-        'liqpay',
-        expect.any(Number),
-        expect.any(Object)
-      )
-    })
-  })
-
-  describe('Security Layer 4: Timestamp Validation', () => {
-    it('should reject webhook with old timestamp', async () => {
-      // Create timestamp from 11 minutes ago (older than 10-minute tolerance)
-      const oldDate = new Date(Date.now() - 11 * 60 * 1000).toISOString()
-
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_old',
-        create_date: oldDate,
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      isWebhookUnique.mockResolvedValue(true)
-      // Mock timestamp validation to reject old timestamps
-      validateWebhookTimestamp.mockReturnValue(false)
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(result.error).toContain('timestamp too old')
-    })
-
-    it('should accept webhook with recent timestamp', async () => {
-      // Create timestamp from 1 minute ago
-      const recentDate = new Date(Date.now() - 60 * 1000).toISOString()
-
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_recent',
-        create_date: recentDate,
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      isWebhookUnique.mockResolvedValue(true)
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-    })
-
-    it('should accept webhook without timestamp', async () => {
-      const payload = {
-        order_id: 'test-order-123',
-        status: 'success',
-        transaction_id: 'txn_no_timestamp',
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      isWebhookUnique.mockResolvedValue(true)
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-    })
-  })
-
-  describe('Payment Status Handling', () => {
-    beforeEach(() => {
-      isWebhookUnique.mockResolvedValue(true)
-    })
-
-    it('should handle successful payment', async () => {
-      const payload = {
-        order_id: 'order-success',
-        status: 'success',
-        transaction_id: 'txn_success',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      // Mock database queries
       sql
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE orders
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
         .mockResolvedValueOnce({
-          // SELECT order with items for email
-          rows: [
-            {
-              id: 'order-success',
-              order_number: '#1234567890',
-              user_email: 'test@example.com',
-              user_name: 'John',
-              user_surname: 'Doe',
-              items: [
-                {
-                  product_name: 'Test Product',
-                  quantity: 1,
-                  unit_price: 1000,
-                },
-              ],
-            },
-          ],
+          rows: [{
+            id: 'order-2', user_email: 'a@b.com',
+            user_name: 'A', user_surname: 'B',
+            order_number: '#1', items: [],
+          }],
         })
 
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-      const result = await response.json()
+      const res = await POST(makeWebhookRequest(data, signature, '99.83.131.17'))
+      expect(res.status).toBe(200)
+    })
+  })
 
-      expect(response.status).toBe(200)
-      expect(result.status).toBe('ok')
+  // ─── Layer 2: Signature Verification ───────────────────────────────────────
 
-      // Verify database was updated (check first call)
-      const firstCall = sql.mock.calls[0]
-      const queryParts = firstCall[0].join('')
-      expect(queryParts).toContain('UPDATE orders')
-      expect(queryParts).toContain("payment_status = 'paid'")
+  describe('Security Layer 2 — Signature Verification', () => {
+    it('returns 200 (not 400) for invalid signature, order not confirmed', async () => {
+      const data = Buffer.from(JSON.stringify({ order_id: 'order-3', status: 'success' })).toString('base64')
+      const res = await POST(makeWebhookRequest(data, 'invalid_sig'))
+      const body = await res.json()
 
-      // Verify email was sent
+      expect(res.status).toBe(200)
+      expect(body.status).toBe('ok')
+      expect(sql).not.toHaveBeenCalled()
+    })
+
+    it('returns 200 (not 400) for tampered payload, order not confirmed', async () => {
+      const real = makeLiqPayWebhook({ order_id: 'order-4', status: 'success', transaction_id: 'txn-4' })
+      const tampered = Buffer.from(JSON.stringify({ order_id: 'OTHER', status: 'success', transaction_id: 'txn-4' })).toString('base64')
+
+      const res = await POST(makeWebhookRequest(tampered, real.signature))
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(body.status).toBe('ok')
+      expect(sql).not.toHaveBeenCalled()
+    })
+
+    it('returns 400 when data field is missing (malformed request)', async () => {
+      const form = new FormData()
+      form.append('signature', 'sig')
+      const res = await POST(new Request('http://localhost/api/webhooks/liqpay', { method: 'POST', body: form }))
+      expect(res.status).toBe(400)
+    })
+
+    it('returns 400 when signature field is missing', async () => {
+      const form = new FormData()
+      form.append('data', 'somedata')
+      const res = await POST(new Request('http://localhost/api/webhooks/liqpay', { method: 'POST', body: form }))
+      expect(res.status).toBe(400)
+    })
+  })
+
+  // ─── Layer 3: Replay Attack Prevention ─────────────────────────────────────
+
+  describe('Security Layer 3 — Replay Attack Prevention', () => {
+    it('returns 200 (not 409) for duplicate webhook, DB not touched', async () => {
+      isWebhookUnique.mockResolvedValue(false)
+
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-5',
+        status: 'success',
+        transaction_id: 'txn-dup',
+      })
+
+      const res = await POST(makeWebhookRequest(data, signature))
+      const body = await res.json()
+
+      expect(res.status).toBe(200)
+      expect(body.status).toBe('ok')
+      expect(sql).not.toHaveBeenCalled()
+    })
+
+    it('deduplicates using transaction_id', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-6',
+        status: 'success',
+        transaction_id: 'txn-6',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [] })
+
+      await POST(makeWebhookRequest(data, signature))
+
+      expect(isWebhookUnique).toHaveBeenCalledWith(
+        'liqpay_txn-6', 'liqpay', expect.any(Number), expect.any(Object)
+      )
+    })
+
+    it('falls back to payment_id when transaction_id absent', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-7',
+        status: 'success',
+        payment_id: 'pay-7',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [] })
+
+      await POST(makeWebhookRequest(data, signature))
+
+      expect(isWebhookUnique).toHaveBeenCalledWith(
+        'liqpay_pay-7', 'liqpay', expect.any(Number), expect.any(Object)
+      )
+    })
+  })
+
+  // ─── Timestamp validation removed ──────────────────────────────────────────
+
+  describe('Timestamp handling — no rejection on old create_date', () => {
+    it('processes webhook with create_date 15 min old without rejecting', async () => {
+      const oldDate = new Date(Date.now() - 15 * 60 * 1000).toISOString()
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-old',
+        status: 'success',
+        transaction_id: 'txn-old',
+        create_date: oldDate,
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [] })
+
+      const res = await POST(makeWebhookRequest(data, signature))
+
+      expect(res.status).toBe(200)
+      expect(sql).toHaveBeenCalled()
+    })
+
+    it('processes webhook with create_date 1 hour old without rejecting', async () => {
+      const veryOldDate = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-very-old',
+        status: 'failure',
+        transaction_id: 'txn-very-old',
+        create_date: veryOldDate,
+      })
+      sql.mockResolvedValueOnce({ rows: [], rowCount: 1 })
+
+      const res = await POST(makeWebhookRequest(data, signature))
+
+      expect(res.status).toBe(200)
+    })
+
+    it('processes webhook with no create_date field', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-no-date',
+        status: 'success',
+        transaction_id: 'txn-no-date',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [] })
+
+      const res = await POST(makeWebhookRequest(data, signature))
+      expect(res.status).toBe(200)
+    })
+  })
+
+  // ─── Payment Status Handling ────────────────────────────────────────────────
+
+  describe('Payment Status Handling', () => {
+    it('confirms order and sends email on success', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-ok',
+        status: 'success',
+        transaction_id: 'txn-ok',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'order-ok', order_number: '#001',
+            user_email: 'a@b.com', user_name: 'A', user_surname: 'B',
+            items: [],
+          }],
+        })
+
+      const res = await POST(makeWebhookRequest(data, signature))
+
+      expect(res.status).toBe(200)
+      const updateQuery = sql.mock.calls[0][0].join('')
+      expect(updateQuery).toContain('UPDATE orders')
+      expect(updateQuery).toContain("payment_status = 'paid'")
       expect(sendOrderConfirmationEmail).toHaveBeenCalled()
     })
 
-    it('should handle failed payment', async () => {
-      const payload = {
-        order_id: 'order-failed',
-        status: 'failure',
-        transaction_id: 'txn_failed',
-        create_date: new Date().toISOString(),
-      }
+    it('treats sandbox status as paid', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-sandbox',
+        status: 'sandbox',
+        transaction_id: 'txn-sandbox',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [{ id: 'order-sandbox', user_email: 'x@y.com', user_name: 'X', user_surname: 'Y', order_number: '#002', items: [] }] })
 
-      const { data, signature } = createLiqPayWebhookData(payload)
+      await POST(makeWebhookRequest(data, signature))
 
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
+      expect(sql.mock.calls[0][0].join('')).toContain("payment_status = 'paid'")
+    })
 
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
+    it('marks order failed on failure, no email', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-fail', status: 'failure', transaction_id: 'txn-fail',
+      })
 
-      expect(response.status).toBe(200)
+      await POST(makeWebhookRequest(data, signature))
 
-      // Verify payment_status set to 'failed'
-      const firstCall = sql.mock.calls[0]
-      const queryParts = firstCall[0].join('')
-      expect(queryParts).toContain('UPDATE orders')
-      expect(queryParts).toContain("payment_status = 'failed'")
-
-      // Email should NOT be sent for failed payment
+      expect(sql.mock.calls[0][0].join('')).toContain("payment_status = 'failed'")
       expect(sendOrderConfirmationEmail).not.toHaveBeenCalled()
     })
 
-    it('should handle refunded payment', async () => {
-      const payload = {
-        order_id: 'order-refunded',
-        status: 'reversed',
-        transaction_id: 'txn_refunded',
-        create_date: new Date().toISOString(),
-      }
+    it('marks order failed on error status', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-err', status: 'error', transaction_id: 'txn-err',
+      })
 
-      const { data, signature } = createLiqPayWebhookData(payload)
+      await POST(makeWebhookRequest(data, signature))
 
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-
-      // Verify payment_status set to 'refunded'
-      const firstCall = sql.mock.calls[0]
-      const queryParts = firstCall[0].join('')
-      expect(queryParts).toContain('UPDATE orders')
-      expect(queryParts).toContain("payment_status = 'refunded'")
+      expect(sql.mock.calls[0][0].join('')).toContain("payment_status = 'failed'")
     })
 
-    it('should handle pending payment', async () => {
-      const payload = {
-        order_id: 'order-pending',
-        status: 'processing',
-        transaction_id: 'txn_pending',
-        create_date: new Date().toISOString(),
-      }
+    it('marks order refunded on reversed', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-rev', status: 'reversed', transaction_id: 'txn-rev',
+      })
 
-      const { data, signature } = createLiqPayWebhookData(payload)
+      await POST(makeWebhookRequest(data, signature))
 
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-
-      // Verify payment_status set to 'pending'
-      const firstCall = sql.mock.calls[0]
-      const queryParts = firstCall[0].join('')
-      expect(queryParts).toContain('UPDATE orders')
-      expect(queryParts).toContain("payment_status = 'pending'")
+      expect(sql.mock.calls[0][0].join('')).toContain("payment_status = 'refunded'")
     })
 
-    it('should handle sandbox status as successful', async () => {
-      const payload = {
-        order_id: 'order-sandbox',
-        status: 'sandbox',
-        transaction_id: 'txn_sandbox',
-        create_date: new Date().toISOString(),
-      }
+    it('marks order pending on processing', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-proc', status: 'processing', transaction_id: 'txn-proc',
+      })
 
-      const { data, signature } = createLiqPayWebhookData(payload)
+      await POST(makeWebhookRequest(data, signature))
 
-      sql
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 'order-sandbox',
-              order_number: '#1234567890',
-              user_email: 'test@example.com',
-              user_name: 'John',
-              user_surname: 'Doe',
-              items: [],
-            },
-          ],
-        })
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      expect(response.status).toBe(200)
-
-      // Sandbox should be treated as paid
-      const firstCall = sql.mock.calls[0]
-      const queryParts = firstCall[0].join('')
-      expect(queryParts).toContain("payment_status = 'paid'")
+      expect(sql.mock.calls[0][0].join('')).toContain("payment_status = 'pending'")
     })
   })
 
-  describe('Error Handling', () => {
-    beforeEach(() => {
-      isWebhookUnique.mockResolvedValue(true)
-    })
+  // ─── Missing order_id ──────────────────────────────────────────────────────
 
-    it('should return error when order_id is missing', async () => {
-      const payload = {
+  describe('Missing order_id', () => {
+    it('returns 400 when order_id absent from payload', async () => {
+      const { data, signature } = makeLiqPayWebhook({
         status: 'success',
-        transaction_id: 'txn_no_order',
-        create_date: new Date().toISOString(),
-      }
+        transaction_id: 'txn-noid',
+      })
 
-      const { data, signature } = createLiqPayWebhookData(payload)
+      const res = await POST(makeWebhookRequest(data, signature))
+      const body = await res.json()
 
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(result.error).toBe('Missing order_id')
-    })
-
-    it('should handle database errors gracefully', async () => {
-      const payload = {
-        order_id: 'order-db-error',
-        status: 'success',
-        transaction_id: 'txn_db_error',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      sql.mockRejectedValue(new Error('Database connection failed'))
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(result.error).toBe('Webhook handler failed')
-      expect(result.details).toContain('Database connection failed')
-    })
-
-    it('should continue even if email sending fails', async () => {
-      const payload = {
-        order_id: 'order-email-error',
-        status: 'success',
-        transaction_id: 'txn_email_error',
-        create_date: new Date().toISOString(),
-      }
-
-      const { data, signature } = createLiqPayWebhookData(payload)
-
-      sql
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 'order-email-error',
-              order_number: '#1234567890',
-              user_email: 'test@example.com',
-              user_name: 'John',
-              user_surname: 'Doe',
-              items: [],
-            },
-          ],
-        })
-
-      sendOrderConfirmationEmail.mockRejectedValue(new Error('Email service down'))
-
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
-
-      // Should still return 200 even if email fails
-      expect(response.status).toBe(200)
-    })
-
-    it('should handle malformed JSON in callback data', async () => {
-      const invalidData = Buffer.from('not valid json').toString('base64')
-      const privateKey = process.env.LIQPAY_PRIVATE_KEY || ''
-      const signString = privateKey + invalidData + privateKey
-      const signature = crypto.createHash('sha1').update(signString).digest('base64')
-
-      const request = createWebhookRequest(invalidData, signature)
-      const response = await POST(request)
-      const result = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(result.error).toBe('Webhook handler failed')
+      expect(res.status).toBe(400)
+      expect(body.error).toBe('Missing order_id')
+      expect(sql).not.toHaveBeenCalled()
     })
   })
+
+  // ─── Resilience ────────────────────────────────────────────────────────────
+
+  describe('Resilience', () => {
+    it('returns 500 on DB error', async () => {
+      sql.mockRejectedValue(new Error('DB down'))
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-dberr', status: 'success', transaction_id: 'txn-dberr',
+      })
+
+      const res = await POST(makeWebhookRequest(data, signature))
+      const body = await res.json()
+
+      expect(res.status).toBe(500)
+      expect(body.error).toBe('Webhook handler failed')
+    })
+
+    it('returns 200 when email fails after payment confirmed', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-mailfail', status: 'success', transaction_id: 'txn-mailfail',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [{ id: 'order-mailfail', user_email: 'e@f.com', user_name: 'E', user_surname: 'F', order_number: '#003', items: [] }] })
+      sendOrderConfirmationEmail.mockRejectedValue(new Error('SMTP error'))
+
+      const res = await POST(makeWebhookRequest(data, signature))
+      expect(res.status).toBe(200)
+    })
+
+    it('returns 500 for malformed JSON in base64 payload', async () => {
+      const privateKey = process.env.LIQPAY_PRIVATE_KEY ?? ''
+      const badData = Buffer.from('not json at all').toString('base64')
+      const sig = crypto.createHash('sha1').update(privateKey + badData + privateKey).digest('base64')
+
+      const res = await POST(makeWebhookRequest(badData, sig))
+      expect(res.status).toBe(500)
+    })
+  })
+
+  // ─── Response Headers ───────────────────────────────────────────────────────
 
   describe('Response Headers', () => {
-    it('should include security headers in all responses', async () => {
-      const payload = {
-        order_id: 'test-order',
-        status: 'success',
-        transaction_id: 'txn_headers',
-        create_date: new Date().toISOString(),
-      }
+    it('includes security headers on 200 success', async () => {
+      const { data, signature } = makeLiqPayWebhook({
+        order_id: 'order-hdr', status: 'success', transaction_id: 'txn-hdr',
+      })
+      sql
+        .mockResolvedValueOnce({ rows: [], rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [] })
 
-      const { data, signature } = createLiqPayWebhookData(payload)
+      const res = await POST(makeWebhookRequest(data, signature))
 
-      isWebhookUnique.mockResolvedValue(true)
-      sql.mockResolvedValue({ rows: [], rowCount: 1 })
+      expect(res.headers.get('X-Robots-Tag')).toBe('noindex')
+      expect(res.headers.get('Cache-Control')).toBe('no-store, no-cache, must-revalidate')
+    })
 
-      const request = createWebhookRequest(data, signature)
-      const response = await POST(request)
+    it('includes security headers on 200 silent-reject (IP fail)', async () => {
+      validateWebhookIp.mockReturnValue({ valid: false, reason: 'blocked' })
+      const { data, signature } = makeLiqPayWebhook({ order_id: 'x', status: 'success', transaction_id: 'y' })
 
-      expect(response.headers.get('X-Robots-Tag')).toBe('noindex')
-      expect(response.headers.get('Cache-Control')).toBe(
-        'no-store, no-cache, must-revalidate'
-      )
+      const res = await POST(makeWebhookRequest(data, signature))
+
+      expect(res.status).toBe(200)
+      expect(res.headers.get('X-Robots-Tag')).toBe('noindex')
     })
   })
 })

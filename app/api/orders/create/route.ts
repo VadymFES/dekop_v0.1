@@ -30,13 +30,11 @@ export async function POST(request: Request) {
     const validationResult = safeValidateInput(createOrderSchema, body);
 
     if (!validationResult.success) {
-      // Return detailed validation errors
       const errorMessages = validationResult.error.issues.map(err => ({
         field: err.path.join('.'),
         message: err.message
       }));
 
-      // Log validation errors for debugging
       console.error('Order validation failed:', {
         errors: errorMessages,
         receivedData: {
@@ -50,30 +48,20 @@ export async function POST(request: Request) {
       });
 
       return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: errorMessages
-        },
+        { error: 'Validation failed', details: errorMessages },
         { status: 400 }
       );
     }
 
-    // Use validated and sanitized data
     const validatedData = validationResult.data;
 
-    // Get cart ID from cookies (server-side) or from validated request body
     const cookieStore = await cookies();
     const cartId = cookieStore.get('cartId')?.value || validatedData.cart_id;
 
-    // Validate cart ID exists
     if (!cartId) {
-      return NextResponse.json(
-        { error: 'Кошик не знайдено' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Кошик не знайдено' }, { status: 404 });
     }
 
-    // Fetch cart items
     const cartResult = await sql`
       SELECT
         ci.id,
@@ -92,18 +80,11 @@ export async function POST(request: Request) {
     `;
 
     if (cartResult.rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Кошик порожній або не знайдено' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Кошик порожній або не знайдено' }, { status: 404 });
     }
 
-    // Calculate subtotal from cart items
-    const subtotal = cartResult.rows.reduce((sum, item) => {
-      return sum + (item.price * item.quantity);
-    }, 0);
+    const subtotal = cartResult.rows.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // Calculate order totals using validated data
     const totals = calculateOrderTotals({
       subtotal,
       discountPercent: validatedData.discount_percent || 0,
@@ -113,26 +94,17 @@ export async function POST(request: Request) {
         : undefined
     });
 
-    // Generate unique order number
     const orderNumber = generateOrderNumber();
-
-    // Calculate payment deadline
     const paymentDeadline = calculatePaymentDeadline();
 
-    // TRANSACTION: Wrap order creation in a transaction to ensure data consistency
-    // If any operation fails, all changes will be rolled back to prevent orphaned records
     let order!: OrderWithItems;
     let existingOrderResponse: ReturnType<typeof NextResponse.json> | null = null;
 
-    // Get a connection from the pool for transaction support
     const client = await db.connect();
 
     try {
-      // Begin transaction
       await client.query('BEGIN');
 
-      // Link to the customer master (find-or-create by normalized phone).
-      // Runs inside the same transaction so a failure rolls the order back too.
       const customerId = await findOrCreateCustomer(client, {
         phone: validatedData.user_phone,
         email: validatedData.user_email,
@@ -140,113 +112,56 @@ export async function POST(request: Request) {
         lastName: validatedData.user_surname,
       });
 
-      // Create order using validated and sanitized data
       const orderResult = await client.query(`
         INSERT INTO orders (
-          order_number,
-          user_name,
-          user_surname,
-          user_phone,
-          user_email,
-          delivery_method,
-          delivery_address,
-          delivery_city,
-          delivery_street,
-          delivery_building,
-          delivery_apartment,
-          delivery_postal_code,
-          store_location,
-          subtotal,
-          discount_percent,
-          discount_amount,
-          delivery_cost,
-          total_amount,
-          prepayment_amount,
-          payment_method,
-          payment_status,
-          order_status,
-          customer_notes,
-          payment_deadline,
-          customer_id,
-          cart_id
+          order_number, user_name, user_surname, user_phone, user_email,
+          delivery_method, delivery_address, delivery_city, delivery_street,
+          delivery_building, delivery_apartment, delivery_postal_code, store_location,
+          subtotal, discount_percent, discount_amount, delivery_cost, total_amount,
+          prepayment_amount, payment_method, payment_status, order_status,
+          customer_notes, payment_deadline, customer_id, cart_id
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+          $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26
         )
         RETURNING id, order_number, total_amount, prepayment_amount, created_at
       `, [
         orderNumber,
-        validatedData.user_name,
-        validatedData.user_surname,
-        validatedData.user_phone,
-        validatedData.user_email,
+        validatedData.user_name, validatedData.user_surname,
+        validatedData.user_phone, validatedData.user_email,
         validatedData.delivery_method,
-        validatedData.delivery_address || null,
-        validatedData.delivery_city || null,
-        validatedData.delivery_street || null,
-        validatedData.delivery_building || null,
-        validatedData.delivery_apartment || null,
-        validatedData.delivery_postal_code || null,
+        validatedData.delivery_address || null, validatedData.delivery_city || null,
+        validatedData.delivery_street || null, validatedData.delivery_building || null,
+        validatedData.delivery_apartment || null, validatedData.delivery_postal_code || null,
         validatedData.store_location || null,
-        totals.subtotal,
-        totals.discountPercent,
-        totals.discountAmount,
-        totals.deliveryCost,
-        totals.totalAmount,
-        totals.prepaymentAmount,
-        validatedData.payment_method,
-        'pending',
-        'processing',
+        totals.subtotal, totals.discountPercent, totals.discountAmount,
+        totals.deliveryCost, totals.totalAmount, totals.prepaymentAmount,
+        validatedData.payment_method, 'pending', 'processing',
         validatedData.customer_notes || null,
-        paymentDeadline.toISOString(),
-        customerId,
-        cartId || null
+        paymentDeadline.toISOString(), customerId, cartId || null
       ]);
 
       const orderId = orderResult.rows[0].id;
 
-      // Update denormalized customer aggregates (total orders/spent, last order date)
       if (customerId) {
         await applyOrderSpend(client, customerId, totals.totalAmount);
       }
 
-      // Create order items from cart
       for (const cartItem of cartResult.rows) {
         const article = generateProductArticle(cartItem.product_id);
-        const unitPrice = cartItem.price;
-        const totalPrice = unitPrice * cartItem.quantity;
-
         await client.query(`
           INSERT INTO order_items (
-            order_id,
-            product_id,
-            product_name,
-            product_slug,
-            product_article,
-            quantity,
-            color,
-            unit_price,
-            total_price,
-            product_image_url,
-            product_category
-          ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
-          )
+            order_id, product_id, product_name, product_slug, product_article,
+            quantity, color, unit_price, total_price, product_image_url, product_category
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `, [
-          orderId,
-          cartItem.product_id,
-          cartItem.name,
-          cartItem.slug,
-          article,
-          cartItem.quantity,
-          cartItem.color || null,
-          unitPrice,
-          totalPrice,
-          cartItem.image_url || null,
-          cartItem.category
+          orderId, cartItem.product_id, cartItem.name, cartItem.slug, article,
+          cartItem.quantity, cartItem.color || null,
+          cartItem.price, cartItem.price * cartItem.quantity,
+          cartItem.image_url || null, cartItem.category
         ]);
       }
 
-      // Deduct stock for each cart item (inside the same transaction)
       for (const cartItem of cartResult.rows) {
         await recordStockMovement(client, {
           productId: cartItem.product_id as number,
@@ -257,73 +172,49 @@ export async function POST(request: Request) {
         });
       }
 
-      // Fetch complete order with items within the same transaction
       const completeOrderResult = await client.query(`
         SELECT
           o.*,
-          json_agg(
-            json_build_object(
-              'id', oi.id,
-              'product_id', oi.product_id,
-              'product_name', oi.product_name,
-              'product_slug', oi.product_slug,
-              'product_article', oi.product_article,
-              'quantity', oi.quantity,
-              'color', oi.color,
-              'unit_price', oi.unit_price,
-              'total_price', oi.total_price,
-              'product_image_url', oi.product_image_url,
-              'product_category', oi.product_category
-            )
-          ) as items
+          json_agg(json_build_object(
+            'id', oi.id, 'product_id', oi.product_id, 'product_name', oi.product_name,
+            'product_slug', oi.product_slug, 'product_article', oi.product_article,
+            'quantity', oi.quantity, 'color', oi.color, 'unit_price', oi.unit_price,
+            'total_price', oi.total_price, 'product_image_url', oi.product_image_url,
+            'product_category', oi.product_category
+          )) as items
         FROM orders o
         LEFT JOIN order_items oi ON o.id = oi.order_id
         WHERE o.id = $1
         GROUP BY o.id
       `, [orderId]);
 
-      // Commit transaction
       await client.query('COMMIT');
 
-      // Transaction completed successfully
       order = {
         ...completeOrderResult.rows[0],
         items: completeOrderResult.rows[0].items || []
       } as OrderWithItems;
 
     } catch (transactionError) {
-      // Rollback transaction on error
       await client.query('ROLLBACK');
 
-      // Multi-tab guard: if two tabs submit the same cart simultaneously, the second
-      // INSERT hits the unique index on cart_id (PostgreSQL error 23505). Return the
-      // order that was already created by the first tab instead of an error.
+      // Multi-tab guard: return existing order when two tabs race on the same cart_id
       const pgCode = (transactionError as any)?.code;
       if (pgCode === '23505' && cartId) {
         try {
           const dupResult = await client.query(`
-            SELECT
-              o.*,
-              json_agg(
-                json_build_object(
-                  'id', oi.id,
-                  'product_id', oi.product_id,
-                  'product_name', oi.product_name,
-                  'product_slug', oi.product_slug,
-                  'product_article', oi.product_article,
-                  'quantity', oi.quantity,
-                  'color', oi.color,
-                  'unit_price', oi.unit_price,
-                  'total_price', oi.total_price,
-                  'product_image_url', oi.product_image_url,
-                  'product_category', oi.product_category
-                )
-              ) as items
+            SELECT o.*,
+              json_agg(json_build_object(
+                'id', oi.id, 'product_id', oi.product_id, 'product_name', oi.product_name,
+                'product_slug', oi.product_slug, 'product_article', oi.product_article,
+                'quantity', oi.quantity, 'color', oi.color, 'unit_price', oi.unit_price,
+                'total_price', oi.total_price, 'product_image_url', oi.product_image_url,
+                'product_category', oi.product_category
+              )) as items
             FROM orders o
             LEFT JOIN order_items oi ON o.id = oi.order_id
             WHERE o.cart_id = $1
-            GROUP BY o.id
-            LIMIT 1
+            GROUP BY o.id LIMIT 1
           `, [cartId]);
 
           if (dupResult.rows.length > 0) {
@@ -344,7 +235,6 @@ export async function POST(request: Request) {
         );
       }
     } finally {
-      // Always release the client back to the pool
       client.release();
     }
 
