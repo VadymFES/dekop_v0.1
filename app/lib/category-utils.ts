@@ -1,23 +1,10 @@
 // Category utility functions for displaying Ukrainian category names
-// Includes caching for static data (Task 3)
-
-import { db } from './db';
 
 // =====================================================
-// STATIC DATA CACHE (Task 3)
+// STATIC DATA CACHE
 // =====================================================
 
-// Cache configuration
-const CATEGORY_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const ORDER_STATUS_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-
-// Category cache
-interface CategoryCacheEntry {
-  categories: string[];
-  cachedAt: number;
-}
-
-let categoryCache: CategoryCacheEntry | null = null;
+const ORDER_STATUS_CACHE_TTL_MS = 10 * 60 * 1000;
 
 // Order status cache
 interface OrderStatusCacheEntry {
@@ -35,55 +22,6 @@ interface PaymentStatusCacheEntry {
 
 let paymentStatusCache: PaymentStatusCacheEntry | null = null;
 
-/**
- * Get cached product categories list
- * Returns cached value if within TTL, otherwise fetches fresh from DB
- */
-export async function getCachedCategories(): Promise<string[]> {
-  const now = Date.now();
-
-  // Check if cache is valid
-  if (categoryCache && (now - categoryCache.cachedAt < CATEGORY_CACHE_TTL_MS)) {
-    return categoryCache.categories;
-  }
-
-  // Fetch fresh from database
-  try {
-    const result = await db.query`
-      SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category
-    `;
-
-    const categories = result.rows.map(row => row.category as string);
-
-    // Update cache
-    categoryCache = {
-      categories,
-      cachedAt: now,
-    };
-
-    return categories;
-  } catch (error) {
-    console.error('Failed to fetch categories:', error);
-    // Return cached value if available, even if stale
-    if (categoryCache) {
-      return categoryCache.categories;
-    }
-    // Return static fallback
-    return Object.keys(CATEGORY_DISPLAY_NAMES).filter(key => !key.includes(' ') && key.length > 2);
-  }
-}
-
-/**
- * Invalidate categories cache
- * Call this on product create/update/delete that changes category
- */
-export function invalidateCategoriesCache(): void {
-  categoryCache = null;
-}
-
-/**
- * Get cached order status options
- */
 export function getCachedOrderStatuses(): { value: string; label: string }[] {
   const now = Date.now();
 
@@ -136,21 +74,6 @@ export function getCachedPaymentStatuses(): { value: string; label: string }[] {
   };
 
   return statuses;
-}
-
-/**
- * Check if category cache is stale (for monitoring/debugging)
- */
-export function isCategoryCacheStale(): boolean {
-  if (!categoryCache) return true;
-  return Date.now() - categoryCache.cachedAt >= CATEGORY_CACHE_TTL_MS;
-}
-
-/**
- * Get cache timestamp (for debugging)
- */
-export function getCategoryCacheTimestamp(): number | null {
-  return categoryCache?.cachedAt || null;
 }
 
 // =====================================================
