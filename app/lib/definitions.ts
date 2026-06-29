@@ -375,6 +375,8 @@ export interface Order {
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
   payment_intent_id?: string;
+  payment_err_code?: string;
+  cart_id?: string;
 
   // Order Status
   order_status: OrderStatus;

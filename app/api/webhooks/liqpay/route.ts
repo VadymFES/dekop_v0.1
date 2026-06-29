@@ -9,7 +9,6 @@ import {
 import {
   isWebhookUnique,
   validateWebhookIp,
-  validateWebhookTimestamp
 } from '@/app/lib/webhook-security';
 
 /**
@@ -25,13 +24,13 @@ import {
 export async function POST(request: Request) {
   try {
     // SECURITY LAYER 1: IP Whitelist Validation
+    // Return 200 on rejection — LiqPay must not retry indefinitely on security blocks.
     const ipValidation = validateWebhookIp(request, 'liqpay');
     if (!ipValidation.valid) {
-      console.error('LiqPay webhook IP validation failed:', ipValidation.reason);
+      console.error('[SECURITY] LiqPay webhook IP validation failed:', ipValidation.reason);
       return NextResponse.json(
-        { error: 'Unauthorized IP address' },
+        { status: 'ok' },
         {
-          status: 403,
           headers: {
             'X-Robots-Tag': 'noindex',
             'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -45,6 +44,7 @@ export async function POST(request: Request) {
     const signature = formData.get('signature') as string;
 
     if (!data || !signature) {
+      // Structurally malformed — 400 is appropriate; LiqPay retrying a broken payload is fine.
       return NextResponse.json(
         { error: 'Missing data or signature' },
         {
@@ -58,14 +58,14 @@ export async function POST(request: Request) {
     }
 
     // SECURITY LAYER 2: Verify callback signature
+    // Return 200 on mismatch — order is not confirmed, but LiqPay stops retrying.
     const isValid = verifyLiqPayCallback(data, signature);
 
     if (!isValid) {
-      console.error('LiqPay webhook signature verification failed');
+      console.error('[SECURITY] LiqPay webhook signature mismatch — silent reject');
       return NextResponse.json(
-        { error: 'Invalid signature' },
+        { status: 'ok' },
         {
-          status: 400,
           headers: {
             'X-Robots-Tag': 'noindex',
             'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -81,7 +81,8 @@ export async function POST(request: Request) {
       status: liqpayStatus,
       transaction_id: transactionId,
       payment_id: paymentId,
-      create_date: createDate
+      create_date: createDate,
+      err_code: errCode
     } = callbackData;
 
     if (!orderId) {
@@ -99,14 +100,14 @@ export async function POST(request: Request) {
     }
 
     // SECURITY LAYER 3: Replay Attack Prevention
+    // Return 200 on duplicate — order was already processed; LiqPay should not retry.
     const webhookId = `liqpay_${transactionId || paymentId}`;
     const isUnique = await isWebhookUnique(webhookId, 'liqpay', 3600, callbackData);
     if (!isUnique) {
-      console.error(`Replay attack detected for LiqPay webhook: ${webhookId}`);
+      console.warn(`[SECURITY] Duplicate LiqPay webhook detected: ${webhookId} — already processed`);
       return NextResponse.json(
-        { error: 'Duplicate webhook - already processed' },
+        { status: 'ok' },
         {
-          status: 409,
           headers: {
             'X-Robots-Tag': 'noindex',
             'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -115,30 +116,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // SECURITY LAYER 4: Timestamp Validation
-    if (createDate) {
-      const timestamp = new Date(createDate).getTime();
-      if (!validateWebhookTimestamp(timestamp, 600)) { // 10 minutes tolerance
-        console.error('LiqPay webhook timestamp validation failed');
-        return NextResponse.json(
-          { error: 'Webhook timestamp too old or invalid' },
-          {
-            status: 400,
-            headers: {
-              'X-Robots-Tag': 'noindex',
-              'Cache-Control': 'no-store, no-cache, must-revalidate',
-            }
-          }
-        );
-      }
-    }
+    // NOTE: Timestamp validation intentionally omitted.
+    // LiqPay's create_date is the payment initiation time, not the webhook delivery time.
+    // Using it as a freshness check incorrectly rejects late-arriving webhooks (e.g. expired
+    // sessions, network retries) and leaves orders permanently pending.
+    // Replay protection is handled by the deduplication step above (Layer 3).
 
     const paymentStatus = mapLiqPayStatus(liqpayStatus);
 
     if (paymentStatus === 'paid') {
       await handleLiqPayPaymentSuccess(orderId, transactionId || paymentId);
     } else if (paymentStatus === 'failed') {
-      await handleLiqPayPaymentFailure(orderId, transactionId || paymentId);
+      await handleLiqPayPaymentFailure(orderId, transactionId || paymentId, errCode || null);
     } else if (paymentStatus === 'refunded') {
       await handleLiqPayRefund(orderId, transactionId || paymentId);
     } else {
@@ -243,13 +232,14 @@ async function handleLiqPayPaymentSuccess(orderId: string, transactionId: string
 /**
  * Handles failed LiqPay payment
  */
-async function handleLiqPayPaymentFailure(orderId: string, transactionId: string) {
+async function handleLiqPayPaymentFailure(orderId: string, transactionId: string, errCode: string | null) {
   try {
     await sql`
       UPDATE orders
       SET
         payment_status = 'failed',
         payment_intent_id = ${transactionId},
+        payment_err_code = ${errCode},
         updated_at = CURRENT_TIMESTAMP
       WHERE id = ${orderId}
     `;

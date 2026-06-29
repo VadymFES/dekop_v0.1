@@ -1,7 +1,9 @@
 'use client';
 
 import React, { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { getLiqPayErrorInfo } from '@/app/lib/liqpay-errors';
 import type { OrderWithItems, CartItem } from '@/app/lib/definitions';
 import {
   formatUkrainianDate,
@@ -35,6 +37,7 @@ function OrderSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   // Use ref to track cleanup status to prevent infinite loops
   const cleanupInitiatedRef = useRef(false);
@@ -285,8 +288,58 @@ function OrderSuccessContent() {
     router.push('/');
   };
 
+  const handleRetryPayment = async () => {
+    if (!order) return;
+    setIsRetryingPayment(true);
+    try {
+      const amount = order.prepayment_amount > 0 ? order.prepayment_amount : order.total_amount;
+      const description = order.prepayment_amount > 0
+        ? `Передплата 20% замовлення ${order.order_number} (оплата при отриманні)`
+        : `Оплата замовлення ${order.order_number}`;
+
+      const paymentResponse = await fetch('/api/payments/liqpay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          orderId: order.id,
+          orderNumber: order.order_number,
+          description,
+          customerEmail: order.user_email,
+          resultUrl: `${window.location.origin}/order-success?orderId=${order.id}&email=${encodeURIComponent(order.user_email)}`,
+          serverUrl: `${window.location.origin}/api/webhooks/liqpay`
+        })
+      });
+
+      if (!paymentResponse.ok) throw new Error('Помилка при створенні платежу');
+
+      const liqpayPayment = await paymentResponse.json();
+      if (liqpayPayment.success && liqpayPayment.checkoutUrl) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = liqpayPayment.checkoutUrl;
+        form.style.display = 'none';
+
+        const dataInput = document.createElement('input');
+        dataInput.name = 'data';
+        dataInput.value = liqpayPayment.data;
+        form.appendChild(dataInput);
+
+        const sigInput = document.createElement('input');
+        sigInput.name = 'signature';
+        sigInput.value = liqpayPayment.signature;
+        form.appendChild(sigInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+    } catch (err) {
+      console.error('Retry payment error:', err);
+      setIsRetryingPayment(false);
+    }
+  };
+
   const handleTrackOrder = () => {
-    // Placeholder for future tracking functionality
     alert('Функція відстеження замовлення буде доступна незабаром');
   };
 
@@ -413,19 +466,39 @@ function OrderSuccessContent() {
             </section>
           )}
 
-          {order.payment_status === 'failed' && (
-            <section className={styles.alertSection}>
-              <div className={`${styles.alert} ${styles.alertError}`}>
-                <div className={styles.alertIcon}>⚠️</div>
-                <div>
-                  <p className={styles.alertTitle}>Оплата не пройшла</p>
-                  <p className={styles.alertText}>
-                    Будь ласка, зв'яжіться з нами для повторної спроби оплати або виберіть інший спосіб оплати.
-                  </p>
+          {order.payment_status === 'failed' && (() => {
+            const errInfo = getLiqPayErrorInfo(order.payment_err_code);
+            return (
+              <section className={styles.alertSection}>
+                <div className={`${styles.alert} ${styles.alertError}`}>
+                  <div className={styles.alertIcon}>⚠️</div>
+                  <div>
+                    <p className={styles.alertTitle}>Оплата не пройшла</p>
+                    <p className={styles.alertText}>{errInfo.message}</p>
+                    {errInfo.offerAfterpayment && (
+                      <p className={styles.alertText} style={{ marginTop: '8px' }}>
+                        Розгляньте варіант оплати частинами або в кредит через LiqPay.
+                      </p>
+                    )}
+                    <button
+                      className={styles.primaryButton}
+                      onClick={handleRetryPayment}
+                      disabled={isRetryingPayment}
+                      style={{ marginTop: '12px' }}
+                    >
+                      {isRetryingPayment ? 'Перенаправлення до LiqPay...' : 'Повторити оплату'}
+                    </button>
+                    <p style={{ marginTop: '8px', fontSize: 'var(--text-sm)', color: '#666' }}>
+                      Не знайшли замовлення?{' '}
+                      <Link href="/order-lookup" style={{ color: '#E94444' }}>
+                        Знайти за email
+                      </Link>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </section>
+            );
+          })()}
 
           {/* Customer Information */}
           <section className={styles.section}>

@@ -1,0 +1,290 @@
+/* Order Lookup Page Styles */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.page {
+  background-color: #FEFDFC;
+  border-radius: 16px;
+  max-width: 640px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.header {
+  padding: 40px 40px 32px;
+  border-bottom: 1px solid #e5e5e5;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: #160101;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--text-base);
+  color: #666;
+  line-height: 1.5;
+}
+
+.content {
+  padding: 32px 40px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #160101;
+}
+
+.input {
+  padding: 12px 16px;
+  font-size: var(--text-base);
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #160101;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #E94444;
+  box-shadow: 0 0 0 3px rgba(233, 68, 68, 0.1);
+}
+
+.input:disabled {
+  background-color: #f9f9f9;
+  opacity: 0.7;
+}
+
+.errorMessage {
+  font-size: var(--text-sm);
+  color: #E94444;
+}
+
+.primaryButton {
+  padding: 14px 24px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: #fff;
+  background-color: #E94444;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: inherit;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: #d43333;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 32px 0;
+  color: #666;
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.emptyHint {
+  margin-top: 8px;
+  font-size: var(--text-sm);
+}
+
+.link {
+  color: #E94444;
+  text-decoration: underline;
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ordersTitle {
+  margin: 0 0 16px;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: #160101;
+}
+
+.orderCard {
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.orderCard:hover {
+  border-color: #E94444;
+}
+
+.orderCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.orderNumber {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: #160101;
+}
+
+.orderDate {
+  font-size: var(--text-sm);
+  color: #666;
+}
+
+.orderCardBody {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orderDetail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.detailLabel {
+  font-size: var(--text-sm);
+  color: #666;
+  font-weight: 500;
+}
+
+.detailValue {
+  font-size: var(--text-sm);
+  color: #160101;
+  font-weight: 600;
+  text-align: right;
+}
+
+.payStatus_paid {
+  color: #22a843;
+}
+
+.payStatus_pending {
+  color: #f59e0b;
+}
+
+.payStatus_failed {
+  color: #E94444;
+}
+
+.payStatus_refunded {
+  color: #6366f1;
+}
+
+.orderCardFooter {
+  padding: 12px 20px;
+  border-top: 1px solid #e5e5e5;
+  background-color: #fafafa;
+}
+
+.viewOrderButton {
+  display: inline-block;
+  padding: 8px 20px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #E94444;
+  background-color: transparent;
+  border: 2px solid #E94444;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.viewOrderButton:hover {
+  background-color: #E94444;
+  color: #fff;
+}
+
+.footer {
+  padding: 24px 40px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.backLink {
+  font-size: var(--text-sm);
+  color: #666;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: #E94444;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .header {
+    padding: 28px 20px 24px;
+  }
+
+  .content {
+    padding: 24px 20px;
+  }
+
+  .footer {
+    padding: 20px;
+  }
+
+  .orderCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .orderDetail {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .detailValue {
+    text-align: left;
+  }
+}

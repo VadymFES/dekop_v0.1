@@ -330,8 +330,12 @@ export default function CheckoutPage() {
       });
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json();
-        throw new Error(errorData.error || 'Failed to create order');
+        let errorMessage = 'Помилка при створенні замовлення. Спробуйте ще раз.';
+        try {
+          const errorData = await orderResponse.json();
+          if (errorData?.error) errorMessage = errorData.error;
+        } catch {}
+        throw new Error(errorMessage);
       }
 
       const { order } = await orderResponse.json();
@@ -551,7 +555,9 @@ export default function CheckoutPage() {
                   onClick={handleNext}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? (
+                  {isSubmitting && currentStep === 4 ? (
+                    'Вас буде перенаправлено до LiqPay...'
+                  ) : isSubmitting ? (
                     'Обробка...'
                   ) : currentStep === 4 ? (
                     'Підтвердити та оплатити'
