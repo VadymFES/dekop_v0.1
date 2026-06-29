@@ -14,7 +14,7 @@ import {
   safeValidateInput,
   formatValidationErrors,
 } from '@/app/lib/admin-validation';
-import { invalidateCategoriesCache } from '@/app/lib/category-utils';
+import { invalidateCategoriesCache } from '@/app/lib/category-cache.server';
 import { validateCsrfRequest } from '@/app/lib/csrf-protection';
 import slugify from 'slugify';
 
